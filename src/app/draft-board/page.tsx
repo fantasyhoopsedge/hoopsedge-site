@@ -246,7 +246,7 @@ export default function DraftBoard() {
                     gap: "8px", marginBottom: "24px"
                   }}>
                     {CATS.map((cat) => {
-                      const val = (p as Record<string, string>)[cat];
+                      const val = (p as unknown as Record<string, string>)[cat];
                       if (!val) return null;
                       return (
                         <div key={cat} style={{ textAlign: "center" }}>
@@ -278,7 +278,7 @@ export default function DraftBoard() {
                   <p style={{
                     fontSize: "14px", color: "var(--text-secondary)",
                     lineHeight: 1.65
-                  }}>{(p as Record<string, string>).verdict}</p>
+                  }}>{(p as unknown as Record<string, string>).verdict}</p>
                 </div>
               )}
             </div>
