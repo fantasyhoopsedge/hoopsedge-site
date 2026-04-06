@@ -1,0 +1,38 @@
+# FantasyHoopsEdge — 2026 Dynasty Rookie Draft Board
+# Master Category Ratings Reference File
+# Last updated: April 7, 2026
+#
+# INSTRUCTIONS FOR CLAUDE:
+# Pull ratings ONLY from this file for the website draft board.
+# Do NOT guess. For new prospects, ask Ash or build a card first.
+#
+# RATING KEY: 5★=Elite(green) 4★=Positive(blue) 3★=Neutral(gold) 2★=Negative(orange) 1★=Severe(red)
+#
+# FORMAT: Player | PTS REB AST STL BLK FG FT TPM TO
+
+# 01 Cameron Boozer    | DUK  | PTS=5 REB=5 AST=4 STL=4 BLK=4 FG=5 FT=4 TPM=3 TO=4
+# 02 AJ Dybantsa       | BYU  | PTS=5 REB=4 AST=4 STL=3 BLK=3 FG=4 FT=3 TPM=3 TO=2
+# 03 Darryn Peterson   | KAN  | PTS=5 REB=3 AST=3 STL=3 BLK=3 FG=3 FT=3 TPM=4 TO=3
+# 04 Caleb Wilson      | UNC  | PTS=4 REB=5 AST=3 STL=3 BLK=3 FG=4 FT=3 TPM=2 TO=3
+# 05 Kingston Flemings | HOU  | PTS=4 REB=1 AST=5 STL=4 BLK=3 FG=4 FT=3 TPM=2 TO=2
+# 06 Keaton Wagler     | ILL  | PTS=5 REB=3 AST=4 STL=3 BLK=2 FG=4 FT=4 TPM=5 TO=4
+# 07 Mikel Brown Jr.   | LOU  | PTS=5 REB=2 AST=4 STL=3 BLK=2 FG=2 FT=4 TPM=3 TO=2
+# 08 Darius Acuff Jr.  | ARK  | PTS=5 REB=2 AST=5 STL=3 BLK=2 FG=5 FT=4 TPM=5 TO=3
+# 09 Aday Mara         | MCH  | PTS=3 REB=5 AST=4 STL=2 BLK=5 FG=5 FT=1 TPM=2 TO=2
+# 10 Labaron Philon    | ALA  | PTS=4 REB=2 AST=4 STL=4 BLK=3 FG=3 FT=3 TPM=4 TO=2
+# 11 Brayden Burries   | ARZ  | PTS=4 REB=3 AST=3 STL=4 BLK=2 FG=4 FT=4 TPM=3 TO=5
+# 12 Yaxel Lendeborg   | MCH  | PTS=3 REB=4 AST=4 STL=4 BLK=4 FG=4 FT=4 TPM=3 TO=3
+# 13 Bennett Stirtz    | IOWA | PTS=4 REB=2 AST=4 STL=4 BLK=2 FG=3 FT=4 TPM=4 TO=3
+# 14 Allen Graves      | SCU  | PTS=4 REB=4 AST=3 STL=5 BLK=4 FG=4 FT=3 TPM=4 TO=3
+# 15 Cameron Carr      | BAY  | PTS=5 REB=4 AST=3 STL=2 BLK=5 FG=4 FT=3 TPM=4 TO=2
+# 16 Hannes Steinbach  | WSH  | PTS=4 REB=5 AST=3 STL=2 BLK=3 FG=5 FT=3 TPM=2 TO=3
+# 17 Jayden Quaintance | KEN  | PTS=2 REB=4 AST=2 STL=3 BLK=5 FG=4 FT=2 TPM=2 TO=3
+# 18 Dailyn Swain      | TEX  | PTS=3 REB=4 AST=3 STL=4 BLK=3 FG=4 FT=4 TPM=2 TO=3
+# 19 Morez Johnson Jr. | MCH  | PTS=3 REB=4 AST=2 STL=3 BLK=4 FG=5 FT=3 TPM=2 TO=3
+# 20 Braylon Mullins   | UCONN| PTS=4 REB=3 AST=3 STL=3 BLK=3 FG=3 FT=3 TPM=5 TO=3
+
+# ADDITIONAL (outside top 20):
+# Tyler Tanner    | VAND | STL=5 AST=4 FT=4 PTS=3 FG=3 BLK=3 TPM=3 TO=3 REB=2
+# Koa Peat        | ARZ  | PTS=4 REB=4 FG=4 BLK=4 AST=3 STL=3 TO=3 TPM=2 FT=2
+# Nate Ament      | TEN  | PTS=4 REB=4 STL=4 FT=4 AST=3 TPM=3 FG=2 BLK=2 TO=2
+# Karim Lopez     | NZ   | REB=4 BLK=4 TO=4 PTS=3 FG=3 STL=3 FT=3 TPM=2 AST=2

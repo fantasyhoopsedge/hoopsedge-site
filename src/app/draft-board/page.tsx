@@ -3,70 +3,46 @@ import { useState } from "react";
 
 // ============================================================
 // DRAFT BOARD DATA — UPDATE THIS ARRAY TO CHANGE THE BOARD
-// Move, add, or remove players here. UI updates automatically.
-// Category ratings: 5★ elite, 4★ positive, 3★ neutral, 2★ negative, 1★ severe
+// Ratings pulled from dynasty_board_ratings_master.txt
+// Last synced: April 7, 2026
 // ============================================================
 const DRAFT_BOARD = [
-  {
-    rank: 1, pick: "1.01", name: "Cameron Boozer", school: "DUK", pos: "W/F", tier: 1, age: 19, ht: '6\'10"',
-    pts: "3★", reb: "4★", ast: "3★", stl: "3★", blk: "4★", fg: "5★", ft: "4★", tpm: "3★", to: "3★",
-    verdict: "Elite FG% floor with multi-category upside. The safest prospect in the class — a 9-cat cornerstone who contributes everywhere without hurting you."
-  },
-  {
-    rank: 2, pick: "1.02", name: "AJ Dybantsa", school: "BYU", pos: "W/F", tier: 1, age: 18, ht: '6\'9"',
-    pts: "5★", reb: "3★", ast: "3★", stl: "3★", blk: "2★", fg: "3★", ft: "4★", tpm: "4★", to: "3★",
-    verdict: "Volume scorer with elite 3PM upside. Ceiling is the highest in the class but comes with FG% variance. Dynasty managers who need points and threes should target aggressively."
-  },
-  {
-    rank: 3, pick: "1.03", name: "Darryn Peterson", school: "KAN", pos: "G/W", tier: 1, age: 19, ht: '6\'4"',
-    pts: "4★", reb: "3★", ast: "4★", stl: "4★", blk: "2★", fg: "4★", ft: "4★", tpm: "3★", to: "3★",
-    verdict: "Complete guard profile with elite steal upside. Positive in four categories with no glaring weakness. The kind of guard who anchors your build for a decade."
-  },
-  {
-    rank: 4, pick: "1.04", name: "Caleb Wilson", school: "UNC", pos: "W/F", tier: 2, age: 20, ht: '6\'8"',
-    pts: "4★", reb: "3★", ast: "4★", stl: "3★", blk: "2★", fg: "4★", ft: "4★", tpm: "3★", to: "3★",
-    verdict: "Versatile wing with strong efficiency metrics. Contributes across the board without dominating any single category — the ultimate roster glue piece in deep leagues."
-  },
-  {
-    rank: 5, pick: "1.05", name: "Kingston Flemings", school: "HOU", pos: "G", tier: 2, age: 20, ht: '6\'3"',
-    pts: "4★", reb: "2★", ast: "4★", stl: "4★", blk: "2★", fg: "3★", ft: "4★", tpm: "4★", to: "3★",
-    verdict: "Elite steal and assist combo guard. The 3PM volume is real and the FT% is bankable. A three-category winner at the guard position."
-  },
-  {
-    rank: 6, pick: "1.06", name: "Keaton Wagler", school: "ILL", pos: "G", tier: 2, age: 20, ht: '6\'5"',
-    pts: "4★", reb: "3★", ast: "3★", stl: "3★", blk: "2★", fg: "4★", ft: "5★", tpm: "4★", to: "4★",
-    verdict: "Elite FT% with strong 3PM and efficiency. Low turnover profile makes him a safe floor play. Won't lose you categories — the kind of guard you build around in 9-cat."
-  },
-  {
-    rank: 7, pick: "1.07", name: "Mikel Brown Jr.", school: "LOU", pos: "G", tier: 2, age: 21, ht: '6\'5"',
-    pts: "4★", reb: "2★", ast: "4★", stl: "4★", blk: "2★", fg: "3★", ft: "4★", tpm: "3★", to: "3★",
-    verdict: "Assist-first guard with elite steal upside and positional size. The defensive stats translate immediately at the NBA level. A category specialist who anchors your steals and assists."
-  },
-  {
-    rank: 8, pick: "1.08", name: "Darius Acuff Jr.", school: "ARK", pos: "G", tier: 2, age: 20, ht: '6\'1"',
-    pts: "4★", reb: "2★", ast: "5★", stl: "3★", blk: "2★", fg: "3★", ft: "4★", tpm: "3★", to: "2★",
-    verdict: "Elite assist upside with a high usage rate. The turnover risk is real but the playmaking ceiling is the best in this class. High risk, high reward dynasty asset."
-  },
-  {
-    rank: 9, pick: "1.09", name: "Aday Mara", school: "MCH", pos: "C", tier: 2, age: 20, ht: '7\'3"',
-    pts: "3★", reb: "4★", ast: "3★", stl: "2★", blk: "4★", fg: "4★", ft: "3★", tpm: "2★", to: "3★",
-    verdict: "Size and skill combo with passing ability rare for a 7-footer. The block and rebound upside paired with solid FG% makes him a category contributor at center."
-  },
-  {
-    rank: 10, pick: "1.10", name: "Labaron Philon Jr.", school: "ALA", pos: "G", tier: 2, age: 20, ht: '6\'3"',
-    pts: "4★", reb: "2★", ast: "4★", stl: "3★", blk: "2★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
-    verdict: "Balanced guard profile with scoring and playmaking. No elite category but no weakness either. A solid floor play in the late first round of dynasty drafts."
-  },
-  {
-    rank: 11, pick: "1.11", name: "Brayden Burries", school: "ARZ", pos: "G/W", tier: 3, age: 20, ht: '6\'4"',
-    pts: "3★", reb: "3★", ast: "3★", stl: "4★", blk: "2★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
-    verdict: "Defensive-first guard with steal upside. The offensive game is still developing but the steal production translates immediately. A category specialist worth rostering in deep formats."
-  },
-  {
-    rank: 12, pick: "1.12", name: "Yaxel Lendeborg", school: "MCH", pos: "W/F", tier: 3, age: 24, ht: '6\'7"',
-    pts: "3★", reb: "4★", ast: "3★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "3★", to: "3★",
-    verdict: "Efficient two-way wing with solid rebounding and FG%. The age is a concern for dynasty runway, but the well-rounded profile and defensive versatility give him a safe floor in 9-cat."
-  },
+  { rank: 1, pick: "1.01", name: "Cameron Boozer", school: "DUK", pos: "W/F", tier: 1, age: 19, ht: '6\'10"',
+    pts: "5★", reb: "5★", ast: "4★", stl: "4★", blk: "4★", fg: "5★", ft: "4★", tpm: "3★", to: "4★",
+    verdict: "Safest dynasty pick in the 2026 class. Elite or positive across 7 of 9 categories. The size and feel project across all categories at NBA level. In category leagues, this profile wins championships." },
+  { rank: 2, pick: "1.02", name: "AJ Dybantsa", school: "BYU", pos: "W/F", tier: 1, age: 18, ht: '6\'9"',
+    pts: "5★", reb: "4★", ast: "4★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "3★", to: "2★",
+    verdict: "Led the nation in scoring as a freshman — first since Trae Young in 2018. 6'9\" wing who draws fouls in bunches. PTS elite, FG% and REB positive. TO is the dynasty risk to manage." },
+  { rank: 3, pick: "1.03", name: "Darryn Peterson", school: "KAN", pos: "G/W", tier: 1, age: 19, ht: '6\'4"',
+    pts: "5★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "4★", to: "3★",
+    verdict: "PTS and 3PT are the category league weapons here. Only 22 games played — but scouts still have him top 3. The concern is availability. High risk, high reward at 1.03." },
+  { rank: 4, pick: "1.04", name: "Caleb Wilson", school: "UNC", pos: "W/F", tier: 2, age: 20, ht: '6\'8"',
+    pts: "4★", reb: "5★", ast: "3★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "2★", to: "3★",
+    verdict: "REB elite, PTS and FG% positive. Season ended early — broken thumb. Expected to be cleared for predraft process. 3PT at 25.9% is the one concern. Dynasty gold if healthy." },
+  { rank: 5, pick: "1.05", name: "Kingston Flemings", school: "HOU", pos: "G", tier: 2, age: 20, ht: '6\'3"',
+    pts: "4★", reb: "1★", ast: "5★", stl: "4★", blk: "3★", fg: "4★", ft: "3★", tpm: "2★", to: "2★",
+    verdict: "The most elite playmaking guard in the 2026 class. AST and STL are both elite — that combination at the NBA level is what winning rosters are built around. REB, 3PT and TO are the negatives." },
+  { rank: 6, pick: "1.06", name: "Keaton Wagler", school: "ILL", pos: "G", tier: 2, age: 20, ht: '6\'5"',
+    pts: "5★", reb: "3★", ast: "4★", stl: "3★", blk: "2★", fg: "4★", ft: "4★", tpm: "5★", to: "4★",
+    verdict: "A 9-cat dream guard. PTS, 3PM, AST, FG%, FT% all positive or elite. Lacks elite upside in defensive cats but fills 6-7 categories comfortably. Consensus Second Team All-American." },
+  { rank: 7, pick: "1.07", name: "Mikel Brown Jr.", school: "LOU", pos: "G", tier: 2, age: 21, ht: '6\'5"',
+    pts: "5★", reb: "2★", ast: "4★", stl: "3★", blk: "2★", fg: "2★", ft: "4★", tpm: "3★", to: "2★",
+    verdict: "PTS elite — peak of 29.2 PPG in his last 5 healthy games. AST and FT% positive. REB, BLK, FG% and TO are the negatives. Lower back injury is the only reason he's not top 5. Predraft medicals are everything." },
+  { rank: 8, pick: "1.08", name: "Darius Acuff Jr.", school: "ARK", pos: "G", tier: 2, age: 20, ht: '6\'1"',
+    pts: "5★", reb: "2★", ast: "5★", stl: "3★", blk: "2★", fg: "5★", ft: "4★", tpm: "5★", to: "3★",
+    verdict: "SEC Player of the Year, Freshman of the Year, SEC Tournament MVP. Led the SEC in scoring and assists. Three elite categories (PTS, AST, FG%) with 3PM elite too. REB and BLK are the only drags." },
+  { rank: 9, pick: "1.09", name: "Aday Mara", school: "MCH", pos: "C", tier: 2, age: 20, ht: '7\'3"',
+    pts: "3★", reb: "5★", ast: "4★", stl: "2★", blk: "5★", fg: "5★", ft: "1★", tpm: "2★", to: "2★",
+    verdict: "Three elites — FG%, REB and BLK. The most dominant big man category profile in the class. FT% at 1★ is a serious drag in 9-cat — the one reason he's not higher. AST positive for a center." },
+  { rank: 10, pick: "1.10", name: "Labaron Philon Jr.", school: "ALA", pos: "G", tier: 2, age: 20, ht: '6\'3"',
+    pts: "4★", reb: "2★", ast: "4★", stl: "4★", blk: "3★", fg: "3★", ft: "3★", tpm: "4★", to: "2★",
+    verdict: "PTS, AST, STL and 3PM all positive — four category contributors as a sophomore scorer. FG% and FT% are neutral, BLK won't hurt you. REB and TO are the two drags to manage. 1.10 is the value pick of the top 10." },
+  { rank: 11, pick: "1.11", name: "Brayden Burries", school: "ARZ", pos: "G", tier: 3, age: 20, ht: '6\'4"',
+    pts: "4★", reb: "3★", ast: "3★", stl: "4★", blk: "2★", fg: "4★", ft: "4★", tpm: "3★", to: "5★",
+    verdict: "PTS, STL, FG%, FT% all positive — and TO is elite. The cleanest stat sheet in the 1.10s. BLK is the one drag. 3PM needs volume to become a real weapon. A safe, well-rounded pick at 1.11." },
+  { rank: 12, pick: "1.12", name: "Yaxel Lendeborg", school: "MCH", pos: "W/F", tier: 3, age: 24, ht: '6\'7"',
+    pts: "3★", reb: "4★", ast: "4★", stl: "4★", blk: "4★", fg: "4★", ft: "4★", tpm: "3★", to: "3★",
+    verdict: "Six positives across REB, AST, STL, BLK, FG%, FT%. Elite dynasty profile — contributes across every category without a weakness. Big Ten POY. Consensus All-American. Age at 23 is the only dynasty tradeoff." },
   // === PICKS 13-30: BLURRED / GATED ===
   { rank: 13, pick: "1.13", name: "Bennett Stirtz", school: "IOWA", pos: "G", tier: 3, age: 22, ht: '6\'5"' },
   { rank: 14, pick: "1.14", name: "Allen Graves", school: "SCU", pos: "W/F", tier: 3, age: 21, ht: '6\'5"' },
@@ -119,7 +95,6 @@ export default function DraftBoard() {
 
   return (
     <>
-      {/* NAV */}
       <nav>
         <a href="/" style={{ textDecoration: "none" }}>
           <div className="nav-brand">Fantasy Hoops <span className="accent">Edge</span></div>
@@ -133,12 +108,9 @@ export default function DraftBoard() {
         </ul>
       </nav>
 
-      {/* HEADER */}
       <div style={{
-        background: "var(--blueprint)",
-        padding: "120px 60px 60px",
-        position: "relative",
-        overflow: "hidden"
+        background: "var(--blueprint)", padding: "120px 60px 60px",
+        position: "relative", overflow: "hidden"
       }}>
         <div style={{
           position: "absolute", right: "-40px", top: "-20px",
@@ -163,17 +135,15 @@ export default function DraftBoard() {
         </p>
       </div>
 
-      {/* BOARD */}
       <div style={{ padding: "40px 60px 100px", maxWidth: "900px" }}>
         {DRAFT_BOARD.map((p) => {
           const isLocked = p.rank > 12;
           const isExpanded = expanded === p.rank;
           const tier = tierLabel(p.tier);
-          const hasCard = !!(p as Record<string, unknown>).verdict;
+          const hasCard = !!(p as unknown as Record<string, string>).verdict;
 
           return (
             <div key={p.rank} style={{ position: "relative" }}>
-              {/* ROW */}
               <div
                 onClick={() => isLocked ? setShowModal(true) : hasCard ? toggle(p.rank) : null}
                 style={{
@@ -195,7 +165,6 @@ export default function DraftBoard() {
                   fontSize: "28px", color: "var(--blueprint-glow)",
                   minWidth: "44px", textAlign: "center"
                 }}>{p.rank}</div>
-
                 <div style={{ flex: 1 }}>
                   <div style={{
                     fontFamily: "'Oswald', sans-serif", fontWeight: 600,
@@ -208,14 +177,11 @@ export default function DraftBoard() {
                     {p.ht && <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>· {p.ht}</span>}
                   </div>
                 </div>
-
                 <div style={{
                   fontFamily: "'JetBrains Mono', monospace", fontSize: "12px",
                   fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.5px"
                 }}>PICK {p.pick}</div>
-
                 <div className={`dbp-tier ${tier.cls}`}>{tier.text}</div>
-
                 {!isLocked && hasCard && (
                   <div style={{
                     fontSize: "14px", color: "var(--text-muted)",
@@ -225,7 +191,6 @@ export default function DraftBoard() {
                 )}
               </div>
 
-              {/* EXPANDED CARD */}
               {isExpanded && !isLocked && hasCard && (
                 <div style={{
                   background: "var(--bg-card)",
@@ -269,7 +234,6 @@ export default function DraftBoard() {
                       );
                     })}
                   </div>
-
                   <div style={{
                     fontFamily: "'Oswald', sans-serif", fontSize: "11px",
                     letterSpacing: "3px", textTransform: "uppercase",
@@ -285,7 +249,6 @@ export default function DraftBoard() {
           );
         })}
 
-        {/* UNLOCK CTA */}
         <div style={{
           textAlign: "center", padding: "48px 24px",
           background: "var(--bg-card)",
@@ -307,7 +270,6 @@ export default function DraftBoard() {
         </div>
       </div>
 
-      {/* FOOTER */}
       <footer>
         <div className="footer-brand">Fantasy Hoops <span className="accent">Edge</span></div>
         <div className="footer-links">
@@ -321,7 +283,6 @@ export default function DraftBoard() {
         </div>
       </footer>
 
-      {/* SIGN UP MODAL */}
       <div
         className={`modal-overlay ${showModal ? "active" : ""}`}
         onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
