@@ -1,0 +1,7896 @@
+[
+  {
+    "consensusRank": 1,
+    "player": "Victor Wembanyama",
+    "team": "SAS",
+    "position": "C",
+    "age": 22.3,
+    "expertRanks": {
+      "matt": 1,
+      "dizzle": 1,
+      "angle": 1,
+      "jason": 1,
+      "hashtag": 1,
+      "noah": 1
+    },
+    "avgRank": 1.0,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 2,
+    "player": "Shai Gilgeous-Alexander",
+    "team": "OKC",
+    "position": "PG",
+    "age": 27.8,
+    "expertRanks": {
+      "matt": 2,
+      "dizzle": 2,
+      "angle": 2,
+      "jason": 2,
+      "hashtag": 2,
+      "noah": 2
+    },
+    "avgRank": 2.0,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 3,
+    "player": "Nikola Jokic",
+    "team": "DEN",
+    "position": "C",
+    "age": 31.2,
+    "expertRanks": {
+      "matt": 3,
+      "dizzle": 4,
+      "angle": 3,
+      "jason": 3,
+      "hashtag": 4,
+      "noah": 4
+    },
+    "avgRank": 3.5,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 4,
+    "player": "Luka Doncic",
+    "team": "LAL",
+    "position": "SF",
+    "age": 27.2,
+    "expertRanks": {
+      "matt": 4,
+      "dizzle": 3,
+      "angle": 4,
+      "jason": 4,
+      "hashtag": 3,
+      "noah": 3
+    },
+    "avgRank": 3.5,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 5,
+    "player": "Cade Cunningham",
+    "team": "DET",
+    "position": "SG",
+    "age": 24.6,
+    "expertRanks": {
+      "matt": 5,
+      "dizzle": 6,
+      "angle": 5,
+      "jason": 6,
+      "hashtag": 5,
+      "noah": 6
+    },
+    "avgRank": 5.5,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 6,
+    "player": "Cooper Flagg",
+    "team": "DAL",
+    "position": "PF",
+    "age": 19.3,
+    "expertRanks": {
+      "matt": 6,
+      "dizzle": 5,
+      "angle": 6,
+      "jason": 7,
+      "hashtag": 6,
+      "noah": 5
+    },
+    "avgRank": 5.83,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 7,
+    "player": "Tyrese Maxey",
+    "team": "PHI",
+    "position": "SG",
+    "age": 25.5,
+    "expertRanks": {
+      "matt": 7,
+      "dizzle": 7,
+      "angle": 8,
+      "jason": 5,
+      "hashtag": 7,
+      "noah": 7
+    },
+    "avgRank": 6.83,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 8,
+    "player": "Anthony Edwards",
+    "team": "MIN",
+    "position": "SG",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 8,
+      "dizzle": 8,
+      "angle": 7,
+      "jason": 8,
+      "hashtag": 8,
+      "noah": 9
+    },
+    "avgRank": 8.0,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 9,
+    "player": "Jalen Johnson",
+    "team": "ATL",
+    "position": "PF",
+    "age": 24.4,
+    "expertRanks": {
+      "matt": 9,
+      "dizzle": 9,
+      "angle": 9,
+      "jason": 10,
+      "hashtag": 10,
+      "noah": 8
+    },
+    "avgRank": 9.17,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 10,
+    "player": "Alperen Sengun",
+    "team": "HOU",
+    "position": "C",
+    "age": 23.7,
+    "expertRanks": {
+      "matt": 12,
+      "dizzle": 13,
+      "angle": 11,
+      "jason": 13,
+      "hashtag": 15,
+      "noah": 12
+    },
+    "avgRank": 12.67,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 11,
+    "player": "Cameron Boozer",
+    "team": "2026 Rookie",
+    "position": "PF",
+    "age": 18.8,
+    "expertRanks": {
+      "matt": 15,
+      "dizzle": 12,
+      "hashtag": 9,
+      "noah": 15
+    },
+    "avgRank": 12.75,
+    "rankedByCount": 4,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 12,
+    "player": "Scottie Barnes",
+    "team": "TOR",
+    "position": "PF",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 13,
+      "dizzle": 16,
+      "angle": 10,
+      "jason": 11,
+      "hashtag": 11,
+      "noah": 17
+    },
+    "avgRank": 13.0,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 13,
+    "player": "Jayson Tatum",
+    "team": "BOS",
+    "position": "SF",
+    "age": 28.1,
+    "expertRanks": {
+      "matt": 11,
+      "dizzle": 10,
+      "angle": 19,
+      "jason": 15,
+      "hashtag": 14,
+      "noah": 10
+    },
+    "avgRank": 13.17,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 14,
+    "player": "Chet Holmgren",
+    "team": "OKC",
+    "position": "PF",
+    "age": 24.0,
+    "expertRanks": {
+      "matt": 18,
+      "dizzle": 14,
+      "angle": 13,
+      "jason": 12,
+      "hashtag": 13,
+      "noah": 13
+    },
+    "avgRank": 13.83,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 15,
+    "player": "Tyrese Haliburton",
+    "team": "IND",
+    "position": "PG",
+    "age": 26.2,
+    "expertRanks": {
+      "matt": 10,
+      "dizzle": 11,
+      "angle": 21,
+      "jason": 14,
+      "hashtag": 21,
+      "noah": 11
+    },
+    "avgRank": 14.67,
+    "rankedByCount": 6,
+    "tier": 1,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 16,
+    "player": "Jalen Williams",
+    "team": "OKC",
+    "position": "SF",
+    "age": 25.0,
+    "expertRanks": {
+      "matt": 21,
+      "dizzle": 17,
+      "angle": 18,
+      "jason": 9,
+      "hashtag": 16,
+      "noah": 14
+    },
+    "avgRank": 15.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 17,
+    "player": "Evan Mobley",
+    "team": "CLE",
+    "position": "C",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 17,
+      "dizzle": 15,
+      "angle": 22,
+      "jason": 17,
+      "hashtag": 12,
+      "noah": 20
+    },
+    "avgRank": 17.17,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 18,
+    "player": "Amen Thompson",
+    "team": "HOU",
+    "position": "SF",
+    "age": 23.2,
+    "expertRanks": {
+      "matt": 16,
+      "dizzle": 20,
+      "angle": 14,
+      "jason": 18,
+      "hashtag": 23,
+      "noah": 16
+    },
+    "avgRank": 17.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 19,
+    "player": "Giannis Antetokounmpo",
+    "team": "MIL",
+    "position": "PF",
+    "age": 31.4,
+    "expertRanks": {
+      "matt": 25,
+      "dizzle": 19,
+      "angle": 12,
+      "jason": 21,
+      "hashtag": 19,
+      "noah": 18
+    },
+    "avgRank": 19.0,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 20,
+    "player": "Donovan Mitchell",
+    "team": "CLE",
+    "position": "SG",
+    "age": 29.6,
+    "expertRanks": {
+      "matt": 20,
+      "dizzle": 23,
+      "angle": 17,
+      "jason": 20,
+      "hashtag": 18,
+      "noah": 21
+    },
+    "avgRank": 19.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 21,
+    "player": "Darryn Peterson",
+    "team": "2026 Rookie",
+    "position": "SG",
+    "age": 19.3,
+    "expertRanks": {
+      "matt": 14,
+      "dizzle": 18,
+      "hashtag": 37,
+      "noah": 19
+    },
+    "avgRank": 22.0,
+    "rankedByCount": 4,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 22,
+    "player": "AJ Dybantsa",
+    "team": "2026 Rookie",
+    "position": "SF",
+    "age": 19.2,
+    "expertRanks": {
+      "matt": 23,
+      "dizzle": 24,
+      "hashtag": 17,
+      "noah": 28
+    },
+    "avgRank": 23.0,
+    "rankedByCount": 4,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 23,
+    "player": "Franz Wagner",
+    "team": "ORL",
+    "position": "SF",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 27,
+      "dizzle": 21,
+      "angle": 29,
+      "jason": 22,
+      "hashtag": 25,
+      "noah": 23
+    },
+    "avgRank": 24.5,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 24,
+    "player": "Trae Young",
+    "team": "WAS",
+    "position": "PG",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 42,
+      "dizzle": 28,
+      "angle": 15,
+      "jason": 19,
+      "hashtag": 20,
+      "noah": 25
+    },
+    "avgRank": 24.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 25,
+    "player": "Devin Booker",
+    "team": "PHO",
+    "position": "SG",
+    "age": 29.5,
+    "expertRanks": {
+      "matt": 28,
+      "dizzle": 29,
+      "angle": 16,
+      "jason": 31,
+      "hashtag": 24,
+      "noah": 22
+    },
+    "avgRank": 25.0,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 26,
+    "player": "Deni Avdija",
+    "team": "POR",
+    "position": "SF",
+    "age": 25.3,
+    "expertRanks": {
+      "matt": 19,
+      "dizzle": 25,
+      "angle": 28,
+      "jason": 23,
+      "hashtag": 30,
+      "noah": 29
+    },
+    "avgRank": 25.67,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 27,
+    "player": "Austin Reaves",
+    "team": "LAL",
+    "position": "SG",
+    "age": 27.9,
+    "expertRanks": {
+      "matt": 22,
+      "dizzle": 22,
+      "angle": 30,
+      "jason": 25,
+      "hashtag": 26,
+      "noah": 35
+    },
+    "avgRank": 26.67,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 28,
+    "player": "LaMelo Ball",
+    "team": "CHA",
+    "position": "PG",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 36,
+      "dizzle": 30,
+      "angle": 20,
+      "jason": 16,
+      "hashtag": 36,
+      "noah": 30
+    },
+    "avgRank": 28.0,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 29,
+    "player": "Trey Murphy",
+    "team": "NOR",
+    "position": "SF",
+    "age": 25.8,
+    "expertRanks": {
+      "matt": 29,
+      "dizzle": 35,
+      "angle": 31,
+      "jason": 38,
+      "hashtag": 22,
+      "noah": 24
+    },
+    "avgRank": 29.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 30,
+    "player": "Dylan Harper",
+    "team": "SAS",
+    "position": "PG",
+    "age": 20.1,
+    "expertRanks": {
+      "matt": 26,
+      "dizzle": 26,
+      "angle": 32,
+      "jason": 29,
+      "hashtag": 41,
+      "noah": 27
+    },
+    "avgRank": 30.17,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 31,
+    "player": "Jamal Murray",
+    "team": "DEN",
+    "position": "PG",
+    "age": 29.2,
+    "expertRanks": {
+      "matt": 33,
+      "dizzle": 36,
+      "angle": 24,
+      "jason": 28,
+      "hashtag": 29,
+      "noah": 34
+    },
+    "avgRank": 30.67,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 32,
+    "player": "Karl-Anthony Towns",
+    "team": "NYK",
+    "position": "C",
+    "age": 30.4,
+    "expertRanks": {
+      "matt": 45,
+      "dizzle": 43,
+      "angle": 25,
+      "jason": 30,
+      "hashtag": 27,
+      "noah": 26
+    },
+    "avgRank": 32.67,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 33,
+    "player": "Jalen Brunson",
+    "team": "NYK",
+    "position": "PG",
+    "age": 29.6,
+    "expertRanks": {
+      "matt": 43,
+      "dizzle": 32,
+      "angle": 23,
+      "jason": 34,
+      "hashtag": 35,
+      "noah": 32
+    },
+    "avgRank": 33.17,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 34,
+    "player": "Alex Sarr",
+    "team": "WAS",
+    "position": "PF",
+    "age": 21.0,
+    "expertRanks": {
+      "matt": 41,
+      "dizzle": 39,
+      "angle": 26,
+      "jason": 33,
+      "hashtag": 33,
+      "noah": 31
+    },
+    "avgRank": 33.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 35,
+    "player": "Josh Giddey",
+    "team": "CHI",
+    "position": "SF",
+    "age": 23.5,
+    "expertRanks": {
+      "matt": 31,
+      "dizzle": 31,
+      "angle": 27,
+      "jason": 27,
+      "hashtag": 28,
+      "noah": 61
+    },
+    "avgRank": 34.17,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 36,
+    "player": "Darius Garland",
+    "team": "LAC",
+    "position": "PG",
+    "age": 26.2,
+    "expertRanks": {
+      "matt": 39,
+      "dizzle": 27,
+      "angle": 49,
+      "jason": 26,
+      "hashtag": 44,
+      "noah": 33
+    },
+    "avgRank": 36.33,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 37,
+    "player": "Jalen Duren",
+    "team": "DET",
+    "position": "C",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 38,
+      "dizzle": 34,
+      "angle": 34,
+      "jason": 42,
+      "hashtag": 31,
+      "noah": 42
+    },
+    "avgRank": 36.83,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 38,
+    "player": "Caleb Wilson",
+    "team": "2026 Rookie",
+    "position": "PF",
+    "age": 19.8,
+    "expertRanks": {
+      "matt": 24,
+      "dizzle": 37,
+      "hashtag": 48,
+      "noah": 39
+    },
+    "avgRank": 37.0,
+    "rankedByCount": 4,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 39,
+    "player": "Kon Knueppel",
+    "team": "CHA",
+    "position": "SF",
+    "age": 20.7,
+    "expertRanks": {
+      "matt": 30,
+      "dizzle": 33,
+      "angle": 36,
+      "jason": 54,
+      "hashtag": 34,
+      "noah": 38
+    },
+    "avgRank": 37.5,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 40,
+    "player": "Jaren Jackson Jr.",
+    "team": "UTA",
+    "position": "PF",
+    "age": 26.6,
+    "expertRanks": {
+      "matt": 48,
+      "dizzle": 41,
+      "angle": 42,
+      "jason": 24,
+      "hashtag": 32,
+      "noah": 41
+    },
+    "avgRank": 38.0,
+    "rankedByCount": 6,
+    "tier": 2,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 41,
+    "player": "Paolo Banchero",
+    "team": "ORL",
+    "position": "PF",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 40,
+      "dizzle": 38,
+      "angle": 37,
+      "jason": 32,
+      "hashtag": 42,
+      "noah": 49
+    },
+    "avgRank": 39.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 42,
+    "player": "Jaylen Brown",
+    "team": "BOS",
+    "position": "SF",
+    "age": 29.5,
+    "expertRanks": {
+      "matt": 53,
+      "dizzle": 42,
+      "angle": 33,
+      "jason": 45,
+      "hashtag": 39,
+      "noah": 40
+    },
+    "avgRank": 42.0,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 43,
+    "player": "De'Aaron Fox",
+    "team": "SAS",
+    "position": "PG",
+    "age": 28.3,
+    "expertRanks": {
+      "matt": 59,
+      "dizzle": 46,
+      "angle": 38,
+      "jason": 37,
+      "hashtag": 38,
+      "noah": 36
+    },
+    "avgRank": 42.33,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 44,
+    "player": "VJ Edgecombe",
+    "team": "PHI",
+    "position": "SG",
+    "age": 20.7,
+    "expertRanks": {
+      "matt": 34,
+      "dizzle": 45,
+      "angle": 41,
+      "jason": 52,
+      "hashtag": 53,
+      "noah": 37
+    },
+    "avgRank": 43.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 45,
+    "player": "Bam Adebayo",
+    "team": "MIA",
+    "position": "C",
+    "age": 28.8,
+    "expertRanks": {
+      "matt": 44,
+      "dizzle": 44,
+      "angle": 40,
+      "jason": 44,
+      "hashtag": 47,
+      "noah": 46
+    },
+    "avgRank": 44.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 46,
+    "player": "Domantas Sabonis",
+    "team": "SAC",
+    "position": "C",
+    "age": 30.0,
+    "expertRanks": {
+      "matt": 61,
+      "dizzle": 51,
+      "angle": 35,
+      "jason": 40,
+      "hashtag": 52,
+      "noah": 44
+    },
+    "avgRank": 47.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 47,
+    "player": "Lauri Markkanen",
+    "team": "UTA",
+    "position": "PF",
+    "age": 28.9,
+    "expertRanks": {
+      "matt": 46,
+      "dizzle": 48,
+      "angle": 50,
+      "jason": 39,
+      "hashtag": 56,
+      "noah": 48
+    },
+    "avgRank": 47.83,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 48,
+    "player": "Desmond Bane",
+    "team": "ORL",
+    "position": "SG",
+    "age": 27.8,
+    "expertRanks": {
+      "matt": 47,
+      "dizzle": 47,
+      "angle": 44,
+      "jason": 41,
+      "hashtag": 62,
+      "noah": 47
+    },
+    "avgRank": 48.0,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 49,
+    "player": "Anthony Davis",
+    "team": "WAS",
+    "position": "PF",
+    "age": 33.1,
+    "expertRanks": {
+      "matt": 52,
+      "dizzle": 53,
+      "angle": 39,
+      "jason": 46,
+      "hashtag": 59,
+      "noah": 53
+    },
+    "avgRank": 50.33,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 50,
+    "player": "Brandon Miller",
+    "team": "CHA",
+    "position": "PF",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 37,
+      "dizzle": 56,
+      "angle": 43,
+      "jason": 56,
+      "hashtag": 61,
+      "noah": 51
+    },
+    "avgRank": 50.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 51,
+    "player": "Tyler Herro",
+    "team": "MIA",
+    "position": "SG",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 69,
+      "dizzle": 54,
+      "angle": 45,
+      "jason": 36,
+      "hashtag": 50,
+      "noah": 52
+    },
+    "avgRank": 51.0,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 52,
+    "player": "Kingston Flemings",
+    "team": "2026 Rookie",
+    "position": "PG",
+    "age": 19.3,
+    "expertRanks": {
+      "matt": 35,
+      "dizzle": 50,
+      "hashtag": 75,
+      "noah": 50
+    },
+    "avgRank": 52.5,
+    "rankedByCount": 4,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 53,
+    "player": "James Harden",
+    "team": "CLE",
+    "position": "SG",
+    "age": 36.7,
+    "expertRanks": {
+      "matt": 65,
+      "dizzle": 49,
+      "angle": 46,
+      "jason": 61,
+      "hashtag": 46,
+      "noah": 59
+    },
+    "avgRank": 54.33,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 54,
+    "player": "Derrick White",
+    "team": "BOS",
+    "position": "PG",
+    "age": 31.8,
+    "expertRanks": {
+      "matt": 58,
+      "dizzle": 60,
+      "angle": 53,
+      "jason": 53,
+      "hashtag": 67,
+      "noah": 45
+    },
+    "avgRank": 56.0,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 55,
+    "player": "Stephen Curry",
+    "team": "GSW",
+    "position": "PG",
+    "age": 38.1,
+    "expertRanks": {
+      "matt": 67,
+      "dizzle": 57,
+      "angle": 51,
+      "jason": 58,
+      "hashtag": 51,
+      "noah": 55
+    },
+    "avgRank": 56.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 56,
+    "player": "Zach Edey",
+    "team": "MEM",
+    "position": "C",
+    "age": 23.9,
+    "expertRanks": {
+      "matt": 55,
+      "dizzle": 55,
+      "angle": 59,
+      "jason": 48,
+      "hashtag": 60,
+      "noah": 78
+    },
+    "avgRank": 59.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 57,
+    "player": "Keyonte George",
+    "team": "UTA",
+    "position": "SG",
+    "age": 22.5,
+    "expertRanks": {
+      "matt": 32,
+      "dizzle": 61,
+      "angle": 47,
+      "jason": 98,
+      "hashtag": 40,
+      "noah": 79
+    },
+    "avgRank": 59.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 58,
+    "player": "Stephon Castle",
+    "team": "SAS",
+    "position": "SF",
+    "age": 21.5,
+    "expertRanks": {
+      "matt": 56,
+      "dizzle": 58,
+      "angle": 60,
+      "jason": 69,
+      "hashtag": 45,
+      "noah": 69
+    },
+    "avgRank": 59.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 59,
+    "player": "Kevin Durant",
+    "team": "HOU",
+    "position": "SF",
+    "age": 37.6,
+    "expertRanks": {
+      "matt": 66,
+      "dizzle": 52,
+      "angle": 58,
+      "jason": 57,
+      "hashtag": 68,
+      "noah": 56
+    },
+    "avgRank": 59.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 60,
+    "player": "Onyeka Okongwu",
+    "team": "ATL",
+    "position": "C",
+    "age": 25.4,
+    "expertRanks": {
+      "matt": 50,
+      "dizzle": 62,
+      "angle": 62,
+      "jason": 65,
+      "hashtag": 58,
+      "noah": 64
+    },
+    "avgRank": 60.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 61,
+    "player": "Walker Kessler",
+    "team": "UTA",
+    "position": "C",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 70,
+      "dizzle": 68,
+      "angle": 71,
+      "jason": 50,
+      "hashtag": 69,
+      "noah": 43
+    },
+    "avgRank": 61.83,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 62,
+    "player": "Ivica Zubac",
+    "team": "IND",
+    "position": "C",
+    "age": 29.1,
+    "expertRanks": {
+      "matt": 54,
+      "dizzle": 59,
+      "angle": 73,
+      "jason": 60,
+      "hashtag": 54,
+      "noah": 73
+    },
+    "avgRank": 62.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 63,
+    "player": "Donovan Clingan",
+    "team": "POR",
+    "position": "C",
+    "age": 22.2,
+    "expertRanks": {
+      "matt": 71,
+      "dizzle": 40,
+      "angle": 78,
+      "jason": 67,
+      "hashtag": 49,
+      "noah": 76
+    },
+    "avgRank": 63.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 64,
+    "player": "Pascal Siakam",
+    "team": "IND",
+    "position": "PF",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 88,
+      "dizzle": 63,
+      "angle": 56,
+      "jason": 51,
+      "hashtag": 55,
+      "noah": 68
+    },
+    "avgRank": 63.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 65,
+    "player": "Jalen Suggs",
+    "team": "ORL",
+    "position": "PG",
+    "age": 24.9,
+    "expertRanks": {
+      "matt": 60,
+      "dizzle": 70,
+      "angle": 52,
+      "jason": 49,
+      "hashtag": 80,
+      "noah": 71
+    },
+    "avgRank": 63.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 66,
+    "player": "Derik Queen",
+    "team": "NOR",
+    "position": "PF",
+    "age": 21.3,
+    "expertRanks": {
+      "matt": 49,
+      "dizzle": 81,
+      "angle": 55,
+      "jason": 68,
+      "hashtag": 70,
+      "noah": 60
+    },
+    "avgRank": 63.83,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 67,
+    "player": "Reed Sheppard",
+    "team": "HOU",
+    "position": "SG",
+    "age": 21.8,
+    "expertRanks": {
+      "matt": 51,
+      "dizzle": 73,
+      "angle": 70,
+      "jason": 63,
+      "hashtag": 73,
+      "noah": 58
+    },
+    "avgRank": 64.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 68,
+    "player": "Ja Morant",
+    "team": "MEM",
+    "position": "PG",
+    "age": 26.7,
+    "expertRanks": {
+      "matt": 76,
+      "dizzle": 66,
+      "angle": 65,
+      "jason": 43,
+      "hashtag": 84,
+      "noah": 54
+    },
+    "avgRank": 64.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 69,
+    "player": "Zion Williamson",
+    "team": "NOR",
+    "position": "PF",
+    "age": 25.8,
+    "expertRanks": {
+      "matt": 82,
+      "dizzle": 65,
+      "angle": 67,
+      "jason": 35,
+      "hashtag": 71,
+      "noah": 74
+    },
+    "avgRank": 65.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 70,
+    "player": "OG Anunoby",
+    "team": "NYK",
+    "position": "SF",
+    "age": 28.8,
+    "expertRanks": {
+      "matt": 72,
+      "dizzle": 72,
+      "angle": 77,
+      "jason": 70,
+      "hashtag": 63,
+      "noah": 57
+    },
+    "avgRank": 68.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 71,
+    "player": "Dyson Daniels",
+    "team": "ATL",
+    "position": "PG",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 87,
+      "dizzle": 69,
+      "angle": 48,
+      "jason": 71,
+      "hashtag": 78,
+      "noah": 62
+    },
+    "avgRank": 69.17,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 72,
+    "player": "Brandon Ingram",
+    "team": "TOR",
+    "position": "SF",
+    "age": 28.6,
+    "expertRanks": {
+      "matt": 90,
+      "dizzle": 85,
+      "angle": 64,
+      "jason": 55,
+      "hashtag": 64,
+      "noah": 67
+    },
+    "avgRank": 70.83,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 73,
+    "player": "Mikal Bridges",
+    "team": "NYK",
+    "position": "SF",
+    "age": 29.7,
+    "expertRanks": {
+      "matt": 74,
+      "dizzle": 84,
+      "angle": 57,
+      "jason": 75,
+      "hashtag": 65,
+      "noah": 75
+    },
+    "avgRank": 71.67,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 74,
+    "player": "Keaton Wagler",
+    "team": "2026 Rookie",
+    "position": "SG",
+    "age": 19.2,
+    "expertRanks": {
+      "matt": 63,
+      "dizzle": 67,
+      "hashtag": 86
+    },
+    "avgRank": 72.0,
+    "rankedByCount": 3,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 75,
+    "player": "Kel'el Ware",
+    "team": "MIA",
+    "position": "C",
+    "age": 22.0,
+    "expertRanks": {
+      "matt": 78,
+      "dizzle": 64,
+      "angle": 85,
+      "jason": 47,
+      "hashtag": 89,
+      "noah": 72
+    },
+    "avgRank": 72.5,
+    "rankedByCount": 6,
+    "tier": 3,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 76,
+    "player": "Michael Porter Jr.",
+    "team": "BKN",
+    "position": "PF",
+    "age": 27.8,
+    "expertRanks": {
+      "matt": 101,
+      "dizzle": 91,
+      "angle": 54,
+      "jason": 59,
+      "hashtag": 43,
+      "noah": 87
+    },
+    "avgRank": 72.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 77,
+    "player": "Kyrie Irving",
+    "team": "DAL",
+    "position": "PG",
+    "age": 34.1,
+    "expertRanks": {
+      "matt": 64,
+      "dizzle": 75,
+      "angle": 81,
+      "jason": 64,
+      "hashtag": 88,
+      "noah": 77
+    },
+    "avgRank": 74.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 78,
+    "player": "Kyshawn George",
+    "team": "WAS",
+    "position": "SF",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 62,
+      "dizzle": 80,
+      "angle": 80,
+      "jason": 80,
+      "hashtag": 77,
+      "noah": 80
+    },
+    "avgRank": 76.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 79,
+    "player": "Matas Buzelis",
+    "team": "CHI",
+    "position": "SF",
+    "age": 21.5,
+    "expertRanks": {
+      "matt": 77,
+      "dizzle": 71,
+      "angle": 66,
+      "jason": 97,
+      "hashtag": 57,
+      "noah": 95
+    },
+    "avgRank": 77.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 80,
+    "player": "Ausar Thompson",
+    "team": "DET",
+    "position": "SF",
+    "age": 23.2,
+    "expertRanks": {
+      "matt": 68,
+      "dizzle": 90,
+      "angle": 61,
+      "jason": 73,
+      "hashtag": 128,
+      "noah": 63
+    },
+    "avgRank": 80.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 81,
+    "player": "Isaiah Hartenstein",
+    "team": "OKC",
+    "position": "C",
+    "age": 28.0,
+    "expertRanks": {
+      "matt": 73,
+      "dizzle": 74,
+      "angle": 90,
+      "jason": 76,
+      "hashtag": 76,
+      "noah": 96
+    },
+    "avgRank": 80.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 82,
+    "player": "Immanuel Quickley",
+    "team": "TOR",
+    "position": "PG",
+    "age": 26.9,
+    "expertRanks": {
+      "matt": 86,
+      "dizzle": 94,
+      "angle": 72,
+      "jason": 77,
+      "hashtag": 74,
+      "noah": 82
+    },
+    "avgRank": 80.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 83,
+    "player": "Mikel Brown Jr.",
+    "team": "2026 Rookie",
+    "position": "PG",
+    "age": 20.1,
+    "expertRanks": {
+      "matt": 79,
+      "dizzle": 76,
+      "hashtag": 97
+    },
+    "avgRank": 84.0,
+    "rankedByCount": 3,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 84,
+    "player": "Mark Williams",
+    "team": "PHO",
+    "position": "C",
+    "age": 24.4,
+    "expertRanks": {
+      "matt": 95,
+      "dizzle": 106,
+      "angle": 76,
+      "jason": 74,
+      "hashtag": 83,
+      "noah": 83
+    },
+    "avgRank": 86.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 85,
+    "player": "Joel Embiid",
+    "team": "PHI",
+    "position": "C",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 81,
+      "dizzle": 83,
+      "angle": 68,
+      "jason": 84,
+      "hashtag": 93,
+      "noah": 116
+    },
+    "avgRank": 87.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 86,
+    "player": "Nic Claxton",
+    "team": "BKN",
+    "position": "C",
+    "age": 27.0,
+    "expertRanks": {
+      "matt": 112,
+      "dizzle": 96,
+      "angle": 94,
+      "jason": 86,
+      "hashtag": 72,
+      "noah": 65
+    },
+    "avgRank": 87.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 87,
+    "player": "Ace Bailey",
+    "team": "UTA",
+    "position": "PF",
+    "age": 19.7,
+    "expertRanks": {
+      "matt": 107,
+      "dizzle": 77,
+      "angle": 74,
+      "jason": 100,
+      "hashtag": 100,
+      "noah": 70
+    },
+    "avgRank": 88.0,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 88,
+    "player": "Jarrett Allen",
+    "team": "CLE",
+    "position": "C",
+    "age": 28.0,
+    "expertRanks": {
+      "matt": 97,
+      "dizzle": 79,
+      "angle": 75,
+      "jason": 72,
+      "hashtag": 111,
+      "noah": 98
+    },
+    "avgRank": 88.67,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 89,
+    "player": "Collin Murray-Boyles",
+    "team": "TOR",
+    "position": "PF",
+    "age": 20.9,
+    "expertRanks": {
+      "matt": 75,
+      "dizzle": 95,
+      "angle": 106,
+      "jason": 91,
+      "hashtag": 87,
+      "noah": 81
+    },
+    "avgRank": 89.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 90,
+    "player": "Kawhi Leonard",
+    "team": "LAC",
+    "position": "SF",
+    "age": 34.8,
+    "expertRanks": {
+      "matt": 80,
+      "dizzle": 78,
+      "angle": 93,
+      "jason": 96,
+      "hashtag": 107,
+      "noah": 85
+    },
+    "avgRank": 89.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 91,
+    "player": "Jaden McDaniels",
+    "team": "MIN",
+    "position": "PF",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 84,
+      "dizzle": 89,
+      "angle": 92,
+      "jason": 66,
+      "hashtag": 112,
+      "noah": 97
+    },
+    "avgRank": 90.0,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 92,
+    "player": "Jeremiah Fears",
+    "team": "NOR",
+    "position": "PG",
+    "age": 19.5,
+    "expertRanks": {
+      "matt": 93,
+      "dizzle": 93,
+      "angle": 97,
+      "jason": 95,
+      "hashtag": 103,
+      "noah": 66
+    },
+    "avgRank": 91.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 93,
+    "player": "Scoot Henderson",
+    "team": "POR",
+    "position": "PG",
+    "age": 22.2,
+    "expertRanks": {
+      "matt": 89,
+      "dizzle": 88,
+      "angle": 104,
+      "jason": 83,
+      "hashtag": 101,
+      "noah": 84
+    },
+    "avgRank": 91.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 94,
+    "player": "Julius Randle",
+    "team": "MIN",
+    "position": "PF",
+    "age": 31.4,
+    "expertRanks": {
+      "matt": 96,
+      "dizzle": 99,
+      "angle": 69,
+      "jason": 62,
+      "hashtag": 110,
+      "noah": 113
+    },
+    "avgRank": 91.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 95,
+    "player": "Myles Turner",
+    "team": "MIL",
+    "position": "C",
+    "age": 30.1,
+    "expertRanks": {
+      "matt": 102,
+      "dizzle": 113,
+      "angle": 63,
+      "jason": 82,
+      "hashtag": 94,
+      "noah": 99
+    },
+    "avgRank": 92.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 96,
+    "player": "Cedric Coward",
+    "team": "MEM",
+    "position": "SF",
+    "age": 22.6,
+    "expertRanks": {
+      "matt": 57,
+      "dizzle": 82,
+      "angle": 79,
+      "jason": 116,
+      "hashtag": 133,
+      "noah": 88
+    },
+    "avgRank": 92.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 97,
+    "player": "Keegan Murray",
+    "team": "SAC",
+    "position": "PF",
+    "age": 25.7,
+    "expertRanks": {
+      "matt": 85,
+      "dizzle": 114,
+      "angle": 107,
+      "jason": 99,
+      "hashtag": 66,
+      "noah": 89
+    },
+    "avgRank": 93.33,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 98,
+    "player": "Jabari Smith Jr.",
+    "team": "HOU",
+    "position": "PF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 94,
+      "dizzle": 108,
+      "angle": 91,
+      "jason": 87,
+      "hashtag": 82,
+      "noah": 100
+    },
+    "avgRank": 93.67,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 99,
+    "player": "Tari Eason",
+    "team": "HOU",
+    "position": "PF",
+    "age": 25.0,
+    "expertRanks": {
+      "matt": 91,
+      "dizzle": 97,
+      "angle": 98,
+      "jason": 93,
+      "hashtag": 130,
+      "noah": 86
+    },
+    "avgRank": 99.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 100,
+    "player": "Darius Acuff Jr.",
+    "team": "2026 Rookie",
+    "position": "PG",
+    "age": 19.4,
+    "expertRanks": {
+      "dizzle": 92,
+      "hashtag": 108
+    },
+    "avgRank": 100.0,
+    "rankedByCount": 2,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 101,
+    "player": "Jalen Green",
+    "team": "PHO",
+    "position": "SG",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 119,
+      "dizzle": 112,
+      "angle": 83,
+      "jason": 89,
+      "hashtag": 91,
+      "noah": 111
+    },
+    "avgRank": 100.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 102,
+    "player": "Anthony Black",
+    "team": "ORL",
+    "position": "SF",
+    "age": 22.3,
+    "expertRanks": {
+      "matt": 99,
+      "dizzle": 101,
+      "angle": 82,
+      "jason": 150,
+      "hashtag": 81,
+      "noah": 93
+    },
+    "avgRank": 101.0,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 103,
+    "player": "Coby White",
+    "team": "CHA",
+    "position": "PG",
+    "age": 26.2,
+    "expertRanks": {
+      "matt": 127,
+      "dizzle": 98,
+      "angle": 100,
+      "jason": 102,
+      "hashtag": 99,
+      "noah": 91
+    },
+    "avgRank": 102.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 104,
+    "player": "Nickeil Alexander-Walker",
+    "team": "ATL",
+    "position": "SG",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 83,
+      "dizzle": 103,
+      "angle": 86,
+      "jason": 158,
+      "hashtag": 92,
+      "noah": 109
+    },
+    "avgRank": 105.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 105,
+    "player": "Dejounte Murray",
+    "team": "NOR",
+    "position": "PG",
+    "age": 29.6,
+    "expertRanks": {
+      "matt": 109,
+      "dizzle": 104,
+      "angle": 128,
+      "jason": 107,
+      "hashtag": 90,
+      "noah": 94
+    },
+    "avgRank": 105.33,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 106,
+    "player": "Naz Reid",
+    "team": "MIN",
+    "position": "PF",
+    "age": 26.7,
+    "expertRanks": {
+      "matt": 100,
+      "dizzle": 116,
+      "angle": 87,
+      "jason": 103,
+      "hashtag": 109,
+      "noah": 122
+    },
+    "avgRank": 106.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 107,
+    "player": "Zach LaVine",
+    "team": "SAC",
+    "position": "SG",
+    "age": 31.1,
+    "expertRanks": {
+      "matt": 132,
+      "dizzle": 107,
+      "angle": 114,
+      "jason": 79,
+      "hashtag": 98,
+      "noah": 107
+    },
+    "avgRank": 106.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 108,
+    "player": "Shaedon Sharpe",
+    "team": "POR",
+    "position": "SF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 114,
+      "dizzle": 102,
+      "angle": 101,
+      "jason": 90,
+      "hashtag": 125,
+      "noah": 115
+    },
+    "avgRank": 107.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 109,
+    "player": "Ryan Rollins",
+    "team": "MIL",
+    "position": "SG",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 92,
+      "dizzle": 100,
+      "angle": 84,
+      "jason": 78,
+      "hashtag": 196,
+      "noah": 103
+    },
+    "avgRank": 108.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 110,
+    "player": "Tre Johnson",
+    "team": "WAS",
+    "position": "SG",
+    "age": 20.1,
+    "expertRanks": {
+      "matt": 108,
+      "dizzle": 115,
+      "angle": 99,
+      "jason": 129,
+      "hashtag": 104,
+      "noah": 104
+    },
+    "avgRank": 109.83,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 111,
+    "player": "Peyton Watson",
+    "team": "DEN",
+    "position": "PF",
+    "age": 23.6,
+    "expertRanks": {
+      "matt": 98,
+      "dizzle": 117,
+      "angle": 117,
+      "hashtag": 116,
+      "noah": 102
+    },
+    "avgRank": 110.0,
+    "rankedByCount": 5,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 112,
+    "player": "Payton Pritchard",
+    "team": "BOS",
+    "position": "PG",
+    "age": 28.2,
+    "expertRanks": {
+      "matt": 116,
+      "dizzle": 110,
+      "angle": 88,
+      "jason": 120,
+      "hashtag": 132,
+      "noah": 101
+    },
+    "avgRank": 111.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 113,
+    "player": "Miles Bridges",
+    "team": "CHA",
+    "position": "SF",
+    "age": 28.1,
+    "expertRanks": {
+      "matt": 117,
+      "dizzle": 134,
+      "angle": 89,
+      "jason": 105,
+      "hashtag": 114,
+      "noah": 119
+    },
+    "avgRank": 113.0,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 114,
+    "player": "Hannes Steinbach",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 113
+    },
+    "avgRank": 113.0,
+    "rankedByCount": 1,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 115,
+    "player": "Devin Vassell",
+    "team": "SAS",
+    "position": "SF",
+    "age": 25.7,
+    "expertRanks": {
+      "matt": 130,
+      "dizzle": 111,
+      "angle": 121,
+      "jason": 101,
+      "hashtag": 127,
+      "noah": 90
+    },
+    "avgRank": 113.33,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 116,
+    "player": "Kristaps Porzingis",
+    "team": "GSW",
+    "position": "C",
+    "age": 30.7,
+    "expertRanks": {
+      "matt": 151,
+      "dizzle": 128,
+      "angle": 127,
+      "jason": 81,
+      "hashtag": 102,
+      "noah": 92
+    },
+    "avgRank": 113.5,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 117,
+    "player": "Josh Hart",
+    "team": "NYK",
+    "position": "SF",
+    "age": 31.1,
+    "expertRanks": {
+      "matt": 106,
+      "dizzle": 124,
+      "angle": 103,
+      "jason": 113,
+      "hashtag": 134,
+      "noah": 117
+    },
+    "avgRank": 116.17,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 118,
+    "player": "Ajay Mitchell",
+    "team": "OKC",
+    "position": "PG",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 124,
+      "dizzle": 120,
+      "angle": 110,
+      "jason": 114,
+      "hashtag": 120,
+      "noah": 110
+    },
+    "avgRank": 116.33,
+    "rankedByCount": 6,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 119,
+    "player": "Brayden Burries",
+    "team": "2026 Rookie",
+    "position": "PG",
+    "age": 20.6,
+    "expertRanks": {
+      "dizzle": 87,
+      "hashtag": 146
+    },
+    "avgRank": 116.5,
+    "rankedByCount": 2,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 120,
+    "player": "Deandre Ayton",
+    "team": "LAL",
+    "position": "C",
+    "age": 27.8,
+    "expertRanks": {
+      "matt": 129,
+      "angle": 102,
+      "jason": 130,
+      "hashtag": 79,
+      "noah": 143
+    },
+    "avgRank": 116.6,
+    "rankedByCount": 5,
+    "tier": 4,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 121,
+    "player": "Dereck Lively",
+    "team": "DAL",
+    "position": "C",
+    "age": 22.2,
+    "expertRanks": {
+      "matt": 113,
+      "dizzle": 129,
+      "angle": 122,
+      "jason": 85,
+      "hashtag": 158,
+      "noah": 105
+    },
+    "avgRank": 118.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 122,
+    "player": "Aday Mara",
+    "team": "2026 Rookie",
+    "position": "C",
+    "age": 21.0,
+    "expertRanks": {
+      "dizzle": 105,
+      "hashtag": 135
+    },
+    "avgRank": 120.0,
+    "rankedByCount": 2,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 123,
+    "player": "Andrew Nembhard",
+    "team": "IND",
+    "position": "PG",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 120,
+      "dizzle": 119,
+      "angle": 115,
+      "jason": 126,
+      "hashtag": 139,
+      "noah": 108
+    },
+    "avgRank": 121.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 124,
+    "player": "PJ Washington",
+    "team": "DAL",
+    "position": "PF",
+    "age": 27.7,
+    "expertRanks": {
+      "dizzle": 122
+    },
+    "avgRank": 122.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 125,
+    "player": "Toumani Camara",
+    "team": "POR",
+    "position": "PF",
+    "age": 26.0,
+    "expertRanks": {
+      "matt": 123,
+      "dizzle": 133,
+      "angle": 118,
+      "jason": 135,
+      "hashtag": 121,
+      "noah": 114
+    },
+    "avgRank": 124.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 126,
+    "player": "Labaron Philon Jr.",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 124
+    },
+    "avgRank": 124.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 127,
+    "player": "Cason Wallace",
+    "team": "OKC",
+    "position": "PG",
+    "age": 22.5,
+    "expertRanks": {
+      "matt": 103,
+      "dizzle": 123,
+      "angle": 123,
+      "jason": 128,
+      "hashtag": 163,
+      "noah": 106
+    },
+    "avgRank": 124.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 128,
+    "player": "Egor Demin",
+    "team": "BKN",
+    "position": "PG",
+    "age": 20.1,
+    "expertRanks": {
+      "matt": 115,
+      "dizzle": 118,
+      "angle": 95,
+      "jason": 111,
+      "hashtag": 147,
+      "noah": 165
+    },
+    "avgRank": 125.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 129,
+    "player": "Brandin Podziemski",
+    "team": "GSW",
+    "position": "SG",
+    "age": 23.2,
+    "expertRanks": {
+      "matt": 134,
+      "dizzle": 148,
+      "angle": 124,
+      "jason": 108,
+      "hashtag": 117,
+      "noah": 126
+    },
+    "avgRank": 126.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 130,
+    "player": "Jakob Poeltl",
+    "team": "TOR",
+    "position": "C",
+    "age": 30.5,
+    "expertRanks": {
+      "matt": 126,
+      "dizzle": 109,
+      "angle": 144,
+      "jason": 119,
+      "hashtag": 115,
+      "noah": 147
+    },
+    "avgRank": 126.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 131,
+    "player": "Khaman Maluach",
+    "team": "PHO",
+    "position": "C",
+    "age": 19.6,
+    "expertRanks": {
+      "matt": 105,
+      "angle": 171,
+      "jason": 94,
+      "hashtag": 156,
+      "noah": 112
+    },
+    "avgRank": 127.6,
+    "rankedByCount": 5,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 132,
+    "player": "Norman Powell",
+    "team": "MIA",
+    "position": "SG",
+    "age": 32.9,
+    "expertRanks": {
+      "matt": 133,
+      "dizzle": 139,
+      "angle": 105,
+      "jason": 153,
+      "hashtag": 85,
+      "noah": 151
+    },
+    "avgRank": 127.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 133,
+    "player": "Santi Aldama",
+    "team": "MEM",
+    "position": "PF",
+    "age": 25.3,
+    "expertRanks": {
+      "matt": 118,
+      "dizzle": 147,
+      "angle": 109,
+      "jason": 127,
+      "hashtag": 141,
+      "noah": 125
+    },
+    "avgRank": 127.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 134,
+    "player": "Bilal Coulibaly",
+    "team": "WAS",
+    "position": "SF",
+    "age": 21.7,
+    "expertRanks": {
+      "matt": 145,
+      "dizzle": 126,
+      "angle": 120,
+      "jason": 136,
+      "hashtag": 119,
+      "noah": 121
+    },
+    "avgRank": 127.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 135,
+    "player": "Christian Braun",
+    "team": "DEN",
+    "position": "SF",
+    "age": 25.0,
+    "expertRanks": {
+      "matt": 136,
+      "dizzle": 140,
+      "angle": 137,
+      "jason": 125,
+      "hashtag": 105,
+      "noah": 128
+    },
+    "avgRank": 128.5,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 136,
+    "player": "LeBron James",
+    "team": "LAL",
+    "position": "SF",
+    "age": 41.3,
+    "expertRanks": {
+      "matt": 111,
+      "dizzle": 138,
+      "angle": 132,
+      "jason": 121,
+      "hashtag": 138,
+      "noah": 132
+    },
+    "avgRank": 128.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 137,
+    "player": "Khaman Malauch",
+    "team": "PHO",
+    "position": "C",
+    "age": 19.6,
+    "expertRanks": {
+      "dizzle": 131
+    },
+    "avgRank": 131.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 138,
+    "player": "Patrick Ngongba",
+    "team": "2026 Rookie",
+    "position": "C",
+    "age": 20.2,
+    "expertRanks": {
+      "dizzle": 132
+    },
+    "avgRank": 132.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 139,
+    "player": "P.J. Washington",
+    "team": "DAL",
+    "position": "PF",
+    "age": 27.7,
+    "expertRanks": {
+      "matt": 121,
+      "angle": 131,
+      "jason": 88,
+      "hashtag": 164,
+      "noah": 161
+    },
+    "avgRank": 133.0,
+    "rankedByCount": 5,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 140,
+    "player": "Rudy Gobert",
+    "team": "MIN",
+    "position": "C",
+    "age": 33.8,
+    "expertRanks": {
+      "matt": 149,
+      "dizzle": 137,
+      "angle": 119,
+      "jason": 146,
+      "hashtag": 106,
+      "noah": 142
+    },
+    "avgRank": 133.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 141,
+    "player": "Labaron Philon",
+    "team": "2026 Rookie",
+    "position": "PG",
+    "age": 20.4,
+    "expertRanks": {
+      "dizzle": 135
+    },
+    "avgRank": 135.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 142,
+    "player": "Jaylon Tyson",
+    "team": "CLE",
+    "position": "SF",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 135,
+      "dizzle": 146,
+      "angle": 96,
+      "jason": 159,
+      "hashtag": 149,
+      "noah": 127
+    },
+    "avgRank": 135.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 143,
+    "player": "Fred VanVleet",
+    "team": "HOU",
+    "position": "PG",
+    "age": 32.2,
+    "expertRanks": {
+      "matt": 122,
+      "dizzle": 169,
+      "angle": 159,
+      "jason": 139,
+      "hashtag": 96,
+      "noah": 133
+    },
+    "avgRank": 136.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 144,
+    "player": "RJ Barrett",
+    "team": "TOR",
+    "position": "SG",
+    "age": 25.9,
+    "expertRanks": {
+      "matt": 157,
+      "dizzle": 154,
+      "angle": 113,
+      "jason": 106,
+      "hashtag": 131,
+      "noah": 158
+    },
+    "avgRank": 136.5,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 145,
+    "player": "Koa Peat",
+    "team": "2026 Rookie",
+    "position": "PF",
+    "age": 19.3,
+    "expertRanks": {
+      "matt": 110,
+      "hashtag": 168
+    },
+    "avgRank": 139.0,
+    "rankedByCount": 2,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 146,
+    "player": "Kyle Filipowski",
+    "team": "UTA",
+    "position": "C",
+    "age": 22.5,
+    "expertRanks": {
+      "matt": 158,
+      "dizzle": 173,
+      "angle": 129,
+      "jason": 115,
+      "hashtag": 140,
+      "noah": 120
+    },
+    "avgRank": 139.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 147,
+    "player": "Jayden Quaintance",
+    "team": "2026 Rookie",
+    "position": "PF",
+    "age": 18.8,
+    "expertRanks": {
+      "dizzle": 86,
+      "hashtag": 193
+    },
+    "avgRank": 139.5,
+    "rankedByCount": 2,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 148,
+    "player": "Malik Monk",
+    "team": "SAC",
+    "position": "SG",
+    "age": 28.2,
+    "expertRanks": {
+      "matt": 144,
+      "dizzle": 158,
+      "angle": 150,
+      "jason": 104,
+      "hashtag": 151,
+      "noah": 141
+    },
+    "avgRank": 141.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 149,
+    "player": "De'Andre Ayton",
+    "team": "LAL",
+    "position": "C",
+    "age": 27.7,
+    "expertRanks": {
+      "dizzle": 142
+    },
+    "avgRank": 142.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 150,
+    "player": "Aaron Gordon",
+    "team": "DEN",
+    "position": "PF",
+    "age": 30.6,
+    "expertRanks": {
+      "matt": 128,
+      "dizzle": 152,
+      "angle": 130,
+      "jason": 110,
+      "hashtag": 173,
+      "noah": 164
+    },
+    "avgRank": 142.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 151,
+    "player": "Donte DiVincenzo",
+    "team": "MIN",
+    "position": "SG",
+    "age": 29.2,
+    "expertRanks": {
+      "matt": 104,
+      "dizzle": 167,
+      "angle": 125,
+      "jason": 133,
+      "hashtag": 185,
+      "noah": 149
+    },
+    "avgRank": 143.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 152,
+    "player": "Cameron Johnson",
+    "team": "DEN",
+    "position": "SF",
+    "age": 30.1,
+    "expertRanks": {
+      "matt": 165,
+      "dizzle": 157,
+      "angle": 149,
+      "jason": 124,
+      "hashtag": 145,
+      "noah": 123
+    },
+    "avgRank": 143.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 153,
+    "player": "Kevin Porter Jr.",
+    "team": "MIL",
+    "position": "SG",
+    "age": 26.0,
+    "expertRanks": {
+      "matt": 125,
+      "dizzle": 150,
+      "angle": 111,
+      "jason": 194,
+      "hashtag": 126,
+      "noah": 163
+    },
+    "avgRank": 144.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 154,
+    "player": "Jared McCain",
+    "team": "OKC",
+    "position": "SG",
+    "age": 22.2,
+    "expertRanks": {
+      "matt": 159,
+      "dizzle": 127,
+      "angle": 162,
+      "jason": 109,
+      "hashtag": 191,
+      "noah": 129
+    },
+    "avgRank": 146.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 155,
+    "player": "Ryan Kalkbrenner",
+    "team": "CHA",
+    "position": "C",
+    "age": 24.3,
+    "expertRanks": {
+      "matt": 166,
+      "dizzle": 166,
+      "angle": 134,
+      "jason": 151,
+      "hashtag": 95,
+      "noah": 169
+    },
+    "avgRank": 146.83,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 156,
+    "player": "Ronald Holland",
+    "team": "DET",
+    "position": "SF",
+    "age": 20.8,
+    "expertRanks": {
+      "matt": 146,
+      "angle": 158,
+      "jason": 112,
+      "hashtag": 202,
+      "noah": 118
+    },
+    "avgRank": 147.2,
+    "rankedByCount": 5,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 157,
+    "player": "Nate Ament",
+    "team": "2026 Rookie",
+    "position": "SF",
+    "age": 19.4,
+    "expertRanks": {
+      "dizzle": 136,
+      "hashtag": 159
+    },
+    "avgRank": 147.5,
+    "rankedByCount": 2,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 158,
+    "player": "Herbert Jones",
+    "team": "NOR",
+    "position": "PF",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 140,
+      "dizzle": 171,
+      "angle": 143,
+      "jason": 137,
+      "hashtag": 161,
+      "noah": 136
+    },
+    "avgRank": 148.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 159,
+    "player": "Jaime Jaquez Jr.",
+    "team": "MIA",
+    "position": "SF",
+    "age": 25.2,
+    "expertRanks": {
+      "matt": 177,
+      "dizzle": 145,
+      "angle": 112,
+      "jason": 156,
+      "hashtag": 154,
+      "noah": 162
+    },
+    "avgRank": 151.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 160,
+    "player": "Ron Holland",
+    "team": "DET",
+    "position": "SF",
+    "age": 20.8,
+    "expertRanks": {
+      "dizzle": 151
+    },
+    "avgRank": 151.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 161,
+    "player": "Paul George",
+    "team": "PHI",
+    "position": "SF",
+    "age": 36.0,
+    "expertRanks": {
+      "matt": 152,
+      "dizzle": 170,
+      "angle": 193,
+      "jason": 138,
+      "hashtag": 123,
+      "noah": 134
+    },
+    "avgRank": 151.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 162,
+    "player": "Bennedict Mathurin",
+    "team": "LAC",
+    "position": "SG",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 171,
+      "dizzle": 162,
+      "angle": 108,
+      "jason": 141,
+      "hashtag": 172,
+      "noah": 166
+    },
+    "avgRank": 153.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 163,
+    "player": "Daniel Gafford",
+    "team": "DAL",
+    "position": "C",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 142,
+      "dizzle": 143,
+      "angle": 147,
+      "jason": 117,
+      "hashtag": 177,
+      "noah": 198
+    },
+    "avgRank": 154.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 164,
+    "player": "Jordan Poole",
+    "team": "NOR",
+    "position": "SG",
+    "age": 26.8,
+    "expertRanks": {
+      "matt": 194,
+      "dizzle": 184,
+      "angle": 188,
+      "jason": 92,
+      "hashtag": 129,
+      "noah": 137
+    },
+    "avgRank": 154.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 165,
+    "player": "Yaxel Lendeborg",
+    "team": "2026 Rookie",
+    "position": "PF",
+    "age": 23.5,
+    "expertRanks": {
+      "dizzle": 130,
+      "hashtag": 182
+    },
+    "avgRank": 156.0,
+    "rankedByCount": 2,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 166,
+    "player": "Thomas Sorber",
+    "team": "OKC",
+    "position": "C",
+    "age": 20.3,
+    "expertRanks": {
+      "matt": 139,
+      "dizzle": 156,
+      "angle": 155,
+      "jason": 152,
+      "hashtag": 212,
+      "noah": 124
+    },
+    "avgRank": 156.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 167,
+    "player": "Bennett Stirtz",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 157
+    },
+    "avgRank": 157.0,
+    "rankedByCount": 1,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 168,
+    "player": "Jimmy Butler",
+    "team": "GSW",
+    "position": "SF",
+    "age": 36.6,
+    "expertRanks": {
+      "matt": 150,
+      "dizzle": 189,
+      "angle": 165,
+      "jason": 123,
+      "hashtag": 184,
+      "noah": 135
+    },
+    "avgRank": 157.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 169,
+    "player": "Wendell Carter Jr.",
+    "team": "ORL",
+    "position": "C",
+    "age": 27.0,
+    "expertRanks": {
+      "matt": 173,
+      "dizzle": 165,
+      "angle": 141,
+      "jason": 173,
+      "hashtag": 143,
+      "noah": 171
+    },
+    "avgRank": 161.0,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 170,
+    "player": "John Collins",
+    "team": "LAC",
+    "position": "PF",
+    "age": 28.6,
+    "expertRanks": {
+      "matt": 138,
+      "dizzle": 149,
+      "angle": 157,
+      "jason": 118,
+      "hashtag": 192,
+      "noah": 222
+    },
+    "avgRank": 162.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 171,
+    "player": "Aaron Nesmith",
+    "team": "IND",
+    "position": "SF",
+    "age": 26.5,
+    "expertRanks": {
+      "matt": 163,
+      "dizzle": 155,
+      "angle": 164,
+      "jason": 165,
+      "hashtag": 153,
+      "noah": 182
+    },
+    "avgRank": 163.67,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 172,
+    "player": "Collin Gillespie",
+    "team": "PHO",
+    "position": "PG",
+    "age": 26.8,
+    "expertRanks": {
+      "matt": 167,
+      "dizzle": 208,
+      "angle": 116,
+      "hashtag": 144,
+      "noah": 185
+    },
+    "avgRank": 164.0,
+    "rankedByCount": 5,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 173,
+    "player": "Maxime Raynaud",
+    "team": "SAC",
+    "position": "C",
+    "age": 23.0,
+    "expertRanks": {
+      "matt": 179,
+      "dizzle": 163,
+      "angle": 156,
+      "hashtag": 167,
+      "noah": 156
+    },
+    "avgRank": 164.2,
+    "rankedByCount": 5,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 174,
+    "player": "Quentin Grimes",
+    "team": "PHI",
+    "position": "SG",
+    "age": 26.0,
+    "expertRanks": {
+      "matt": 162,
+      "dizzle": 161,
+      "angle": 135,
+      "jason": 148,
+      "hashtag": 232,
+      "noah": 153
+    },
+    "avgRank": 165.17,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 175,
+    "player": "Damian Lillard",
+    "team": "POR",
+    "position": "PG",
+    "age": 35.8,
+    "expertRanks": {
+      "matt": 153,
+      "dizzle": 199,
+      "angle": 173,
+      "jason": 132,
+      "hashtag": 187,
+      "noah": 148
+    },
+    "avgRank": 165.33,
+    "rankedByCount": 6,
+    "tier": 5,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 176,
+    "player": "Moussa Diabate",
+    "team": "CHA",
+    "position": "C",
+    "age": 24.3,
+    "expertRanks": {
+      "matt": 155,
+      "dizzle": 153,
+      "angle": 136,
+      "hashtag": 137,
+      "noah": 247
+    },
+    "avgRank": 165.6,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 177,
+    "player": "Kasparas Jakucionis",
+    "team": "MIA",
+    "position": "PG",
+    "age": 19.9,
+    "expertRanks": {
+      "matt": 148,
+      "dizzle": 192,
+      "angle": 154,
+      "jason": 143,
+      "hashtag": 208,
+      "noah": 155
+    },
+    "avgRank": 166.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 178,
+    "player": "Bub Carrington",
+    "team": "WAS",
+    "position": "PG",
+    "age": 20.8,
+    "expertRanks": {
+      "matt": 200,
+      "angle": 170,
+      "hashtag": 118,
+      "noah": 179
+    },
+    "avgRank": 166.75,
+    "rankedByCount": 4,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 179,
+    "player": "Anfernee Simons",
+    "team": "CHI",
+    "position": "SG",
+    "age": 26.9,
+    "expertRanks": {
+      "matt": 172,
+      "dizzle": 205,
+      "angle": 185,
+      "jason": 131,
+      "hashtag": 166,
+      "noah": 144
+    },
+    "avgRank": 167.17,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 180,
+    "player": "Dailyn Swain",
+    "team": "2026 Rookie",
+    "position": "SF",
+    "age": 20.8,
+    "expertRanks": {
+      "dizzle": 121,
+      "hashtag": 215
+    },
+    "avgRank": 168.0,
+    "rankedByCount": 2,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 181,
+    "player": "DeMar DeRozan",
+    "team": "SAC",
+    "position": "SF",
+    "age": 36.7,
+    "expertRanks": {
+      "matt": 208,
+      "dizzle": 185,
+      "angle": 140,
+      "jason": 162,
+      "hashtag": 136,
+      "noah": 181
+    },
+    "avgRank": 168.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 182,
+    "player": "Andrew Wiggins",
+    "team": "MIA",
+    "position": "SF",
+    "age": 31.2,
+    "expertRanks": {
+      "matt": 131,
+      "dizzle": 176,
+      "angle": 126,
+      "jason": 167,
+      "hashtag": 247,
+      "noah": 172
+    },
+    "avgRank": 169.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 183,
+    "player": "Ayo Dosunmu",
+    "team": "MIN",
+    "position": "PG",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 187,
+      "angle": 148,
+      "jason": 188,
+      "hashtag": 175,
+      "noah": 152
+    },
+    "avgRank": 170.0,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 184,
+    "player": "Allen Graves",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 171
+    },
+    "avgRank": 171.0,
+    "rankedByCount": 1,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 185,
+    "player": "Jaylen Wells",
+    "team": "MEM",
+    "position": "SF",
+    "age": 22.7,
+    "expertRanks": {
+      "matt": 193,
+      "dizzle": 212,
+      "angle": 183,
+      "hashtag": 122,
+      "noah": 146
+    },
+    "avgRank": 171.2,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 186,
+    "player": "Jrue Holiday",
+    "team": "POR",
+    "position": "PG",
+    "age": 35.9,
+    "expertRanks": {
+      "matt": 154,
+      "dizzle": 174,
+      "angle": 133,
+      "jason": 171,
+      "hashtag": 219,
+      "noah": 191
+    },
+    "avgRank": 173.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 187,
+    "player": "Isaiah Collier",
+    "team": "UTA",
+    "position": "PG",
+    "age": 21.5,
+    "expertRanks": {
+      "matt": 198,
+      "dizzle": 180,
+      "angle": 174,
+      "jason": 181,
+      "hashtag": 142,
+      "noah": 168
+    },
+    "avgRank": 173.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 188,
+    "player": "Isaiah Stewart",
+    "team": "DET",
+    "position": "C",
+    "age": 24.9,
+    "expertRanks": {
+      "matt": 168,
+      "dizzle": 202,
+      "angle": 163,
+      "jason": 200,
+      "hashtag": 152,
+      "noah": 160
+    },
+    "avgRank": 174.17,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 189,
+    "player": "Nikola Topic",
+    "team": "OKC",
+    "position": "PG",
+    "age": 20.7,
+    "expertRanks": {
+      "matt": 143,
+      "dizzle": 144,
+      "angle": 205,
+      "jason": 122,
+      "hashtag": 302,
+      "noah": 131
+    },
+    "avgRank": 174.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 190,
+    "player": "Max Christie",
+    "team": "DAL",
+    "position": "SG",
+    "age": 23.2,
+    "expertRanks": {
+      "matt": 176,
+      "dizzle": 168,
+      "angle": 166,
+      "hashtag": 188,
+      "noah": 176
+    },
+    "avgRank": 174.8,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 191,
+    "player": "Jonathan Kuminga",
+    "team": "ATL",
+    "position": "SF",
+    "age": 23.5,
+    "expertRanks": {
+      "matt": 199,
+      "dizzle": 125,
+      "angle": 201,
+      "jason": 161,
+      "hashtag": 176,
+      "noah": 192
+    },
+    "avgRank": 175.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 192,
+    "player": "Davion Mitchell",
+    "team": "MIA",
+    "position": "PG",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 201,
+      "dizzle": 195,
+      "angle": 151,
+      "hashtag": 162,
+      "noah": 184
+    },
+    "avgRank": 178.6,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 193,
+    "player": "Noah Clowney",
+    "team": "BKN",
+    "position": "PF",
+    "age": 21.8,
+    "expertRanks": {
+      "matt": 178,
+      "dizzle": 221,
+      "angle": 172,
+      "jason": 176,
+      "hashtag": 190,
+      "noah": 138
+    },
+    "avgRank": 179.17,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 194,
+    "player": "Ayo Dosumnu",
+    "team": "MIN",
+    "position": "PG",
+    "age": 26.2,
+    "expertRanks": {
+      "dizzle": 181
+    },
+    "avgRank": 181.0,
+    "rankedByCount": 1,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 195,
+    "player": "Grayson Allen",
+    "team": "PHO",
+    "position": "SG",
+    "age": 30.5,
+    "expertRanks": {
+      "matt": 191,
+      "dizzle": 190,
+      "angle": 168,
+      "jason": 185,
+      "hashtag": 174,
+      "noah": 186
+    },
+    "avgRank": 182.33,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 196,
+    "player": "Zaccharie Risacher",
+    "team": "ATL",
+    "position": "SF",
+    "age": 21.0,
+    "expertRanks": {
+      "matt": 234,
+      "dizzle": 178,
+      "angle": 182,
+      "jason": 169,
+      "hashtag": 148,
+      "noah": 187
+    },
+    "avgRank": 183.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 197,
+    "player": "Neemias Queta",
+    "team": "BOS",
+    "position": "C",
+    "age": 26.8,
+    "expertRanks": {
+      "matt": 160,
+      "dizzle": 159,
+      "angle": 176,
+      "hashtag": 217,
+      "noah": 210
+    },
+    "avgRank": 184.4,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 198,
+    "player": "Dillon Brooks",
+    "team": "PHO",
+    "position": "SF",
+    "age": 30.3,
+    "expertRanks": {
+      "matt": 189,
+      "dizzle": 186,
+      "angle": 142,
+      "jason": 155,
+      "hashtag": 189,
+      "noah": 246
+    },
+    "avgRank": 184.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 199,
+    "player": "Walter Clayton Jr.",
+    "team": "MEM",
+    "position": "PG",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 169,
+      "dizzle": 182,
+      "angle": 160,
+      "jason": 163,
+      "hashtag": 259,
+      "noah": 175
+    },
+    "avgRank": 184.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 200,
+    "player": "Nique Clifford",
+    "team": "SAC",
+    "position": "SF",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 192,
+      "dizzle": 187,
+      "angle": 192,
+      "hashtag": 194,
+      "noah": 159
+    },
+    "avgRank": 184.8,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 201,
+    "player": "Nikola Vucevic",
+    "team": "BOS",
+    "position": "C",
+    "age": 35.5,
+    "expertRanks": {
+      "matt": 233,
+      "dizzle": 198,
+      "angle": 139,
+      "jason": 145,
+      "hashtag": 160,
+      "noah": 234
+    },
+    "avgRank": 184.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 202,
+    "player": "Yang Hansen",
+    "team": "POR",
+    "position": "C",
+    "age": 20.8,
+    "expertRanks": {
+      "matt": 147,
+      "dizzle": 220,
+      "angle": 167,
+      "jason": 172,
+      "hashtag": 223,
+      "noah": 189
+    },
+    "avgRank": 186.33,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 203,
+    "player": "Carter Bryant",
+    "team": "SAS",
+    "position": "SF",
+    "age": 20.4,
+    "expertRanks": {
+      "matt": 141,
+      "dizzle": 172,
+      "angle": 258,
+      "jason": 166,
+      "hashtag": 214,
+      "noah": 174
+    },
+    "avgRank": 187.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 204,
+    "player": "Mitchell Robinson",
+    "team": "NYK",
+    "position": "C",
+    "age": 28.1,
+    "expertRanks": {
+      "matt": 161,
+      "dizzle": 214,
+      "angle": 224,
+      "jason": 140,
+      "hashtag": 197,
+      "noah": 197
+    },
+    "avgRank": 188.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 205,
+    "player": "Jaden Ivey",
+    "team": "CHI",
+    "position": "SG",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 174,
+      "dizzle": 299,
+      "angle": 187,
+      "jason": 164,
+      "hashtag": 183,
+      "noah": 130
+    },
+    "avgRank": 189.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 206,
+    "player": "Jerami Grant",
+    "team": "POR",
+    "position": "PF",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 180,
+      "dizzle": 197,
+      "angle": 178,
+      "jason": 170,
+      "hashtag": 209,
+      "noah": 205
+    },
+    "avgRank": 189.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 207,
+    "player": "Collin Sexton",
+    "team": "CHI",
+    "position": "PG",
+    "age": 27.3,
+    "expertRanks": {
+      "matt": 219,
+      "dizzle": 225,
+      "angle": 191,
+      "jason": 154,
+      "hashtag": 199,
+      "noah": 157
+    },
+    "avgRank": 190.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 208,
+    "player": "Cam Thomas",
+    "team": "MIL",
+    "position": "SG",
+    "age": 24.5,
+    "expertRanks": {
+      "matt": 203,
+      "dizzle": 309,
+      "angle": 196,
+      "jason": 142,
+      "hashtag": 150,
+      "noah": 150
+    },
+    "avgRank": 191.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 209,
+    "player": "Ty Jerome",
+    "team": "MEM",
+    "position": "PG",
+    "age": 28.8,
+    "expertRanks": {
+      "matt": 164,
+      "dizzle": 141,
+      "angle": 153,
+      "jason": 147,
+      "hashtag": 305,
+      "noah": 249
+    },
+    "avgRank": 193.17,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 210,
+    "player": "CJ McCollum",
+    "team": "ATL",
+    "position": "SG",
+    "age": 34.6,
+    "expertRanks": {
+      "matt": 232,
+      "dizzle": 175,
+      "angle": 146,
+      "jason": 192,
+      "hashtag": 234,
+      "noah": 188
+    },
+    "avgRank": 194.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 211,
+    "player": "Cam Spencer",
+    "team": "MEM",
+    "position": "SG",
+    "age": 26.0,
+    "expertRanks": {
+      "matt": 188,
+      "dizzle": 215,
+      "angle": 145,
+      "jason": 179,
+      "hashtag": 206,
+      "noah": 235
+    },
+    "avgRank": 194.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 212,
+    "player": "Tobias Harris",
+    "team": "DET",
+    "position": "PF",
+    "age": 33.8,
+    "expertRanks": {
+      "matt": 197,
+      "dizzle": 200,
+      "angle": 161,
+      "jason": 175,
+      "hashtag": 222,
+      "noah": 215
+    },
+    "avgRank": 195.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 213,
+    "player": "Naji Marshall",
+    "team": "DAL",
+    "position": "PF",
+    "age": 28.2,
+    "expertRanks": {
+      "matt": 204,
+      "dizzle": 179,
+      "angle": 169,
+      "hashtag": 221,
+      "noah": 203
+    },
+    "avgRank": 195.2,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 214,
+    "player": "Danny Wolf",
+    "team": "BKN",
+    "position": "C",
+    "age": 22.0,
+    "expertRanks": {
+      "matt": 181,
+      "dizzle": 203,
+      "angle": 179,
+      "jason": 180,
+      "hashtag": 262,
+      "noah": 170
+    },
+    "avgRank": 195.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 215,
+    "player": "Keon Ellis",
+    "team": "CLE",
+    "position": "SG",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 195,
+      "dizzle": 177,
+      "angle": 225,
+      "jason": 197,
+      "hashtag": 242,
+      "noah": 139
+    },
+    "avgRank": 195.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 216,
+    "player": "De'Andre Hunter",
+    "team": "SAC",
+    "position": "SF",
+    "age": 28.4,
+    "expertRanks": {
+      "matt": 183,
+      "dizzle": 188,
+      "angle": 152,
+      "jason": 157,
+      "hashtag": 263,
+      "noah": 236
+    },
+    "avgRank": 196.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 217,
+    "player": "Joan Beringer",
+    "team": "MIN",
+    "position": "C",
+    "age": 19.4,
+    "expertRanks": {
+      "matt": 170,
+      "dizzle": 164,
+      "angle": 189,
+      "jason": 178,
+      "hashtag": 333,
+      "noah": 154
+    },
+    "avgRank": 198.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 218,
+    "player": "Saddiq Bey",
+    "team": "NOR",
+    "position": "SF",
+    "age": 27.0,
+    "expertRanks": {
+      "matt": 228,
+      "dizzle": 211,
+      "angle": 138,
+      "hashtag": 213,
+      "noah": 211
+    },
+    "avgRank": 200.2,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 219,
+    "player": "Tristan Da Silva",
+    "team": "ORL",
+    "position": "SF",
+    "age": 24.9,
+    "expertRanks": {
+      "dizzle": 201
+    },
+    "avgRank": 201.0,
+    "rankedByCount": 1,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 220,
+    "player": "Nikola Jovic",
+    "team": "MIA",
+    "position": "SF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 218,
+      "dizzle": 245,
+      "angle": 222,
+      "jason": 134,
+      "hashtag": 201,
+      "noah": 190
+    },
+    "avgRank": 201.67,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 221,
+    "player": "Noa Essengue",
+    "team": "CHI",
+    "position": "PF",
+    "age": 19.3,
+    "expertRanks": {
+      "matt": 215,
+      "dizzle": 183,
+      "angle": 215,
+      "jason": 149,
+      "hashtag": 257,
+      "noah": 193
+    },
+    "avgRank": 202.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 222,
+    "player": "Rob Dillingham",
+    "team": "CHI",
+    "position": "PG",
+    "age": 21.3,
+    "expertRanks": {
+      "matt": 186,
+      "dizzle": 210,
+      "angle": 200,
+      "jason": 144,
+      "hashtag": 316,
+      "noah": 167
+    },
+    "avgRank": 203.83,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 223,
+    "player": "Braylon Mullins",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 204
+    },
+    "avgRank": 204.0,
+    "rankedByCount": 1,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 224,
+    "player": "Jarace Walker",
+    "team": "IND",
+    "position": "PF",
+    "age": 22.6,
+    "expertRanks": {
+      "matt": 210,
+      "dizzle": 260,
+      "angle": 207,
+      "hashtag": 165,
+      "noah": 180
+    },
+    "avgRank": 204.4,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 225,
+    "player": "Brice Sensabaugh",
+    "team": "UTA",
+    "position": "SF",
+    "age": 22.5,
+    "expertRanks": {
+      "matt": 239,
+      "dizzle": 213,
+      "angle": 241,
+      "hashtag": 170,
+      "noah": 178
+    },
+    "avgRank": 208.2,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 226,
+    "player": "Jake LaRavia",
+    "team": "LAL",
+    "position": "SF",
+    "age": 24.5,
+    "expertRanks": {
+      "matt": 211,
+      "dizzle": 253,
+      "angle": 208,
+      "hashtag": 200,
+      "noah": 177
+    },
+    "avgRank": 209.8,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 227,
+    "player": "Draymond Green",
+    "team": "GSW",
+    "position": "PF",
+    "age": 36.1,
+    "expertRanks": {
+      "matt": 206,
+      "dizzle": 207,
+      "angle": 186,
+      "hashtag": 248,
+      "noah": 206
+    },
+    "avgRank": 210.6,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 228,
+    "player": "Day'Ron Sharpe",
+    "team": "BKN",
+    "position": "C",
+    "age": 24.5,
+    "expertRanks": {
+      "matt": 137,
+      "dizzle": 204,
+      "angle": 190,
+      "jason": 190,
+      "hashtag": 322,
+      "noah": 223
+    },
+    "avgRank": 211.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 229,
+    "player": "Goga Bitadze",
+    "team": "ORL",
+    "position": "C",
+    "age": 26.8,
+    "expertRanks": {
+      "matt": 185,
+      "dizzle": 247,
+      "angle": 199,
+      "jason": 193,
+      "hashtag": 255,
+      "noah": 200
+    },
+    "avgRank": 213.17,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 230,
+    "player": "Taylor Hendricks",
+    "team": "MEM",
+    "position": "PF",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 240,
+      "dizzle": 231,
+      "angle": 230,
+      "hashtag": 220,
+      "noah": 145
+    },
+    "avgRank": 213.2,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 231,
+    "player": "Miles McBride",
+    "team": "NYK",
+    "position": "PG",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 224,
+      "dizzle": 218,
+      "angle": 197,
+      "hashtag": 237,
+      "noah": 194
+    },
+    "avgRank": 214.0,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 232,
+    "player": "Scotty Pippen Jr.",
+    "team": "MEM",
+    "position": "PG",
+    "age": 25.5,
+    "expertRanks": {
+      "matt": 196,
+      "dizzle": 196,
+      "angle": 184,
+      "hashtag": 267,
+      "noah": 239
+    },
+    "avgRank": 216.4,
+    "rankedByCount": 5,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 233,
+    "player": "Rui Hachimura",
+    "team": "LAL",
+    "position": "PF",
+    "age": 28.2,
+    "expertRanks": {
+      "matt": 221,
+      "dizzle": 222,
+      "angle": 233,
+      "jason": 189,
+      "hashtag": 186,
+      "noah": 253
+    },
+    "avgRank": 217.33,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 234,
+    "player": "Nolan Traore",
+    "team": "BKN",
+    "position": "PG",
+    "age": 19.9,
+    "expertRanks": {
+      "matt": 175,
+      "dizzle": 224,
+      "angle": 263,
+      "jason": 186,
+      "hashtag": 261,
+      "noah": 196
+    },
+    "avgRank": 217.5,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 235,
+    "player": "Moses Moody",
+    "team": "GSW",
+    "position": "SF",
+    "age": 23.9,
+    "expertRanks": {
+      "matt": 156,
+      "dizzle": 254,
+      "angle": 175,
+      "jason": 199,
+      "hashtag": 270,
+      "noah": 254
+    },
+    "avgRank": 218.0,
+    "rankedByCount": 6,
+    "tier": 6,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 236,
+    "player": "Tounde Yessoufou",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 218
+    },
+    "avgRank": 218.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 237,
+    "player": "Aaron Wiggins",
+    "team": "OKC",
+    "position": "SF",
+    "age": 27.3,
+    "expertRanks": {
+      "matt": 182,
+      "dizzle": 252,
+      "angle": 211,
+      "jason": 160,
+      "hashtag": 256,
+      "noah": 248
+    },
+    "avgRank": 218.17,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 238,
+    "player": "Kelly Oubre Jr.",
+    "team": "PHI",
+    "position": "SF",
+    "age": 30.4,
+    "expertRanks": {
+      "matt": 214,
+      "dizzle": 239,
+      "angle": 177,
+      "hashtag": 228,
+      "noah": 243
+    },
+    "avgRank": 220.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 239,
+    "player": "Ryan Dunn",
+    "team": "PHO",
+    "position": "PF",
+    "age": 23.3,
+    "expertRanks": {
+      "matt": 285,
+      "dizzle": 250,
+      "angle": 236,
+      "jason": 182,
+      "hashtag": 233,
+      "noah": 140
+    },
+    "avgRank": 221.0,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 240,
+    "player": "Jase Richardson",
+    "team": "ORL",
+    "position": "SG",
+    "age": 20.5,
+    "expertRanks": {
+      "matt": 236,
+      "dizzle": 206,
+      "angle": 216,
+      "jason": 177,
+      "hashtag": 323,
+      "noah": 183
+    },
+    "avgRank": 223.5,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 241,
+    "player": "Jay Huff",
+    "team": "IND",
+    "position": "C",
+    "age": 28.6,
+    "expertRanks": {
+      "matt": 252,
+      "dizzle": 238,
+      "angle": 198,
+      "hashtag": 198,
+      "noah": 238
+    },
+    "avgRank": 224.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 242,
+    "player": "Gui Santos",
+    "team": "GSW",
+    "position": "SG",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 264,
+      "dizzle": 232,
+      "hashtag": 180
+    },
+    "avgRank": 225.33,
+    "rankedByCount": 3,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 243,
+    "player": "Karim Lopez",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 226
+    },
+    "avgRank": 226.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 244,
+    "player": "De'Anthony Melton",
+    "team": "GSW",
+    "position": "SG",
+    "age": 27.9,
+    "expertRanks": {
+      "matt": 212,
+      "dizzle": 216,
+      "angle": 195,
+      "hashtag": 216,
+      "noah": 294
+    },
+    "avgRank": 226.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 245,
+    "player": "Dylan Cardwell",
+    "team": "SAC",
+    "position": "C",
+    "age": 24.4,
+    "expertRanks": {
+      "matt": 248,
+      "dizzle": 217,
+      "angle": 214,
+      "hashtag": 229
+    },
+    "avgRank": 227.0,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 246,
+    "player": "Obi Toppin",
+    "team": "IND",
+    "position": "PF",
+    "age": 28.1,
+    "expertRanks": {
+      "matt": 220,
+      "dizzle": 264,
+      "angle": 247,
+      "jason": 187,
+      "hashtag": 210,
+      "noah": 244
+    },
+    "avgRank": 228.67,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 247,
+    "player": "Will Riley",
+    "team": "WAS",
+    "position": "SF",
+    "age": 20.2,
+    "expertRanks": {
+      "matt": 235,
+      "dizzle": 160,
+      "angle": 277,
+      "hashtag": 169,
+      "noah": 303
+    },
+    "avgRank": 228.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 248,
+    "player": "GG Jackson",
+    "team": "MEM",
+    "position": "PF",
+    "age": 21.3,
+    "expertRanks": {
+      "matt": 209,
+      "dizzle": 237,
+      "angle": 281,
+      "hashtag": 207,
+      "noah": 212
+    },
+    "avgRank": 229.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 249,
+    "player": "Isaiah Evans",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 230
+    },
+    "avgRank": 230.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 250,
+    "player": "Jalen Smith",
+    "team": "CHI",
+    "position": "PF",
+    "age": 26.1,
+    "expertRanks": {
+      "matt": 216,
+      "dizzle": 281,
+      "angle": 180,
+      "hashtag": 195,
+      "noah": 280
+    },
+    "avgRank": 230.4,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 251,
+    "player": "Jamal Shead",
+    "team": "TOR",
+    "position": "PG",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 241,
+      "dizzle": 257,
+      "angle": 202,
+      "hashtag": 235,
+      "noah": 221
+    },
+    "avgRank": 231.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 252,
+    "player": "Julian Champagnie",
+    "team": "SAS",
+    "position": "SF",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 222,
+      "dizzle": 230,
+      "angle": 181,
+      "hashtag": 303,
+      "noah": 227
+    },
+    "avgRank": 232.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 253,
+    "player": "Luke Kornet",
+    "team": "SAS",
+    "position": "C",
+    "age": 30.8,
+    "expertRanks": {
+      "matt": 190,
+      "dizzle": 219,
+      "angle": 218,
+      "hashtag": 241,
+      "noah": 298
+    },
+    "avgRank": 233.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 254,
+    "player": "Hugo Gonzalez",
+    "team": "BOS",
+    "position": "SF",
+    "age": 20.2,
+    "expertRanks": {
+      "matt": 250,
+      "dizzle": 193,
+      "angle": 231,
+      "hashtag": 296,
+      "noah": 199
+    },
+    "avgRank": 233.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 255,
+    "player": "Yves Missi",
+    "team": "NOR",
+    "position": "C",
+    "age": 21.9,
+    "expertRanks": {
+      "matt": 238,
+      "dizzle": 272,
+      "angle": 223,
+      "hashtag": 243,
+      "noah": 195
+    },
+    "avgRank": 234.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 256,
+    "player": "Keldon Johnson",
+    "team": "SAS",
+    "position": "SF",
+    "age": 26.5,
+    "expertRanks": {
+      "matt": 245,
+      "dizzle": 223,
+      "angle": 204,
+      "jason": 198,
+      "hashtag": 275,
+      "noah": 266
+    },
+    "avgRank": 235.17,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 257,
+    "player": "Bobby Portis Jr.",
+    "team": "MIL",
+    "position": "C",
+    "age": 31.2,
+    "expertRanks": {
+      "matt": 243,
+      "angle": 217,
+      "hashtag": 268,
+      "noah": 216
+    },
+    "avgRank": 236.0,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 258,
+    "player": "Tre Jones",
+    "team": "CHI",
+    "position": "PG",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 184,
+      "dizzle": 275,
+      "angle": 209,
+      "jason": 183,
+      "hashtag": 334
+    },
+    "avgRank": 237.0,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 259,
+    "player": "Daniss Jenkins",
+    "team": "DET",
+    "position": "PG",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 247,
+      "dizzle": 191,
+      "angle": 262,
+      "hashtag": 273,
+      "noah": 213
+    },
+    "avgRank": 237.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 260,
+    "player": "Josh Minott",
+    "team": "BKN",
+    "position": "PF",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 229,
+      "dizzle": 194,
+      "angle": 298,
+      "hashtag": 239,
+      "noah": 228
+    },
+    "avgRank": 237.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 261,
+    "player": "Luguentz Dort",
+    "team": "OKC",
+    "position": "SG",
+    "age": 27.0,
+    "expertRanks": {
+      "matt": 237,
+      "dizzle": 243,
+      "angle": 237,
+      "hashtag": 266,
+      "noah": 207
+    },
+    "avgRank": 238.0,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 262,
+    "player": "Tyler Tanner",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 238
+    },
+    "avgRank": 238.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 263,
+    "player": "Tristan da Silva",
+    "team": "ORL",
+    "position": "SF",
+    "age": 24.9,
+    "expertRanks": {
+      "matt": 254,
+      "angle": 203,
+      "hashtag": 277,
+      "noah": 220
+    },
+    "avgRank": 238.5,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 264,
+    "player": "Justin Champagnie",
+    "team": "WAS",
+    "position": "SF",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 207,
+      "dizzle": 235,
+      "angle": 270,
+      "hashtag": 240,
+      "noah": 242
+    },
+    "avgRank": 238.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 265,
+    "player": "Sandro Mamukelashvili",
+    "team": "TOR",
+    "position": "C",
+    "age": 26.9,
+    "expertRanks": {
+      "matt": 223,
+      "dizzle": 316,
+      "angle": 206,
+      "hashtag": 227,
+      "noah": 230
+    },
+    "avgRank": 240.4,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 266,
+    "player": "Jordan Walsh",
+    "team": "BOS",
+    "position": "SF",
+    "age": 22.1,
+    "expertRanks": {
+      "matt": 265,
+      "dizzle": 258,
+      "angle": 256,
+      "hashtag": 251,
+      "noah": 173
+    },
+    "avgRank": 240.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 267,
+    "player": "Alex Caruso",
+    "team": "OKC",
+    "position": "SG",
+    "age": 32.2,
+    "expertRanks": {
+      "matt": 217,
+      "dizzle": 248,
+      "angle": 227,
+      "hashtag": 294,
+      "noah": 252
+    },
+    "avgRank": 247.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 268,
+    "player": "Drake Powell",
+    "team": "BKN",
+    "position": "SF",
+    "age": 20.6,
+    "expertRanks": {
+      "matt": 327,
+      "dizzle": 266,
+      "angle": 268,
+      "jason": 196,
+      "hashtag": 211,
+      "noah": 219
+    },
+    "avgRank": 247.83,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 269,
+    "player": "Devin Carter",
+    "team": "SAC",
+    "position": "SG",
+    "age": 24.1,
+    "expertRanks": {
+      "matt": 202,
+      "dizzle": 246,
+      "angle": 282,
+      "hashtag": 309,
+      "noah": 201
+    },
+    "avgRank": 248.0,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 270,
+    "player": "Robert Williams",
+    "team": "POR",
+    "position": "C",
+    "age": 28.5,
+    "expertRanks": {
+      "matt": 225,
+      "dizzle": 293,
+      "angle": 289,
+      "jason": 191,
+      "hashtag": 288,
+      "noah": 202
+    },
+    "avgRank": 248.0,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 271,
+    "player": "Oso Ighodaro",
+    "team": "PHO",
+    "position": "C",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 314,
+      "dizzle": 276,
+      "angle": 257,
+      "hashtag": 179,
+      "noah": 217
+    },
+    "avgRank": 248.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 272,
+    "player": "Alvaro Folgueiras",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 249
+    },
+    "avgRank": 249.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 273,
+    "player": "Brandon Williams",
+    "team": "DAL",
+    "position": "PG",
+    "age": 26.4,
+    "expertRanks": {
+      "matt": 249,
+      "dizzle": 226,
+      "angle": 235,
+      "hashtag": 311,
+      "noah": 226
+    },
+    "avgRank": 249.4,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 274,
+    "player": "Royce O'Neale",
+    "team": "PHO",
+    "position": "SF",
+    "age": 32.9,
+    "expertRanks": {
+      "matt": 266,
+      "dizzle": 271,
+      "angle": 221
+    },
+    "avgRank": 252.67,
+    "rankedByCount": 3,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 275,
+    "player": "Kyle Kuzma",
+    "team": "MIL",
+    "position": "PF",
+    "age": 30.8,
+    "expertRanks": {
+      "matt": 279,
+      "dizzle": 228,
+      "angle": 226,
+      "hashtag": 264,
+      "noah": 271
+    },
+    "avgRank": 253.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 276,
+    "player": "Pelle Larsson",
+    "team": "MIA",
+    "position": "SG",
+    "age": 25.2,
+    "expertRanks": {
+      "matt": 286,
+      "dizzle": 291,
+      "angle": 194,
+      "hashtag": 244
+    },
+    "avgRank": 253.75,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 277,
+    "player": "Yanic Konan Niederhauser",
+    "team": "LAC",
+    "position": "C",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 258,
+      "dizzle": 267,
+      "angle": 284,
+      "hashtag": 155,
+      "noah": 305
+    },
+    "avgRank": 253.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 278,
+    "player": "Dennis Schroder",
+    "team": "CLE",
+    "position": "PG",
+    "age": 32.6,
+    "expertRanks": {
+      "matt": 242,
+      "dizzle": 249,
+      "angle": 238,
+      "hashtag": 290,
+      "noah": 251
+    },
+    "avgRank": 254.0,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 279,
+    "player": "Rasheer Fleming",
+    "team": "PHO",
+    "position": "PF",
+    "age": 21.8,
+    "expertRanks": {
+      "matt": 257,
+      "dizzle": 265,
+      "angle": 273,
+      "jason": 184,
+      "hashtag": 360,
+      "noah": 204
+    },
+    "avgRank": 257.17,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 280,
+    "player": "Bradley Beal",
+    "team": "LAC",
+    "position": "SG",
+    "age": 32.8,
+    "expertRanks": {
+      "matt": 231,
+      "dizzle": 297,
+      "hashtag": 246
+    },
+    "avgRank": 258.0,
+    "rankedByCount": 3,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 281,
+    "player": "Jeremy Sochan",
+    "team": "NYK",
+    "position": "PF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 338,
+      "dizzle": 256,
+      "angle": 259,
+      "jason": 168,
+      "hashtag": 300,
+      "noah": 231
+    },
+    "avgRank": 258.67,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 282,
+    "player": "Asa Newell",
+    "team": "ATL",
+    "position": "PF",
+    "age": 20.5,
+    "expertRanks": {
+      "matt": 260,
+      "dizzle": 287,
+      "angle": 228,
+      "jason": 174,
+      "hashtag": 363,
+      "noah": 241
+    },
+    "avgRank": 258.83,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 283,
+    "player": "TJ McConnell",
+    "team": "IND",
+    "position": "PG",
+    "age": 34.1,
+    "expertRanks": {
+      "dizzle": 259
+    },
+    "avgRank": 259.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 284,
+    "player": "Sam Merrill",
+    "team": "CLE",
+    "position": "SG",
+    "age": 29.9,
+    "expertRanks": {
+      "matt": 213,
+      "dizzle": 234,
+      "angle": 212,
+      "hashtag": 341,
+      "noah": 299
+    },
+    "avgRank": 259.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 285,
+    "player": "Morez Johnson Jr.",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 260
+    },
+    "avgRank": 260.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 286,
+    "player": "Jusuf Nurkic",
+    "team": "UTA",
+    "position": "C",
+    "age": 31.7,
+    "expertRanks": {
+      "matt": 226,
+      "dizzle": 273,
+      "angle": 279,
+      "hashtag": 224,
+      "noah": 301
+    },
+    "avgRank": 260.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 287,
+    "player": "Bobby Portis",
+    "team": "MIL",
+    "position": "PF",
+    "age": 31.2,
+    "expertRanks": {
+      "dizzle": 261
+    },
+    "avgRank": 261.0,
+    "rankedByCount": 1,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 288,
+    "player": "Vince Williams Jr.",
+    "team": "UTA",
+    "position": "SF",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 270,
+      "dizzle": 308,
+      "angle": 213,
+      "hashtag": 306,
+      "noah": 209
+    },
+    "avgRank": 261.2,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 289,
+    "player": "Cody Williams",
+    "team": "UTA",
+    "position": "SF",
+    "age": 21.4,
+    "expertRanks": {
+      "matt": 301,
+      "dizzle": 233,
+      "angle": 309,
+      "hashtag": 225,
+      "noah": 240
+    },
+    "avgRank": 261.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 290,
+    "player": "DaRon Holmes",
+    "team": "DEN",
+    "position": "C",
+    "age": 23.7,
+    "expertRanks": {
+      "matt": 298,
+      "dizzle": 241,
+      "angle": 278,
+      "jason": 195,
+      "hashtag": 301,
+      "noah": 259
+    },
+    "avgRank": 262.0,
+    "rankedByCount": 6,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 291,
+    "player": "Leonard Miller",
+    "team": "CHI",
+    "position": "PF",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 310,
+      "dizzle": 268,
+      "hashtag": 178,
+      "noah": 296
+    },
+    "avgRank": 263.0,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 292,
+    "player": "Ryan Nembhard",
+    "team": "DAL",
+    "position": "PG",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 291,
+      "dizzle": 278,
+      "angle": 255,
+      "hashtag": 258,
+      "noah": 237
+    },
+    "avgRank": 263.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 293,
+    "player": "Isaiah Jackson",
+    "team": "LAC",
+    "position": "C",
+    "age": 24.3,
+    "expertRanks": {
+      "matt": 337,
+      "dizzle": 290,
+      "angle": 234,
+      "hashtag": 181,
+      "noah": 281
+    },
+    "avgRank": 264.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 294,
+    "player": "Isaiah Joe",
+    "team": "OKC",
+    "position": "SG",
+    "age": 26.8,
+    "expertRanks": {
+      "matt": 244,
+      "dizzle": 227,
+      "angle": 264,
+      "hashtag": 286,
+      "noah": 309
+    },
+    "avgRank": 266.0,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 295,
+    "player": "Dominick Barlow",
+    "team": "PHI",
+    "position": "PF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 205,
+      "dizzle": 306,
+      "angle": 219,
+      "hashtag": 342
+    },
+    "avgRank": 268.0,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 296,
+    "player": "Max Strus",
+    "team": "CLE",
+    "position": "SG",
+    "age": 30.1,
+    "expertRanks": {
+      "matt": 280,
+      "dizzle": 288,
+      "angle": 297,
+      "hashtag": 205,
+      "noah": 272
+    },
+    "avgRank": 268.4,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 297,
+    "player": "Quinten Post",
+    "team": "GSW",
+    "position": "C",
+    "age": 26.1,
+    "expertRanks": {
+      "matt": 256,
+      "angle": 244,
+      "hashtag": 291,
+      "noah": 283
+    },
+    "avgRank": 268.5,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 298,
+    "player": "Kris Dunn",
+    "team": "LAC",
+    "position": "SG",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 230,
+      "dizzle": 236,
+      "angle": 250,
+      "hashtag": 367,
+      "noah": 260
+    },
+    "avgRank": 268.6,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 299,
+    "player": "Derrick Jones Jr.",
+    "team": "LAC",
+    "position": "SF",
+    "age": 29.2,
+    "expertRanks": {
+      "matt": 227,
+      "dizzle": 283,
+      "angle": 290,
+      "hashtag": 278
+    },
+    "avgRank": 269.5,
+    "rankedByCount": 4,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 300,
+    "player": "Jose Alvarado",
+    "team": "NYK",
+    "position": "PG",
+    "age": 28.0,
+    "expertRanks": {
+      "matt": 255,
+      "dizzle": 269,
+      "angle": 260,
+      "hashtag": 310,
+      "noah": 255
+    },
+    "avgRank": 269.8,
+    "rankedByCount": 5,
+    "tier": 7,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 301,
+    "player": "Gradey Dick",
+    "team": "TOR",
+    "position": "SF",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 315,
+      "dizzle": 332,
+      "angle": 243,
+      "hashtag": 250,
+      "noah": 214
+    },
+    "avgRank": 270.8,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 302,
+    "player": "Cameron Carr",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 271
+    },
+    "avgRank": 271.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 303,
+    "player": "Ousmane Dieng",
+    "team": "MIL",
+    "position": "SF",
+    "age": 22.9,
+    "expertRanks": {
+      "matt": 332,
+      "dizzle": 255,
+      "hashtag": 231
+    },
+    "avgRank": 272.67,
+    "rankedByCount": 3,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 304,
+    "player": "Cam Whitmore",
+    "team": "WAS",
+    "position": "SF",
+    "age": 21.8,
+    "expertRanks": {
+      "matt": 277,
+      "dizzle": 338,
+      "hashtag": 203,
+      "noah": 277
+    },
+    "avgRank": 273.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 305,
+    "player": "T.J. McConnell",
+    "team": "IND",
+    "position": "PG",
+    "age": 34.1,
+    "expertRanks": {
+      "matt": 261,
+      "angle": 229,
+      "hashtag": 339,
+      "noah": 267
+    },
+    "avgRank": 274.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 306,
+    "player": "Carlton Carrington",
+    "team": "WAS",
+    "position": "PG",
+    "age": 20.7,
+    "expertRanks": {
+      "dizzle": 274
+    },
+    "avgRank": 274.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 307,
+    "player": "Vit Krejci",
+    "team": "POR",
+    "position": "PG",
+    "age": 25.8,
+    "expertRanks": {
+      "matt": 262,
+      "dizzle": 277,
+      "angle": 251,
+      "hashtag": 352,
+      "noah": 233
+    },
+    "avgRank": 275.0,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 308,
+    "player": "Adem Bona",
+    "team": "PHI",
+    "position": "C",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 276,
+      "dizzle": 318,
+      "angle": 249,
+      "hashtag": 269,
+      "noah": 265
+    },
+    "avgRank": 275.4,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 309,
+    "player": "Noah Penda",
+    "team": "ORL",
+    "position": "PF",
+    "age": 21.3,
+    "expertRanks": {
+      "matt": 295,
+      "dizzle": 209,
+      "hashtag": 372,
+      "noah": 232
+    },
+    "avgRank": 277.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 310,
+    "player": "AJ Green",
+    "team": "MIL",
+    "position": "SG",
+    "age": 26.6,
+    "expertRanks": {
+      "matt": 299,
+      "dizzle": 240,
+      "angle": 240,
+      "hashtag": 336
+    },
+    "avgRank": 278.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 311,
+    "player": "Duncan Robinson",
+    "team": "DET",
+    "position": "SG",
+    "age": 32.0,
+    "expertRanks": {
+      "matt": 342,
+      "dizzle": 242,
+      "angle": 239,
+      "hashtag": 292
+    },
+    "avgRank": 278.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 312,
+    "player": "Bruce Brown",
+    "team": "DEN",
+    "position": "PG",
+    "age": 29.7,
+    "expertRanks": {
+      "dizzle": 280
+    },
+    "avgRank": 280.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 313,
+    "player": "Marcus Smart",
+    "team": "LAL",
+    "position": "SG",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 253,
+      "angle": 252,
+      "hashtag": 330,
+      "noah": 290
+    },
+    "avgRank": 281.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 314,
+    "player": "Zuby Ejiofor",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 282
+    },
+    "avgRank": 282.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 315,
+    "player": "Kevin Huerter",
+    "team": "DET",
+    "position": "SG",
+    "age": 27.7,
+    "expertRanks": {
+      "matt": 313,
+      "dizzle": 279,
+      "angle": 242,
+      "hashtag": 324,
+      "noah": 257
+    },
+    "avgRank": 283.0,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 316,
+    "player": "Mouhamed Gueye",
+    "team": "ATL",
+    "position": "PF",
+    "age": 23.5,
+    "expertRanks": {
+      "matt": 272,
+      "dizzle": 300,
+      "hashtag": 357,
+      "noah": 208
+    },
+    "avgRank": 284.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 317,
+    "player": "Sion James",
+    "team": "CHA",
+    "position": "SF",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 283,
+      "dizzle": 343,
+      "angle": 267,
+      "hashtag": 236,
+      "noah": 297
+    },
+    "avgRank": 285.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 318,
+    "player": "Bruce Brown Jr.",
+    "team": "DEN",
+    "position": "SG",
+    "age": 29.7,
+    "expertRanks": {
+      "matt": 275,
+      "angle": 274,
+      "hashtag": 329,
+      "noah": 263
+    },
+    "avgRank": 285.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 319,
+    "player": "Bones Hyland",
+    "team": "MIN",
+    "position": "SG",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 294,
+      "dizzle": 285,
+      "hashtag": 279
+    },
+    "avgRank": 286.0,
+    "rankedByCount": 3,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 320,
+    "player": "Russell Westbrook",
+    "team": "SAC",
+    "position": "PG",
+    "age": 37.5,
+    "expertRanks": {
+      "matt": 372,
+      "dizzle": 263,
+      "angle": 210,
+      "hashtag": 366,
+      "noah": 225
+    },
+    "avgRank": 287.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 321,
+    "player": "Luke Kennard",
+    "team": "LAL",
+    "position": "SG",
+    "age": 29.8,
+    "expertRanks": {
+      "matt": 322,
+      "dizzle": 310,
+      "angle": 266,
+      "hashtag": 252
+    },
+    "avgRank": 287.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 322,
+    "player": "Al Horford",
+    "team": "GSW",
+    "position": "C",
+    "age": 39.9,
+    "expertRanks": {
+      "matt": 269,
+      "dizzle": 307
+    },
+    "avgRank": 288.0,
+    "rankedByCount": 2,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 323,
+    "player": "Will Richard",
+    "team": "GSW",
+    "position": "SG",
+    "age": 23.3,
+    "expertRanks": {
+      "matt": 296,
+      "dizzle": 251,
+      "angle": 245,
+      "hashtag": 345,
+      "noah": 304
+    },
+    "avgRank": 288.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 324,
+    "player": "Terrence Shannon Jr.",
+    "team": "MIN",
+    "position": "SF",
+    "age": 25.7,
+    "expertRanks": {
+      "matt": 339,
+      "angle": 294,
+      "hashtag": 254,
+      "noah": 275
+    },
+    "avgRank": 290.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 325,
+    "player": "Khris Middleton",
+    "team": "DAL",
+    "position": "SF",
+    "age": 34.7,
+    "expertRanks": {
+      "matt": 293,
+      "dizzle": 329,
+      "angle": 269,
+      "hashtag": 299,
+      "noah": 268
+    },
+    "avgRank": 291.6,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 326,
+    "player": "Adou Thiero",
+    "team": "LAL",
+    "position": "SF",
+    "age": 22.0,
+    "expertRanks": {
+      "matt": 284,
+      "dizzle": 244,
+      "hashtag": 382,
+      "noah": 258
+    },
+    "avgRank": 292.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 327,
+    "player": "Sam Hauser",
+    "team": "BOS",
+    "position": "PF",
+    "age": 28.4,
+    "expertRanks": {
+      "matt": 331,
+      "dizzle": 229,
+      "angle": 261,
+      "hashtag": 349
+    },
+    "avgRank": 292.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 328,
+    "player": "Chris Cenac Jr.",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 293
+    },
+    "avgRank": 293.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 329,
+    "player": "Tyler Kolek",
+    "team": "NYK",
+    "position": "PG",
+    "age": 25.1,
+    "expertRanks": {
+      "matt": 289,
+      "dizzle": 321,
+      "angle": 286,
+      "hashtag": 327,
+      "noah": 262
+    },
+    "avgRank": 297.0,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 330,
+    "player": "Tidjane Salaun",
+    "team": "CHA",
+    "position": "PF",
+    "age": 20.7,
+    "expertRanks": {
+      "matt": 271,
+      "dizzle": 286,
+      "angle": 280,
+      "hashtag": 405,
+      "noah": 245
+    },
+    "avgRank": 297.4,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 331,
+    "player": "Andre Drummond",
+    "team": "PHI",
+    "position": "C",
+    "age": 32.7,
+    "expertRanks": {
+      "matt": 287,
+      "dizzle": 325,
+      "hashtag": 283
+    },
+    "avgRank": 298.33,
+    "rankedByCount": 3,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 332,
+    "player": "Karlo Matkovic",
+    "team": "NOR",
+    "position": "C",
+    "age": 25.1,
+    "expertRanks": {
+      "matt": 273,
+      "dizzle": 324,
+      "hashtag": 319,
+      "noah": 282
+    },
+    "avgRank": 299.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 333,
+    "player": "Craig Porter Jr.",
+    "team": "CLE",
+    "position": "SG",
+    "age": 26.2,
+    "expertRanks": {
+      "matt": 246,
+      "dizzle": 304,
+      "hashtag": 431,
+      "noah": 218
+    },
+    "avgRank": 299.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 334,
+    "player": "Johnny Furphy",
+    "team": "IND",
+    "position": "SF",
+    "age": 21.4,
+    "expertRanks": {
+      "matt": 309,
+      "dizzle": 344,
+      "angle": 271,
+      "hashtag": 289,
+      "noah": 287
+    },
+    "avgRank": 300.0,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 335,
+    "player": "Kam Jones",
+    "team": "IND",
+    "position": "SG",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 306,
+      "dizzle": 295
+    },
+    "avgRank": 300.5,
+    "rankedByCount": 2,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 336,
+    "player": "Jaylin Williams",
+    "team": "OKC",
+    "position": "C",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 259,
+      "dizzle": 298,
+      "angle": 246,
+      "hashtag": 408,
+      "noah": 295
+    },
+    "avgRank": 301.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 337,
+    "player": "Lonzo Ball",
+    "team": "FA",
+    "position": "PG",
+    "age": 28.5,
+    "expertRanks": {
+      "matt": 274,
+      "dizzle": 349,
+      "hashtag": 332,
+      "noah": 250
+    },
+    "avgRank": 301.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 338,
+    "player": "Kobe Sanders",
+    "team": "LAC",
+    "position": "SF",
+    "age": 23.9,
+    "expertRanks": {
+      "matt": 336,
+      "dizzle": 262,
+      "angle": 299,
+      "hashtag": 308
+    },
+    "avgRank": 301.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 339,
+    "player": "Tristan Vukcevic",
+    "team": "WAS",
+    "position": "C",
+    "age": 23.1,
+    "expertRanks": {
+      "matt": 251,
+      "dizzle": 302,
+      "angle": 291,
+      "hashtag": 364
+    },
+    "avgRank": 302.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 340,
+    "player": "Amari Allen",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 304
+    },
+    "avgRank": 304.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 341,
+    "player": "Liam McNeeley",
+    "team": "CHA",
+    "position": "SF",
+    "age": 20.5,
+    "expertRanks": {
+      "matt": 282,
+      "dizzle": 284,
+      "angle": 305,
+      "hashtag": 375,
+      "noah": 276
+    },
+    "avgRank": 304.4,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 342,
+    "player": "Tre Mann",
+    "team": "CHA",
+    "position": "SG",
+    "age": 25.2,
+    "expertRanks": {
+      "matt": 278,
+      "dizzle": 364,
+      "hashtag": 351,
+      "noah": 229
+    },
+    "avgRank": 305.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 343,
+    "player": "Dru Smith",
+    "team": "MIA",
+    "position": "PG",
+    "age": 28.3,
+    "expertRanks": {
+      "matt": 267,
+      "dizzle": 434,
+      "angle": 248,
+      "hashtag": 274
+    },
+    "avgRank": 305.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 344,
+    "player": "Julian Strawther",
+    "team": "DEN",
+    "position": "SF",
+    "age": 24.0,
+    "expertRanks": {
+      "matt": 334,
+      "dizzle": 314,
+      "hashtag": 320,
+      "noah": 256
+    },
+    "avgRank": 306.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 345,
+    "player": "Spencer Jones",
+    "team": "DEN",
+    "position": "SF",
+    "age": 24.9,
+    "expertRanks": {
+      "matt": 325,
+      "dizzle": 311,
+      "angle": 265,
+      "hashtag": 318,
+      "noah": 312
+    },
+    "avgRank": 306.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 346,
+    "player": "Pat Spencer",
+    "team": "GSW",
+    "position": "PG",
+    "age": 29.8,
+    "expertRanks": {
+      "matt": 305,
+      "dizzle": 347,
+      "angle": 319,
+      "hashtag": 276,
+      "noah": 292
+    },
+    "avgRank": 307.8,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 347,
+    "player": "D'Angelo Russell",
+    "team": "WAS",
+    "position": "PG",
+    "age": 30.2,
+    "expertRanks": {
+      "matt": 333,
+      "dizzle": 348,
+      "angle": 306,
+      "hashtag": 245
+    },
+    "avgRank": 308.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 348,
+    "player": "Brandon Clarke",
+    "team": "MEM",
+    "position": "C",
+    "age": 29.6,
+    "expertRanks": {
+      "matt": 290,
+      "dizzle": 357,
+      "hashtag": 295,
+      "noah": 291
+    },
+    "avgRank": 308.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 349,
+    "player": "Ziaire Williams",
+    "team": "BKN",
+    "position": "SF",
+    "age": 24.6,
+    "expertRanks": {
+      "matt": 329,
+      "dizzle": 333,
+      "angle": 253,
+      "hashtag": 325,
+      "noah": 306
+    },
+    "avgRank": 309.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 350,
+    "player": "Ja'Kobe Walter",
+    "team": "TOR",
+    "position": "SG",
+    "age": 21.6,
+    "expertRanks": {
+      "matt": 297,
+      "dizzle": 340,
+      "angle": 220,
+      "hashtag": 426,
+      "noah": 264
+    },
+    "avgRank": 309.4,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 351,
+    "player": "Ben Saraf",
+    "team": "BKN",
+    "position": "PG",
+    "age": 20.0,
+    "expertRanks": {
+      "matt": 320,
+      "dizzle": 292,
+      "angle": 310,
+      "hashtag": 348,
+      "noah": 279
+    },
+    "avgRank": 309.8,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 352,
+    "player": "Gary Trent Jr.",
+    "team": "MIL",
+    "position": "SG",
+    "age": 27.3,
+    "expertRanks": {
+      "matt": 321,
+      "dizzle": 354,
+      "angle": 301,
+      "hashtag": 265
+    },
+    "avgRank": 310.25,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 353,
+    "player": "Caris LeVert",
+    "team": "DET",
+    "position": "SG",
+    "age": 31.7,
+    "expertRanks": {
+      "matt": 350,
+      "dizzle": 330,
+      "angle": 316,
+      "hashtag": 287,
+      "noah": 270
+    },
+    "avgRank": 310.6,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 354,
+    "player": "Jordan Miller",
+    "team": "LAC",
+    "position": "SF",
+    "age": 26.3,
+    "expertRanks": {
+      "matt": 341,
+      "dizzle": 313,
+      "angle": 285,
+      "hashtag": 307
+    },
+    "avgRank": 311.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 355,
+    "player": "Justin Edwards",
+    "team": "PHI",
+    "position": "SF",
+    "age": 22.4,
+    "expertRanks": {
+      "matt": 351,
+      "dizzle": 296,
+      "angle": 293,
+      "noah": 308
+    },
+    "avgRank": 312.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 356,
+    "player": "Caleb Love",
+    "team": "POR",
+    "position": "PG",
+    "age": 24.6,
+    "expertRanks": {
+      "matt": 374,
+      "dizzle": 351,
+      "angle": 254,
+      "hashtag": 298,
+      "noah": 289
+    },
+    "avgRank": 313.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 357,
+    "player": "Corey Kispert",
+    "team": "ATL",
+    "position": "SF",
+    "age": 27.1,
+    "expertRanks": {
+      "matt": 311,
+      "dizzle": 319,
+      "angle": 283,
+      "hashtag": 346
+    },
+    "avgRank": 314.75,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 358,
+    "player": "Terrance Shannon Jr.",
+    "team": "MIN",
+    "position": "SG",
+    "age": 25.7,
+    "expertRanks": {
+      "dizzle": 315
+    },
+    "avgRank": 315.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 359,
+    "player": "Thomas Haugh",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 315
+    },
+    "avgRank": 315.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 360,
+    "player": "Steven Adams",
+    "team": "HOU",
+    "position": "C",
+    "age": 32.8,
+    "expertRanks": {
+      "matt": 288,
+      "dizzle": 356,
+      "angle": 313,
+      "hashtag": 317,
+      "noah": 302
+    },
+    "avgRank": 315.2,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 361,
+    "player": "Tyrese Proctor",
+    "team": "CLE",
+    "position": "SG",
+    "age": 22.3,
+    "expertRanks": {
+      "matt": 318,
+      "dizzle": 326,
+      "noah": 307
+    },
+    "avgRank": 317.0,
+    "rankedByCount": 3,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 362,
+    "player": "Quentin Post",
+    "team": "GSW",
+    "position": "PF",
+    "age": 26.1,
+    "expertRanks": {
+      "dizzle": 317
+    },
+    "avgRank": 317.0,
+    "rankedByCount": 1,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 363,
+    "player": "Trendon Watford",
+    "team": "PHI",
+    "position": "PF",
+    "age": 25.5,
+    "expertRanks": {
+      "matt": 281,
+      "dizzle": 352,
+      "angle": 312,
+      "hashtag": 359,
+      "noah": 288
+    },
+    "avgRank": 318.4,
+    "rankedByCount": 5,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 364,
+    "player": "Jordan Goodwin",
+    "team": "PHO",
+    "position": "SG",
+    "age": 27.5,
+    "expertRanks": {
+      "matt": 263,
+      "dizzle": 336,
+      "angle": 232,
+      "hashtag": 445
+    },
+    "avgRank": 319.0,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 365,
+    "player": "Jonathan Mogbo",
+    "team": "TOR",
+    "position": "PF",
+    "age": 24.5,
+    "expertRanks": {
+      "matt": 307,
+      "dizzle": 374,
+      "hashtag": 377,
+      "noah": 224
+    },
+    "avgRank": 320.5,
+    "rankedByCount": 4,
+    "tier": 8,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 366,
+    "player": "Cole Anthony",
+    "team": "FA",
+    "position": "PG",
+    "age": 25.9,
+    "expertRanks": {
+      "matt": 376,
+      "dizzle": 372,
+      "hashtag": 272,
+      "noah": 273
+    },
+    "avgRank": 323.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 367,
+    "player": "Moussa Cisse",
+    "team": "DAL",
+    "position": "C",
+    "age": 23.6,
+    "expertRanks": {
+      "matt": 419,
+      "dizzle": 301,
+      "hashtag": 253
+    },
+    "avgRank": 324.33,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 368,
+    "player": "Brook Lopez",
+    "team": "LAC",
+    "position": "C",
+    "age": 38.1,
+    "expertRanks": {
+      "matt": 268,
+      "dizzle": 353,
+      "hashtag": 354
+    },
+    "avgRank": 325.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 369,
+    "player": "Patrick Williams",
+    "team": "CHI",
+    "position": "PF",
+    "age": 24.7,
+    "expertRanks": {
+      "matt": 317,
+      "dizzle": 361,
+      "hashtag": 340,
+      "noah": 285
+    },
+    "avgRank": 325.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 370,
+    "player": "Christian Anderson Jr.",
+    "team": "2026 Rookie",
+    "position": null,
+    "age": null,
+    "expertRanks": {
+      "hashtag": 326
+    },
+    "avgRank": 326.0,
+    "rankedByCount": 1,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 371,
+    "player": "Harrison Barnes",
+    "team": "SAS",
+    "position": "PF",
+    "age": 33.9,
+    "expertRanks": {
+      "matt": 292,
+      "dizzle": 294,
+      "angle": 295,
+      "hashtag": 427
+    },
+    "avgRank": 327.0,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 372,
+    "player": "Jock Landale",
+    "team": "ATL",
+    "position": "C",
+    "age": 30.5,
+    "expertRanks": {
+      "matt": 302,
+      "dizzle": 334,
+      "angle": 272,
+      "hashtag": 401
+    },
+    "avgRank": 327.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 373,
+    "player": "Baylor Scheierman",
+    "team": "BOS",
+    "position": "SF",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 326,
+      "dizzle": 270,
+      "hashtag": 429,
+      "noah": 284
+    },
+    "avgRank": 327.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 374,
+    "player": "Tim Hardaway Jr.",
+    "team": "DEN",
+    "position": "SG",
+    "age": 34.1,
+    "expertRanks": {
+      "matt": 344,
+      "dizzle": 337,
+      "angle": 276,
+      "hashtag": 353
+    },
+    "avgRank": 327.5,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 375,
+    "player": "Grant Williams",
+    "team": "CHA",
+    "position": "PF",
+    "age": 27.4,
+    "expertRanks": {
+      "matt": 361,
+      "dizzle": 367,
+      "angle": 304,
+      "hashtag": 280
+    },
+    "avgRank": 328.0,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 376,
+    "player": "Nick Richards",
+    "team": "CHI",
+    "position": "C",
+    "age": 28.4,
+    "expertRanks": {
+      "matt": 304,
+      "dizzle": 360,
+      "angle": 311,
+      "hashtag": 388,
+      "noah": 278
+    },
+    "avgRank": 328.2,
+    "rankedByCount": 5,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 377,
+    "player": "Guerschon Yabusele",
+    "team": "CHI",
+    "position": "PF",
+    "age": 30.4,
+    "expertRanks": {
+      "matt": 347,
+      "dizzle": 305,
+      "hashtag": 338
+    },
+    "avgRank": 330.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 378,
+    "player": "Paul Reed",
+    "team": "DET",
+    "position": "PF",
+    "age": 26.9,
+    "expertRanks": {
+      "matt": 303,
+      "dizzle": 359,
+      "hashtag": 331
+    },
+    "avgRank": 331.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 379,
+    "player": "Tyus Jones",
+    "team": "DEN",
+    "position": "PG",
+    "age": 30.0,
+    "expertRanks": {
+      "matt": 358,
+      "dizzle": 378,
+      "hashtag": 328,
+      "noah": 269
+    },
+    "avgRank": 333.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 380,
+    "player": "Ben Sheppard",
+    "team": "IND",
+    "position": "SF",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 355,
+      "dizzle": 331,
+      "hashtag": 314
+    },
+    "avgRank": 333.33,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 381,
+    "player": "Jamir Watkins",
+    "team": "WAS",
+    "position": "SF",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 378,
+      "dizzle": 289
+    },
+    "avgRank": 333.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 382,
+    "player": "Nae'Qwan Tomlin",
+    "team": "CLE",
+    "position": "PF",
+    "age": 25.4,
+    "expertRanks": {
+      "matt": 330,
+      "dizzle": 375,
+      "angle": 317,
+      "hashtag": 313
+    },
+    "avgRank": 333.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 383,
+    "player": "Simone Fontecchio",
+    "team": "MIA",
+    "position": "SF",
+    "age": 30.4,
+    "expertRanks": {
+      "matt": 360,
+      "dizzle": 342,
+      "angle": 303
+    },
+    "avgRank": 335.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 384,
+    "player": "Jordan Hawkins",
+    "team": "NOR",
+    "position": "SG",
+    "age": 24.0,
+    "expertRanks": {
+      "matt": 354,
+      "dizzle": 366,
+      "hashtag": 362,
+      "noah": 261
+    },
+    "avgRank": 335.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 385,
+    "player": "Jonas Valanciunas",
+    "team": "DEN",
+    "position": "C",
+    "age": 34.0,
+    "expertRanks": {
+      "matt": 359,
+      "dizzle": 320,
+      "angle": 275,
+      "hashtag": 389
+    },
+    "avgRank": 335.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 386,
+    "player": "Klay Thompson",
+    "team": "DAL",
+    "position": "SG",
+    "age": 36.2,
+    "expertRanks": {
+      "matt": 349,
+      "dizzle": 350,
+      "angle": 292,
+      "hashtag": 358
+    },
+    "avgRank": 337.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 387,
+    "player": "Javon Small",
+    "team": "MEM",
+    "position": "PG",
+    "age": 23.3,
+    "expertRanks": {
+      "matt": 386,
+      "dizzle": 282,
+      "hashtag": 344
+    },
+    "avgRank": 337.33,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 388,
+    "player": "Micah Peavy",
+    "team": "NOR",
+    "position": "SF",
+    "age": 24.8,
+    "expertRanks": {
+      "matt": 316,
+      "dizzle": 394,
+      "hashtag": 335,
+      "noah": 310
+    },
+    "avgRank": 338.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 389,
+    "player": "Jonathan Isaac",
+    "team": "ORL",
+    "position": "PF",
+    "age": 28.6,
+    "expertRanks": {
+      "matt": 328,
+      "dizzle": 392,
+      "hashtag": 361,
+      "noah": 274
+    },
+    "avgRank": 338.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 390,
+    "player": "Jaxson Hayes",
+    "team": "LAL",
+    "position": "C",
+    "age": 25.9,
+    "expertRanks": {
+      "matt": 364,
+      "dizzle": 370,
+      "angle": 307,
+      "hashtag": 321
+    },
+    "avgRank": 340.5,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 391,
+    "player": "Moritz Wagner",
+    "team": "ORL",
+    "position": "C",
+    "age": 29.0,
+    "expertRanks": {
+      "matt": 308,
+      "dizzle": 381,
+      "angle": 308,
+      "hashtag": 371
+    },
+    "avgRank": 342.0,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 392,
+    "player": "Amari Williams",
+    "team": "BOS",
+    "position": "C",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 382,
+      "dizzle": 303
+    },
+    "avgRank": 342.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 393,
+    "player": "Ochai Agbaji",
+    "team": "BKN",
+    "position": "SG",
+    "age": 26.0,
+    "expertRanks": {
+      "matt": 323,
+      "dizzle": 371,
+      "hashtag": 397,
+      "noah": 286
+    },
+    "avgRank": 344.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 394,
+    "player": "Malik Beasley",
+    "team": "FA",
+    "position": "SG",
+    "age": 29.4,
+    "expertRanks": {
+      "dizzle": 345
+    },
+    "avgRank": 345.0,
+    "rankedByCount": 1,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 395,
+    "player": "Sidy Cissoko",
+    "team": "POR",
+    "position": "SF",
+    "age": 22.1,
+    "expertRanks": {
+      "matt": 335,
+      "dizzle": 414,
+      "angle": 288
+    },
+    "avgRank": 345.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 396,
+    "player": "Dalton Knecht",
+    "team": "LAL",
+    "position": "SF",
+    "age": 25.0,
+    "expertRanks": {
+      "matt": 391,
+      "dizzle": 380,
+      "angle": 315,
+      "hashtag": 356,
+      "noah": 300
+    },
+    "avgRank": 348.4,
+    "rankedByCount": 5,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 397,
+    "player": "Luka Garza",
+    "team": "BOS",
+    "position": "C",
+    "age": 27.3,
+    "expertRanks": {
+      "matt": 357,
+      "dizzle": 323,
+      "hashtag": 368
+    },
+    "avgRank": 349.33,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 398,
+    "player": "Precious Achiuwa",
+    "team": "SAC",
+    "position": "PF",
+    "age": 26.6,
+    "expertRanks": {
+      "matt": 397,
+      "dizzle": 402,
+      "angle": 314,
+      "hashtag": 285
+    },
+    "avgRank": 349.5,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 399,
+    "player": "Josh Okogie",
+    "team": "HOU",
+    "position": "SG",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 324,
+      "dizzle": 423,
+      "angle": 302
+    },
+    "avgRank": 349.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 400,
+    "player": "Marvin Bagley",
+    "team": "DAL",
+    "position": "C",
+    "age": 27.1,
+    "expertRanks": {
+      "matt": 345,
+      "dizzle": 339,
+      "angle": 287,
+      "hashtag": 428
+    },
+    "avgRank": 349.75,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 401,
+    "player": "Terance Mann",
+    "team": "BKN",
+    "position": "SG",
+    "age": 29.5,
+    "expertRanks": {
+      "matt": 366,
+      "dizzle": 328,
+      "angle": 300,
+      "hashtag": 415
+    },
+    "avgRank": 352.25,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 402,
+    "player": "Kentavious Caldwell-Pope",
+    "team": "MEM",
+    "position": "SG",
+    "age": 33.2,
+    "expertRanks": {
+      "matt": 348,
+      "dizzle": 341,
+      "angle": 296,
+      "hashtag": 425
+    },
+    "avgRank": 352.5,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 403,
+    "player": "Johni Broome",
+    "team": "PHI",
+    "position": "C",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 343,
+      "dizzle": 335,
+      "hashtag": 381
+    },
+    "avgRank": 353.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 404,
+    "player": "Buddy Hield",
+    "team": "ATL",
+    "position": "SG",
+    "age": 33.4,
+    "expertRanks": {
+      "matt": 370,
+      "dizzle": 376,
+      "angle": 318,
+      "hashtag": 350
+    },
+    "avgRank": 353.5,
+    "rankedByCount": 4,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 405,
+    "player": "Marcus Sasser",
+    "team": "DET",
+    "position": "PG",
+    "age": 25.6,
+    "expertRanks": {
+      "matt": 356,
+      "dizzle": 427,
+      "hashtag": 281
+    },
+    "avgRank": 354.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 406,
+    "player": "Zach Collins",
+    "team": "CHI",
+    "position": "C",
+    "age": 28.4,
+    "expertRanks": {
+      "matt": 353,
+      "dizzle": 408,
+      "hashtag": 312
+    },
+    "avgRank": 357.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 407,
+    "player": "Jaylen Clark",
+    "team": "MIN",
+    "position": "SG",
+    "age": 24.5,
+    "expertRanks": {
+      "matt": 362,
+      "dizzle": 355
+    },
+    "avgRank": 358.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 408,
+    "player": "Trayce Jackson-Davis",
+    "team": "TOR",
+    "position": "C",
+    "age": 26.2,
+    "expertRanks": {
+      "matt": 312,
+      "dizzle": 403,
+      "hashtag": 369
+    },
+    "avgRank": 361.33,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 409,
+    "player": "Clint Capela",
+    "team": "HOU",
+    "position": "C",
+    "age": 31.9,
+    "expertRanks": {
+      "matt": 300,
+      "dizzle": 385,
+      "hashtag": 403
+    },
+    "avgRank": 362.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 410,
+    "player": "Svi Mykhailuk",
+    "team": "UTA",
+    "position": "SF",
+    "age": 28.9,
+    "expertRanks": {
+      "dizzle": 365
+    },
+    "avgRank": 365.0,
+    "rankedByCount": 1,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 411,
+    "player": "Cameron Payne",
+    "team": "PHI",
+    "position": "PG",
+    "age": 31.7,
+    "expertRanks": {
+      "matt": 447,
+      "hashtag": 284
+    },
+    "avgRank": 365.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 412,
+    "player": "Dean Wade",
+    "team": "CLE",
+    "position": "PF",
+    "age": 29.4,
+    "expertRanks": {
+      "matt": 363,
+      "dizzle": 369
+    },
+    "avgRank": 366.0,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 413,
+    "player": "Brooks Barnhizer",
+    "team": "OKC",
+    "position": "SF",
+    "age": 24.1,
+    "expertRanks": {
+      "matt": 367,
+      "dizzle": 368
+    },
+    "avgRank": 367.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 414,
+    "player": "Bogdan Bogdanovic",
+    "team": "LAC",
+    "position": "SG",
+    "age": 33.7,
+    "expertRanks": {
+      "matt": 412,
+      "dizzle": 322,
+      "hashtag": 378
+    },
+    "avgRank": 370.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 415,
+    "player": "Chaz Lanier",
+    "team": "DET",
+    "position": "SG",
+    "age": 25.3,
+    "expertRanks": {
+      "matt": 319,
+      "dizzle": 420,
+      "hashtag": 374
+    },
+    "avgRank": 371.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 416,
+    "player": "Haywood Highsmith",
+    "team": "PHO",
+    "position": "SF",
+    "age": 29.4,
+    "expertRanks": {
+      "matt": 379,
+      "dizzle": 379,
+      "hashtag": 355
+    },
+    "avgRank": 371.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 417,
+    "player": "Killian Hayes",
+    "team": "SAC",
+    "position": "PG",
+    "age": 24.7,
+    "expertRanks": {
+      "dizzle": 446,
+      "hashtag": 297
+    },
+    "avgRank": 371.5,
+    "rankedByCount": 2,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 418,
+    "player": "Isaac Okoro",
+    "team": "CHI",
+    "position": "SF",
+    "age": 25.2,
+    "expertRanks": {
+      "matt": 389,
+      "dizzle": 346,
+      "hashtag": 383
+    },
+    "avgRank": 372.67,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 419,
+    "player": "Landry Shamet",
+    "team": "NYK",
+    "position": "SG",
+    "age": 29.1,
+    "expertRanks": {
+      "matt": 373
+    },
+    "avgRank": 373.0,
+    "rankedByCount": 1,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 420,
+    "player": "Jaden Hardy",
+    "team": "WAS",
+    "position": "SG",
+    "age": 23.8,
+    "expertRanks": {
+      "matt": 385,
+      "dizzle": 387,
+      "hashtag": 347
+    },
+    "avgRank": 373.0,
+    "rankedByCount": 3,
+    "tier": 9,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 421,
+    "player": "Jarred Vanderbilt",
+    "team": "LAL",
+    "position": "PF",
+    "age": 27.1,
+    "expertRanks": {
+      "matt": 346,
+      "dizzle": 388,
+      "hashtag": 387
+    },
+    "avgRank": 373.67,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 422,
+    "player": "Dorian Finney-Smith",
+    "team": "HOU",
+    "position": "SF",
+    "age": 33.0,
+    "expertRanks": {
+      "matt": 375,
+      "dizzle": 373
+    },
+    "avgRank": 374.0,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 423,
+    "player": "Josh Green",
+    "team": "CHA",
+    "position": "SG",
+    "age": 25.4,
+    "expertRanks": {
+      "matt": 369,
+      "dizzle": 384,
+      "hashtag": 370
+    },
+    "avgRank": 374.33,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 424,
+    "player": "Gary Payton II",
+    "team": "GSW",
+    "position": "SG",
+    "age": 33.4,
+    "expertRanks": {
+      "matt": 368,
+      "dizzle": 386
+    },
+    "avgRank": 377.0,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 425,
+    "player": "Svi Mykhailiuk",
+    "team": "UTA",
+    "position": "SF",
+    "age": 28.9,
+    "expertRanks": {
+      "matt": 380
+    },
+    "avgRank": 380.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 426,
+    "player": "AJ Johnson",
+    "team": "DAL",
+    "position": "SG",
+    "age": 23.4,
+    "expertRanks": {
+      "matt": 377,
+      "dizzle": 377,
+      "hashtag": 392
+    },
+    "avgRank": 382.0,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 427,
+    "player": "Xavier Tillman Sr.",
+    "team": "CHA",
+    "position": "C",
+    "age": 27.3,
+    "expertRanks": {
+      "matt": 383
+    },
+    "avgRank": 383.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 428,
+    "player": "Julian Reese",
+    "team": "WAS",
+    "position": "PF",
+    "age": 22.8,
+    "expertRanks": {
+      "dizzle": 383
+    },
+    "avgRank": 383.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 429,
+    "player": "Jett Howard",
+    "team": "ORL",
+    "position": "SF",
+    "age": 22.6,
+    "expertRanks": {
+      "matt": 400,
+      "dizzle": 413,
+      "hashtag": 409,
+      "noah": 311
+    },
+    "avgRank": 383.25,
+    "rankedByCount": 4,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 430,
+    "player": "Alijah Martin",
+    "team": "TOR",
+    "position": "SG",
+    "age": 24.3,
+    "expertRanks": {
+      "matt": 468,
+      "dizzle": 395,
+      "hashtag": 380,
+      "noah": 293
+    },
+    "avgRank": 384.0,
+    "rankedByCount": 4,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 431,
+    "player": "Jordan Clarkson",
+    "team": "NYK",
+    "position": "SG",
+    "age": 33.9,
+    "expertRanks": {
+      "matt": 371,
+      "dizzle": 393,
+      "hashtag": 398
+    },
+    "avgRank": 387.33,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 432,
+    "player": "Kris Murray",
+    "team": "POR",
+    "position": "PF",
+    "age": 25.7,
+    "expertRanks": {
+      "matt": 381,
+      "dizzle": 417,
+      "hashtag": 365
+    },
+    "avgRank": 387.67,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 433,
+    "player": "Jalen Pickett",
+    "team": "DEN",
+    "position": "PG",
+    "age": 26.5,
+    "expertRanks": {
+      "matt": 340,
+      "dizzle": 436
+    },
+    "avgRank": 388.0,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 434,
+    "player": "Mohamed Diawara",
+    "team": "NYK",
+    "position": "PF",
+    "age": 21.0,
+    "expertRanks": {
+      "matt": 388
+    },
+    "avgRank": 388.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 435,
+    "player": "Rocco Zikarsky",
+    "team": "MIN",
+    "position": "C",
+    "age": 19.8,
+    "expertRanks": {
+      "matt": 450,
+      "dizzle": 327
+    },
+    "avgRank": 388.5,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 436,
+    "player": "Brandon Boston Jr.",
+    "team": "NOR",
+    "position": "SF",
+    "age": 24.4,
+    "expertRanks": {
+      "hashtag": 390
+    },
+    "avgRank": 390.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 437,
+    "player": "Andre Jackson Jr.",
+    "team": "MIL",
+    "position": "SF",
+    "age": 24.4,
+    "expertRanks": {
+      "matt": 406,
+      "hashtag": 379
+    },
+    "avgRank": 392.5,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 438,
+    "player": "PJ Hall",
+    "team": "FA",
+    "position": "PF",
+    "age": 24.2,
+    "expertRanks": {
+      "matt": 365,
+      "dizzle": 421
+    },
+    "avgRank": 393.0,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 439,
+    "player": "Ben Simmons",
+    "team": "LAC",
+    "position": "PG",
+    "age": 29.7,
+    "expertRanks": {
+      "hashtag": 393
+    },
+    "avgRank": 393.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 440,
+    "player": "Matisse Thybulle",
+    "team": "POR",
+    "position": "SF",
+    "age": 29.1,
+    "expertRanks": {
+      "matt": 393,
+      "dizzle": 358,
+      "hashtag": 432
+    },
+    "avgRank": 394.33,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 441,
+    "player": "Jared Butler",
+    "team": "PHO",
+    "position": "PG",
+    "age": 25.6,
+    "expertRanks": {
+      "hashtag": 396
+    },
+    "avgRank": 396.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 442,
+    "player": "Quenton Jackson",
+    "team": "IND",
+    "position": "SG",
+    "age": 27.6,
+    "expertRanks": {
+      "matt": 398,
+      "dizzle": 397
+    },
+    "avgRank": 397.5,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 443,
+    "player": "Bogoljbub Markovic",
+    "team": "MIL",
+    "position": "PF",
+    "age": 20.2,
+    "expertRanks": {
+      "dizzle": 398
+    },
+    "avgRank": 398.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 444,
+    "player": "Jericho Sims",
+    "team": "MIL",
+    "position": "C",
+    "age": 27.5,
+    "expertRanks": {
+      "matt": 392,
+      "dizzle": 405
+    },
+    "avgRank": 398.5,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 445,
+    "player": "Bryce McGowens",
+    "team": "NOR",
+    "position": "SG",
+    "age": 23.5,
+    "expertRanks": {
+      "matt": 399
+    },
+    "avgRank": 399.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 446,
+    "player": "Dariq Whitehead",
+    "team": "BKN",
+    "position": "SG",
+    "age": 21.7,
+    "expertRanks": {
+      "hashtag": 399
+    },
+    "avgRank": 399.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 447,
+    "player": "Alex Toohey",
+    "team": "FA",
+    "position": "SF",
+    "age": 21.4,
+    "expertRanks": {
+      "dizzle": 400
+    },
+    "avgRank": 400.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 448,
+    "player": "Aaron Holiday",
+    "team": "HOU",
+    "position": "PG",
+    "age": 29.6,
+    "expertRanks": {
+      "matt": 387,
+      "dizzle": 415
+    },
+    "avgRank": 401.0,
+    "rankedByCount": 2,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 449,
+    "player": "Keaton Wallace",
+    "team": "ATL",
+    "position": "PG",
+    "age": 27.2,
+    "expertRanks": {
+      "matt": 401
+    },
+    "avgRank": 401.0,
+    "rankedByCount": 1,
+    "tier": 10,
+    "trend": "flat"
+  },
+  {
+    "consensusRank": 450,
+    "player": "Taurean Prince",
+    "team": "MIL",
+    "position": "SF",
+    "age": 32.1,
+    "expertRanks": {
+      "matt": 396,
+      "dizzle": 406,
+      "hashtag": 402
+    },
+    "avgRank": 401.33,
+    "rankedByCount": 3,
+    "tier": 10,
+    "trend": "flat"
+  }
+]
