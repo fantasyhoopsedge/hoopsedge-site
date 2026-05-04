@@ -46,7 +46,7 @@ export function SiteNav(props: {
       <ul className="nav-links">
         <li>
           <a href="/dynasty-rankings" style={active === "rankings" ? { color: "var(--edge-orange)" } : undefined}>
-            Rankings
+            DYNASTY RANKINGS
           </a>
         </li>
         <li>

@@ -1116,6 +1116,15 @@ body:has(.dr-rankings-shell) {
   color: var(--blueprint-glow);
 }
 
+.dr-th-active-sort {
+  border-bottom: 2px solid #2563eb;
+  box-shadow: none;
+}
+
+.dr-table-head th.dr-th-active-sort {
+  box-shadow: none;
+}
+
 .dr-th-highlight.dr-th-expert {
   box-shadow: inset 0 -3px 0 var(--blueprint);
   background: rgba(37, 99, 235, 0.08);
@@ -1317,7 +1326,8 @@ body:has(.dr-rankings-shell) {
   font-family: "JetBrains Mono", monospace;
   font-weight: 600;
   font-size: 13px;
-  color: var(--text-muted);
+  color: #9a9aaa;
+  font-style: italic;
 }
 
 .dr-mono {
