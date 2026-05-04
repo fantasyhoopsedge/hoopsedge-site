@@ -1,79 +1,54 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
+import { SiteNav } from "@/components/site-nav";
+import { DYNASTY_RANKINGS, type DynastyPlayer } from "@/lib/dynasty-rankings";
 
-const TICKER_PLAYERS = [
-  { rank: 1, name: "Nikola Jokic" }, { rank: 2, name: "Luka Doncic" },
-  { rank: 3, name: "Victor Wembanyama" }, { rank: 4, name: "Anthony Davis" },
-  { rank: 5, name: "Anthony Edwards" }, { rank: 6, name: "Giannis Antetokounmpo" },
-  { rank: 7, name: "Shai Gilgeous-Alexander" }, { rank: 8, name: "Chet Holmgren" },
-  { rank: 9, name: "Tyrese Haliburton" }, { rank: 10, name: "Jayson Tatum" },
-  { rank: 11, name: "Kevin Durant" }, { rank: 12, name: "LaMelo Ball" },
-  { rank: 13, name: "Scottie Barnes" }, { rank: 14, name: "Domantas Sabonis" },
-  { rank: 15, name: "Evan Mobley" }, { rank: 16, name: "Donovan Mitchell" },
-  { rank: 17, name: "De'Aaron Fox" }, { rank: 18, name: "Alperen Sengun" },
-  { rank: 19, name: "Paolo Banchero" }, { rank: 20, name: "Trae Young" },
-  { rank: 21, name: "Jalen Brunson" }, { rank: 22, name: "Karl-Anthony Towns" },
-  { rank: 23, name: "Devin Booker" }, { rank: 24, name: "Jaren Jackson Jr." },
-  { rank: 25, name: "Joel Embiid" }, { rank: 26, name: "Cade Cunningham" },
-  { rank: 27, name: "Ja Morant" }, { rank: 28, name: "Kawhi Leonard" },
-  { rank: 29, name: "Damian Lillard" }, { rank: 30, name: "Jalen Williams" },
-];
+function dbpTierClass(tier: number): "tier-elite" | "tier-positive" {
+  return tier === 1 ? "tier-elite" : "tier-positive";
+}
 
-const DRAFT_BOARD = [
-  { rank: 1, name: "Cameron Boozer", school: "DUK", pos: "F/C", tier: "elite" },
-  { rank: 2, name: "AJ Dybantsa", school: "BYU", pos: "W", tier: "elite" },
-  { rank: 3, name: "Darryn Peterson", school: "KAN", pos: "G", tier: "elite" },
-  { rank: 4, name: "Caleb Wilson", school: "UNC", pos: "W", tier: "positive" },
-  { rank: 5, name: "Kingston Flemings", school: "HOU", pos: "G", tier: "positive" },
+type DraftBoardPanelRow = Pick<
+  DynastyPlayer,
+  "consensusRank" | "player" | "team" | "position" | "tier"
+>;
+
+const ROOKIE_DRAFT_BOARD_TOP5: DraftBoardPanelRow[] = [
+  { consensusRank: 1, player: "Cameron Boozer", team: "Duke", position: "F/C", tier: 1 },
+  { consensusRank: 2, player: "Darryn Peterson", team: "Kansas", position: "G", tier: 1 },
+  { consensusRank: 3, player: "Caleb Wilson", team: "North Carolina", position: "F", tier: 1 },
+  { consensusRank: 4, player: "Kingston Flemings", team: "Houston", position: "G", tier: 2 },
+  { consensusRank: 5, player: "AJ Dybantsa", team: "BYU", position: "G/F", tier: 2 },
 ];
 
 export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
-  const [theme, setTheme] = useState("dark");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("fhe-theme");
-    if (saved) {
-      setTheme(saved);
-      document.documentElement.setAttribute("data-theme", saved);
-    } else {
-      document.documentElement.setAttribute("data-theme", "dark");
-    }
+  const { tickerTop30, panelTop10 } = useMemo(() => {
+    const sorted = [...DYNASTY_RANKINGS].sort((a, b) => a.consensusRank - b.consensusRank);
+    return {
+      tickerTop30: sorted.slice(0, 30),
+      panelTop10: [...ROOKIE_DRAFT_BOARD_TOP5, ...sorted.slice(5, 10)],
+    };
   }, []);
 
-  const toggleTheme = () => {
-    const next = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.setAttribute("data-theme", next);
-    localStorage.setItem("fhe-theme", next);
-  };
-
-  const tickerItems = [...TICKER_PLAYERS, ...TICKER_PLAYERS.slice(0, 15)];
+  const tickerItems = [...tickerTop30, ...tickerTop30];
 
   return (
     <>
-      {/* NAV */}
-      <nav>
-        <div className="nav-brand">
-          Fantasy Hoops <span className="accent">Edge</span>
-        </div>
-        <ul className="nav-links">
-          <li><a href="#">Rankings</a></li>
-          <li><a href="#">Draft Board</a></li>
-          <li><a href="#">Prospect Lab</a></li>
-          <li><a href="#">Predictions</a></li>
-          <li>
-            <button className="theme-toggle" onClick={toggleTheme} title="Toggle theme">
-              {theme === "dark" ? "☀️" : "🌙"}
-            </button>
-          </li>
-          <li>
-            <a href="#" className="nav-cta" onClick={(e) => { e.preventDefault(); setModalOpen(true); }}>
-              Join Free
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <SiteNav
+        joinFree={
+          <a
+            href="#"
+            className="nav-cta"
+            onClick={(e) => {
+              e.preventDefault();
+              setModalOpen(true);
+            }}
+          >
+            Join Free
+          </a>
+        }
+      />
 
       {/* HERO */}
       <section className="hero">
@@ -110,18 +85,18 @@ export default function Home() {
               <div className="dbp-subtext">9-Cat Dynasty Value Rankings</div>
             </div>
             <div className="dbp-list">
-              {DRAFT_BOARD.map((p) => (
-                <div className="dbp-row" key={p.rank}>
-                  <div className="dbp-rank">{p.rank}</div>
+              {panelTop10.map((p) => (
+                <div className="dbp-row" key={p.consensusRank}>
+                  <div className="dbp-rank">{p.consensusRank}</div>
                   <div className="dbp-info">
-                    <div className="dbp-name">{p.name}</div>
+                    <div className="dbp-name">{p.player}</div>
                     <div className="dbp-meta">
-                      <span className="dbp-school">{p.school}</span>
-                      <span className="dbp-pos">{p.pos}</span>
+                      <span className="dbp-school">{p.team}</span>
+                      <span className="dbp-pos">{p.position}</span>
                     </div>
                   </div>
-                  <div className={`dbp-tier tier-${p.tier}`}>
-                    {p.tier === "elite" ? "TIER 1" : "TIER 2"}
+                  <div className={`dbp-tier ${dbpTierClass(p.tier)}`}>
+                    TIER {p.tier}
                   </div>
                 </div>
               ))}
@@ -139,8 +114,8 @@ export default function Home() {
           {tickerItems.map((p, i) => (
             <span key={i} style={{ display: "contents" }}>
               <div className="ticker-item">
-                <span className="ticker-rank">#{p.rank}</span>
-                <span className="ticker-label">{p.name}</span>
+                <span className="ticker-rank">#{p.consensusRank}</span>
+                <span className="ticker-label">{p.player}</span>
               </div>
               <div className="ticker-divider"></div>
             </span>
@@ -203,10 +178,8 @@ export default function Home() {
           Fantasy Hoops <span className="accent">Edge</span>
         </div>
         <div className="footer-links">
-          <a href="#">Rankings</a>
-          <a href="#">Draft Board</a>
-          <a href="#">Prospect Lab</a>
-          <a href="#">Predictions</a>
+          <a href="/dynasty-rankings">Rankings</a>
+          <a href="/draft-board">Draft Board</a>
         </div>
         <div className="footer-social">
           <a href="#" title="X / Twitter">𝕏</a>

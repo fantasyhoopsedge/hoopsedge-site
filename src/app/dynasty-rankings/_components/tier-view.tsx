@@ -1,45 +1,43 @@
 "use client";
 
 import { useMemo } from "react";
-import type { DynastyPlayer } from "@/lib/dynasty-rankings";
-
-function posClass(pos: string) {
-  switch (pos) {
-    case "PG":
-      return "dr-pos dr-pos-pg";
-    case "SG":
-      return "dr-pos dr-pos-sg";
-    case "SF":
-      return "dr-pos dr-pos-sf";
-    case "PF":
-      return "dr-pos dr-pos-pf";
-    case "C":
-      return "dr-pos dr-pos-c";
-    default:
-      return "dr-pos dr-pos-default";
-  }
-}
+import { activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { PositionBadge } from "./position-badge";
 
 function teamPillClass(team: string) {
   if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
   return "dr-team-pill";
 }
 
-function tierRangeLabel(players: DynastyPlayer[]): string {
+function tierRangeLabel(players: DynastyPlayer[], activeExpertKey: string): string {
   if (players.length === 0) return "";
-  const ranks = players.map((p) => p.consensusRank);
+  const ranks = players
+    .map((p) => activeRankForView(p, activeExpertKey))
+    .filter((r): r is number => r !== null);
+  if (ranks.length === 0) return "";
   const min = Math.min(...ranks);
   const max = Math.max(...ranks);
   if (min === max) return `Rank ${min}`;
   return `Ranks ${min}–${max}`;
 }
 
+function compareTierPlayers(a: DynastyPlayer, b: DynastyPlayer, activeExpertKey: string): number {
+  if (!activeExpertKey) return a.consensusRank - b.consensusRank;
+  const av = a.expertRanks[activeExpertKey as keyof DynastyPlayer["expertRanks"]];
+  const bv = b.expertRanks[activeExpertKey as keyof DynastyPlayer["expertRanks"]];
+  const aVal = av ?? 99999;
+  const bVal = bv ?? 99999;
+  if (aVal !== bVal) return aVal - bVal;
+  return a.consensusRank - b.consensusRank;
+}
+
 export function TierView(props: {
   rows: DynastyPlayer[];
   collapsed: Record<number, boolean>;
   toggleTier: (tier: number) => void;
+  activeExpertKey: string;
 }) {
-  const { rows, collapsed, toggleTier } = props;
+  const { rows, collapsed, toggleTier, activeExpertKey } = props;
 
   const byTier = useMemo(() => {
     const map = new Map<number, DynastyPlayer[]>();
@@ -49,10 +47,10 @@ export function TierView(props: {
       if (list) list.push(p);
     }
     for (const list of map.values()) {
-      list.sort((a, b) => a.consensusRank - b.consensusRank);
+      list.sort((a, b) => compareTierPlayers(a, b, activeExpertKey));
     }
     return map;
-  }, [rows]);
+  }, [rows, activeExpertKey]);
 
   return (
     <div className="dr-tier-view">
@@ -60,6 +58,9 @@ export function TierView(props: {
         const tierPlayers = byTier.get(tier) ?? [];
         if (tierPlayers.length === 0) return null;
         const isCollapsed = Boolean(collapsed[tier]);
+        const n = tierPlayers.length;
+        const rangePart = tierRangeLabel(tierPlayers, activeExpertKey);
+        const headerLine = `TIER ${tier} · ${rangePart} · ${n} player${n === 1 ? "" : "s"}`;
         return (
           <section key={tier} className="dr-tier-section">
             <header className="dr-tier-head">
@@ -84,9 +85,8 @@ export function TierView(props: {
                     strokeLinecap="round"
                   />
                 </svg>
-                <span className="dr-tier-title">TIER {tier}</span>
+                <span className="dr-tier-title">{headerLine}</span>
               </button>
-              <p className="dr-tier-sub">{tierRangeLabel(tierPlayers)}</p>
             </header>
             {!isCollapsed && (
               <div className="dr-tier-grid">
@@ -97,7 +97,7 @@ export function TierView(props: {
                       <div className="dr-tier-card-name">{p.player}</div>
                       <div className="dr-player-meta">
                         <span className={teamPillClass(p.team)}>{p.team}</span>
-                        <span className={posClass(p.position)}>{p.position}</span>
+                        <PositionBadge position={p.position} />
                       </div>
                       <div className="dr-tier-card-age">
                         {p.age !== null ? `Age ${p.age.toFixed(1)}` : "Age —"}

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { SiteNav } from "@/components/site-nav";
 
 // ============================================================
 // DRAFT BOARD DATA — UPDATE THIS ARRAY TO CHANGE THE BOARD
@@ -95,18 +96,21 @@ export default function DraftBoard() {
 
   return (
     <>
-      <nav>
-        <a href="/" style={{ textDecoration: "none" }}>
-          <div className="nav-brand">Fantasy Hoops <span className="accent">Edge</span></div>
-        </a>
-        <ul className="nav-links">
-          <li><a href="#">Rankings</a></li>
-          <li><a href="/draft-board" style={{ color: "var(--edge-orange)" }}>Draft Board</a></li>
-          <li><a href="#">Prospect Lab</a></li>
-          <li><a href="#">Predictions</a></li>
-          <li><a href="#" className="nav-cta" onClick={(e) => { e.preventDefault(); setShowModal(true); }}>Join Free</a></li>
-        </ul>
-      </nav>
+      <SiteNav
+        active="draft"
+        joinFree={
+          <a
+            href="#"
+            className="nav-cta"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowModal(true);
+            }}
+          >
+            Join Free
+          </a>
+        }
+      />
 
       <div style={{
         background: "var(--blueprint)", padding: "120px 60px 60px",
