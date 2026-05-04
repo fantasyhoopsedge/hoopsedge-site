@@ -178,6 +178,9 @@ nav {
   letter-spacing: 2px; text-transform: uppercase; transition: color 0.3s;
 }
 .nav-links a:hover { color: var(--text-primary); }
+.nav-dynasty-rankings-short {
+  display: none;
+}
 .nav-cta {
   background: var(--blueprint) !important; color: white !important;
   padding: 8px 20px !important; border-radius: 8px; font-size: 12px !important;
@@ -747,11 +750,346 @@ body:has(.dr-rankings-shell) {
   }
 }
 
+@media (max-width: 767px) {
+  .nav-dynasty-rankings-full {
+    display: none;
+  }
+  .nav-dynasty-rankings-short {
+    display: inline;
+  }
+
+  /* Dynasty rankings: compact nav — logo + Join only, 48px tall */
+  .dr-rankings-shell {
+    --dr-nav-h: 48px;
+  }
+
+  .dr-rankings-shell .dr-th-avg-long {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-th-avg-short {
+    display: inline;
+  }
+
+  .dr-rankings-shell > nav {
+    height: 48px;
+    min-height: 48px;
+    max-height: 48px;
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+
+  .dr-rankings-shell .nav-brand {
+    font-size: 13px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .dr-rankings-shell .nav-links > li:not(:last-child) {
+    display: none;
+  }
+
+  .dr-rankings-shell .nav-info-strip-wrap {
+    display: none;
+  }
+
+  .dr-rankings-shell .nav-cta {
+    padding: 6px 12px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  /* Controls: max 80px total, row1 horizontal scroll, row2 expert + search */
+  .dr-rankings-shell .dr-sticky-controls {
+    padding: 4px 0;
+    max-height: 80px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .dr-rankings-shell .dr-controls-inner {
+    gap: 4px;
+  }
+
+  .dr-rankings-shell .dr-controls-row {
+    gap: 4px;
+    align-items: center;
+  }
+
+  .dr-rankings-shell .dr-controls-row-1 {
+    flex-wrap: nowrap;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    max-width: 100%;
+    min-height: 28px;
+    max-height: 28px;
+    box-sizing: border-box;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout .dr-filter-label {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout .dr-filter-group {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout .dr-pill-row {
+    flex-wrap: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout .dr-pill {
+    flex: 0 0 auto;
+    font-size: 11px;
+    padding: 4px 10px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dr-rankings-shell .dr-controls-row-2-fields {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 100%;
+    align-items: flex-end;
+    min-height: 0;
+  }
+
+  .dr-rankings-shell .dr-field-expert {
+    flex: 0 0 40%;
+    width: 40%;
+    max-width: 40%;
+    min-width: 0;
+  }
+
+  .dr-rankings-shell .dr-field-search {
+    flex: 0 0 60%;
+    width: 60%;
+    max-width: 60%;
+    min-width: 0;
+  }
+
+  .dr-rankings-shell .dr-field-tier,
+  .dr-rankings-shell .dr-field-team,
+  .dr-rankings-shell .dr-view-row {
+    display: none !important;
+  }
+
+  .dr-rankings-shell .dr-controls-row-2 .dr-filter-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .dr-rankings-shell .dr-select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .dr-rankings-shell .dr-search-wrap .dr-input-icon-wrap {
+    width: 100%;
+    max-width: none;
+  }
+
+  .dr-rankings-shell .dr-input-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 10px 6px 32px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .dr-rankings-shell .dr-search-wrap .dr-input-prefix {
+    left: 8px;
+  }
+
+  .dr-rankings-shell .dr-table-scroll {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dr-rankings-shell .dr-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .dr-rankings-shell .dr-table th,
+  .dr-rankings-shell .dr-table td {
+    font-size: 12px;
+  }
+
+  .dr-rankings-shell .dr-table-head th,
+  .dr-rankings-shell .dr-th {
+    font-size: 12px;
+  }
+
+  .dr-rankings-shell .dr-table .dr-mono,
+  .dr-rankings-shell .dr-table .dr-td-numeric {
+    font-size: 12px;
+  }
+
+  .dr-rankings-shell .dr-table .dr-rank-num {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .dr-rankings-shell .dr-table .dr-rank-nr {
+    font-size: 12px;
+  }
+
+  .dr-rankings-shell .dr-table tbody tr.dr-tr {
+    height: 38px;
+    max-height: 38px;
+  }
+
+  .dr-rankings-shell .dr-table .dr-player-name-line {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-rank,
+  .dr-rankings-shell .dr-table tbody td.dr-col-rank {
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-player-col,
+  .dr-rankings-shell .dr-table tbody td.dr-player-col {
+    width: auto;
+    min-width: 0;
+    max-width: 150px;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-avg,
+  .dr-rankings-shell .dr-table tbody td.dr-col-avg {
+    width: 65px;
+    min-width: 65px;
+    max-width: 65px;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-vscons,
+  .dr-rankings-shell .dr-table tbody td.dr-col-vscons {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-expert-mobile-visible,
+  .dr-rankings-shell .dr-table tbody td.dr-expert-mobile-visible {
+    width: 55px;
+    min-width: 55px;
+    max-width: 55px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-rank {
+    width: 35px !important;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-player {
+    width: auto !important;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-avg {
+    width: 65px !important;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-vscons {
+    width: 60px !important;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-expert-selected {
+    width: 55px !important;
+  }
+
+  .dr-rankings-shell .dr-player-inner-row,
+  .dr-rankings-shell .dr-player-info-stack {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dr-rankings-shell .dr-pagination {
+    padding: 8px 0 10px;
+    gap: 8px;
+  }
+
+  .dr-rankings-shell .dr-show-more {
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .dr-empty {
   text-align: center;
   color: var(--text-muted);
   padding: 48px 24px;
   font-size: 15px;
+}
+
+.dr-pills-desktop-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 11px;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.dr-th-avg-short {
+  display: none;
 }
 
 .dr-controls-inner {
@@ -935,18 +1273,26 @@ body:has(.dr-rankings-shell) {
 
 @media (max-width: 767px) {
   .dr-table-scroll {
-    overflow-x: hidden;
+    overflow-x: auto;
     margin-left: auto;
     margin-right: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 .dr-table {
   width: 100%;
+  min-width: 1120px;
   table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
+}
+
+@media (max-width: 767px) {
+  col.dr-colgroup-hide-mobile {
+    display: none;
+  }
 }
 
 .dr-col-w-rank {
@@ -1013,12 +1359,23 @@ body:has(.dr-rankings-shell) {
 
 .dr-table-head th.dr-col-rank,
 .dr-table tbody td.dr-col-rank {
-  width: 40px;
-  min-width: 40px;
-  max-width: 40px;
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
   padding: 6px 8px;
   text-align: center;
   box-sizing: border-box;
+}
+
+.dr-table-head th.dr-col-avatar,
+.dr-table tbody td.dr-col-avatar {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding: 6px 8px;
+  text-align: center;
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .dr-table-head th.dr-player-col,

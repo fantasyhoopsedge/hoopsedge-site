@@ -81,6 +81,7 @@ export function ControlsBar(props: {
   return (
     <div className="dr-controls-inner">
       <div className="dr-controls-row dr-controls-row-1">
+        <div className="dr-pills-desktop-layout">
         <div className="dr-filter-group dr-range-wrap">
           <span className="dr-filter-label">Range</span>
           <div className="dr-pill-row">
@@ -126,11 +127,12 @@ export function ControlsBar(props: {
             ))}
           </div>
         </div>
+        </div>
       </div>
 
       <div className="dr-controls-row dr-controls-row-2">
         <div className="dr-controls-row-2-fields">
-          <div className="dr-filter-group">
+          <div className="dr-filter-group dr-field-tier">
             <label className="dr-filter-label" htmlFor="dr-tier">
               Tier
             </label>
@@ -149,7 +151,7 @@ export function ControlsBar(props: {
             </select>
           </div>
 
-        <div className="dr-filter-group">
+        <div className="dr-filter-group dr-field-expert">
           <label className="dr-filter-label" htmlFor="dr-expert-sort">
             Expert
           </label>
@@ -167,7 +169,7 @@ export function ControlsBar(props: {
           </select>
         </div>
 
-        <div className="dr-filter-group">
+        <div className="dr-filter-group dr-field-team">
           <label className="dr-filter-label" htmlFor="dr-team">
             Team
           </label>
@@ -186,7 +188,7 @@ export function ControlsBar(props: {
           </select>
         </div>
 
-        <div className="dr-filter-group dr-search-wrap">
+        <div className="dr-filter-group dr-search-wrap dr-field-search">
           <label className="dr-filter-label" htmlFor="dr-search">
             Search
           </label>
@@ -230,7 +232,7 @@ export function ControlsBar(props: {
             </button>
             <button
               type="button"
-              className={`dr-icon-toggle ${viewMode === "tiers" ? "dr-icon-toggle-on" : ""}`}
+              className={`dr-icon-toggle dr-view-tier-toggle ${viewMode === "tiers" ? "dr-icon-toggle-on" : ""}`}
               onClick={() => setViewMode("tiers")}
               title="Tier view"
               aria-pressed={viewMode === "tiers"}

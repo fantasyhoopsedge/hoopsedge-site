@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DYNASTY_RANKINGS, activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { SiteNav } from "@/components/site-nav";
 import { ControlsBar, type RankRangeKey } from "./_components/controls-bar";
@@ -59,6 +59,19 @@ export default function DynastyRankingsPage() {
   const [sortKey, setSortKey] = useState<SortKey>("avgRank");
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [tierCollapsed, setTierCollapsed] = useState<Record<number, boolean>>({});
+  const [isMobileNav, setIsMobileNav] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => {
+      const mobile = mq.matches;
+      setIsMobileNav(mobile);
+      if (mobile) setViewMode("table");
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const syncExpertSortKeyFromControls = (v: string) => {
     setExpertSortKey(v);
@@ -198,7 +211,7 @@ export default function DynastyRankingsPage() {
             className="dr-table-view-wrap"
             style={{ maxWidth: 1200, marginLeft: "auto", marginRight: "auto", width: "100%" }}
           >
-            {viewMode === "table" ? (
+            {viewMode === "table" || isMobileNav ? (
               <RankingsTable
                 rows={filtered}
                 sortKey={sortKey}
