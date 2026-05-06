@@ -56,28 +56,22 @@ function playerInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function mobilePlayerName(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length <= 1) return name;
-  const firstInitial = parts[0][0].toUpperCase();
-  const surname = parts[parts.length - 1];
-  const initialPlusSurname = `${firstInitial}. ${surname}`;
+const SUFFIXES = ["Jr.", "Sr.", "II", "III"];
 
-  if (initialPlusSurname.length <= 18) {
-    return initialPlusSurname;
+function mobilePlayerName(fullName: string): string {
+  const parts = fullName.trim().split(" ");
+  const suffix = SUFFIXES.includes(parts[parts.length - 1]) ? parts[parts.length - 1] : "";
+  const nameParts = suffix ? parts.slice(0, -1) : parts;
+
+  const nameWithoutSuffix = nameParts.join(" ");
+  if (nameWithoutSuffix.length <= 13) {
+    return suffix ? `${nameWithoutSuffix} ${suffix}` : nameWithoutSuffix;
   }
 
-  const surnameParts = surname.split("-").filter(Boolean);
-  if (surnameParts.length > 1) {
-    const lastPart = surnameParts[surnameParts.length - 1];
-    const abbreviatedPrefix = surnameParts
-      .slice(0, -1)
-      .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("-");
-    return `${firstInitial}.${abbreviatedPrefix}-${lastPart}`;
-  }
-
-  return `${firstInitial}.${surname}`;
+  const initial = nameParts[0][0] + ".";
+  const surname = nameParts.slice(1).join(" ");
+  const shortened = [initial, surname, suffix].filter(Boolean).join(" ");
+  return shortened;
 }
 
 function mobilePositionBadgeStyle(position: string): CSSProperties {
