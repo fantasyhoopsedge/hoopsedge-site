@@ -36,6 +36,7 @@ export default function Home() {
   return (
     <>
       <SiteNav
+        navClassName="home-nav"
         joinFree={
           <a
             href="#"
@@ -71,8 +72,8 @@ export default function Home() {
           </button>
           <div className="hero-note">Free dynasty rankings and rookie boards.</div>
           <div className="hero-links">
-            <a href="#">View Rankings →</a>
-            <a href="#">2026 Draft Board →</a>
+            <a href="/dynasty-rankings">View Rankings →</a>
+            <a href="/draft-board">2026 Draft Board →</a>
           </div>
         </div>
 
@@ -102,7 +103,7 @@ export default function Home() {
               ))}
             </div>
             <div className="dbp-footer">
-              <a href="#">View Full Board (Top 100) →</a>
+              <a href="/draft-board">View Full Board (Top 100) →</a>
             </div>
           </div>
         </div>
@@ -131,18 +132,18 @@ export default function Home() {
           AI-powered advice. Predictions Arena where you can test your fantasy knowledge against other players.
         </p>
         <div className="features-grid">
-          <div className="feature-card">
+          <a className="feature-card feature-card-link" href="/dynasty-rankings">
             <div className="feature-icon fi-blue">📊</div>
             <h3>Dynasty Rankings</h3>
             <p>Live 9-cat dynasty rankings updated nightly from real box-score data. Filter by position, category strength, and league depth.</p>
             <span className="feature-tag tag-live">Updated Nightly</span>
-          </div>
-          <div className="feature-card">
+          </a>
+          <a className="feature-card feature-card-link" href="/draft-board">
             <div className="feature-icon fi-orange">🏀</div>
             <h3>Rookie Draft Board</h3>
             <p>Top 12 dynasty rookie board free for all. Full top 100 board with category ratings and stat translations for subscribers.</p>
             <span className="feature-tag tag-new">Top 12 Free</span>
-          </div>
+          </a>
           <div className="feature-card">
             <div className="feature-icon fi-gold">⚡</div>
             <h3>The Edge AI</h3>

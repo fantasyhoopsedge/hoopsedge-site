@@ -9,8 +9,9 @@ export function SiteNav(props: {
   joinFree?: ReactNode;
   /** Compact single-line summary (e.g. dynasty rankings meta), shown left of Join CTA */
   infoStrip?: ReactNode;
+  navClassName?: string;
 }) {
-  const { active, joinFree, infoStrip } = props;
+  const { active, joinFree, infoStrip, navClassName } = props;
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -36,22 +37,37 @@ export function SiteNav(props: {
       </a>
     );
 
+  const mobileOppositeLink =
+    active === "rankings"
+      ? { href: "/draft-board", label: "DRAFT BOARD" }
+      : active === "draft"
+        ? { href: "/dynasty-rankings", label: "DYNASTY RANKINGS" }
+        : null;
+
   return (
-    <nav>
+    <nav className={navClassName}>
       <a href="/" style={{ textDecoration: "none" }}>
         <div className="nav-brand">
-          Fantasy Hoops <span className="accent">Edge</span>
+          <span className="nav-brand-full">
+            Fantasy Hoops <span className="accent">Edge</span>
+          </span>
+          <span className="nav-brand-mobile">FHE</span>
         </div>
       </a>
       <ul className="nav-links">
+        {mobileOppositeLink ? (
+          <li className="nav-mobile-opposite-link">
+            <a href={mobileOppositeLink.href}>{mobileOppositeLink.label}</a>
+          </li>
+        ) : null}
         <li>
           <a href="/dynasty-rankings" style={active === "rankings" ? { color: "var(--edge-orange)" } : undefined}>
             <span className="nav-dynasty-rankings-full">DYNASTY RANKINGS</span>
-            <span className="nav-dynasty-rankings-short">RANKINGS</span>
+            <span className="nav-dynasty-rankings-short">DYNASTY RANKINGS</span>
           </a>
         </li>
         <li>
-          <a href="/draft-board" style={active === "draft" ? { color: "var(--edge-orange)" } : undefined}>
+          <a href="/draft-board" style={active === "draft" ? { color: "#FF6B2B" } : undefined}>
             Draft Board
           </a>
         </li>

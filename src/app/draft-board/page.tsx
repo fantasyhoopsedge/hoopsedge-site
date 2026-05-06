@@ -8,61 +8,71 @@ import { SiteNav } from "@/components/site-nav";
 // Last synced: April 7, 2026
 // ============================================================
 const DRAFT_BOARD = [
-  { rank: 1, pick: "1.01", name: "Cameron Boozer", school: "DUK", pos: "W/F", tier: 1, age: 19, ht: '6\'10"',
+  { rank: 1, pick: "1.01", name: "Cameron Boozer", school: "Duke", pos: "F/C", tier: 1, age: 19, ht: '6\'10"',
     pts: "5★", reb: "5★", ast: "4★", stl: "4★", blk: "4★", fg: "5★", ft: "4★", tpm: "3★", to: "4★",
     verdict: "Safest dynasty pick in the 2026 class. Elite or positive across 7 of 9 categories. The size and feel project across all categories at NBA level. In category leagues, this profile wins championships." },
-  { rank: 2, pick: "1.02", name: "AJ Dybantsa", school: "BYU", pos: "W/F", tier: 1, age: 18, ht: '6\'9"',
-    pts: "5★", reb: "4★", ast: "4★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "3★", to: "2★",
-    verdict: "Led the nation in scoring as a freshman — first since Trae Young in 2018. 6'9\" wing who draws fouls in bunches. PTS elite, FG% and REB positive. TO is the dynasty risk to manage." },
-  { rank: 3, pick: "1.03", name: "Darryn Peterson", school: "KAN", pos: "G/W", tier: 1, age: 19, ht: '6\'4"',
+  { rank: 2, pick: "1.02", name: "Darryn Peterson", school: "Kansas", pos: "G", tier: 1, age: 19, ht: '6\'4"',
     pts: "5★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "4★", to: "3★",
     verdict: "PTS and 3PT are the category league weapons here. Only 22 games played — but scouts still have him top 3. The concern is availability. High risk, high reward at 1.03." },
-  { rank: 4, pick: "1.04", name: "Caleb Wilson", school: "UNC", pos: "W/F", tier: 2, age: 20, ht: '6\'8"',
+  { rank: 3, pick: "1.03", name: "Caleb Wilson", school: "North Carolina", pos: "F", tier: 2, age: 20, ht: '6\'8"',
     pts: "4★", reb: "5★", ast: "3★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "2★", to: "3★",
     verdict: "REB elite, PTS and FG% positive. Season ended early — broken thumb. Expected to be cleared for predraft process. 3PT at 25.9% is the one concern. Dynasty gold if healthy." },
-  { rank: 5, pick: "1.05", name: "Kingston Flemings", school: "HOU", pos: "G", tier: 2, age: 20, ht: '6\'3"',
+  { rank: 4, pick: "1.04", name: "Kingston Flemings", school: "Houston", pos: "G", tier: 2, age: 20, ht: '6\'3"',
     pts: "4★", reb: "1★", ast: "5★", stl: "4★", blk: "3★", fg: "4★", ft: "3★", tpm: "2★", to: "2★",
     verdict: "The most elite playmaking guard in the 2026 class. AST and STL are both elite — that combination at the NBA level is what winning rosters are built around. REB, 3PT and TO are the negatives." },
-  { rank: 6, pick: "1.06", name: "Keaton Wagler", school: "ILL", pos: "G", tier: 2, age: 20, ht: '6\'5"',
+  { rank: 5, pick: "1.05", name: "AJ Dybantsa", school: "BYU", pos: "G/F", tier: 1, age: 18, ht: '6\'9"',
+    pts: "5★", reb: "4★", ast: "4★", stl: "3★", blk: "3★", fg: "4★", ft: "3★", tpm: "3★", to: "2★",
+    verdict: "Led the nation in scoring as a freshman — first since Trae Young in 2018. 6'9\" wing who draws fouls in bunches. PTS elite, FG% and REB positive. TO is the dynasty risk to manage." },
+  { rank: 6, pick: "1.06", name: "Keaton Wagler", school: "Illinois", pos: "G", tier: 2, age: 20, ht: '6\'5"',
     pts: "5★", reb: "3★", ast: "4★", stl: "3★", blk: "2★", fg: "4★", ft: "4★", tpm: "5★", to: "4★",
     verdict: "A 9-cat dream guard. PTS, 3PM, AST, FG%, FT% all positive or elite. Lacks elite upside in defensive cats but fills 6-7 categories comfortably. Consensus Second Team All-American." },
-  { rank: 7, pick: "1.07", name: "Mikel Brown Jr.", school: "LOU", pos: "G", tier: 2, age: 21, ht: '6\'5"',
+  { rank: 7, pick: "1.07", name: "Aday Mara", school: "Michigan", pos: "C", tier: 2, age: 20, ht: '7\'3"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 8, pick: "1.08", name: "Mikel Brown Jr.", school: "Louisville", pos: "G", tier: 2, age: 21, ht: '6\'5"',
     pts: "5★", reb: "2★", ast: "4★", stl: "3★", blk: "2★", fg: "2★", ft: "4★", tpm: "3★", to: "2★",
     verdict: "PTS elite — peak of 29.2 PPG in his last 5 healthy games. AST and FT% positive. REB, BLK, FG% and TO are the negatives. Lower back injury is the only reason he's not top 5. Predraft medicals are everything." },
-  { rank: 8, pick: "1.08", name: "Darius Acuff Jr.", school: "ARK", pos: "G", tier: 2, age: 20, ht: '6\'1"',
+  { rank: 9, pick: "1.09", name: "E. Okorie", school: "Stanford", pos: "G", tier: 4, age: 19, ht: '6\'2"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 10, pick: "1.10", name: "Allen Graves", school: "SCU", pos: "G/F", tier: 3, age: 21, ht: '6\'5"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 11, pick: "1.11", name: "Labaron Philon", school: "Alabama", pos: "G", tier: 2, age: 20, ht: '6\'3"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 12, pick: "1.12", name: "Darius Acuff Jr.", school: "Arkansas", pos: "G", tier: 2, age: 20, ht: '6\'1"',
     pts: "5★", reb: "2★", ast: "5★", stl: "3★", blk: "2★", fg: "5★", ft: "4★", tpm: "5★", to: "3★",
     verdict: "SEC Player of the Year, Freshman of the Year, SEC Tournament MVP. Led the SEC in scoring and assists. Three elite categories (PTS, AST, FG%) with 3PM elite too. REB and BLK are the only drags." },
-  { rank: 9, pick: "1.09", name: "Aday Mara", school: "MCH", pos: "C", tier: 2, age: 20, ht: '7\'3"',
-    pts: "3★", reb: "5★", ast: "4★", stl: "2★", blk: "5★", fg: "5★", ft: "1★", tpm: "2★", to: "2★",
-    verdict: "Three elites — FG%, REB and BLK. The most dominant big man category profile in the class. FT% at 1★ is a serious drag in 9-cat — the one reason he's not higher. AST positive for a center." },
-  { rank: 10, pick: "1.10", name: "Labaron Philon Jr.", school: "ALA", pos: "G", tier: 2, age: 20, ht: '6\'3"',
-    pts: "4★", reb: "2★", ast: "4★", stl: "4★", blk: "3★", fg: "3★", ft: "3★", tpm: "4★", to: "2★",
-    verdict: "PTS, AST, STL and 3PM all positive — four category contributors as a sophomore scorer. FG% and FT% are neutral, BLK won't hurt you. REB and TO are the two drags to manage. 1.10 is the value pick of the top 10." },
-  { rank: 11, pick: "1.11", name: "Brayden Burries", school: "ARZ", pos: "G", tier: 3, age: 20, ht: '6\'4"',
-    pts: "4★", reb: "3★", ast: "3★", stl: "4★", blk: "2★", fg: "4★", ft: "4★", tpm: "3★", to: "5★",
-    verdict: "PTS, STL, FG%, FT% all positive — and TO is elite. The cleanest stat sheet in the 1.10s. BLK is the one drag. 3PM needs volume to become a real weapon. A safe, well-rounded pick at 1.11." },
-  { rank: 12, pick: "1.12", name: "Yaxel Lendeborg", school: "MCH", pos: "W/F", tier: 3, age: 24, ht: '6\'7"',
+  { rank: 13, pick: "1.13", name: "Yaxel Lendeborg", school: "Michigan", pos: "G/F", tier: 3, age: 24, ht: '6\'7"',
     pts: "3★", reb: "4★", ast: "4★", stl: "4★", blk: "4★", fg: "4★", ft: "4★", tpm: "3★", to: "3★",
     verdict: "Six positives across REB, AST, STL, BLK, FG%, FT%. Elite dynasty profile — contributes across every category without a weakness. Big Ten POY. Consensus All-American. Age at 23 is the only dynasty tradeoff." },
+  { rank: 14, pick: "1.14", name: "Hannes Steinbach", school: "Washington", pos: "F/C", tier: 3, age: 21, ht: '7\'1"' },
+  { rank: 15, pick: "1.15", name: "Brayden Burries", school: "Arizona", pos: "G", tier: 3, age: 20, ht: '6\'4"',
+    pts: "4★", reb: "3★", ast: "3★", stl: "4★", blk: "2★", fg: "4★", ft: "4★", tpm: "3★", to: "5★",
+    verdict: "PTS, STL, FG%, FT% all positive — and TO is elite. The cleanest stat sheet in the 1.10s. BLK is the one drag. 3PM needs volume to become a real weapon. A safe, well-rounded pick at 1.11." },
   // === PICKS 13-30: BLURRED / GATED ===
-  { rank: 13, pick: "1.13", name: "Bennett Stirtz", school: "IOWA", pos: "G", tier: 3, age: 22, ht: '6\'5"' },
-  { rank: 14, pick: "1.14", name: "Allen Graves", school: "SCU", pos: "W/F", tier: 3, age: 21, ht: '6\'5"' },
-  { rank: 15, pick: "1.15", name: "Cameron Carr", school: "BAY", pos: "G/W", tier: 3, age: 21, ht: '6\'5"' },
-  { rank: 16, pick: "1.16", name: "Hannes Steinbach", school: "WSH", pos: "F/C", tier: 3, age: 21, ht: '7\'1"' },
-  { rank: 17, pick: "1.17", name: "Jayden Quaintance", school: "KEN", pos: "C", tier: 3, age: 19, ht: '6\'9"' },
-  { rank: 18, pick: "1.18", name: "Dailyn Swain", school: "TEX", pos: "W/F", tier: 3, age: 20, ht: '6\'8"' },
-  { rank: 19, pick: "1.19", name: "Morez Johnson Jr.", school: "MCH", pos: "F/C", tier: 3, age: 20, ht: '6\'9"' },
-  { rank: 20, pick: "1.20", name: "Braylon Mullins", school: "UCONN", pos: "G/W", tier: 3, age: 20, ht: '6\'5"' },
-  { rank: 21, pick: "1.21", name: "Tyler Tanner", school: "VAND", pos: "G", tier: 4, age: 21, ht: '6\'4"' },
-  { rank: 22, pick: "1.22", name: "Patrick Ngongba", school: "DUK", pos: "C", tier: 4, age: 20, ht: '6\'11"' },
-  { rank: 23, pick: "1.23", name: "Ebuka Okorie", school: "STAN", pos: "G", tier: 4, age: 19, ht: '6\'2"' },
-  { rank: 24, pick: "1.24", name: "Thomas Haugh", school: "FLA", pos: "C", tier: 4, age: 21, ht: '7\'0"' },
-  { rank: 25, pick: "1.25", name: "Nate Ament", school: "TEN", pos: "G", tier: 4, age: 21, ht: '6\'4"' },
-  { rank: 26, pick: "1.26", name: "Zuby Ejiofor", school: "SJU", pos: "F/C", tier: 4, age: 20, ht: '6\'10"' },
-  { rank: 27, pick: "1.27", name: "Meleek Thomas", school: "ARK", pos: "G", tier: 4, age: 19, ht: '6\'5"' },
-  { rank: 28, pick: "1.28", name: "Tarris Reed Jr.", school: "UCONN", pos: "C", tier: 4, age: 22, ht: '6\'11"' },
-  { rank: 29, pick: "1.29", name: "Christian Anderson Jr.", school: "TTU", pos: "G", tier: 4, age: 21, ht: '6\'3"' },
-  { rank: 30, pick: "1.30", name: "Koa Peat", school: "ARZ", pos: "W/F", tier: 4, age: 19, ht: '6\'8"' },
+  { rank: 16, pick: "1.16", name: "Dailyn Swain", school: "Texas", pos: "F", tier: 3, age: 20, ht: '6\'8"' },
+  { rank: 17, pick: "1.17", name: "Bennett Stirtz", school: "Iowa", pos: "G", tier: 3, age: 22, ht: '6\'5"' },
+  { rank: 18, pick: "1.18", name: "Cameron Carr", school: "Baylor", pos: "G", tier: 3, age: 21, ht: '6\'5"' },
+  { rank: 19, pick: "1.19", name: "Jayden Quaintance", school: "Kentucky", pos: "C", tier: 3, age: 19, ht: '6\'9"' },
+  { rank: 20, pick: "1.20", name: "Morez Johnson Jr.", school: "Michigan", pos: "F/C", tier: 3, age: 20, ht: '6\'9"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 21, pick: "1.21", name: "Tyler Tanner", school: "Vanderbilt", pos: "G", tier: 4, age: 21, ht: '6\'4"' },
+  { rank: 22, pick: "1.22", name: "Karim Lopez", school: "Maine", pos: "F", tier: 4, age: 20, ht: '6\'11"' },
+  { rank: 23, pick: "1.23", name: "Nate Ament", school: "Tennessee", pos: "F", tier: 4, age: 21, ht: '6\'4"' },
+  { rank: 24, pick: "1.24", name: "Zuby Ejiofor", school: "SJU", pos: "F/C", tier: 4, age: 20, ht: '6\'10"' },
+  { rank: 25, pick: "1.25", name: "M. Thomas", school: "Arkansas", pos: "G", tier: 4, age: 19, ht: '6\'5"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 26, pick: "1.26", name: "T. Reed Jr.", school: "UCONN", pos: "C", tier: 4, age: 22, ht: '6\'11"',
+    pts: "3★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "Prospect data coming soon." },
+  { rank: 27, pick: "1.27", name: "Christian Anderson Jr.", school: "Texas Tech", pos: "G", tier: 4, age: 21, ht: '6\'3"' },
+  { rank: 28, pick: "1.28", name: "Koa Peat", school: "Arizona", pos: "F", tier: 4, age: 19, ht: '6\'8"' },
+  { rank: 29, pick: "1.29", name: "Isaiah Evans", school: "Duke", pos: "G/F", tier: 4, age: 20, ht: '6\'11"' },
+  { rank: 30, pick: "1.30", name: "Amari Allen", school: "Alabama", pos: "F", tier: 4, age: 21, ht: '7\'0"' },
 ];
 
 const CATS = ["pts", "reb", "ast", "stl", "blk", "fg", "ft", "tpm", "to"] as const;
@@ -85,6 +95,29 @@ function tierLabel(tier: number) {
   return { text: "TIER 4", cls: "tier-four" };
 }
 
+function positionBadge(pos: string) {
+  if (pos === "G") return <span className="db-pos-badge db-pos-badge-g">G</span>;
+  if (pos === "F") return <span className="db-pos-badge db-pos-badge-f">F</span>;
+  if (pos === "C") return <span className="db-pos-badge db-pos-badge-c">C</span>;
+  if (pos === "G/F") {
+    return (
+      <span className="db-pos-badge db-pos-badge-split">
+        <span className="db-pos-badge-split-l">G</span>
+        <span className="db-pos-badge-split-r">F</span>
+      </span>
+    );
+  }
+  if (pos === "F/C") {
+    return (
+      <span className="db-pos-badge db-pos-badge-split">
+        <span className="db-pos-badge-split-l">F</span>
+        <span className="db-pos-badge-split-r db-pos-badge-split-r-gold">C</span>
+      </span>
+    );
+  }
+  return <span className="db-pos-badge db-pos-badge-g">{pos}</span>;
+}
+
 export default function DraftBoard() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -95,7 +128,7 @@ export default function DraftBoard() {
   };
 
   return (
-    <>
+    <div className="draft-board-shell">
       <SiteNav
         active="draft"
         joinFree={
@@ -112,34 +145,21 @@ export default function DraftBoard() {
         }
       />
 
-      <div style={{
-        background: "var(--blueprint)", padding: "120px 60px 60px",
-        position: "relative", overflow: "hidden"
-      }}>
-        <div style={{
-          position: "absolute", right: "-40px", top: "-20px",
-          fontFamily: "'Oswald', sans-serif", fontSize: "200px", fontWeight: 800,
-          color: "rgba(255,255,255,0.04)", letterSpacing: "10px"
-        }}>DRAFT</div>
-        <div style={{
-          fontFamily: "'Oswald', sans-serif", fontSize: "11px",
-          letterSpacing: "3px", textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)", marginBottom: "8px"
-        }}>2026 NBA Draft · 9-Cat Dynasty</div>
-        <h1 style={{
-          fontFamily: "'Oswald', sans-serif", fontWeight: 800,
-          fontSize: "48px", textTransform: "uppercase",
-          color: "white", letterSpacing: "1px", marginBottom: "8px"
-        }}>Rookie <span style={{ color: "var(--dynasty-gold)" }}>Draft Board</span></h1>
-        <p style={{
-          fontSize: "16px", color: "rgba(255,255,255,0.6)",
-          maxWidth: "500px", lineHeight: 1.6
-        }}>
+      <div className="db-hero">
+        <div className="db-hero-bg-mark">DRAFT</div>
+        <div className="db-hero-mobile-line">
+          <span className="db-hero-mobile-main">ROOKIE DRAFT BOARD</span>
+          <span className="db-hero-mobile-dot"> · </span>
+          <span className="db-hero-mobile-meta">2026 NBA Draft · 9-Cat Dynasty</span>
+        </div>
+        <div className="db-hero-kicker">2026 NBA Draft · 9-Cat Dynasty</div>
+        <h1 className="db-hero-title">Rookie <span>Draft Board</span></h1>
+        <p className="db-hero-subtitle">
           Ranked by long-term 9-cat dynasty value. Top 12 free — full board for subscribers. Updated weekly during the off-season.
         </p>
       </div>
 
-      <div style={{ padding: "40px 60px 100px", maxWidth: "900px" }}>
+      <div className="db-board-wrap" style={{ padding: "40px 60px 100px", maxWidth: "900px" }}>
         {DRAFT_BOARD.map((p) => {
           const isLocked = p.rank > 12;
           const isExpanded = expanded === p.rank;
@@ -150,15 +170,10 @@ export default function DraftBoard() {
             <div key={p.rank} style={{ position: "relative" }}>
               <div
                 onClick={() => isLocked ? setShowModal(true) : hasCard ? toggle(p.rank) : null}
+                className={`db-row ${isExpanded ? "db-row-expanded" : "db-row-collapsed"}`}
                 style={{
-                  display: "flex", alignItems: "center", gap: "16px",
-                  padding: "16px 20px",
                   background: isExpanded ? "var(--bg-card-hover)" : "var(--bg-card)",
-                  border: "1px solid var(--border-main)",
-                  borderRadius: isExpanded ? "12px 12px 0 0" : "12px",
-                  marginBottom: isExpanded ? "0" : "8px",
                   cursor: isLocked || hasCard ? "pointer" : "default",
-                  transition: "all 0.3s",
                   filter: isLocked ? "blur(4px)" : "none",
                   userSelect: isLocked ? "none" : "auto",
                   opacity: isLocked ? 0.5 : 1,
@@ -166,45 +181,34 @@ export default function DraftBoard() {
               >
                 <div style={{
                   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-                  fontSize: "28px", color: "var(--blueprint-glow)",
+                  fontSize: "28px", color: "var(--blueprint)",
                   minWidth: "44px", textAlign: "center"
                 }}>{p.rank}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontFamily: "'Oswald', sans-serif", fontWeight: 600,
-                    fontSize: "17px", textTransform: "uppercase",
-                    letterSpacing: "0.5px", color: "var(--text-primary)"
-                  }}>{p.name}</div>
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "3px" }}>
+                <div className="db-player-main">
+                  <div className="db-player-name">{p.name}</div>
+                  <div className="db-player-meta">
+                    {positionBadge(p.pos)}
                     <span className="dbp-school">{p.school}</span>
-                    <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>{p.pos}</span>
-                    {p.ht && <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>· {p.ht}</span>}
+                    <span className="db-player-meta-text db-player-meta-pos">{p.pos}</span>
+                    {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
-                <div style={{
-                  fontFamily: "'JetBrains Mono', monospace", fontSize: "12px",
-                  fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.5px"
-                }}>PICK {p.pick}</div>
-                <div className={`dbp-tier ${tier.cls}`}>{tier.text}</div>
+                <div className="db-pick-tier">
+                  <div className="db-player-pick">{p.pick}</div>
+                  <div className={`dbp-tier ${tier.cls}`}>
+                    <span className="db-tier-full">{tier.text}</span>
+                    <span className="db-tier-compact">T{p.tier}</span>
+                  </div>
+                </div>
                 {!isLocked && hasCard && (
-                  <div style={{
-                    fontSize: "14px", color: "var(--text-muted)",
-                    transition: "transform 0.3s",
+                  <div className="db-expand-arrow" style={{
                     transform: isExpanded ? "rotate(180deg)" : "rotate(0)"
                   }}>▼</div>
                 )}
               </div>
 
               {isExpanded && !isLocked && hasCard && (
-                <div style={{
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border-main)",
-                  borderTop: "none",
-                  borderRadius: "0 0 12px 12px",
-                  padding: "24px 20px",
-                  marginBottom: "8px",
-                  animation: "fadeUp 0.3s ease-out"
-                }}>
+                <div className="db-expanded-panel" style={{ animation: "fadeUp 0.3s ease-out" }}>
                   <div style={{
                     fontFamily: "'Oswald', sans-serif", fontSize: "11px",
                     letterSpacing: "3px", textTransform: "uppercase",
@@ -319,6 +323,6 @@ export default function DraftBoard() {
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
