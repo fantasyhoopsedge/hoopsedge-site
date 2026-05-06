@@ -988,7 +988,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell .dr-table .dr-player-name-line {
-    max-width: 150px;
+    max-width: none;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -996,23 +996,23 @@ body:has(.dr-rankings-shell) {
 
   .dr-rankings-shell .dr-table-head th.dr-col-rank,
   .dr-rankings-shell .dr-table tbody td.dr-col-rank {
-    width: 35px;
-    min-width: 35px;
-    max-width: 35px;
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-player-col,
   .dr-rankings-shell .dr-table tbody td.dr-player-col {
     width: auto;
     min-width: 0;
-    max-width: 150px;
+    max-width: none;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-col-avg,
   .dr-rankings-shell .dr-table tbody td.dr-col-avg {
-    width: 65px;
-    min-width: 65px;
-    max-width: 65px;
+    width: 55px;
+    min-width: 55px;
+    max-width: 55px;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-col-vscons,
@@ -1024,9 +1024,9 @@ body:has(.dr-rankings-shell) {
 
   .dr-rankings-shell .dr-table-head th.dr-col-pos,
   .dr-rankings-shell .dr-table tbody td.dr-col-pos {
-    width: 45px;
-    min-width: 45px;
-    max-width: 45px;
+    width: 35px;
+    min-width: 35px;
+    max-width: 35px;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-expert-mobile-visible,
@@ -1037,7 +1037,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell col.dr-col-cg-rank {
-    width: 35px !important;
+    width: 30px !important;
   }
 
   .dr-rankings-shell col.dr-col-cg-player {
@@ -1045,7 +1045,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell col.dr-col-cg-avg {
-    width: 65px !important;
+    width: 55px !important;
   }
 
   .dr-rankings-shell col.dr-col-cg-vscons {
@@ -1053,7 +1053,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell col.dr-col-cg-pos {
-    width: 45px !important;
+    width: 35px !important;
   }
 
   .dr-rankings-shell col.dr-col-cg-expert-selected {
@@ -1066,10 +1066,17 @@ body:has(.dr-rankings-shell) {
     max-width: 100%;
   }
 
+  .dr-rankings-shell .dr-player-info-stack {
+    flex: 1 1 auto;
+  }
+
   .dr-rankings-shell .dr-table tbody td.dr-player-col {
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: none;
   }
 
   .dr-rankings-shell .dr-table .dr-player-name-line {
@@ -1084,19 +1091,27 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell .dr-pagination {
-    padding: 8px 0 10px;
+    display: flex !important;
+    width: 100%;
+    align-items: stretch;
+    padding: 10px 0 14px;
     gap: 8px;
   }
 
+  .dr-rankings-shell .dr-pagination.dr-mobile-hide {
+    display: flex !important;
+  }
+
   .dr-rankings-shell .dr-show-more {
-    font-size: 12px;
+    width: 100%;
+    font-size: 14px;
     letter-spacing: 1px;
-    padding: 8px 16px;
-    height: 36px;
-    min-height: 36px;
-    max-height: 36px;
+    padding: 0 16px;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
     box-sizing: border-box;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
   }

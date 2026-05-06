@@ -59,7 +59,25 @@ function playerInitials(name: string): string {
 function mobilePlayerName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length <= 1) return name;
-  return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
+  const firstInitial = parts[0][0].toUpperCase();
+  const surname = parts[parts.length - 1];
+  const initialPlusSurname = `${firstInitial}. ${surname}`;
+
+  if (initialPlusSurname.length <= 18) {
+    return initialPlusSurname;
+  }
+
+  const surnameParts = surname.split("-").filter(Boolean);
+  if (surnameParts.length > 1) {
+    const lastPart = surnameParts[surnameParts.length - 1];
+    const abbreviatedPrefix = surnameParts
+      .slice(0, -1)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("-");
+    return `${firstInitial}.${abbreviatedPrefix}-${lastPart}`;
+  }
+
+  return `${firstInitial}.${surname}`;
 }
 
 function mobilePositionBadgeStyle(position: string): CSSProperties {
