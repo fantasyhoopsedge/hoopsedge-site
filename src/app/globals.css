@@ -2539,7 +2539,7 @@ body:has(.dr-rankings-shell) {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   border: 1px solid var(--border-main);
   transition: all 0.3s;
 }
@@ -2553,7 +2553,7 @@ body:has(.dr-rankings-shell) {
   font-family: "Oswald", sans-serif;
   font-weight: 600;
   font-size: 17px;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.5px;
   color: var(--text-primary);
   white-space: nowrap;
@@ -2576,7 +2576,18 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-pos-badge {
-  display: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  overflow: hidden;
+  line-height: 1;
 }
 
 .db-player-pick {
@@ -2586,6 +2597,7 @@ body:has(.dr-rankings-shell) {
   color: var(--text-muted);
   letter-spacing: 0.5px;
   flex-shrink: 0;
+  display: none;
 }
 
 .db-pick-tier {
@@ -2629,6 +2641,58 @@ body:has(.dr-rankings-shell) {
 
 .db-hero-mobile-line {
   display: none;
+}
+
+@media (min-width: 768px) {
+  .draft-board-shell .db-pos-badge-g {
+    background: #2563EB;
+  }
+
+  .draft-board-shell .db-pos-badge-f {
+    background: #FF6B2B;
+  }
+
+  .draft-board-shell .db-pos-badge-c {
+    background: #F0C040;
+    color: #1a1a1a;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l,
+  .draft-board-shell .db-pos-badge-split-r {
+    width: 11px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l {
+    background: #2563EB;
+  }
+
+  .draft-board-shell .db-pos-badge-split-r {
+    background: #FF6B2B;
+  }
+
+  .draft-board-shell .db-pos-badge-split-r-gold {
+    background: #F0C040;
+    color: #ffffff;
+  }
+
+  .draft-board-shell .dbp-school {
+    background: #FF6B2B;
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+
+  .draft-board-shell .db-player-meta-height {
+    color: #ffffff;
+    font-weight: 600;
+  }
 }
 
 @media (max-width: 767px) {

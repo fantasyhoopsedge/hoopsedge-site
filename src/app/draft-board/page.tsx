@@ -159,7 +159,7 @@ export default function DraftBoard() {
         </p>
       </div>
 
-      <div className="db-board-wrap" style={{ padding: "40px 60px 100px", maxWidth: "900px" }}>
+      <div className="db-board-wrap" style={{ padding: "40px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
         {DRAFT_BOARD.map((p) => {
           const isLocked = p.rank > 12;
           const isExpanded = expanded === p.rank;
@@ -189,12 +189,10 @@ export default function DraftBoard() {
                   <div className="db-player-meta">
                     {positionBadge(p.pos)}
                     <span className="dbp-school">{p.school}</span>
-                    <span className="db-player-meta-text db-player-meta-pos">{p.pos}</span>
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
                 <div className="db-pick-tier">
-                  <div className="db-player-pick">{p.pick}</div>
                   <div className={`dbp-tier ${tier.cls}`}>
                     <span className="db-tier-full">{tier.text}</span>
                     <span className="db-tier-compact">T{p.tier}</span>
