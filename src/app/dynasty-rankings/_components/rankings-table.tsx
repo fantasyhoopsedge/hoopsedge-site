@@ -188,11 +188,13 @@ export function RankingsTable(props: {
   onSort: (key: SortKey) => void;
   activeExpertKey: string;
   rankedByExpertLabel: string | null;
-  maxVisible: number;
 }) {
-  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, maxVisible } = props;
+  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [visibleCount, setVisibleCount] = useState(maxVisible);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const loadingTimeoutRef = useRef<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(50);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const sorted = useMemo(() => {
@@ -202,8 +204,9 @@ export function RankingsTable(props: {
   }, [rows, sortKey, sortDir, activeExpertKey]);
 
   useEffect(() => {
-    setVisibleCount(maxVisible);
-  }, [rows, maxVisible, activeExpertKey, sortKey, sortDir]);
+    setVisibleCount(50);
+    setIsLoadingMore(false);
+  }, [rows]);
 
   useEffect(() => {
     const updateIsMobile = () => {
@@ -215,6 +218,48 @@ export function RankingsTable(props: {
   }, []);
 
   const shown = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
+  const hasMore = visibleCount < sorted.length;
+
+  useEffect(() => {
+    if (!hasMore) return;
+    const sentinel = sentinelRef.current;
+    const container = scrollRef.current;
+    if (!sentinel || !container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || isLoadingMore) return;
+
+        setIsLoadingMore(true);
+        setVisibleCount((prev) => Math.min(prev + 25, sorted.length));
+      },
+      {
+        threshold: 0.1,
+        root: container,
+      },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, sorted.length]);
+
+  useEffect(() => {
+    if (!isLoadingMore) return;
+    if (loadingTimeoutRef.current !== null) {
+      window.clearTimeout(loadingTimeoutRef.current);
+    }
+    loadingTimeoutRef.current = window.setTimeout(() => {
+      setIsLoadingMore(false);
+      loadingTimeoutRef.current = null;
+    }, 250);
+
+    return () => {
+      if (loadingTimeoutRef.current !== null) {
+        window.clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
+  }, [isLoadingMore]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -246,8 +291,6 @@ export function RankingsTable(props: {
     </button>
   );
 
-  const hasMore = visibleCount < sorted.length;
-  const startIdx = sorted.length === 0 ? 0 : 1;
   const endIdx = shown.length;
 
   return (
@@ -445,24 +488,19 @@ export function RankingsTable(props: {
             })}
           </tbody>
         </table>
-      </div>
 
-      {sorted.length > 0 ? (
-        <div className="dr-pagination">
-          <p className="dr-pagination-label">
-            Showing {startIdx}–{endIdx} of {sorted.length}
+        {isLoadingMore ? (
+          <p style={{ fontSize: 11, color: "#9a9aaa", padding: "8px 0 2px 0", textAlign: "center" }}>Loading...</p>
+        ) : null}
+
+        {sorted.length > 0 ? (
+          <p style={{ fontSize: 11, color: "#9a9aaa", padding: "6px 0 0 0", textAlign: "center" }}>
+            Showing {endIdx} of {sorted.length} players
           </p>
-          {hasMore ? (
-            <button
-              type="button"
-              className="dr-show-more"
-              onClick={() => setVisibleCount((n) => Math.min(n + maxVisible, sorted.length))}
-            >
-              Show more
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+        ) : null}
+
+        {hasMore ? <div ref={sentinelRef} style={{ height: 1, width: "100%" }} aria-hidden /> : null}
+      </div>
     </>
   );
 }

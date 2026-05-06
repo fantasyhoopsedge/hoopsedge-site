@@ -7,8 +7,6 @@ import { ControlsBar, type RankRangeKey } from "./_components/controls-bar";
 import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
 
-const MAX_TABLE_ROWS = 50;
-
 const EXPERT_NAMES: Record<string, string> = {
   matt: "MATT",
   dizzle: "DIZZLE",
@@ -219,7 +217,6 @@ export default function DynastyRankingsPage() {
                 onSort={onSort}
                 activeExpertKey={expertSortKey}
                 rankedByExpertLabel={expertSortKey ? EXPERT_NAMES[expertSortKey] ?? expertSortKey.toUpperCase() : null}
-                maxVisible={MAX_TABLE_ROWS}
               />
             ) : (
               <div className="dr-tier-view-scroll">
