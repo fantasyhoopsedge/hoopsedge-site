@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 
@@ -54,6 +54,45 @@ function playerInitials(name: string): string {
   if (parts.length === 0) return "?";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function mobilePlayerName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return name;
+  return `${parts[0][0]}. ${parts.slice(1).join(" ")}`;
+}
+
+function mobilePositionBadgeStyle(position: string): CSSProperties {
+  const normalized = position.toUpperCase();
+  let background = "#2563EB";
+  let color = "#ffffff";
+
+  if (normalized === "F") {
+    background = "#FF6B2B";
+  } else if (normalized === "C") {
+    background = "#F0C040";
+    color = "#1f2937";
+  } else if (normalized === "G/F") {
+    background = "linear-gradient(135deg, #2563EB 0 50%, #FF6B2B 50% 100%)";
+  } else if (normalized === "F/C") {
+    background = "linear-gradient(135deg, #FF6B2B 0 50%, #F0C040 50% 100%)";
+  }
+
+  return {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    fontSize: 9,
+    fontWeight: 700,
+    color,
+    background,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
+    flexShrink: 0,
+    lineHeight: 1,
+  };
 }
 
 function expertRankValue(p: DynastyPlayer, key: keyof DynastyPlayer["expertRanks"]): number | null {
@@ -136,6 +175,7 @@ export function RankingsTable(props: {
   const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, maxVisible } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [visibleCount, setVisibleCount] = useState(maxVisible);
+  const [isMobile, setIsMobile] = useState(false);
 
   const sorted = useMemo(() => {
     const out = [...rows];
@@ -146,6 +186,15 @@ export function RankingsTable(props: {
   useEffect(() => {
     setVisibleCount(maxVisible);
   }, [rows, maxVisible, activeExpertKey, sortKey, sortDir]);
+
+  useEffect(() => {
+    const updateIsMobile = () => {
+      setIsMobile(window.innerWidth <= 767);
+    };
+    updateIsMobile();
+    window.addEventListener("resize", updateIsMobile);
+    return () => window.removeEventListener("resize", updateIsMobile);
+  }, []);
 
   const shown = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
 
@@ -160,6 +209,15 @@ export function RankingsTable(props: {
 
   const arrowDir: "asc" | "desc" = sortDir === 1 ? "asc" : "desc";
   const expertMode = Boolean(activeExpertKey);
+  const mobileExpertMode = isMobile && expertMode;
+
+  const showAvatarColumn = !isMobile;
+  const showTeamColumn = !isMobile;
+  const showPosColumn = !isMobile;
+  const showAgeColumn = !isMobile;
+  const showTierColumn = !isMobile;
+  const showVsConsColumn = !isMobile || expertMode;
+  const showExpertColumns = !isMobile;
 
   const consensusAvgSortActive = !activeExpertKey && sortKey === "avgRank";
 
@@ -189,25 +247,17 @@ export function RankingsTable(props: {
         <table className="dr-table">
           <colgroup>
             <col className="dr-col-cg-rank" style={{ width: 50 }} />
-            <col className="dr-col-cg-avatar dr-colgroup-hide-mobile" style={{ width: 44 }} />
+            {showAvatarColumn ? <col className="dr-col-cg-avatar" style={{ width: 44 }} /> : null}
             <col className="dr-col-cg-player" style={{ width: 180 }} />
-            <col className="dr-col-cg-team dr-colgroup-hide-mobile" style={{ width: 110 }} />
-            <col className="dr-col-cg-pos dr-colgroup-hide-mobile" style={{ width: 55 }} />
-            <col className="dr-col-cg-age dr-colgroup-hide-mobile" style={{ width: 60 }} />
+            {showTeamColumn ? <col className="dr-col-cg-team" style={{ width: 110 }} /> : null}
+            {showPosColumn ? <col className="dr-col-cg-pos" style={{ width: 55 }} /> : null}
+            {showAgeColumn ? <col className="dr-col-cg-age" style={{ width: 60 }} /> : null}
             <col className="dr-col-cg-avg" style={{ width: 90 }} />
-            <col className="dr-col-cg-tier dr-colgroup-hide-mobile" style={{ width: 60 }} />
-            <col className="dr-col-cg-vscons" style={{ width: 80 }} />
-            {EXPERT_ORDER.map((e) => (
-              <col
-                key={e.key}
-                className={
-                  activeExpertKey && e.key === activeExpertKey
-                    ? "dr-col-cg-expert-selected"
-                    : "dr-colgroup-hide-mobile"
-                }
-                style={{ width: e.wide ? 75 : 65 }}
-              />
-            ))}
+            {showTierColumn ? <col className="dr-col-cg-tier" style={{ width: 60 }} /> : null}
+            {showVsConsColumn ? <col className="dr-col-cg-vscons" style={{ width: 80 }} /> : null}
+            {showExpertColumns
+              ? EXPERT_ORDER.map((e) => <col key={e.key} style={{ width: e.wide ? 75 : 65 }} />)
+              : null}
           </colgroup>
           <thead className="dr-table-head">
             <tr>
@@ -216,17 +266,23 @@ export function RankingsTable(props: {
                   <span>RANK</span>
                 </button>
               </th>
-              <th scope="col" className="dr-th dr-col-avatar dr-desktop-only" aria-label="Avatar" />
+              {showAvatarColumn ? <th scope="col" className="dr-th dr-col-avatar dr-desktop-only" aria-label="Avatar" /> : null}
               <th scope="col" className="dr-th dr-th-sort dr-player-col">{sortHeaderBtn("player", "PLAYER")}</th>
-              <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric dr-desktop-only">
-                {sortHeaderBtn("team", "TEAM")}
-              </th>
-              <th scope="col" className="dr-th dr-th-sort dr-col-pos dr-th-numeric dr-desktop-only">
-                {sortHeaderBtn("position", "POS")}
-              </th>
-              <th scope="col" className="dr-th dr-th-sort dr-col-age dr-th-numeric dr-col-age-responsive dr-desktop-only">
-                {sortHeaderBtn("age", "AGE")}
-              </th>
+              {showTeamColumn ? (
+                <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric dr-desktop-only">
+                  {sortHeaderBtn("team", "TEAM")}
+                </th>
+              ) : null}
+              {showPosColumn ? (
+                <th scope="col" className="dr-th dr-th-sort dr-col-pos dr-th-numeric">
+                  {sortHeaderBtn("position", "POS")}
+                </th>
+              ) : null}
+              {showAgeColumn ? (
+                <th scope="col" className="dr-th dr-th-sort dr-col-age dr-th-numeric dr-col-age-responsive dr-desktop-only">
+                  {sortHeaderBtn("age", "AGE")}
+                </th>
+              ) : null}
               <th
                 scope="col"
                 className={`dr-th dr-th-sort dr-col-avg dr-th-numeric ${consensusAvgSortActive ? "dr-th-active-sort" : ""}`.trim()}
@@ -237,28 +293,34 @@ export function RankingsTable(props: {
                   <SortArrow active={consensusAvgSortActive} dir={arrowDir} />
                 </button>
               </th>
-              <th scope="col" className="dr-th dr-th-sort dr-col-tier dr-th-tier-head dr-desktop-only">{sortHeaderBtn("tier", "TIER")}</th>
-              <th scope="col" className="dr-th dr-col-vscons dr-th-vscons-head">
-                VS CONS
-              </th>
-              {EXPERT_ORDER.map(({ key, label, wide }) => {
-                const sk = `expert:${key}` as SortKey;
-                const isActiveSort = sortKey === sk;
-                const expertColumnSelected = activeExpertKey === key;
-                const hideExpertOnMobile = !activeExpertKey || activeExpertKey !== key;
-                return (
-                  <th
-                    key={key}
-                    scope="col"
-                    className={`dr-th dr-th-sort dr-th-expert dr-th-numeric ${wide ? "dr-col-w-hashtag" : "dr-col-w-expert"} ${expertColumnSelected ? "dr-expert-mobile-visible" : ""} ${hideExpertOnMobile ? "dr-desktop-only" : ""} ${expertColumnSelected ? "dr-th-active-sort" : ""}`.trim()}
-                  >
-                    <button type="button" className="dr-th-btn" onClick={() => onSort(sk)}>
-                      <span>{label}</span>
-                      <SortArrow active={isActiveSort} dir={arrowDir} />
-                    </button>
-                  </th>
-                );
-              })}
+              {showTierColumn ? (
+                <th scope="col" className="dr-th dr-th-sort dr-col-tier dr-th-tier-head dr-desktop-only">
+                  {sortHeaderBtn("tier", "TIER")}
+                </th>
+              ) : null}
+              {showVsConsColumn ? (
+                <th scope="col" className="dr-th dr-col-vscons dr-th-vscons-head">
+                  {mobileExpertMode ? "VS" : "VS CONS"}
+                </th>
+              ) : null}
+              {showExpertColumns
+                ? EXPERT_ORDER.map(({ key, label, wide }) => {
+                    const sk = `expert:${key}` as SortKey;
+                    const isActiveSort = sortKey === sk;
+                    return (
+                      <th
+                        key={key}
+                        scope="col"
+                        className={`dr-th dr-th-sort dr-th-expert dr-th-numeric ${wide ? "dr-col-w-hashtag" : "dr-col-w-expert"} ${activeExpertKey === key ? "dr-th-active-sort" : ""}`.trim()}
+                      >
+                        <button type="button" className="dr-th-btn" onClick={() => onSort(sk)}>
+                          <span>{label}</span>
+                          <SortArrow active={isActiveSort} dir={arrowDir} />
+                        </button>
+                      </th>
+                    );
+                  })
+                : null}
             </tr>
           </thead>
           <tbody>
@@ -277,64 +339,89 @@ export function RankingsTable(props: {
                       <span className="dr-rank-nr">N/R</span>
                     )}
                   </td>
-                  <td className="dr-td dr-col-avatar dr-desktop-only">
-                    <span
-                      className="dr-player-avatar"
-                      style={{
-                        width: 44,
-                        height: 44,
-                        minWidth: 44,
-                        color: "#ffffff",
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {playerInitials(p.player)}
-                    </span>
-                  </td>
+                  {showAvatarColumn ? (
+                    <td className="dr-td dr-col-avatar dr-desktop-only">
+                      <span
+                        className="dr-player-avatar"
+                        style={{
+                          width: 44,
+                          height: 44,
+                          minWidth: 44,
+                          color: "#ffffff",
+                          fontSize: 11,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {playerInitials(p.player)}
+                      </span>
+                    </td>
+                  ) : null}
                   <td className="dr-td dr-player-col">
                     <div className="dr-player-inner-row">
                       <div className="dr-player-info-stack">
-                        <div className="dr-player-name-line">{p.player}</div>
+                        <div className="dr-player-name-line">
+                          {isMobile ? (
+                            <>
+                              <span style={mobilePositionBadgeStyle(p.position)}>{p.position}</span>
+                              {mobilePlayerName(p.player)}
+                              {p.team === "2026 Rookie" ? (
+                                <span style={{ color: "#F0C040", fontSize: 11, marginLeft: 5 }}>Rookie</span>
+                              ) : (
+                                <span style={{ color: "#9a9aaa", fontSize: 11, marginLeft: 5 }}>({p.team})</span>
+                              )}
+                            </>
+                          ) : (
+                            p.player
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
-                  <td className="dr-td dr-col-team dr-desktop-only">
-                    <span className={teamPillClass(p.team)}>{p.team}</span>
-                  </td>
-                  <td className="dr-td dr-col-pos dr-desktop-only">
-                    <PositionBadge position={p.position} />
-                  </td>
-                  <td className="dr-td dr-col-age dr-td-numeric dr-col-age-responsive dr-mono dr-desktop-only">
-                    {p.age !== null ? p.age.toFixed(1) : "—"}
-                  </td>
+                  {showTeamColumn ? (
+                    <td className="dr-td dr-col-team dr-desktop-only">
+                      <span className={teamPillClass(p.team)}>{p.team}</span>
+                    </td>
+                  ) : null}
+                  {showPosColumn ? (
+                    <td className="dr-td dr-col-pos">{isMobile ? p.position : <PositionBadge position={p.position} />}</td>
+                  ) : null}
+                  {showAgeColumn ? (
+                    <td className="dr-td dr-col-age dr-td-numeric dr-col-age-responsive dr-mono dr-desktop-only">
+                      {p.age !== null ? p.age.toFixed(1) : "—"}
+                    </td>
+                  ) : null}
                   <td className="dr-td dr-col-avg dr-td-numeric dr-mono">{p.avgRank.toFixed(1)}</td>
-                  <td className="dr-td dr-col-tier dr-td-tier-cell dr-desktop-only">
-                    <span className={tierBadgeClass(p.tier)}>T{p.tier}</span>
-                  </td>
-                  <td className="dr-td dr-col-vscons">
-                    {expertMode ? (
-                      <VsConsCell
-                        consensusRank={p.consensusRank}
-                        expertRank={expertRankValue(p, activeExpertKey as keyof DynastyPlayer["expertRanks"])}
-                      />
-                    ) : (
-                      <span className="dr-vs-cons-muted">—</span>
-                    )}
-                  </td>
-                  {EXPERT_ORDER.map(({ key }) => {
-                    const er = expertRankValue(p, key);
-                    const tint = expertTintClass(p.consensusRank, er);
-                    const hideExpertOnMobile = !activeExpertKey || activeExpertKey !== key;
-                    return (
-                      <td
-                        key={key}
-                        className={`dr-td dr-td-expert dr-mono ${activeExpertKey === key ? "dr-expert-mobile-visible" : ""} ${hideExpertOnMobile ? "dr-desktop-only" : ""} ${tint}`.trim()}
-                      >
-                        {er !== null ? er : "—"}
-                      </td>
-                    );
-                  })}
+                  {showTierColumn ? (
+                    <td className="dr-td dr-col-tier dr-td-tier-cell dr-desktop-only">
+                      <span className={tierBadgeClass(p.tier)}>T{p.tier}</span>
+                    </td>
+                  ) : null}
+                  {showVsConsColumn ? (
+                    <td className="dr-td dr-col-vscons">
+                      {expertMode ? (
+                        <VsConsCell
+                          consensusRank={p.consensusRank}
+                          expertRank={expertRankValue(p, activeExpertKey as keyof DynastyPlayer["expertRanks"])}
+                        />
+                      ) : (
+                        <span className="dr-vs-cons-muted">—</span>
+                      )}
+                    </td>
+                  ) : null}
+                  {showExpertColumns
+                    ? EXPERT_ORDER.map(({ key }) => {
+                        const er = expertRankValue(p, key);
+                        const tint = expertTintClass(p.consensusRank, er);
+                        return (
+                          <td
+                            key={key}
+                            className={`dr-td dr-td-expert dr-mono ${tint}`.trim()}
+                          >
+                            {er !== null ? er : "—"}
+                          </td>
+                        );
+                      })
+                    : null}
                 </tr>
               );
             })}
