@@ -32,7 +32,7 @@ const DRAFT_BOARD = [
   { rank: 8, pick: "1.08", name: "Mikel Brown Jr.", school: "Louisville", pos: "G", tier: 3, age: 21, ht: '6\'5"',
     pts: "4★", reb: "2★", ast: "4★", stl: "4★", blk: "1★", fg: "2★", ft: "4★", tpm: "4★", to: "1★",
     verdict: "A spectacular live-dribble passer and versatile creator with an improved burst and first step — dribble, pass, shoot at an elite level when healthy. Draws fouls at high volume. Lower back injury is the only reason he's not top 5. Predraft medicals are everything." },
-  { rank: 9, pick: "1.09", name: "E. Okorie", school: "Stanford", pos: "G", tier: 4, age: 19, ht: '6\'2"',
+  { rank: 9, pick: "1.09", name: "Ebuka Okorie", school: "Stanford", pos: "G", tier: 4, age: 19, ht: '6\'2"',
     pts: "5★", reb: "2★", ast: "3★", stl: "4★", blk: "2★", fg: "2★", ft: "4★", tpm: "4★", to: "4★",
     verdict: "One of my guys. Elite PTS on high volume — gets to the basket more than any guard in the class. Absolutely electric with the best first step in the draft — pure scoring gravity that translates regardless of system. Draws fouls at high volume — the strongest indicator the scoring translates to NBA level." },
   { rank: 10, pick: "1.10", name: "Labaron Philon", school: "Alabama", pos: "G", tier: 4, age: 20, ht: '6\'3"',
@@ -63,7 +63,7 @@ const DRAFT_BOARD = [
   { rank: 18, pick: "1.18", name: "Bennett Stirtz", school: "Iowa", pos: "G", tier: 5, age: 22, ht: '6\'5"',
     pts: "3★", reb: "2★", ast: "4★", stl: "3★", blk: "1★", fg: "3★", ft: "4★", tpm: "4★", to: "3★",
     verdict: "A crafty creator with pull-up shooting and real scoring juice off the dribble — alleviates pressure from primary initiators in a way that doesn't always show in the stat line. Age 22 compresses the dynasty runway but the category floor is real." },
-  { rank: 19, pick: "1.19", name: "Christian Anderson Jr.", school: "Texas Tech", pos: "G", tier: 5, age: 21, ht: '6\'3"',
+  { rank: 19, pick: "1.19", name: "Christian Anderson", school: "Texas Tech", pos: "G", tier: 5, age: 21, ht: '6\'3"',
     pts: "3★", reb: "2★", ast: "5★", stl: "4★", blk: "1★", fg: "3★", ft: "4★", tpm: "5★", to: "1★",
     verdict: "Elite AST and elite 3PM — two category pillars. The most prolific assist creator in the class and arguably its best shooter — elite pull-up ability and pick-and-roll craft that few guards in this draft can match. Specialist profile." },
   { rank: 20, pick: "1.20", name: "Morez Johnson Jr.", school: "Michigan", pos: "F/C", tier: 5, age: 20, ht: '6\'9"',
@@ -84,13 +84,13 @@ const DRAFT_BOARD = [
   { rank: 25, pick: "1.25", name: "Karim Lopez", school: "Maine", pos: "F", tier: 6, age: 20, ht: '6\'11"',
     pts: "2★", reb: "3★", ast: "3★", stl: "3★", blk: "3★", fg: "3★", ft: "2★", tpm: "2★", to: "2★",
     verdict: "NBL Next Stars pathway — same programme that produced LaMelo Ball, Josh Giddey and Alex Sarr. A developmental wing with improved shooting and solid ball skills — the physical strength and athleticism for a versatile two-way role are already visible. 6'9\" with 7'1\" wingspan. Youngest wing in the class at 19.0. Pure ceiling bet." },
-  { rank: 26, pick: "1.26", name: "T. Reed Jr.", school: "UCONN", pos: "C", tier: 6, age: 22, ht: '6\'11"',
+  { rank: 26, pick: "1.26", name: "Taris Reed Jr.", school: "UCONN", pos: "C", tier: 6, age: 22, ht: '6\'11"',
     pts: "3★", reb: "5★", ast: "3★", stl: "3★", blk: "5★", fg: "5★", ft: "1★", tpm: "1★", to: "3★",
     verdict: "Elite REB, elite BLK and elite FG% at 60.7% — three genuine category anchors. A traditional center who imposes a physical edge and brings size and strength that impacts every possession. NCAA Tournament East Region MOP: 19.5 PPG and 13.2 RPG over 6 games. Age 22.6 compresses the runway." },
   { rank: 27, pick: "1.27", name: "Isaiah Evans", school: "Duke", pos: "G/F", tier: 6, age: 20, ht: '6\'11"',
     pts: "3★", reb: "2★", ast: "2★", stl: "2★", blk: "3★", fg: "2★", ft: "4★", tpm: "4★", to: "4★",
     verdict: "A tough, physical movement shooter whose grit and competitiveness stand out on tape — shoots more threes per minute than anyone in the class. The dynasty floor rises and falls with three-point shooting." },
-  { rank: 28, pick: "1.28", name: "M. Thomas", school: "Arkansas", pos: "G", tier: 6, age: 19, ht: '6\'5"',
+  { rank: 28, pick: "1.28", name: "Meleek Thomas", school: "Arkansas", pos: "G", tier: 6, age: 19, ht: '6\'5"',
     pts: "3★", reb: "2★", ast: "3★", stl: "5★", blk: "1★", fg: "2★", ft: "4★", tpm: "5★", to: "4★",
     verdict: "Elite STL and elite 3PM — two category pillars. An excellent complementary player with a unique shotmaking touch — outstanding off-ball defence, movement skills and an innate ability to jump passing lanes. A low-noise, high-value profile." },
   { rank: 29, pick: "1.29", name: "Koa Peat", school: "Arizona", pos: "F", tier: 6, age: 19, ht: '6\'8"',
@@ -112,6 +112,13 @@ function starStyle(star: string): { color: string; fontWeight: number } {
   if (star === "3★") return { color: "var(--dynasty-gold)", fontWeight: 400 };
   if (star === "2★") return { color: "white",               fontWeight: 400 };
   return                    { color: "var(--red-severe)",   fontWeight: 700 };
+}
+
+function tierRankColor(tier: number): string {
+  if (tier === 1) return "var(--green-elite)";
+  if (tier === 2) return "var(--blueprint-glow)";
+  if (tier <= 4) return "var(--dynasty-gold)";
+  return "#ffffff";
 }
 
 function tierLabel(tier: number) {
@@ -183,7 +190,7 @@ export default function DraftBoard() {
         <div className="db-hero-kicker">2026 NBA Draft · 9-Cat Dynasty</div>
         <h1 className="db-hero-title">Rookie <span>Draft Board</span></h1>
         <p className="db-hero-subtitle">
-          Ranked by long-term 9-cat dynasty value. Top 12 free — full board for subscribers. Updated weekly during the off-season.
+          Ranked by long-term 9-cat dynasty value. Top 12 free — full board for subscribers.
         </p>
       </div>
 
@@ -194,7 +201,8 @@ export default function DraftBoard() {
           const tier = tierLabel(p.tier);
           const hasCard = !!(p as unknown as Record<string, string>).verdict;
           const prev = i > 0 ? DRAFT_BOARD[i - 1] : null;
-          const showDivider = !!prev && p.tier !== prev.tier;
+          const showDivider = i === 0 || (!!prev && p.tier !== prev.tier);
+          const dividerColor = tierRankColor(p.tier);
 
           return (
             <Fragment key={p.rank}>
@@ -204,9 +212,9 @@ export default function DraftBoard() {
                   alignItems: "center",
                   gap: "10px",
                   padding: "7px 16px",
-                  margin: "20px 0 6px",
-                  background: "rgba(37, 99, 235, 0.07)",
-                  borderLeft: "3px solid #2563EB",
+                  margin: p.tier === 1 ? "0 0 6px" : "20px 0 6px",
+                  background: "rgba(255,255,255,0.03)",
+                  borderLeft: `3px solid ${dividerColor}`,
                   borderRadius: "0 6px 6px 0",
                 }}>
                   <span style={{
@@ -215,7 +223,7 @@ export default function DraftBoard() {
                     fontWeight: 600,
                     letterSpacing: "4px",
                     textTransform: "uppercase",
-                    color: "#2563EB",
+                    color: dividerColor,
                   }}>Tier {p.tier}</span>
                 </div>
               )}
@@ -233,7 +241,7 @@ export default function DraftBoard() {
               >
                 <div style={{
                   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-                  fontSize: "28px", color: "var(--blueprint)",
+                  fontSize: "28px", color: tierRankColor(p.tier),
                   minWidth: "44px", textAlign: "center"
                 }}>{p.rank}</div>
                 <div className="db-player-main">
@@ -242,12 +250,6 @@ export default function DraftBoard() {
                     {positionBadge(p.pos)}
                     <span className="dbp-school">{p.school}</span>
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
-                  </div>
-                </div>
-                <div className="db-pick-tier">
-                  <div className={`dbp-tier ${tier.cls}`}>
-                    <span className="db-tier-full">{tier.text}</span>
-                    <span className="db-tier-compact">T{p.tier}</span>
                   </div>
                 </div>
                 {!isLocked && hasCard && (
