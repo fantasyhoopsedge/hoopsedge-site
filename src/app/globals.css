@@ -375,9 +375,8 @@ nav {
 }
 .dbp-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
 .dbp-school {
-  background: var(--edge-orange); color: white;
-  font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 700;
-  letter-spacing: 1.5px; padding: 2px 7px; border-radius: 4px;
+  font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 400;
+  color: var(--text-secondary);
 }
 .dbp-pos { font-size: 12px; color: var(--dbp-pos); font-weight: 500; }
 .dbp-tier {
@@ -2681,9 +2680,6 @@ body:has(.dr-rankings-shell) {
   }
 
   .draft-board-shell .dbp-school {
-    background: #FF6B2B;
-    color: #ffffff;
-    border-radius: 4px;
     font-size: 11px;
     font-weight: 700;
     padding: 2px 8px;
@@ -2793,8 +2789,6 @@ body:has(.dr-rankings-shell) {
 
   .draft-board-shell .dbp-school {
     font-size: 12px;
-    padding: 2px 6px;
-    letter-spacing: 0.8px;
   }
 
   .draft-board-shell .db-player-meta-text {

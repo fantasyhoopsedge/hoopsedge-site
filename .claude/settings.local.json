@@ -4,7 +4,12 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Read(//c/hoopsedge/**)",
+      "Bash(node local_runner.js)",
+      "Bash(npm run *)",
+      "WebFetch(domain:localhost)",
+      "Bash(npx tsc *)"
     ]
   }
 }
