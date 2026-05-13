@@ -1,5 +1,5 @@
 "use client";
-import { useState, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { SiteNav } from "@/components/site-nav";
 
 // ============================================================
@@ -114,20 +114,63 @@ function starStyle(star: string): { color: string; fontWeight: number } {
   return                    { color: "var(--red-severe)",   fontWeight: 700 };
 }
 
-function tierRankColor(tier: number): string {
-  if (tier === 1) return "var(--green-elite)";
-  if (tier === 2) return "var(--blueprint-glow)";
-  if (tier <= 4) return "var(--dynasty-gold)";
-  return "#ffffff";
+function tierInfo(tier: number): { color: string; label: string } {
+  if (tier === 1) return { color: "var(--dynasty-gold)",   label: "GENERATIONAL_TIER" };
+  if (tier === 2) return { color: "var(--green-elite)",    label: "ALL_STAR_TIER" };
+  if (tier === 3) return { color: "var(--blueprint-glow)", label: "STARTER_HIGH_END_TIER" };
+  if (tier === 4) return { color: "#9b5de5",               label: "STARTER_LOW_END_TIER" };
+  if (tier === 5) return { color: "var(--edge-orange)",    label: "UPSIDE_TIER" };
+  return           { color: "#f72585",                     label: "ROTATION_TIER" };
 }
 
-function tierLabel(tier: number) {
-  if (tier === 1) return { text: "TIER 1", cls: "tier-elite" };
-  if (tier === 2) return { text: "TIER 2", cls: "tier-positive" };
-  if (tier === 3) return { text: "TIER 3", cls: "tier-three" };
-  if (tier === 4) return { text: "TIER 4", cls: "tier-four" };
-  if (tier === 5) return { text: "TIER 5", cls: "tier-five" };
-  return { text: "TIER 6", cls: "tier-six" };
+function toKebabName(name: string): string {
+  return name.toLowerCase().replace(/\./g, "").replace(/\s+/g, "-");
+}
+
+function getInitials(name: string): string {
+  const parts = name.split(" ");
+  return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+function ProspectHeadshot({ name }: { name: string }) {
+  const [errored, setErrored] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const kebabName = toKebabName(name);
+  const initials = getInitials(name);
+
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth === 0) {
+      setErrored(true);
+    }
+  }, []);
+
+  const circleStyle: React.CSSProperties = {
+    width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
+  };
+
+  if (errored) {
+    return (
+      <div style={{
+        ...circleStyle,
+        background: "var(--blueprint)", color: "white",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: "12px", fontWeight: 700,
+      }}>{initials}</div>
+    );
+  }
+
+  return (
+    <img
+      ref={imgRef}
+      src={`/images/prospects/${kebabName}.jpg`}
+      alt={name}
+      width={44}
+      height={44}
+      style={{ ...circleStyle, objectFit: "cover", display: "block" }}
+      onError={() => setErrored(true)}
+    />
+  );
 }
 
 function positionBadge(pos: string) {
@@ -145,7 +188,7 @@ function positionBadge(pos: string) {
   if (pos === "F/C") {
     return (
       <span className="db-pos-badge db-pos-badge-split">
-        <span className="db-pos-badge-split-l">F</span>
+        <span className="db-pos-badge-split-l db-pos-badge-split-l-orange">F</span>
         <span className="db-pos-badge-split-r db-pos-badge-split-r-gold">C</span>
       </span>
     );
@@ -198,11 +241,10 @@ export default function DraftBoard() {
         {DRAFT_BOARD.map((p, i) => {
           const isLocked = p.rank > 12;
           const isExpanded = expanded === p.rank;
-          const tier = tierLabel(p.tier);
+          const { color: tierColor, label: tierLabel } = tierInfo(p.tier);
           const hasCard = !!(p as unknown as Record<string, string>).verdict;
           const prev = i > 0 ? DRAFT_BOARD[i - 1] : null;
           const showDivider = i === 0 || (!!prev && p.tier !== prev.tier);
-          const dividerColor = tierRankColor(p.tier);
 
           return (
             <Fragment key={p.rank}>
@@ -210,21 +252,18 @@ export default function DraftBoard() {
                 <div style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px",
-                  padding: "7px 16px",
-                  margin: p.tier === 1 ? "0 0 6px" : "20px 0 6px",
-                  background: "rgba(255,255,255,0.03)",
-                  borderLeft: `3px solid ${dividerColor}`,
-                  borderRadius: "0 6px 6px 0",
+                  gap: "12px",
+                  margin: p.tier === 1 ? "0 0 8px" : "28px 0 8px",
                 }}>
+                  <div style={{ flex: 1, height: "1px", background: `${tierColor}40` }} />
                   <span style={{
-                    fontFamily: "'Oswald', sans-serif",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    letterSpacing: "4px",
-                    textTransform: "uppercase",
-                    color: dividerColor,
-                  }}>Tier {p.tier}</span>
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    letterSpacing: "2px",
+                    color: tierColor,
+                    whiteSpace: "nowrap",
+                  }}>// {tierLabel}</span>
                 </div>
               )}
             <div style={{ position: "relative" }}>
@@ -241,9 +280,10 @@ export default function DraftBoard() {
               >
                 <div style={{
                   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-                  fontSize: "28px", color: tierRankColor(p.tier),
+                  fontSize: "28px", color: tierColor,
                   minWidth: "44px", textAlign: "center"
                 }}>{p.rank}</div>
+                <ProspectHeadshot name={p.name} />
                 <div className="db-player-main">
                   <div className="db-player-name">{p.name}</div>
                   <div className="db-player-meta">

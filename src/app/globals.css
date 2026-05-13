@@ -2671,20 +2671,25 @@ body:has(.dr-rankings-shell) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
   }
 
   .draft-board-shell .db-pos-badge-split-l {
     background: #2563EB;
+    color: #ffffff;
   }
 
   .draft-board-shell .db-pos-badge-split-r {
+    background: #FF6B2B;
+    color: #ffffff;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l-orange {
     background: #FF6B2B;
   }
 
   .draft-board-shell .db-pos-badge-split-r-gold {
     background: #F0C040;
-    color: #ffffff;
+    color: #1a1a1a;
   }
 
   .draft-board-shell .db-pos-badge {
@@ -2867,6 +2872,10 @@ body:has(.dr-rankings-shell) {
   .draft-board-shell .db-pos-badge-split-r {
     background: #FF6B2B;
     color: #ffffff;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l-orange {
+    background: #FF6B2B;
   }
 
   .draft-board-shell .db-pos-badge-split-r-gold {
