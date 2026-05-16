@@ -14,10 +14,10 @@ type DraftBoardPanelRow = Pick<
 
 const ROOKIE_DRAFT_BOARD_TOP5: DraftBoardPanelRow[] = [
   { consensusRank: 1, player: "Cameron Boozer", team: "Duke", position: "F/C", tier: 1 },
-  { consensusRank: 2, player: "Darryn Peterson", team: "Kansas", position: "G", tier: 1 },
-  { consensusRank: 3, player: "Caleb Wilson", team: "North Carolina", position: "F", tier: 1 },
-  { consensusRank: 4, player: "Kingston Flemings", team: "Houston", position: "G", tier: 2 },
-  { consensusRank: 5, player: "AJ Dybantsa", team: "BYU", position: "G/F", tier: 2 },
+  { consensusRank: 2, player: "Darryn Peterson", team: "Kansas", position: "G", tier: 2 },
+  { consensusRank: 3, player: "AJ Dybantsa", team: "BYU", position: "G/F", tier: 2 },
+  { consensusRank: 4, player: "Caleb Wilson", team: "North Carolina", position: "F", tier: 2 },
+  { consensusRank: 5, player: "Kingston Flemings", team: "Houston", position: "G", tier: 3 },
 ];
 
 export default function Home() {
