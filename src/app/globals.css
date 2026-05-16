@@ -2671,20 +2671,25 @@ body:has(.dr-rankings-shell) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #ffffff;
   }
 
   .draft-board-shell .db-pos-badge-split-l {
     background: #2563EB;
+    color: #ffffff;
   }
 
   .draft-board-shell .db-pos-badge-split-r {
+    background: #FF6B2B;
+    color: #ffffff;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l-orange {
     background: #FF6B2B;
   }
 
   .draft-board-shell .db-pos-badge-split-r-gold {
     background: #F0C040;
-    color: #ffffff;
+    color: #1a1a1a;
   }
 
   .draft-board-shell .db-pos-badge {
@@ -2762,7 +2767,7 @@ body:has(.dr-rankings-shell) {
 
   .draft-board-shell .db-row {
     gap: 8px;
-    padding: 10px 12px;
+    padding: 10px 8px;
     min-height: 68px;
     align-items: center;
   }
@@ -2777,13 +2782,12 @@ body:has(.dr-rankings-shell) {
   }
 
   .draft-board-shell .db-row > div:first-child {
-    flex: 0 0 15%;
-    width: 15%;
-    min-width: 44px;
-    max-width: 56px;
-    font-size: 26px !important;
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 32px;
+    max-width: 44px;
+    font-size: 24px !important;
     font-weight: 900 !important;
-    color: #2563EB !important;
     line-height: 1;
     text-align: center;
   }
@@ -2791,15 +2795,22 @@ body:has(.dr-rankings-shell) {
   .draft-board-shell .db-player-main {
     flex: 1 1 auto;
     min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
 
   .draft-board-shell .db-player-name {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     text-transform: none;
     letter-spacing: 0;
     color: #ffffff;
-    line-height: 1.15;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
   }
 
   .draft-board-shell .db-player-meta {
@@ -2867,6 +2878,10 @@ body:has(.dr-rankings-shell) {
   .draft-board-shell .db-pos-badge-split-r {
     background: #FF6B2B;
     color: #ffffff;
+  }
+
+  .draft-board-shell .db-pos-badge-split-l-orange {
+    background: #FF6B2B;
   }
 
   .draft-board-shell .db-pos-badge-split-r-gold {
