@@ -2757,7 +2757,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .draft-board-shell .db-board-wrap {
-    padding: 14px 12px 60px !important;
+    padding: 80px 12px 60px !important;
   }
 
   .draft-board-shell .db-row {

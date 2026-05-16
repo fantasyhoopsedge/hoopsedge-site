@@ -162,18 +162,9 @@ export default function DynastyRankingsPage() {
   const empty = data.length === 0;
   const noFilterResults = !empty && filtered.length === 0;
 
-  const infoStrip = expertSortKey ? (
-    <>
-      {EXPERT_NAMES[expertSortKey] ?? expertSortKey.toUpperCase()} · {filtered.length} Players · {prospectCountInFilter} Prospects ·
-      Updated {EXPERT_DATES[expertSortKey] ?? ""}
-    </>
-  ) : (
-    <>CONSENSUS · {data.length} Players · 6 Experts · {totalProspectsAll} Prospects</>
-  );
-
   return (
     <div className="dr-rankings-shell">
-      <SiteNav active="rankings" infoStrip={infoStrip} />
+      <SiteNav active="rankings" />
 
       <div className="dr-rankings-measured-top">
         <div className="dr-sticky-controls">

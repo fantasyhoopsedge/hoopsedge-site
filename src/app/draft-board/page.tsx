@@ -180,21 +180,7 @@ export default function DraftBoard() {
         }
       />
 
-      <div className="db-hero">
-        <div className="db-hero-bg-mark">DRAFT</div>
-        <div className="db-hero-mobile-line">
-          <span className="db-hero-mobile-main">ROOKIE DRAFT BOARD</span>
-          <span className="db-hero-mobile-dot"> · </span>
-          <span className="db-hero-mobile-meta">2026 NBA Draft · 9-Cat Dynasty</span>
-        </div>
-        <div className="db-hero-kicker">2026 NBA Draft · 9-Cat Dynasty</div>
-        <h1 className="db-hero-title">Rookie <span>Draft Board</span></h1>
-        <p className="db-hero-subtitle">
-          Ranked by long-term 9-cat dynasty value. Top 12 free — full board for subscribers.
-        </p>
-      </div>
-
-      <div className="db-board-wrap" style={{ padding: "40px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
+<div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
         {DRAFT_BOARD.map((p, i) => {
           const isLocked = p.rank > 12;
           const isExpanded = expanded === p.rank;

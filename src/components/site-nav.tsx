@@ -39,7 +39,7 @@ export function SiteNav(props: {
 
   const mobileOppositeLink =
     active === "rankings"
-      ? { href: "/draft-board", label: "DRAFT BOARD" }
+      ? { href: "/draft-board", label: "ROOKIE DRAFT BOARD" }
       : active === "draft"
         ? { href: "/dynasty-rankings", label: "DYNASTY RANKINGS" }
         : null;
@@ -61,14 +61,14 @@ export function SiteNav(props: {
           </li>
         ) : null}
         <li>
-          <a href="/dynasty-rankings" style={active === "rankings" ? { color: "var(--edge-orange)" } : undefined}>
-            <span className="nav-dynasty-rankings-full">DYNASTY RANKINGS</span>
+          <a href="/dynasty-rankings" style={active === "rankings" ? { color: "var(--edge-orange)" } : { color: "#ffffff" }}>
+            <span className="nav-dynasty-rankings-full">CONSENSUS DYNASTY RANKINGS</span>
             <span className="nav-dynasty-rankings-short">DYNASTY RANKINGS</span>
           </a>
         </li>
         <li>
-          <a href="/draft-board" style={active === "draft" ? { color: "#FF6B2B" } : undefined}>
-            Draft Board
+          <a href="/draft-board" style={active === "draft" ? { color: "var(--edge-orange)" } : { color: "#ffffff" }}>
+            ROOKIE DRAFT BOARD
           </a>
         </li>
         <li>
