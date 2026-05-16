@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
@@ -405,9 +405,41 @@ export function RankingsTable(props: {
                           color: "#ffffff",
                           fontSize: 11,
                           fontWeight: 700,
+                          overflow: "hidden",
+                          position: "relative",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        {playerInitials(p.player)}
+                        {/* Initials are the base layer (always rendered). Headshot img is layered on top and hides itself on error. */}
+                        <span aria-hidden>{playerInitials(p.player)}</span>
+                        {(() => {
+                          const url = playerHeadshotUrl(p);
+                          if (!url) return null;
+                          return (
+                            <img
+                              src={url}
+                              alt=""
+                              width={44}
+                              height={44}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                objectPosition: "center top",
+                                display: "block",
+                              }}
+                              onError={(e) => {
+                                // Hide the broken image so the initials show through.
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                              loading="lazy"
+                            />
+                          );
+                        })()}
                       </span>
                     </td>
                   ) : null}
