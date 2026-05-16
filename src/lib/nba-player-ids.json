@@ -1,0 +1,3524 @@
+{
+  "precious achiuwa": {
+    "id": "1630173",
+    "name": "Precious Achiuwa",
+    "team": "SAC",
+    "position": null
+  },
+  "steven adams": {
+    "id": "203500",
+    "name": "Steven Adams",
+    "team": "HOU",
+    "position": null
+  },
+  "bam adebayo": {
+    "id": "1628389",
+    "name": "Bam Adebayo",
+    "team": "MIA",
+    "position": null
+  },
+  "ochai agbaji": {
+    "id": "1630534",
+    "name": "Ochai Agbaji",
+    "team": "BKN",
+    "position": null
+  },
+  "santi aldama": {
+    "id": "1630583",
+    "name": "Santi Aldama",
+    "team": "MEM",
+    "position": null
+  },
+  "trey alexander": {
+    "id": "1641725",
+    "name": "Trey Alexander",
+    "team": "NOP",
+    "position": null
+  },
+  "nickeil alexander-walker": {
+    "id": "1629638",
+    "name": "Nickeil Alexander-Walker",
+    "team": "ATL",
+    "position": null
+  },
+  "grayson allen": {
+    "id": "1628960",
+    "name": "Grayson Allen",
+    "team": "PHX",
+    "position": null
+  },
+  "jarrett allen": {
+    "id": "1628386",
+    "name": "Jarrett Allen",
+    "team": "CLE",
+    "position": null
+  },
+  "jose alvarado": {
+    "id": "1630631",
+    "name": "Jose Alvarado",
+    "team": "NYK",
+    "position": null
+  },
+  "kyle anderson": {
+    "id": "203937",
+    "name": "Kyle Anderson",
+    "team": "MIN",
+    "position": null
+  },
+  "alex antetokounmpo": {
+    "id": "1630828",
+    "name": "Alex Antetokounmpo",
+    "team": "MIL",
+    "position": null
+  },
+  "giannis antetokounmpo": {
+    "id": "203507",
+    "name": "Giannis Antetokounmpo",
+    "team": "MIL",
+    "position": null
+  },
+  "thanasis antetokounmpo": {
+    "id": "203648",
+    "name": "Thanasis Antetokounmpo",
+    "team": "MIL",
+    "position": null
+  },
+  "cole anthony": {
+    "id": "1630175",
+    "name": "Cole Anthony",
+    "team": null,
+    "position": null
+  },
+  "og anunoby": {
+    "id": "1628384",
+    "name": "OG Anunoby",
+    "team": "NYK",
+    "position": null
+  },
+  "deni avdija": {
+    "id": "1630166",
+    "name": "Deni Avdija",
+    "team": "POR",
+    "position": null
+  },
+  "deandre ayton": {
+    "id": "1629028",
+    "name": "Deandre Ayton",
+    "team": "LAL",
+    "position": null
+  },
+  "marvin bagley": {
+    "id": "1628963",
+    "name": "Marvin Bagley III",
+    "team": "DAL",
+    "position": null
+  },
+  "ace bailey": {
+    "id": "1642846",
+    "name": "Ace Bailey",
+    "team": "UTA",
+    "position": null
+  },
+  "adama bal": {
+    "id": "1642380",
+    "name": "Adama Bal",
+    "team": null,
+    "position": null
+  },
+  "patrick baldwin": {
+    "id": "1631116",
+    "name": "Patrick Baldwin Jr.",
+    "team": "SAC",
+    "position": null
+  },
+  "lamelo ball": {
+    "id": "1630163",
+    "name": "LaMelo Ball",
+    "team": "CHA",
+    "position": null
+  },
+  "lonzo ball": {
+    "id": "1628366",
+    "name": "Lonzo Ball",
+    "team": null,
+    "position": null
+  },
+  "mo bamba": {
+    "id": "1628964",
+    "name": "Mo Bamba",
+    "team": null,
+    "position": null
+  },
+  "paolo banchero": {
+    "id": "1631094",
+    "name": "Paolo Banchero",
+    "team": "ORL",
+    "position": null
+  },
+  "desmond bane": {
+    "id": "1630217",
+    "name": "Desmond Bane",
+    "team": "ORL",
+    "position": null
+  },
+  "dalano banton": {
+    "id": "1630625",
+    "name": "Dalano Banton",
+    "team": "BOS",
+    "position": null
+  },
+  "dominick barlow": {
+    "id": "1631230",
+    "name": "Dominick Barlow",
+    "team": "PHI",
+    "position": null
+  },
+  "harrison barnes": {
+    "id": "203084",
+    "name": "Harrison Barnes",
+    "team": "SAS",
+    "position": null
+  },
+  "scottie barnes": {
+    "id": "1630567",
+    "name": "Scottie Barnes",
+    "team": "TOR",
+    "position": null
+  },
+  "brooks barnhizer": {
+    "id": "1642964",
+    "name": "Brooks Barnhizer",
+    "team": "OKC",
+    "position": null
+  },
+  "rj barrett": {
+    "id": "1629628",
+    "name": "RJ Barrett",
+    "team": "TOR",
+    "position": null
+  },
+  "charles bassey": {
+    "id": "1629646",
+    "name": "Charles Bassey",
+    "team": "GSW",
+    "position": null
+  },
+  "jamison battle": {
+    "id": "1642419",
+    "name": "Jamison Battle",
+    "team": "TOR",
+    "position": null
+  },
+  "nicolas batum": {
+    "id": "201587",
+    "name": "Nicolas Batum",
+    "team": "LAC",
+    "position": null
+  },
+  "bradley beal": {
+    "id": "203078",
+    "name": "Bradley Beal",
+    "team": "LAC",
+    "position": null
+  },
+  "marjon beauchamp": {
+    "id": "1630699",
+    "name": "MarJon Beauchamp",
+    "team": "PHI",
+    "position": null
+  },
+  "joan beringer": {
+    "id": "1642866",
+    "name": "Joan Beringer",
+    "team": "MIN",
+    "position": null
+  },
+  "saddiq bey": {
+    "id": "1630180",
+    "name": "Saddiq Bey",
+    "team": "NOP",
+    "position": null
+  },
+  "goga bitadze": {
+    "id": "1629048",
+    "name": "Goga Bitadze",
+    "team": "ORL",
+    "position": null
+  },
+  "bismack biyombo": {
+    "id": "202687",
+    "name": "Bismack Biyombo",
+    "team": "SAS",
+    "position": null
+  },
+  "anthony black": {
+    "id": "1641710",
+    "name": "Anthony Black",
+    "team": "ORL",
+    "position": null
+  },
+  "leaky black": {
+    "id": "1641778",
+    "name": "Leaky Black",
+    "team": "WAS",
+    "position": null
+  },
+  "buddy boeheim": {
+    "id": "1631205",
+    "name": "Buddy Boeheim",
+    "team": null,
+    "position": null
+  },
+  "bogdan bogdanovic": {
+    "id": "203992",
+    "name": "Bogdan Bogdanović",
+    "team": "LAC",
+    "position": null
+  },
+  "adem bona": {
+    "id": "1641737",
+    "name": "Adem Bona",
+    "team": "PHI",
+    "position": null
+  },
+  "devin booker": {
+    "id": "1626164",
+    "name": "Devin Booker",
+    "team": "PHX",
+    "position": null
+  },
+  "chris boucher": {
+    "id": "1628449",
+    "name": "Chris Boucher",
+    "team": null,
+    "position": null
+  },
+  "jamaree bouyea": {
+    "id": "1631123",
+    "name": "Jamaree Bouyea",
+    "team": "PHX",
+    "position": null
+  },
+  "tony bradley": {
+    "id": "1628396",
+    "name": "Tony Bradley",
+    "team": "ATL",
+    "position": null
+  },
+  "malaki branham": {
+    "id": "1631103",
+    "name": "Malaki Branham",
+    "team": null,
+    "position": null
+  },
+  "christian braun": {
+    "id": "1631128",
+    "name": "Christian Braun",
+    "team": "DEN",
+    "position": null
+  },
+  "koby brea": {
+    "id": "1642886",
+    "name": "Koby Brea",
+    "team": "PHX",
+    "position": null
+  },
+  "mikal bridges": {
+    "id": "1628969",
+    "name": "Mikal Bridges",
+    "team": "NYK",
+    "position": null
+  },
+  "miles bridges": {
+    "id": "1628970",
+    "name": "Miles Bridges",
+    "team": "CHA",
+    "position": null
+  },
+  "dillon brooks": {
+    "id": "1628415",
+    "name": "Dillon Brooks",
+    "team": "PHX",
+    "position": null
+  },
+  "johni broome": {
+    "id": "1641780",
+    "name": "Johni Broome",
+    "team": "PHI",
+    "position": null
+  },
+  "bruce brown": {
+    "id": "1628971",
+    "name": "Bruce Brown",
+    "team": "DEN",
+    "position": null
+  },
+  "darius brown": {
+    "id": "1642468",
+    "name": "Darius Brown",
+    "team": null,
+    "position": null
+  },
+  "jaylen brown": {
+    "id": "1627759",
+    "name": "Jaylen Brown",
+    "team": "BOS",
+    "position": null
+  },
+  "kobe brown": {
+    "id": "1641738",
+    "name": "Kobe Brown",
+    "team": "IND",
+    "position": null
+  },
+  "jalen brunson": {
+    "id": "1628973",
+    "name": "Jalen Brunson",
+    "team": "NYK",
+    "position": null
+  },
+  "carter bryant": {
+    "id": "1642868",
+    "name": "Carter Bryant",
+    "team": "SAS",
+    "position": null
+  },
+  "thomas bryant": {
+    "id": "1628418",
+    "name": "Thomas Bryant",
+    "team": "CLE",
+    "position": null
+  },
+  "kobe bufkin": {
+    "id": "1641723",
+    "name": "Kobe Bufkin",
+    "team": null,
+    "position": null
+  },
+  "tyler burton": {
+    "id": "1631174",
+    "name": "Tyler Burton",
+    "team": null,
+    "position": null
+  },
+  "jimmy butler": {
+    "id": "202710",
+    "name": "Jimmy Butler III",
+    "team": "GSW",
+    "position": null
+  },
+  "matas buzelis": {
+    "id": "1641824",
+    "name": "Matas Buzelis",
+    "team": "CHI",
+    "position": null
+  },
+  "jamal cain": {
+    "id": "1631288",
+    "name": "Jamal Cain",
+    "team": "ORL",
+    "position": null
+  },
+  "kentavious caldwell-pope": {
+    "id": "203484",
+    "name": "Kentavious Caldwell-Pope",
+    "team": "MEM",
+    "position": null
+  },
+  "toumani camara": {
+    "id": "1641739",
+    "name": "Toumani Camara",
+    "team": "POR",
+    "position": null
+  },
+  "clint capela": {
+    "id": "203991",
+    "name": "Clint Capela",
+    "team": "HOU",
+    "position": null
+  },
+  "dylan cardwell": {
+    "id": "1642928",
+    "name": "Dylan Cardwell",
+    "team": "SAC",
+    "position": null
+  },
+  "branden carlson": {
+    "id": "1642382",
+    "name": "Branden Carlson",
+    "team": "OKC",
+    "position": null
+  },
+  "bub carrington": {
+    "id": "1642267",
+    "name": "Bub Carrington",
+    "team": "WAS",
+    "position": null
+  },
+  "devin carter": {
+    "id": "1642269",
+    "name": "Devin Carter",
+    "team": "SAC",
+    "position": null
+  },
+  "jevon carter": {
+    "id": "1628975",
+    "name": "Jevon Carter",
+    "team": "ORL",
+    "position": null
+  },
+  "wendell carter": {
+    "id": "1628976",
+    "name": "Wendell Carter Jr.",
+    "team": "ORL",
+    "position": null
+  },
+  "alex caruso": {
+    "id": "1627936",
+    "name": "Alex Caruso",
+    "team": "OKC",
+    "position": null
+  },
+  "stephon castle": {
+    "id": "1642264",
+    "name": "Stephon Castle",
+    "team": "SAS",
+    "position": null
+  },
+  "colin castleton": {
+    "id": "1630658",
+    "name": "Colin Castleton",
+    "team": "ORL",
+    "position": null
+  },
+  "julian champagnie": {
+    "id": "1630577",
+    "name": "Julian Champagnie",
+    "team": "SAS",
+    "position": null
+  },
+  "justin champagnie": {
+    "id": "1630551",
+    "name": "Justin Champagnie",
+    "team": "WAS",
+    "position": null
+  },
+  "kennedy chandler": {
+    "id": "1631113",
+    "name": "Kennedy Chandler",
+    "team": null,
+    "position": null
+  },
+  "cam christie": {
+    "id": "1642353",
+    "name": "Cam Christie",
+    "team": "LAC",
+    "position": null
+  },
+  "max christie": {
+    "id": "1631108",
+    "name": "Max Christie",
+    "team": "DAL",
+    "position": null
+  },
+  "moussa cisse": {
+    "id": "1630619",
+    "name": "Moussa Cisse",
+    "team": "DAL",
+    "position": null
+  },
+  "sidy cissoko": {
+    "id": "1631321",
+    "name": "Sidy Cissoko",
+    "team": "POR",
+    "position": null
+  },
+  "jaylen clark": {
+    "id": "1641740",
+    "name": "Jaylen Clark",
+    "team": "MIN",
+    "position": null
+  },
+  "brandon clarke": {
+    "id": "1629634",
+    "name": "Brandon Clarke",
+    "team": "MEM",
+    "position": null
+  },
+  "jordan clarkson": {
+    "id": "203903",
+    "name": "Jordan Clarkson",
+    "team": "NYK",
+    "position": null
+  },
+  "nic claxton": {
+    "id": "1629651",
+    "name": "Nic Claxton",
+    "team": "BKN",
+    "position": null
+  },
+  "walter clayton": {
+    "id": "1642383",
+    "name": "Walter Clayton Jr.",
+    "team": "MEM",
+    "position": null
+  },
+  "nique clifford": {
+    "id": "1642363",
+    "name": "Nique Clifford",
+    "team": "SAC",
+    "position": null
+  },
+  "donovan clingan": {
+    "id": "1642270",
+    "name": "Donovan Clingan",
+    "team": "POR",
+    "position": null
+  },
+  "noah clowney": {
+    "id": "1641730",
+    "name": "Noah Clowney",
+    "team": "BKN",
+    "position": null
+  },
+  "amir coffey": {
+    "id": "1629599",
+    "name": "Amir Coffey",
+    "team": "PHX",
+    "position": null
+  },
+  "isaiah collier": {
+    "id": "1642268",
+    "name": "Isaiah Collier",
+    "team": "UTA",
+    "position": null
+  },
+  "john collins": {
+    "id": "1628381",
+    "name": "John Collins",
+    "team": "LAC",
+    "position": null
+  },
+  "zach collins": {
+    "id": "1628380",
+    "name": "Zach Collins",
+    "team": "CHI",
+    "position": null
+  },
+  "mike conley": {
+    "id": "201144",
+    "name": "Mike Conley",
+    "team": "MIN",
+    "position": null
+  },
+  "pat connaughton": {
+    "id": "1626192",
+    "name": "Pat Connaughton",
+    "team": "CHA",
+    "position": null
+  },
+  "javonte cooke": {
+    "id": "1631451",
+    "name": "Javonte Cooke",
+    "team": null,
+    "position": null
+  },
+  "sharife cooper": {
+    "id": "1630536",
+    "name": "Sharife Cooper",
+    "team": "WAS",
+    "position": null
+  },
+  "bilal coulibaly": {
+    "id": "1641731",
+    "name": "Bilal Coulibaly",
+    "team": "WAS",
+    "position": null
+  },
+  "cedric coward": {
+    "id": "1642907",
+    "name": "Cedric Coward",
+    "team": "MEM",
+    "position": null
+  },
+  "isaiah crawford": {
+    "id": "1642384",
+    "name": "Isaiah Crawford",
+    "team": "HOU",
+    "position": null
+  },
+  "lj cryer": {
+    "id": "1643018",
+    "name": "LJ Cryer",
+    "team": "GSW",
+    "position": null
+  },
+  "cade cunningham": {
+    "id": "1630595",
+    "name": "Cade Cunningham",
+    "team": "DET",
+    "position": null
+  },
+  "seth curry": {
+    "id": "203552",
+    "name": "Seth Curry",
+    "team": "GSW",
+    "position": null
+  },
+  "stephen curry": {
+    "id": "201939",
+    "name": "Stephen Curry",
+    "team": "GSW",
+    "position": null
+  },
+  "pacome dadiet": {
+    "id": "1642359",
+    "name": "Pacôme Dadiet",
+    "team": "NYK",
+    "position": null
+  },
+  "dyson daniels": {
+    "id": "1630700",
+    "name": "Dyson Daniels",
+    "team": "ATL",
+    "position": null
+  },
+  "nfaly dante": {
+    "id": "1642368",
+    "name": "N'Faly Dante",
+    "team": null,
+    "position": null
+  },
+  "anthony davis": {
+    "id": "203076",
+    "name": "Anthony Davis",
+    "team": "WAS",
+    "position": null
+  },
+  "jd davison": {
+    "id": "1631120",
+    "name": "JD Davison",
+    "team": "HOU",
+    "position": null
+  },
+  "demar derozan": {
+    "id": "201942",
+    "name": "DeMar DeRozan",
+    "team": "SAC",
+    "position": null
+  },
+  "rayj dennis": {
+    "id": "1642484",
+    "name": "RayJ Dennis",
+    "team": "ATL",
+    "position": null
+  },
+  "donte divincenzo": {
+    "id": "1628978",
+    "name": "Donte DiVincenzo",
+    "team": "MIN",
+    "position": null
+  },
+  "moussa diabate": {
+    "id": "1631217",
+    "name": "Moussa Diabaté",
+    "team": "CHA",
+    "position": null
+  },
+  "mohamed diawara": {
+    "id": "1642885",
+    "name": "Mohamed Diawara",
+    "team": "NYK",
+    "position": null
+  },
+  "gradey dick": {
+    "id": "1641711",
+    "name": "Gradey Dick",
+    "team": "TOR",
+    "position": null
+  },
+  "hunter dickinson": {
+    "id": "1630621",
+    "name": "Hunter Dickinson",
+    "team": "NOP",
+    "position": null
+  },
+  "ousmane dieng": {
+    "id": "1631172",
+    "name": "Ousmane Dieng",
+    "team": "MIL",
+    "position": null
+  },
+  "rob dillingham": {
+    "id": "1642265",
+    "name": "Rob Dillingham",
+    "team": "CHI",
+    "position": null
+  },
+  "luka doncic": {
+    "id": "1629029",
+    "name": "Luka Dončić",
+    "team": "LAL",
+    "position": null
+  },
+  "luguentz dort": {
+    "id": "1629652",
+    "name": "Luguentz Dort",
+    "team": "OKC",
+    "position": null
+  },
+  "ayo dosunmu": {
+    "id": "1630245",
+    "name": "Ayo Dosunmu",
+    "team": "MIN",
+    "position": null
+  },
+  "andre drummond": {
+    "id": "203083",
+    "name": "Andre Drummond",
+    "team": "PHI",
+    "position": null
+  },
+  "kris dunn": {
+    "id": "1627739",
+    "name": "Kris Dunn",
+    "team": "LAC",
+    "position": null
+  },
+  "ryan dunn": {
+    "id": "1642346",
+    "name": "Ryan Dunn",
+    "team": "PHX",
+    "position": null
+  },
+  "kevin durant": {
+    "id": "201142",
+    "name": "Kevin Durant",
+    "team": "HOU",
+    "position": null
+  },
+  "jalen duren": {
+    "id": "1631105",
+    "name": "Jalen Duren",
+    "team": "DET",
+    "position": null
+  },
+  "egor demin": {
+    "id": "1642856",
+    "name": "Egor Dëmin",
+    "team": "BKN",
+    "position": null
+  },
+  "tari eason": {
+    "id": "1631106",
+    "name": "Tari Eason",
+    "team": "HOU",
+    "position": null
+  },
+  "zach edey": {
+    "id": "1641744",
+    "name": "Zach Edey",
+    "team": "MEM",
+    "position": null
+  },
+  "vj edgecombe": {
+    "id": "1642845",
+    "name": "VJ Edgecombe",
+    "team": "PHI",
+    "position": null
+  },
+  "anthony edwards": {
+    "id": "1630162",
+    "name": "Anthony Edwards",
+    "team": "MIN",
+    "position": null
+  },
+  "justin edwards": {
+    "id": "1642348",
+    "name": "Justin Edwards",
+    "team": "PHI",
+    "position": null
+  },
+  "keon ellis": {
+    "id": "1631165",
+    "name": "Keon Ellis",
+    "team": "CLE",
+    "position": null
+  },
+  "joel embiid": {
+    "id": "203954",
+    "name": "Joel Embiid",
+    "team": "PHI",
+    "position": null
+  },
+  "tristan enaruna": {
+    "id": "1642400",
+    "name": "Tristan Enaruna",
+    "team": "CLE",
+    "position": null
+  },
+  "noa essengue": {
+    "id": "1642855",
+    "name": "Noa Essengue",
+    "team": "CHI",
+    "position": null
+  },
+  "tyson etienne": {
+    "id": "1630623",
+    "name": "Tyson Etienne",
+    "team": "BKN",
+    "position": null
+  },
+  "drew eubanks": {
+    "id": "1629234",
+    "name": "Drew Eubanks",
+    "team": "SAC",
+    "position": null
+  },
+  "tosan evbuomwan": {
+    "id": "1641787",
+    "name": "Tosan Evbuomwan",
+    "team": "CHA",
+    "position": null
+  },
+  "jeremiah fears": {
+    "id": "1642847",
+    "name": "Jeremiah Fears",
+    "team": "NOP",
+    "position": null
+  },
+  "kyle filipowski": {
+    "id": "1642271",
+    "name": "Kyle Filipowski",
+    "team": "UTA",
+    "position": null
+  },
+  "dorian finney-smith": {
+    "id": "1627827",
+    "name": "Dorian Finney-Smith",
+    "team": "HOU",
+    "position": null
+  },
+  "cooper flagg": {
+    "id": "1642843",
+    "name": "Cooper Flagg",
+    "team": "DAL",
+    "position": null
+  },
+  "rasheer fleming": {
+    "id": "1642853",
+    "name": "Rasheer Fleming",
+    "team": "PHX",
+    "position": null
+  },
+  "trentyn flowers": {
+    "id": "1642280",
+    "name": "Trentyn Flowers",
+    "team": null,
+    "position": null
+  },
+  "simone fontecchio": {
+    "id": "1631323",
+    "name": "Simone Fontecchio",
+    "team": "MIA",
+    "position": null
+  },
+  "deaaron fox": {
+    "id": "1628368",
+    "name": "De'Aaron Fox",
+    "team": "SAS",
+    "position": null
+  },
+  "enrique freeman": {
+    "id": "1642402",
+    "name": "Enrique Freeman",
+    "team": "MIN",
+    "position": null
+  },
+  "markelle fultz": {
+    "id": "1628365",
+    "name": "Markelle Fultz",
+    "team": null,
+    "position": null
+  },
+  "johnny furphy": {
+    "id": "1642277",
+    "name": "Johnny Furphy",
+    "team": "IND",
+    "position": null
+  },
+  "daniel gafford": {
+    "id": "1629655",
+    "name": "Daniel Gafford",
+    "team": "DAL",
+    "position": null
+  },
+  "andersson garcia": {
+    "id": "1643158",
+    "name": "Andersson Garcia",
+    "team": null,
+    "position": null
+  },
+  "myron gardner": {
+    "id": "1642066",
+    "name": "Myron Gardner",
+    "team": "MIA",
+    "position": null
+  },
+  "darius garland": {
+    "id": "1629636",
+    "name": "Darius Garland",
+    "team": "LAC",
+    "position": null
+  },
+  "luka garza": {
+    "id": "1630568",
+    "name": "Luka Garza",
+    "team": "BOS",
+    "position": null
+  },
+  "keyonte george": {
+    "id": "1641718",
+    "name": "Keyonte George",
+    "team": "UTA",
+    "position": null
+  },
+  "kyshawn george": {
+    "id": "1642273",
+    "name": "Kyshawn George",
+    "team": "WAS",
+    "position": null
+  },
+  "paul george": {
+    "id": "202331",
+    "name": "Paul George",
+    "team": "PHI",
+    "position": null
+  },
+  "taj gibson": {
+    "id": "201959",
+    "name": "Taj Gibson",
+    "team": "MEM",
+    "position": null
+  },
+  "josh giddey": {
+    "id": "1630581",
+    "name": "Josh Giddey",
+    "team": "CHI",
+    "position": null
+  },
+  "keshon gilbert": {
+    "id": "1642933",
+    "name": "Keshon Gilbert",
+    "team": "ATL",
+    "position": null
+  },
+  "shai gilgeous-alexander": {
+    "id": "1628983",
+    "name": "Shai Gilgeous-Alexander",
+    "team": "OKC",
+    "position": null
+  },
+  "anthony gill": {
+    "id": "1630264",
+    "name": "Anthony Gill",
+    "team": "WAS",
+    "position": null
+  },
+  "collin gillespie": {
+    "id": "1631221",
+    "name": "Collin Gillespie",
+    "team": "PHX",
+    "position": null
+  },
+  "rudy gobert": {
+    "id": "203497",
+    "name": "Rudy Gobert",
+    "team": "MIN",
+    "position": null
+  },
+  "vladislav goldin": {
+    "id": "1642884",
+    "name": "Vladislav Goldin",
+    "team": "MIA",
+    "position": null
+  },
+  "hugo gonzalez": {
+    "id": "1642864",
+    "name": "Hugo González",
+    "team": "BOS",
+    "position": null
+  },
+  "jordan goodwin": {
+    "id": "1630692",
+    "name": "Jordan Goodwin",
+    "team": "PHX",
+    "position": null
+  },
+  "aaron gordon": {
+    "id": "203932",
+    "name": "Aaron Gordon",
+    "team": "DEN",
+    "position": null
+  },
+  "eric gordon": {
+    "id": "201569",
+    "name": "Eric Gordon",
+    "team": null,
+    "position": null
+  },
+  "jerami grant": {
+    "id": "203924",
+    "name": "Jerami Grant",
+    "team": "POR",
+    "position": null
+  },
+  "hayden gray": {
+    "id": "1643060",
+    "name": "Hayden Gray",
+    "team": "UTA",
+    "position": null
+  },
+  "aj green": {
+    "id": "1631260",
+    "name": "AJ Green",
+    "team": "MIL",
+    "position": null
+  },
+  "draymond green": {
+    "id": "203110",
+    "name": "Draymond Green",
+    "team": "GSW",
+    "position": null
+  },
+  "jalen green": {
+    "id": "1630224",
+    "name": "Jalen Green",
+    "team": "PHX",
+    "position": null
+  },
+  "javonte green": {
+    "id": "1629750",
+    "name": "Javonte Green",
+    "team": "DET",
+    "position": null
+  },
+  "jeff green": {
+    "id": "201145",
+    "name": "Jeff Green",
+    "team": "HOU",
+    "position": null
+  },
+  "josh green": {
+    "id": "1630182",
+    "name": "Josh Green",
+    "team": "CHA",
+    "position": null
+  },
+  "quentin grimes": {
+    "id": "1629656",
+    "name": "Quentin Grimes",
+    "team": "PHI",
+    "position": null
+  },
+  "mouhamadou gueye": {
+    "id": "1631338",
+    "name": "Mouhamadou Gueye",
+    "team": "CHI",
+    "position": null
+  },
+  "mouhamed gueye": {
+    "id": "1631243",
+    "name": "Mouhamed Gueye",
+    "team": "ATL",
+    "position": null
+  },
+  "rui hachimura": {
+    "id": "1629060",
+    "name": "Rui Hachimura",
+    "team": "LAL",
+    "position": null
+  },
+  "tyrese haliburton": {
+    "id": "1630169",
+    "name": "Tyrese Haliburton",
+    "team": "IND",
+    "position": null
+  },
+  "pj hall": {
+    "id": "1641790",
+    "name": "PJ Hall",
+    "team": "CHA",
+    "position": null
+  },
+  "tim hardaway": {
+    "id": "203501",
+    "name": "Tim Hardaway Jr.",
+    "team": "DEN",
+    "position": null
+  },
+  "james harden": {
+    "id": "201935",
+    "name": "James Harden",
+    "team": "CLE",
+    "position": null
+  },
+  "jaden hardy": {
+    "id": "1630702",
+    "name": "Jaden Hardy",
+    "team": "WAS",
+    "position": null
+  },
+  "elijah harkless": {
+    "id": "1641989",
+    "name": "Elijah Harkless",
+    "team": "UTA",
+    "position": null
+  },
+  "dylan harper": {
+    "id": "1642844",
+    "name": "Dylan Harper",
+    "team": "SAS",
+    "position": null
+  },
+  "ron harper": {
+    "id": "1631199",
+    "name": "Ron Harper Jr.",
+    "team": "BOS",
+    "position": null
+  },
+  "gary harris": {
+    "id": "203914",
+    "name": "Gary Harris",
+    "team": "MIL",
+    "position": null
+  },
+  "tobias harris": {
+    "id": "202699",
+    "name": "Tobias Harris",
+    "team": "DET",
+    "position": null
+  },
+  "josh hart": {
+    "id": "1628404",
+    "name": "Josh Hart",
+    "team": "NYK",
+    "position": null
+  },
+  "isaiah hartenstein": {
+    "id": "1628392",
+    "name": "Isaiah Hartenstein",
+    "team": "OKC",
+    "position": null
+  },
+  "sam hauser": {
+    "id": "1630573",
+    "name": "Sam Hauser",
+    "team": "BOS",
+    "position": null
+  },
+  "jordan hawkins": {
+    "id": "1641722",
+    "name": "Jordan Hawkins",
+    "team": "NOP",
+    "position": null
+  },
+  "jaxson hayes": {
+    "id": "1629637",
+    "name": "Jaxson Hayes",
+    "team": "LAL",
+    "position": null
+  },
+  "killian hayes": {
+    "id": "1630165",
+    "name": "Killian Hayes",
+    "team": "SAC",
+    "position": null
+  },
+  "nigel hayes-davis": {
+    "id": "1628502",
+    "name": "Nigel Hayes-Davis",
+    "team": null,
+    "position": null
+  },
+  "scoot henderson": {
+    "id": "1630703",
+    "name": "Scoot Henderson",
+    "team": "POR",
+    "position": null
+  },
+  "taylor hendricks": {
+    "id": "1641707",
+    "name": "Taylor Hendricks",
+    "team": "MEM",
+    "position": null
+  },
+  "chucky hepburn": {
+    "id": "1642935",
+    "name": "Chucky Hepburn",
+    "team": "TOR",
+    "position": null
+  },
+  "tyler herro": {
+    "id": "1629639",
+    "name": "Tyler Herro",
+    "team": "MIA",
+    "position": null
+  },
+  "buddy hield": {
+    "id": "1627741",
+    "name": "Buddy Hield",
+    "team": "ATL",
+    "position": null
+  },
+  "haywood highsmith": {
+    "id": "1629312",
+    "name": "Haywood Highsmith",
+    "team": "PHX",
+    "position": null
+  },
+  "blake hinson": {
+    "id": "1642396",
+    "name": "Blake Hinson",
+    "team": "UTA",
+    "position": null
+  },
+  "aaron holiday": {
+    "id": "1628988",
+    "name": "Aaron Holiday",
+    "team": "HOU",
+    "position": null
+  },
+  "jrue holiday": {
+    "id": "201950",
+    "name": "Jrue Holiday",
+    "team": "POR",
+    "position": null
+  },
+  "ronald holland": {
+    "id": "1641842",
+    "name": "Ronald Holland II",
+    "team": "DET",
+    "position": null
+  },
+  "daron holmes": {
+    "id": "1641747",
+    "name": "DaRon Holmes II",
+    "team": "DEN",
+    "position": null
+  },
+  "chet holmgren": {
+    "id": "1631096",
+    "name": "Chet Holmgren",
+    "team": "OKC",
+    "position": null
+  },
+  "al horford": {
+    "id": "201143",
+    "name": "Al Horford",
+    "team": "GSW",
+    "position": null
+  },
+  "caleb houstan": {
+    "id": "1631216",
+    "name": "Caleb Houstan",
+    "team": null,
+    "position": null
+  },
+  "jett howard": {
+    "id": "1641724",
+    "name": "Jett Howard",
+    "team": "ORL",
+    "position": null
+  },
+  "kevin huerter": {
+    "id": "1628989",
+    "name": "Kevin Huerter",
+    "team": "DET",
+    "position": null
+  },
+  "jay huff": {
+    "id": "1630643",
+    "name": "Jay Huff",
+    "team": "IND",
+    "position": null
+  },
+  "ariel hukporti": {
+    "id": "1630574",
+    "name": "Ariel Hukporti",
+    "team": "NYK",
+    "position": null
+  },
+  "deandre hunter": {
+    "id": "1629631",
+    "name": "De'Andre Hunter",
+    "team": "SAC",
+    "position": null
+  },
+  "cj huntley": {
+    "id": "1643047",
+    "name": "CJ Huntley",
+    "team": "PHX",
+    "position": null
+  },
+  "bones hyland": {
+    "id": "1630538",
+    "name": "Bones Hyland",
+    "team": "MIN",
+    "position": null
+  },
+  "oso ighodaro": {
+    "id": "1642345",
+    "name": "Oso Ighodaro",
+    "team": "PHX",
+    "position": null
+  },
+  "joe ingles": {
+    "id": "204060",
+    "name": "Joe Ingles",
+    "team": "MIN",
+    "position": null
+  },
+  "brandon ingram": {
+    "id": "1627742",
+    "name": "Brandon Ingram",
+    "team": "TOR",
+    "position": null
+  },
+  "harrison ingram": {
+    "id": "1631127",
+    "name": "Harrison Ingram",
+    "team": "SAS",
+    "position": null
+  },
+  "kyrie irving": {
+    "id": "202681",
+    "name": "Kyrie Irving",
+    "team": "DAL",
+    "position": null
+  },
+  "jonathan isaac": {
+    "id": "1628371",
+    "name": "Jonathan Isaac",
+    "team": "ORL",
+    "position": null
+  },
+  "jaden ivey": {
+    "id": "1631093",
+    "name": "Jaden Ivey",
+    "team": null,
+    "position": null
+  },
+  "gg jackson": {
+    "id": "1641713",
+    "name": "GG Jackson",
+    "team": "MEM",
+    "position": null
+  },
+  "isaiah jackson": {
+    "id": "1630543",
+    "name": "Isaiah Jackson",
+    "team": "LAC",
+    "position": null
+  },
+  "quenton jackson": {
+    "id": "1631245",
+    "name": "Quenton Jackson",
+    "team": "IND",
+    "position": null
+  },
+  "andre jackson": {
+    "id": "1641748",
+    "name": "Andre Jackson Jr.",
+    "team": "MIL",
+    "position": null
+  },
+  "jaren jackson": {
+    "id": "1628991",
+    "name": "Jaren Jackson Jr.",
+    "team": "UTA",
+    "position": null
+  },
+  "trayce jackson-davis": {
+    "id": "1631218",
+    "name": "Trayce Jackson-Davis",
+    "team": "TOR",
+    "position": null
+  },
+  "kasparas jakucionis": {
+    "id": "1642857",
+    "name": "Kasparas Jakučionis",
+    "team": "MIA",
+    "position": null
+  },
+  "bronny james": {
+    "id": "1642355",
+    "name": "Bronny James",
+    "team": "LAL",
+    "position": null
+  },
+  "lebron james": {
+    "id": "2544",
+    "name": "LeBron James",
+    "team": "LAL",
+    "position": null
+  },
+  "sion james": {
+    "id": "1642883",
+    "name": "Sion James",
+    "team": "CHA",
+    "position": null
+  },
+  "jaime jaquez": {
+    "id": "1631170",
+    "name": "Jaime Jaquez Jr.",
+    "team": "MIA",
+    "position": null
+  },
+  "dejon jarreau": {
+    "id": "1630610",
+    "name": "DeJon Jarreau",
+    "team": null,
+    "position": null
+  },
+  "daquan jeffries": {
+    "id": "1629610",
+    "name": "DaQuan Jeffries",
+    "team": null,
+    "position": null
+  },
+  "trey jemison": {
+    "id": "1641998",
+    "name": "Trey Jemison III",
+    "team": "NYK",
+    "position": null
+  },
+  "daniss jenkins": {
+    "id": "1642450",
+    "name": "Daniss Jenkins",
+    "team": "DET",
+    "position": null
+  },
+  "ty jerome": {
+    "id": "1629660",
+    "name": "Ty Jerome",
+    "team": "MEM",
+    "position": null
+  },
+  "isaiah joe": {
+    "id": "1630198",
+    "name": "Isaiah Joe",
+    "team": "OKC",
+    "position": null
+  },
+  "aj johnson": {
+    "id": "1642358",
+    "name": "AJ Johnson",
+    "team": "DAL",
+    "position": null
+  },
+  "cameron johnson": {
+    "id": "1629661",
+    "name": "Cameron Johnson",
+    "team": "DEN",
+    "position": null
+  },
+  "chaney johnson": {
+    "id": "1643052",
+    "name": "Chaney Johnson",
+    "team": "BKN",
+    "position": null
+  },
+  "jalen johnson": {
+    "id": "1630552",
+    "name": "Jalen Johnson",
+    "team": "ATL",
+    "position": null
+  },
+  "keldon johnson": {
+    "id": "1629640",
+    "name": "Keldon Johnson",
+    "team": "SAS",
+    "position": null
+  },
+  "keshad johnson": {
+    "id": "1642352",
+    "name": "Keshad Johnson",
+    "team": "MIA",
+    "position": null
+  },
+  "tre johnson": {
+    "id": "1642848",
+    "name": "Tre Johnson",
+    "team": "WAS",
+    "position": null
+  },
+  "nikola jokic": {
+    "id": "203999",
+    "name": "Nikola Jokić",
+    "team": "DEN",
+    "position": null
+  },
+  "colby jones": {
+    "id": "1641732",
+    "name": "Colby Jones",
+    "team": null,
+    "position": null
+  },
+  "curtis jones": {
+    "id": "1642938",
+    "name": "Curtis Jones",
+    "team": "DEN",
+    "position": null
+  },
+  "dillon jones": {
+    "id": "1641794",
+    "name": "Dillon Jones",
+    "team": "NYK",
+    "position": null
+  },
+  "herbert jones": {
+    "id": "1630529",
+    "name": "Herbert Jones",
+    "team": "NOP",
+    "position": null
+  },
+  "isaac jones": {
+    "id": "1642403",
+    "name": "Isaac Jones",
+    "team": "DET",
+    "position": null
+  },
+  "kam jones": {
+    "id": "1642880",
+    "name": "Kam Jones",
+    "team": "IND",
+    "position": null
+  },
+  "spencer jones": {
+    "id": "1642461",
+    "name": "Spencer Jones",
+    "team": "DEN",
+    "position": null
+  },
+  "tre jones": {
+    "id": "1630200",
+    "name": "Tre Jones",
+    "team": "CHI",
+    "position": null
+  },
+  "tyus jones": {
+    "id": "1626145",
+    "name": "Tyus Jones",
+    "team": "DEN",
+    "position": null
+  },
+  "david jones garcia": {
+    "id": "1642357",
+    "name": "David Jones Garcia",
+    "team": "SAS",
+    "position": null
+  },
+  "derrick jones": {
+    "id": "1627884",
+    "name": "Derrick Jones Jr.",
+    "team": "LAC",
+    "position": null
+  },
+  "deandre jordan": {
+    "id": "201599",
+    "name": "DeAndre Jordan",
+    "team": "NOP",
+    "position": null
+  },
+  "nikola jovic": {
+    "id": "1631107",
+    "name": "Nikola Jović",
+    "team": "MIA",
+    "position": null
+  },
+  "johnny juzang": {
+    "id": "1630548",
+    "name": "Johnny Juzang",
+    "team": null,
+    "position": null
+  },
+  "ryan kalkbrenner": {
+    "id": "1641750",
+    "name": "Ryan Kalkbrenner",
+    "team": "CHA",
+    "position": null
+  },
+  "yuki kawamura": {
+    "id": "1642530",
+    "name": "Yuki Kawamura",
+    "team": "CHI",
+    "position": null
+  },
+  "trevor keels": {
+    "id": "1631211",
+    "name": "Trevor Keels",
+    "team": "MIA",
+    "position": null
+  },
+  "miles kelly": {
+    "id": "1642939",
+    "name": "Miles Kelly",
+    "team": null,
+    "position": null
+  },
+  "luke kennard": {
+    "id": "1628379",
+    "name": "Luke Kennard",
+    "team": "LAL",
+    "position": null
+  },
+  "jayson kent": {
+    "id": "1643257",
+    "name": "Jayson Kent",
+    "team": "POR",
+    "position": null
+  },
+  "walker kessler": {
+    "id": "1631117",
+    "name": "Walker Kessler",
+    "team": "UTA",
+    "position": null
+  },
+  "corey kispert": {
+    "id": "1630557",
+    "name": "Corey Kispert",
+    "team": "ATL",
+    "position": null
+  },
+  "maxi kleber": {
+    "id": "1628467",
+    "name": "Maxi Kleber",
+    "team": "LAL",
+    "position": null
+  },
+  "bobi klintman": {
+    "id": "1641752",
+    "name": "Bobi Klintman",
+    "team": null,
+    "position": null
+  },
+  "dalton knecht": {
+    "id": "1642261",
+    "name": "Dalton Knecht",
+    "team": "LAL",
+    "position": null
+  },
+  "kon knueppel": {
+    "id": "1642851",
+    "name": "Kon Knueppel",
+    "team": "CHA",
+    "position": null
+  },
+  "tyler kolek": {
+    "id": "1642278",
+    "name": "Tyler Kolek",
+    "team": "NYK",
+    "position": null
+  },
+  "christian koloko": {
+    "id": "1631132",
+    "name": "Christian Koloko",
+    "team": "ATL",
+    "position": null
+  },
+  "john konchar": {
+    "id": "1629723",
+    "name": "John Konchar",
+    "team": "UTA",
+    "position": null
+  },
+  "luke kornet": {
+    "id": "1628436",
+    "name": "Luke Kornet",
+    "team": "SAS",
+    "position": null
+  },
+  "vit krejci": {
+    "id": "1630249",
+    "name": "Vít Krejčí",
+    "team": "POR",
+    "position": null
+  },
+  "jonathan kuminga": {
+    "id": "1630228",
+    "name": "Jonathan Kuminga",
+    "team": "ATL",
+    "position": null
+  },
+  "kyle kuzma": {
+    "id": "1628398",
+    "name": "Kyle Kuzma",
+    "team": "MIL",
+    "position": null
+  },
+  "jake laravia": {
+    "id": "1631222",
+    "name": "Jake LaRavia",
+    "team": "LAL",
+    "position": null
+  },
+  "zach lavine": {
+    "id": "203897",
+    "name": "Zach LaVine",
+    "team": "SAC",
+    "position": null
+  },
+  "skal labissiere": {
+    "id": "1627746",
+    "name": "Skal Labissiere",
+    "team": null,
+    "position": null
+  },
+  "jock landale": {
+    "id": "1629111",
+    "name": "Jock Landale",
+    "team": "ATL",
+    "position": null
+  },
+  "chaz lanier": {
+    "id": "1642404",
+    "name": "Chaz Lanier",
+    "team": "DET",
+    "position": null
+  },
+  "pelle larsson": {
+    "id": "1641796",
+    "name": "Pelle Larsson",
+    "team": "MIA",
+    "position": null
+  },
+  "aj lawson": {
+    "id": "1630639",
+    "name": "A.J. Lawson",
+    "team": "TOR",
+    "position": null
+  },
+  "caris levert": {
+    "id": "1627747",
+    "name": "Caris LeVert",
+    "team": "DET",
+    "position": null
+  },
+  "kawhi leonard": {
+    "id": "202695",
+    "name": "Kawhi Leonard",
+    "team": "LAC",
+    "position": null
+  },
+  "malevy leons": {
+    "id": "1642502",
+    "name": "Malevy Leons",
+    "team": "GSW",
+    "position": null
+  },
+  "ej liddell": {
+    "id": "1630604",
+    "name": "E.J. Liddell",
+    "team": "BKN",
+    "position": null
+  },
+  "damian lillard": {
+    "id": "203081",
+    "name": "Damian Lillard",
+    "team": "POR",
+    "position": null
+  },
+  "dereck lively": {
+    "id": "1641726",
+    "name": "Dereck Lively II",
+    "team": "DAL",
+    "position": null
+  },
+  "isaiah livers": {
+    "id": "1630587",
+    "name": "Isaiah Livers",
+    "team": "PHX",
+    "position": null
+  },
+  "chris livingston": {
+    "id": "1641753",
+    "name": "Chris Livingston",
+    "team": null,
+    "position": null
+  },
+  "kevon looney": {
+    "id": "1626172",
+    "name": "Kevon Looney",
+    "team": "NOP",
+    "position": null
+  },
+  "brook lopez": {
+    "id": "201572",
+    "name": "Brook Lopez",
+    "team": "LAC",
+    "position": null
+  },
+  "caleb love": {
+    "id": "1631126",
+    "name": "Caleb Love",
+    "team": "POR",
+    "position": null
+  },
+  "kevin love": {
+    "id": "201567",
+    "name": "Kevin Love",
+    "team": "UTA",
+    "position": null
+  },
+  "lawson lovering": {
+    "id": "1643133",
+    "name": "Lawson Lovering",
+    "team": null,
+    "position": null
+  },
+  "kyle lowry": {
+    "id": "200768",
+    "name": "Kyle Lowry",
+    "team": "PHI",
+    "position": null
+  },
+  "khaman maluach": {
+    "id": "1642863",
+    "name": "Khaman Maluach",
+    "team": "PHX",
+    "position": null
+  },
+  "sandro mamukelashvili": {
+    "id": "1630572",
+    "name": "Sandro Mamukelashvili",
+    "team": "TOR",
+    "position": null
+  },
+  "terance mann": {
+    "id": "1629611",
+    "name": "Terance Mann",
+    "team": "BKN",
+    "position": null
+  },
+  "tre mann": {
+    "id": "1630544",
+    "name": "Tre Mann",
+    "team": "CHA",
+    "position": null
+  },
+  "lauri markkanen": {
+    "id": "1628374",
+    "name": "Lauri Markkanen",
+    "team": "UTA",
+    "position": null
+  },
+  "naji marshall": {
+    "id": "1630230",
+    "name": "Naji Marshall",
+    "team": "DAL",
+    "position": null
+  },
+  "alijah martin": {
+    "id": "1642918",
+    "name": "Alijah Martin",
+    "team": "TOR",
+    "position": null
+  },
+  "caleb martin": {
+    "id": "1628997",
+    "name": "Caleb Martin",
+    "team": "DAL",
+    "position": null
+  },
+  "cody martin": {
+    "id": "1628998",
+    "name": "Cody Martin",
+    "team": null,
+    "position": null
+  },
+  "tyrese martin": {
+    "id": "1631213",
+    "name": "Tyrese Martin",
+    "team": "PHI",
+    "position": null
+  },
+  "jahmai mashack": {
+    "id": "1642942",
+    "name": "Jahmai Mashack",
+    "team": "MEM",
+    "position": null
+  },
+  "garrison mathews": {
+    "id": "1629726",
+    "name": "Garrison Mathews",
+    "team": null,
+    "position": null
+  },
+  "bennedict mathurin": {
+    "id": "1631097",
+    "name": "Bennedict Mathurin",
+    "team": "LAC",
+    "position": null
+  },
+  "karlo matkovic": {
+    "id": "1631255",
+    "name": "Karlo Matković",
+    "team": "NOP",
+    "position": null
+  },
+  "tyrese maxey": {
+    "id": "1630178",
+    "name": "Tyrese Maxey",
+    "team": "PHI",
+    "position": null
+  },
+  "chris manon": {
+    "id": "1643024",
+    "name": "Chris Mañon",
+    "team": "LAL",
+    "position": null
+  },
+  "bez mbeng": {
+    "id": "1643016",
+    "name": "Bez Mbeng",
+    "team": "UTA",
+    "position": null
+  },
+  "miles mcbride": {
+    "id": "1630540",
+    "name": "Miles McBride",
+    "team": "NYK",
+    "position": null
+  },
+  "jared mccain": {
+    "id": "1642272",
+    "name": "Jared McCain",
+    "team": "OKC",
+    "position": null
+  },
+  "mac mcclung": {
+    "id": "1630644",
+    "name": "Mac McClung",
+    "team": "CHI",
+    "position": null
+  },
+  "cj mccollum": {
+    "id": "203468",
+    "name": "CJ McCollum",
+    "team": "ATL",
+    "position": null
+  },
+  "tj mcconnell": {
+    "id": "204456",
+    "name": "T.J. McConnell",
+    "team": "IND",
+    "position": null
+  },
+  "kevin mccullar": {
+    "id": "1641755",
+    "name": "Kevin McCullar Jr.",
+    "team": "NYK",
+    "position": null
+  },
+  "jaden mcdaniels": {
+    "id": "1630183",
+    "name": "Jaden McDaniels",
+    "team": "MIN",
+    "position": null
+  },
+  "doug mcdermott": {
+    "id": "203926",
+    "name": "Doug McDermott",
+    "team": "SAC",
+    "position": null
+  },
+  "bryce mcgowens": {
+    "id": "1631121",
+    "name": "Bryce McGowens",
+    "team": "NOP",
+    "position": null
+  },
+  "jordan mclaughlin": {
+    "id": "1629162",
+    "name": "Jordan McLaughlin",
+    "team": "SAS",
+    "position": null
+  },
+  "liam mcneeley": {
+    "id": "1642862",
+    "name": "Liam McNeeley",
+    "team": "CHA",
+    "position": null
+  },
+  "deanthony melton": {
+    "id": "1629001",
+    "name": "De'Anthony Melton",
+    "team": "GSW",
+    "position": null
+  },
+  "sam merrill": {
+    "id": "1630241",
+    "name": "Sam Merrill",
+    "team": "CLE",
+    "position": null
+  },
+  "khris middleton": {
+    "id": "203114",
+    "name": "Khris Middleton",
+    "team": "DAL",
+    "position": null
+  },
+  "brandon miller": {
+    "id": "1641706",
+    "name": "Brandon Miller",
+    "team": "CHA",
+    "position": null
+  },
+  "emanuel miller": {
+    "id": "1641801",
+    "name": "Emanuel Miller",
+    "team": "SAS",
+    "position": null
+  },
+  "jordan miller": {
+    "id": "1641757",
+    "name": "Jordan Miller",
+    "team": "LAC",
+    "position": null
+  },
+  "leonard miller": {
+    "id": "1631159",
+    "name": "Leonard Miller",
+    "team": "CHI",
+    "position": null
+  },
+  "riley minix": {
+    "id": "1642434",
+    "name": "Riley Minix",
+    "team": "CLE",
+    "position": null
+  },
+  "josh minott": {
+    "id": "1631169",
+    "name": "Josh Minott",
+    "team": "BKN",
+    "position": null
+  },
+  "yves missi": {
+    "id": "1642274",
+    "name": "Yves Missi",
+    "team": "NOP",
+    "position": null
+  },
+  "ajay mitchell": {
+    "id": "1642349",
+    "name": "Ajay Mitchell",
+    "team": "OKC",
+    "position": null
+  },
+  "davion mitchell": {
+    "id": "1630558",
+    "name": "Davion Mitchell",
+    "team": "MIA",
+    "position": null
+  },
+  "donovan mitchell": {
+    "id": "1628378",
+    "name": "Donovan Mitchell",
+    "team": "CLE",
+    "position": null
+  },
+  "evan mobley": {
+    "id": "1630596",
+    "name": "Evan Mobley",
+    "team": "CLE",
+    "position": null
+  },
+  "jonathan mogbo": {
+    "id": "1642367",
+    "name": "Jonathan Mogbo",
+    "team": "TOR",
+    "position": null
+  },
+  "malik monk": {
+    "id": "1628370",
+    "name": "Malik Monk",
+    "team": "SAC",
+    "position": null
+  },
+  "moses moody": {
+    "id": "1630541",
+    "name": "Moses Moody",
+    "team": "GSW",
+    "position": null
+  },
+  "wendell moore": {
+    "id": "1631111",
+    "name": "Wendell Moore Jr.",
+    "team": "DET",
+    "position": null
+  },
+  "alex morales": {
+    "id": "1631457",
+    "name": "Alex Morales",
+    "team": "ORL",
+    "position": null
+  },
+  "ja morant": {
+    "id": "1629630",
+    "name": "Ja Morant",
+    "team": "MEM",
+    "position": null
+  },
+  "monte morris": {
+    "id": "1628420",
+    "name": "Monte Morris",
+    "team": null,
+    "position": null
+  },
+  "trey murphy": {
+    "id": "1630530",
+    "name": "Trey Murphy III",
+    "team": "NOP",
+    "position": null
+  },
+  "dejounte murray": {
+    "id": "1627749",
+    "name": "Dejounte Murray",
+    "team": "NOP",
+    "position": null
+  },
+  "jamal murray": {
+    "id": "1627750",
+    "name": "Jamal Murray",
+    "team": "DEN",
+    "position": null
+  },
+  "keegan murray": {
+    "id": "1631099",
+    "name": "Keegan Murray",
+    "team": "SAC",
+    "position": null
+  },
+  "kris murray": {
+    "id": "1631200",
+    "name": "Kris Murray",
+    "team": "POR",
+    "position": null
+  },
+  "collin murray-boyles": {
+    "id": "1642867",
+    "name": "Collin Murray-Boyles",
+    "team": "TOR",
+    "position": null
+  },
+  "svi mykhailiuk": {
+    "id": "1629004",
+    "name": "Svi Mykhailiuk",
+    "team": "UTA",
+    "position": null
+  },
+  "pete nance": {
+    "id": "1631250",
+    "name": "Pete Nance",
+    "team": "MIL",
+    "position": null
+  },
+  "larry nance": {
+    "id": "1626204",
+    "name": "Larry Nance Jr.",
+    "team": "CLE",
+    "position": null
+  },
+  "grant nelson": {
+    "id": "1641761",
+    "name": "Grant Nelson",
+    "team": null,
+    "position": null
+  },
+  "andrew nembhard": {
+    "id": "1629614",
+    "name": "Andrew Nembhard",
+    "team": "IND",
+    "position": null
+  },
+  "ryan nembhard": {
+    "id": "1642948",
+    "name": "Ryan Nembhard",
+    "team": "DAL",
+    "position": null
+  },
+  "aaron nesmith": {
+    "id": "1630174",
+    "name": "Aaron Nesmith",
+    "team": "IND",
+    "position": null
+  },
+  "asa newell": {
+    "id": "1642854",
+    "name": "Asa Newell",
+    "team": "ATL",
+    "position": null
+  },
+  "tristen newton": {
+    "id": "1641803",
+    "name": "Tristen Newton",
+    "team": "HOU",
+    "position": null
+  },
+  "yanic konan niederhauser": {
+    "id": "1642949",
+    "name": "Yanic Konan Niederhäuser",
+    "team": "LAC",
+    "position": null
+  },
+  "zeke nnaji": {
+    "id": "1630192",
+    "name": "Zeke Nnaji",
+    "team": "DEN",
+    "position": null
+  },
+  "jusuf nurkic": {
+    "id": "203994",
+    "name": "Jusuf Nurkić",
+    "team": "UTA",
+    "position": null
+  },
+  "royce oneale": {
+    "id": "1626220",
+    "name": "Royce O'Neale",
+    "team": "PHX",
+    "position": null
+  },
+  "josh oduro": {
+    "id": "1642490",
+    "name": "Josh Oduro",
+    "team": "NOP",
+    "position": null
+  },
+  "toby okani": {
+    "id": "1643253",
+    "name": "Toby Okani",
+    "team": null,
+    "position": null
+  },
+  "josh okogie": {
+    "id": "1629006",
+    "name": "Josh Okogie",
+    "team": "HOU",
+    "position": null
+  },
+  "onyeka okongwu": {
+    "id": "1630168",
+    "name": "Onyeka Okongwu",
+    "team": "ATL",
+    "position": null
+  },
+  "isaac okoro": {
+    "id": "1630171",
+    "name": "Isaac Okoro",
+    "team": "CHI",
+    "position": null
+  },
+  "lachlan olbrich": {
+    "id": "1642950",
+    "name": "Lachlan Olbrich",
+    "team": "CHI",
+    "position": null
+  },
+  "kelly olynyk": {
+    "id": "203482",
+    "name": "Kelly Olynyk",
+    "team": "SAS",
+    "position": null
+  },
+  "norchad omier": {
+    "id": "1641807",
+    "name": "Norchad Omier",
+    "team": "LAC",
+    "position": null
+  },
+  "kelly oubre": {
+    "id": "1626162",
+    "name": "Kelly Oubre Jr.",
+    "team": "PHI",
+    "position": null
+  },
+  "chris paul": {
+    "id": "101108",
+    "name": "Chris Paul",
+    "team": null,
+    "position": null
+  },
+  "cameron payne": {
+    "id": "1626166",
+    "name": "Cameron Payne",
+    "team": null,
+    "position": null
+  },
+  "gary payton": {
+    "id": "1627780",
+    "name": "Gary Payton II",
+    "team": "GSW",
+    "position": null
+  },
+  "micah peavy": {
+    "id": "1642877",
+    "name": "Micah Peavy",
+    "team": "NOP",
+    "position": null
+  },
+  "sean pedulla": {
+    "id": "1642951",
+    "name": "Sean Pedulla",
+    "team": "LAC",
+    "position": null
+  },
+  "noah penda": {
+    "id": "1642869",
+    "name": "Noah Penda",
+    "team": "ORL",
+    "position": null
+  },
+  "taelon peter": {
+    "id": "1643007",
+    "name": "Taelon Peter",
+    "team": "IND",
+    "position": null
+  },
+  "drew peterson": {
+    "id": "1641809",
+    "name": "Drew Peterson",
+    "team": null,
+    "position": null
+  },
+  "julian phillips": {
+    "id": "1641763",
+    "name": "Julian Phillips",
+    "team": "MIN",
+    "position": null
+  },
+  "jalen pickett": {
+    "id": "1629618",
+    "name": "Jalen Pickett",
+    "team": "DEN",
+    "position": null
+  },
+  "scotty pippen": {
+    "id": "1630590",
+    "name": "Scotty Pippen Jr.",
+    "team": "MEM",
+    "position": null
+  },
+  "daeqwon plowden": {
+    "id": "1631342",
+    "name": "Daeqwon Plowden",
+    "team": "SAC",
+    "position": null
+  },
+  "mason plumlee": {
+    "id": "203486",
+    "name": "Mason Plumlee",
+    "team": "SAS",
+    "position": null
+  },
+  "brandin podziemski": {
+    "id": "1641764",
+    "name": "Brandin Podziemski",
+    "team": "GSW",
+    "position": null
+  },
+  "jakob poeltl": {
+    "id": "1627751",
+    "name": "Jakob Poeltl",
+    "team": "TOR",
+    "position": null
+  },
+  "jordan poole": {
+    "id": "1629673",
+    "name": "Jordan Poole",
+    "team": "NOP",
+    "position": null
+  },
+  "craig porter": {
+    "id": "1641854",
+    "name": "Craig Porter Jr.",
+    "team": "CLE",
+    "position": null
+  },
+  "kevin porter": {
+    "id": "1629645",
+    "name": "Kevin Porter Jr.",
+    "team": "MIL",
+    "position": null
+  },
+  "michael porter": {
+    "id": "1629008",
+    "name": "Michael Porter Jr.",
+    "team": "BKN",
+    "position": null
+  },
+  "bobby portis": {
+    "id": "1626171",
+    "name": "Bobby Portis",
+    "team": "MIL",
+    "position": null
+  },
+  "kristaps porzingis": {
+    "id": "204001",
+    "name": "Kristaps Porziņģis",
+    "team": "GSW",
+    "position": null
+  },
+  "quinten post": {
+    "id": "1642366",
+    "name": "Quinten Post",
+    "team": "GSW",
+    "position": null
+  },
+  "micah potter": {
+    "id": "1630695",
+    "name": "Micah Potter",
+    "team": "IND",
+    "position": null
+  },
+  "john poulakidas": {
+    "id": "1642967",
+    "name": "John Poulakidas",
+    "team": "DAL",
+    "position": null
+  },
+  "drake powell": {
+    "id": "1642962",
+    "name": "Drake Powell",
+    "team": "BKN",
+    "position": null
+  },
+  "dwight powell": {
+    "id": "203939",
+    "name": "Dwight Powell",
+    "team": "DAL",
+    "position": null
+  },
+  "norman powell": {
+    "id": "1626181",
+    "name": "Norman Powell",
+    "team": "MIA",
+    "position": null
+  },
+  "taurean prince": {
+    "id": "1627752",
+    "name": "Taurean Prince",
+    "team": "MIL",
+    "position": null
+  },
+  "payton pritchard": {
+    "id": "1630202",
+    "name": "Payton Pritchard",
+    "team": "BOS",
+    "position": null
+  },
+  "tyrese proctor": {
+    "id": "1642878",
+    "name": "Tyrese Proctor",
+    "team": "CLE",
+    "position": null
+  },
+  "olivier-maxence prosper": {
+    "id": "1641765",
+    "name": "Olivier-Maxence Prosper",
+    "team": "MEM",
+    "position": null
+  },
+  "zyon pullin": {
+    "id": "1642389",
+    "name": "Zyon Pullin",
+    "team": "MIN",
+    "position": null
+  },
+  "derik queen": {
+    "id": "1642852",
+    "name": "Derik Queen",
+    "team": "NOP",
+    "position": null
+  },
+  "neemias queta": {
+    "id": "1629674",
+    "name": "Neemias Queta",
+    "team": "BOS",
+    "position": null
+  },
+  "immanuel quickley": {
+    "id": "1630193",
+    "name": "Immanuel Quickley",
+    "team": "TOR",
+    "position": null
+  },
+  "julius randle": {
+    "id": "203944",
+    "name": "Julius Randle",
+    "team": "MIN",
+    "position": null
+  },
+  "maxime raynaud": {
+    "id": "1642875",
+    "name": "Maxime Raynaud",
+    "team": "SAC",
+    "position": null
+  },
+  "duop reath": {
+    "id": "1641871",
+    "name": "Duop Reath",
+    "team": null,
+    "position": null
+  },
+  "austin reaves": {
+    "id": "1630559",
+    "name": "Austin Reaves",
+    "team": "LAL",
+    "position": null
+  },
+  "paul reed": {
+    "id": "1630194",
+    "name": "Paul Reed",
+    "team": "DET",
+    "position": null
+  },
+  "julian reese": {
+    "id": "1642882",
+    "name": "Julian Reese",
+    "team": "WAS",
+    "position": null
+  },
+  "antonio reeves": {
+    "id": "1641810",
+    "name": "Antonio Reeves",
+    "team": "CHA",
+    "position": null
+  },
+  "naz reid": {
+    "id": "1629675",
+    "name": "Naz Reid",
+    "team": "MIN",
+    "position": null
+  },
+  "will richard": {
+    "id": "1642954",
+    "name": "Will Richard",
+    "team": "GSW",
+    "position": null
+  },
+  "nick richards": {
+    "id": "1630208",
+    "name": "Nick Richards",
+    "team": "CHI",
+    "position": null
+  },
+  "jase richardson": {
+    "id": "1642859",
+    "name": "Jase Richardson",
+    "team": "ORL",
+    "position": null
+  },
+  "kadary richmond": {
+    "id": "1642955",
+    "name": "Kadary Richmond",
+    "team": null,
+    "position": null
+  },
+  "will riley": {
+    "id": "1642860",
+    "name": "Will Riley",
+    "team": "WAS",
+    "position": null
+  },
+  "zaccharie risacher": {
+    "id": "1642258",
+    "name": "Zaccharie Risacher",
+    "team": "ATL",
+    "position": null
+  },
+  "duncan robinson": {
+    "id": "1629130",
+    "name": "Duncan Robinson",
+    "team": "DET",
+    "position": null
+  },
+  "mitchell robinson": {
+    "id": "1629011",
+    "name": "Mitchell Robinson",
+    "team": "NYK",
+    "position": null
+  },
+  "orlando robinson": {
+    "id": "1631115",
+    "name": "Orlando Robinson",
+    "team": null,
+    "position": null
+  },
+  "jeremiah robinson-earl": {
+    "id": "1630526",
+    "name": "Jeremiah Robinson-Earl",
+    "team": null,
+    "position": null
+  },
+  "david roddy": {
+    "id": "1631223",
+    "name": "David Roddy",
+    "team": "DEN",
+    "position": null
+  },
+  "ryan rollins": {
+    "id": "1631157",
+    "name": "Ryan Rollins",
+    "team": "MIL",
+    "position": null
+  },
+  "rayan rupert": {
+    "id": "1641712",
+    "name": "Rayan Rupert",
+    "team": "MEM",
+    "position": null
+  },
+  "dangelo russell": {
+    "id": "1626156",
+    "name": "D'Angelo Russell",
+    "team": "WAS",
+    "position": null
+  },
+  "cormac ryan": {
+    "id": "1642504",
+    "name": "Cormac Ryan",
+    "team": "MIL",
+    "position": null
+  },
+  "domantas sabonis": {
+    "id": "1627734",
+    "name": "Domantas Sabonis",
+    "team": "SAC",
+    "position": null
+  },
+  "tidjane salaun": {
+    "id": "1642275",
+    "name": "Tidjane Salaün",
+    "team": "CHA",
+    "position": null
+  },
+  "hunter sallis": {
+    "id": "1642282",
+    "name": "Hunter Sallis",
+    "team": null,
+    "position": null
+  },
+  "kobe sanders": {
+    "id": "1642920",
+    "name": "Kobe Sanders",
+    "team": "LAC",
+    "position": null
+  },
+  "payton sandfort": {
+    "id": "1642362",
+    "name": "Payton Sandfort",
+    "team": "OKC",
+    "position": null
+  },
+  "gui santos": {
+    "id": "1630611",
+    "name": "Gui Santos",
+    "team": "GSW",
+    "position": null
+  },
+  "ben saraf": {
+    "id": "1642879",
+    "name": "Ben Saraf",
+    "team": "BKN",
+    "position": null
+  },
+  "dario saric": {
+    "id": "203967",
+    "name": "Dario Saric",
+    "team": null,
+    "position": null
+  },
+  "alex sarr": {
+    "id": "1642259",
+    "name": "Alex Sarr",
+    "team": "WAS",
+    "position": null
+  },
+  "olivier sarr": {
+    "id": "1630846",
+    "name": "Olivier Sarr",
+    "team": "CLE",
+    "position": null
+  },
+  "marcus sasser": {
+    "id": "1631204",
+    "name": "Marcus Sasser",
+    "team": "DET",
+    "position": null
+  },
+  "baylor scheierman": {
+    "id": "1631248",
+    "name": "Baylor Scheierman",
+    "team": "BOS",
+    "position": null
+  },
+  "dennis schroder": {
+    "id": "203471",
+    "name": "Dennis Schröder",
+    "team": "CLE",
+    "position": null
+  },
+  "trevon scott": {
+    "id": "1630286",
+    "name": "Trevon Scott",
+    "team": null,
+    "position": null
+  },
+  "mark sears": {
+    "id": "1641813",
+    "name": "Mark Sears",
+    "team": null,
+    "position": null
+  },
+  "alperen sengun": {
+    "id": "1630578",
+    "name": "Alperen Sengun",
+    "team": "HOU",
+    "position": null
+  },
+  "brice sensabaugh": {
+    "id": "1641729",
+    "name": "Brice Sensabaugh",
+    "team": "UTA",
+    "position": null
+  },
+  "collin sexton": {
+    "id": "1629012",
+    "name": "Collin Sexton",
+    "team": "CHI",
+    "position": null
+  },
+  "landry shamet": {
+    "id": "1629013",
+    "name": "Landry Shamet",
+    "team": "NYK",
+    "position": null
+  },
+  "terrence shannon": {
+    "id": "1630545",
+    "name": "Terrence Shannon Jr.",
+    "team": "MIN",
+    "position": null
+  },
+  "dayron sharpe": {
+    "id": "1630549",
+    "name": "Day'Ron Sharpe",
+    "team": "BKN",
+    "position": null
+  },
+  "shaedon sharpe": {
+    "id": "1631101",
+    "name": "Shaedon Sharpe",
+    "team": "POR",
+    "position": null
+  },
+  "jamal shead": {
+    "id": "1642347",
+    "name": "Jamal Shead",
+    "team": "TOR",
+    "position": null
+  },
+  "ben sheppard": {
+    "id": "1641767",
+    "name": "Ben Sheppard",
+    "team": "IND",
+    "position": null
+  },
+  "reed sheppard": {
+    "id": "1642263",
+    "name": "Reed Sheppard",
+    "team": "HOU",
+    "position": null
+  },
+  "max shulga": {
+    "id": "1642917",
+    "name": "Max Shulga",
+    "team": "BOS",
+    "position": null
+  },
+  "pascal siakam": {
+    "id": "1627783",
+    "name": "Pascal Siakam",
+    "team": "IND",
+    "position": null
+  },
+  "anfernee simons": {
+    "id": "1629014",
+    "name": "Anfernee Simons",
+    "team": "CHI",
+    "position": null
+  },
+  "kj simpson": {
+    "id": "1642354",
+    "name": "KJ Simpson",
+    "team": "DEN",
+    "position": null
+  },
+  "jericho sims": {
+    "id": "1630579",
+    "name": "Jericho Sims",
+    "team": "MIL",
+    "position": null
+  },
+  "jalen slawson": {
+    "id": "1641771",
+    "name": "Jalen Slawson",
+    "team": "IND",
+    "position": null
+  },
+  "javon small": {
+    "id": "1642914",
+    "name": "Javon Small",
+    "team": "MEM",
+    "position": null
+  },
+  "marcus smart": {
+    "id": "203935",
+    "name": "Marcus Smart",
+    "team": "LAL",
+    "position": null
+  },
+  "dru smith": {
+    "id": "1630696",
+    "name": "Dru Smith",
+    "team": "MIA",
+    "position": null
+  },
+  "jalen smith": {
+    "id": "1630188",
+    "name": "Jalen Smith",
+    "team": "CHI",
+    "position": null
+  },
+  "malachi smith": {
+    "id": "1641869",
+    "name": "Malachi Smith",
+    "team": "BKN",
+    "position": null
+  },
+  "tolu smith": {
+    "id": "1642449",
+    "name": "Tolu Smith",
+    "team": "DET",
+    "position": null
+  },
+  "tyler smith": {
+    "id": "1641890",
+    "name": "Tyler Smith",
+    "team": "DAL",
+    "position": null
+  },
+  "jabari smith": {
+    "id": "1631095",
+    "name": "Jabari Smith Jr.",
+    "team": "HOU",
+    "position": null
+  },
+  "nick smith": {
+    "id": "1641733",
+    "name": "Nick Smith Jr.",
+    "team": "LAL",
+    "position": null
+  },
+  "jeremy sochan": {
+    "id": "1631110",
+    "name": "Jeremy Sochan",
+    "team": "NYK",
+    "position": null
+  },
+  "thomas sorber": {
+    "id": "1642850",
+    "name": "Thomas Sorber",
+    "team": "OKC",
+    "position": null
+  },
+  "cam spencer": {
+    "id": "1642285",
+    "name": "Cam Spencer",
+    "team": "MEM",
+    "position": null
+  },
+  "pat spencer": {
+    "id": "1630311",
+    "name": "Pat Spencer",
+    "team": "GSW",
+    "position": null
+  },
+  "isaiah stevens": {
+    "id": "1641815",
+    "name": "Isaiah Stevens",
+    "team": "SAC",
+    "position": null
+  },
+  "isaiah stewart": {
+    "id": "1630191",
+    "name": "Isaiah Stewart",
+    "team": "DET",
+    "position": null
+  },
+  "julian strawther": {
+    "id": "1631124",
+    "name": "Julian Strawther",
+    "team": "DEN",
+    "position": null
+  },
+  "max strus": {
+    "id": "1629622",
+    "name": "Max Strus",
+    "team": "CLE",
+    "position": null
+  },
+  "jalen suggs": {
+    "id": "1630591",
+    "name": "Jalen Suggs",
+    "team": "ORL",
+    "position": null
+  },
+  "jaesean tate": {
+    "id": "1630256",
+    "name": "Jae'Sean Tate",
+    "team": "HOU",
+    "position": null
+  },
+  "jayson tatum": {
+    "id": "1628369",
+    "name": "Jayson Tatum",
+    "team": "BOS",
+    "position": null
+  },
+  "jahmyl telfort": {
+    "id": "1643141",
+    "name": "Jahmyl Telfort",
+    "team": null,
+    "position": null
+  },
+  "garrett temple": {
+    "id": "202066",
+    "name": "Garrett Temple",
+    "team": "TOR",
+    "position": null
+  },
+  "dalen terry": {
+    "id": "1631207",
+    "name": "Dalen Terry",
+    "team": "PHI",
+    "position": null
+  },
+  "adou thiero": {
+    "id": "1642876",
+    "name": "Adou Thiero",
+    "team": "LAL",
+    "position": null
+  },
+  "cam thomas": {
+    "id": "1630560",
+    "name": "Cam Thomas",
+    "team": null,
+    "position": null
+  },
+  "amen thompson": {
+    "id": "1641708",
+    "name": "Amen Thompson",
+    "team": "HOU",
+    "position": null
+  },
+  "ausar thompson": {
+    "id": "1641709",
+    "name": "Ausar Thompson",
+    "team": "DET",
+    "position": null
+  },
+  "ethan thompson": {
+    "id": "1630679",
+    "name": "Ethan Thompson",
+    "team": "IND",
+    "position": null
+  },
+  "klay thompson": {
+    "id": "202691",
+    "name": "Klay Thompson",
+    "team": "DAL",
+    "position": null
+  },
+  "matisse thybulle": {
+    "id": "1629680",
+    "name": "Matisse Thybulle",
+    "team": "POR",
+    "position": null
+  },
+  "xavier tillman": {
+    "id": "1630214",
+    "name": "Xavier Tillman",
+    "team": "CHA",
+    "position": null
+  },
+  "drew timme": {
+    "id": "1631166",
+    "name": "Drew Timme",
+    "team": "LAL",
+    "position": null
+  },
+  "naeqwan tomlin": {
+    "id": "1641772",
+    "name": "Nae'Qwan Tomlin",
+    "team": "CLE",
+    "position": null
+  },
+  "john tonje": {
+    "id": "1642910",
+    "name": "John Tonje",
+    "team": "BOS",
+    "position": null
+  },
+  "nikola topic": {
+    "id": "1642260",
+    "name": "Nikola Topić",
+    "team": "OKC",
+    "position": null
+  },
+  "jacob toppin": {
+    "id": "1631210",
+    "name": "Jacob Toppin",
+    "team": null,
+    "position": null
+  },
+  "obi toppin": {
+    "id": "1630167",
+    "name": "Obi Toppin",
+    "team": "IND",
+    "position": null
+  },
+  "karl-anthony towns": {
+    "id": "1626157",
+    "name": "Karl-Anthony Towns",
+    "team": "NYK",
+    "position": null
+  },
+  "nolan traore": {
+    "id": "1642849",
+    "name": "Nolan Traore",
+    "team": "BKN",
+    "position": null
+  },
+  "luke travers": {
+    "id": "1631247",
+    "name": "Luke Travers",
+    "team": null,
+    "position": null
+  },
+  "gary trent": {
+    "id": "1629018",
+    "name": "Gary Trent Jr.",
+    "team": "MIL",
+    "position": null
+  },
+  "oscar tshiebwe": {
+    "id": "1631131",
+    "name": "Oscar Tshiebwe",
+    "team": "UTA",
+    "position": null
+  },
+  "myles turner": {
+    "id": "1626167",
+    "name": "Myles Turner",
+    "team": "MIL",
+    "position": null
+  },
+  "hunter tyson": {
+    "id": "1641816",
+    "name": "Hunter Tyson",
+    "team": null,
+    "position": null
+  },
+  "jaylon tyson": {
+    "id": "1642281",
+    "name": "Jaylon Tyson",
+    "team": "CLE",
+    "position": null
+  },
+  "stanley umude": {
+    "id": "1630649",
+    "name": "Stanley Umude",
+    "team": null,
+    "position": null
+  },
+  "jonas valanciunas": {
+    "id": "202685",
+    "name": "Jonas Valančiūnas",
+    "team": "DEN",
+    "position": null
+  },
+  "fred vanvleet": {
+    "id": "1627832",
+    "name": "Fred VanVleet",
+    "team": "HOU",
+    "position": null
+  },
+  "jarred vanderbilt": {
+    "id": "1629020",
+    "name": "Jarred Vanderbilt",
+    "team": "LAL",
+    "position": null
+  },
+  "devin vassell": {
+    "id": "1630170",
+    "name": "Devin Vassell",
+    "team": "SAS",
+    "position": null
+  },
+  "gabe vincent": {
+    "id": "1629216",
+    "name": "Gabe Vincent",
+    "team": "ATL",
+    "position": null
+  },
+  "tristan vukcevic": {
+    "id": "1641774",
+    "name": "Tristan Vukcevic",
+    "team": "WAS",
+    "position": null
+  },
+  "nikola vucevic": {
+    "id": "202696",
+    "name": "Nikola Vučević",
+    "team": "BOS",
+    "position": null
+  },
+  "dean wade": {
+    "id": "1629731",
+    "name": "Dean Wade",
+    "team": "CLE",
+    "position": null
+  },
+  "franz wagner": {
+    "id": "1630532",
+    "name": "Franz Wagner",
+    "team": "ORL",
+    "position": null
+  },
+  "moritz wagner": {
+    "id": "1629021",
+    "name": "Moritz Wagner",
+    "team": "ORL",
+    "position": null
+  },
+  "jabari walker": {
+    "id": "1631133",
+    "name": "Jabari Walker",
+    "team": "PHI",
+    "position": null
+  },
+  "jarace walker": {
+    "id": "1641716",
+    "name": "Jarace Walker",
+    "team": "IND",
+    "position": null
+  },
+  "cason wallace": {
+    "id": "1641717",
+    "name": "Cason Wallace",
+    "team": "OKC",
+    "position": null
+  },
+  "keaton wallace": {
+    "id": "1630811",
+    "name": "Keaton Wallace",
+    "team": "ATL",
+    "position": null
+  },
+  "jordan walsh": {
+    "id": "1641775",
+    "name": "Jordan Walsh",
+    "team": "BOS",
+    "position": null
+  },
+  "jakobe walter": {
+    "id": "1642266",
+    "name": "Ja'Kobe Walter",
+    "team": "TOR",
+    "position": null
+  },
+  "kelel ware": {
+    "id": "1642276",
+    "name": "Kel'el Ware",
+    "team": "MIA",
+    "position": null
+  },
+  "pj washington": {
+    "id": "1629023",
+    "name": "P.J. Washington",
+    "team": "DAL",
+    "position": null
+  },
+  "tyty washington": {
+    "id": "1631102",
+    "name": "TyTy Washington Jr.",
+    "team": "LAC",
+    "position": null
+  },
+  "lindy waters": {
+    "id": "1630322",
+    "name": "Lindy Waters III",
+    "team": "SAS",
+    "position": null
+  },
+  "trendon watford": {
+    "id": "1630570",
+    "name": "Trendon Watford",
+    "team": "PHI",
+    "position": null
+  },
+  "jamir watkins": {
+    "id": "1642364",
+    "name": "Jamir Watkins",
+    "team": "WAS",
+    "position": null
+  },
+  "peyton watson": {
+    "id": "1631212",
+    "name": "Peyton Watson",
+    "team": "DEN",
+    "position": null
+  },
+  "jaylen wells": {
+    "id": "1642377",
+    "name": "Jaylen Wells",
+    "team": "MEM",
+    "position": null
+  },
+  "victor wembanyama": {
+    "id": "1641705",
+    "name": "Victor Wembanyama",
+    "team": "SAS",
+    "position": null
+  },
+  "blake wesley": {
+    "id": "1631104",
+    "name": "Blake Wesley",
+    "team": "POR",
+    "position": null
+  },
+  "russell westbrook": {
+    "id": "201566",
+    "name": "Russell Westbrook",
+    "team": "SAC",
+    "position": null
+  },
+  "coby white": {
+    "id": "1629632",
+    "name": "Coby White",
+    "team": "CHA",
+    "position": null
+  },
+  "derrick white": {
+    "id": "1628401",
+    "name": "Derrick White",
+    "team": "BOS",
+    "position": null
+  },
+  "dariq whitehead": {
+    "id": "1641727",
+    "name": "Dariq Whitehead",
+    "team": null,
+    "position": null
+  },
+  "cam whitmore": {
+    "id": "1641715",
+    "name": "Cam Whitmore",
+    "team": "WAS",
+    "position": null
+  },
+  "aaron wiggins": {
+    "id": "1630598",
+    "name": "Aaron Wiggins",
+    "team": "OKC",
+    "position": null
+  },
+  "andrew wiggins": {
+    "id": "203952",
+    "name": "Andrew Wiggins",
+    "team": "MIA",
+    "position": null
+  },
+  "alondes williams": {
+    "id": "1631214",
+    "name": "Alondes Williams",
+    "team": null,
+    "position": null
+  },
+  "amari williams": {
+    "id": "1642873",
+    "name": "Amari Williams",
+    "team": "BOS",
+    "position": null
+  },
+  "brandon williams": {
+    "id": "1630314",
+    "name": "Brandon Williams",
+    "team": "DAL",
+    "position": null
+  },
+  "cody williams": {
+    "id": "1642262",
+    "name": "Cody Williams",
+    "team": "UTA",
+    "position": null
+  },
+  "grant williams": {
+    "id": "1629684",
+    "name": "Grant Williams",
+    "team": "CHA",
+    "position": null
+  },
+  "jalen williams": {
+    "id": "1631114",
+    "name": "Jalen Williams",
+    "team": "OKC",
+    "position": null
+  },
+  "jaylin williams": {
+    "id": "1631119",
+    "name": "Jaylin Williams",
+    "team": "OKC",
+    "position": null
+  },
+  "kenrich williams": {
+    "id": "1629026",
+    "name": "Kenrich Williams",
+    "team": "OKC",
+    "position": null
+  },
+  "mark williams": {
+    "id": "1631109",
+    "name": "Mark Williams",
+    "team": "PHX",
+    "position": null
+  },
+  "nate williams": {
+    "id": "1631466",
+    "name": "Nate Williams",
+    "team": "GSW",
+    "position": null
+  },
+  "patrick williams": {
+    "id": "1630172",
+    "name": "Patrick Williams",
+    "team": "CHI",
+    "position": null
+  },
+  "ziaire williams": {
+    "id": "1630533",
+    "name": "Ziaire Williams",
+    "team": "BKN",
+    "position": null
+  },
+  "robert williams": {
+    "id": "1629057",
+    "name": "Robert Williams III",
+    "team": "POR",
+    "position": null
+  },
+  "vince williams": {
+    "id": "1631246",
+    "name": "Vince Williams Jr.",
+    "team": null,
+    "position": null
+  },
+  "lucas williamson": {
+    "id": "1631351",
+    "name": "Lucas Williamson",
+    "team": null,
+    "position": null
+  },
+  "zion williamson": {
+    "id": "1629627",
+    "name": "Zion Williamson",
+    "team": "NOP",
+    "position": null
+  },
+  "jalen wilson": {
+    "id": "1630592",
+    "name": "Jalen Wilson",
+    "team": "BKN",
+    "position": null
+  },
+  "james wiseman": {
+    "id": "1630164",
+    "name": "James Wiseman",
+    "team": null,
+    "position": null
+  },
+  "danny wolf": {
+    "id": "1642874",
+    "name": "Danny Wolf",
+    "team": "BKN",
+    "position": null
+  },
+  "guerschon yabusele": {
+    "id": "1627824",
+    "name": "Guerschon Yabusele",
+    "team": "CHI",
+    "position": null
+  },
+  "yang hansen": {
+    "id": "1642905",
+    "name": "Yang Hansen",
+    "team": "POR",
+    "position": null
+  },
+  "jahmir young": {
+    "id": "1642443",
+    "name": "Jahmir Young",
+    "team": "MIA",
+    "position": null
+  },
+  "trae young": {
+    "id": "1629027",
+    "name": "Trae Young",
+    "team": "WAS",
+    "position": null
+  },
+  "chris youngblood": {
+    "id": "1642959",
+    "name": "Chris Youngblood",
+    "team": "POR",
+    "position": null
+  },
+  "omer yurtseven": {
+    "id": "1630209",
+    "name": "Omer Yurtseven",
+    "team": null,
+    "position": null
+  },
+  "rocco zikarsky": {
+    "id": "1642911",
+    "name": "Rocco Zikarsky",
+    "team": "MIN",
+    "position": null
+  },
+  "ivica zubac": {
+    "id": "1627826",
+    "name": "Ivica Zubac",
+    "team": "IND",
+    "position": null
+  },
+  "tristan da silva": {
+    "id": "1641783",
+    "name": "Tristan da Silva",
+    "team": "ORL",
+    "position": null
+  }
+}
