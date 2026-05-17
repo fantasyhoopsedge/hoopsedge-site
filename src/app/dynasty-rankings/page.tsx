@@ -11,7 +11,7 @@ const EXPERT_NAMES: Record<string, string> = {
   matt: "MATT",
   dizzle: "DIZZLE",
   angle: "ANGLE",
-  jason: "JASON",
+  mball: "MBALL",
   hashtag: "HASHTAG",
   noah: "NOAH",
 };
@@ -20,7 +20,7 @@ const EXPERT_DATES: Record<string, string> = {
   matt: "Feb 2026",
   dizzle: "Apr 2026",
   angle: "May 2026",
-  jason: "Dec 2025",
+  mball: "May 2026",
   hashtag: "2025-26",
   noah: "Jan 2026",
 };
