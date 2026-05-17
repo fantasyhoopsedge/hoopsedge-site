@@ -67,7 +67,7 @@ export interface DynastyPlayer {
     matt?: number;
     dizzle?: number;
     angle?: number;
-    jason?: number;
+    mball?: number;
     hashtag?: number;
     noah?: number;
   };

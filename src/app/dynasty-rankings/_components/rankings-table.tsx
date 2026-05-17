@@ -8,7 +8,7 @@ const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wi
   { key: "matt", label: "MATT" },
   { key: "dizzle", label: "DIZZLE" },
   { key: "angle", label: "ANGLE" },
-  { key: "jason", label: "JASON" },
+  { key: "mball", label: "MBALL" },
   { key: "hashtag", label: "HASHTAG", wide: true },
   { key: "noah", label: "NOAH" },
 ];
@@ -24,7 +24,7 @@ export type SortKey =
   | "expert:matt"
   | "expert:dizzle"
   | "expert:angle"
-  | "expert:jason"
+  | "expert:mball"
   | "expert:hashtag"
   | "expert:noah";
 
