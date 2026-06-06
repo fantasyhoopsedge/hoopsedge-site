@@ -5,12 +5,11 @@ import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/
 import { PositionBadge } from "./position-badge";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
-  { key: "matt", label: "MATT" },
   { key: "dizzle", label: "DIZZLE" },
   { key: "angle", label: "ANGLE" },
   { key: "mball", label: "MBALL" },
   { key: "hashtag", label: "HASHTAG", wide: true },
-  { key: "noah", label: "NOAH" },
+  { key: "dynatyze", label: "DYNATYZE", wide: true },
 ];
 
 export type SortKey =
@@ -21,12 +20,11 @@ export type SortKey =
   | "age"
   | "avgRank"
   | "tier"
-  | "expert:matt"
   | "expert:dizzle"
   | "expert:angle"
   | "expert:mball"
   | "expert:hashtag"
-  | "expert:noah";
+  | "expert:dynatyze";
 
 function teamPillClass(team: string) {
   if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
