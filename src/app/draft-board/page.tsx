@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, Fragment } from "react";
+import { useState, Fragment } from "react";
 import { SiteNav } from "@/components/site-nav";
 
 // ============================================================
@@ -119,7 +119,7 @@ function tierInfo(tier: number): { color: string; label: string } {
 }
 
 function toKebabName(name: string): string {
-  return name.toLowerCase().replace(/\./g, "").replace(/\s+/g, "-");
+  return name.toLowerCase().replace(/[.,']/g, "").replace(/\s+/g, "-");
 }
 
 function getInitials(name: string): string {
@@ -128,43 +128,35 @@ function getInitials(name: string): string {
 }
 
 function ProspectHeadshot({ name }: { name: string }) {
-  const [errored, setErrored] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
   const kebabName = toKebabName(name);
   const initials = getInitials(name);
 
-  useEffect(() => {
-    const img = imgRef.current;
-    if (img && img.complete && img.naturalWidth === 0) {
-      setErrored(true);
-    }
-  }, []);
-
   const circleStyle: React.CSSProperties = {
-    width: 44, height: 44, borderRadius: "50%", flexShrink: 0,
+    width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
   };
 
-  if (errored) {
-    return (
+  return (
+    <div style={{ position: "relative", ...circleStyle }}>
+      <img
+        src={`/images/prospects/${kebabName}.jpg`}
+        alt={name}
+        width={48}
+        height={48}
+        style={{ ...circleStyle, objectFit: "cover", display: "block" }}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = "none";
+          const fallback = (e.currentTarget as HTMLImageElement).nextElementSibling as HTMLElement;
+          if (fallback) fallback.style.display = "flex";
+        }}
+      />
       <div style={{
         ...circleStyle,
-        background: "var(--blueprint)", color: "white",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: "12px", fontWeight: 700,
+        background: "#2563EB", color: "white",
+        display: "none", alignItems: "center", justifyContent: "center",
+        fontSize: "13px", fontWeight: 700,
+        position: "absolute", top: 0, left: 0,
       }}>{initials}</div>
-    );
-  }
-
-  return (
-    <img
-      ref={imgRef}
-      src={`/images/prospects/${kebabName}.jpg`}
-      alt={name}
-      width={44}
-      height={44}
-      style={{ ...circleStyle, objectFit: "cover", display: "block" }}
-      onError={() => setErrored(true)}
-    />
+    </div>
   );
 }
 
