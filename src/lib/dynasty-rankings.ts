@@ -64,12 +64,11 @@ export interface DynastyPlayer {
   position: DynastyPosition;
   age: number | null;
   expertRanks: {
-    matt?: number;
     dizzle?: number;
     angle?: number;
     mball?: number;
     hashtag?: number;
-    noah?: number;
+    dynatyze?: number;
   };
   avgRank: number;
   rankedByCount: number;

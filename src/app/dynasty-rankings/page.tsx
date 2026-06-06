@@ -8,21 +8,19 @@ import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
 
 const EXPERT_NAMES: Record<string, string> = {
-  matt: "MATT",
   dizzle: "DIZZLE",
   angle: "ANGLE",
   mball: "MBALL",
   hashtag: "HASHTAG",
-  noah: "NOAH",
+  dynatyze: "DYNATYZE",
 };
 
 const EXPERT_DATES: Record<string, string> = {
-  matt: "Feb 2026",
   dizzle: "Apr 2026",
   angle: "May 2026",
   mball: "May 2026",
   hashtag: "2025-26",
-  noah: "Jan 2026",
+  dynatyze: "Daily",
 };
 
 function normalizeSearch(s: string) {

@@ -24,12 +24,11 @@ const RANGE_OPTIONS: { key: RankRangeKey; label: string }[] = [
 
 const EXPERT_OPTIONS = [
   { key: "", label: "All Experts" },
-  { key: "matt", label: "Matt" },
   { key: "dizzle", label: "Dizzle" },
   { key: "angle", label: "Angle" },
   { key: "mball", label: "MBall" },
   { key: "hashtag", label: "Hashtag" },
-  { key: "noah", label: "Noah" },
+  { key: "dynatyze", label: "Dynatyze" },
 ] as const;
 
 export function ControlsBar(props: {
