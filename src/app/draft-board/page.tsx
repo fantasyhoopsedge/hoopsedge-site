@@ -86,14 +86,78 @@ const DRAFT_BOARD = [
   { rank: 26, pick: "1.26", name: "Meleek Thomas", school: "Arkansas", pos: "G", tier: 6, age: 20, ht: '6\'5"',
     pts: "3★", reb: "2★", ast: "3★", stl: "5★", blk: "1★", fg: "2★", ft: "4★", tpm: "5★", to: "4★",
     verdict: "Elite STL and elite 3PM — two category pillars. An excellent complementary player with a unique shotmaking touch — outstanding off-ball defence, movement skills and an innate ability to jump passing lanes. A low-noise, high-value profile." },
-  { rank: 27, pick: "1.27", name: "Richie Saunders", school: "BYU", pos: "G", tier: 6, age: 25, ht: '6\'5"' },
+  { rank: 27, pick: "1.27", name: "Richie Saunders", school: "BYU", pos: "G", tier: 6, age: 25, ht: '6\'5"',
+    pts: "4★", reb: "3★", ast: "3★", stl: "5★", blk: "2★", fg: "3★", ft: "4★", tpm: "5★", to: "3★",
+    verdict: "Elite STL and elite 3PM — two category pillars. A hyper-efficient role player with a relentless motor and high-percentage perimeter shooting that translates to any system. The defensive activity and shooting consistency are exactly what contending rosters need. Age 24.3 compresses the dynasty runway but the production is immediate." },
   { rank: 28, pick: "1.28", name: "Isaiah Evans", school: "Duke", pos: "G/F", tier: 6, age: 21, ht: '6\'11"',
     pts: "3★", reb: "2★", ast: "2★", stl: "2★", blk: "3★", fg: "2★", ft: "4★", tpm: "4★", to: "4★",
     verdict: "A tough, physical movement shooter whose grit and competitiveness stand out on tape — shoots more threes per minute than anyone in the class. The dynasty floor rises and falls with three-point shooting." },
   { rank: 29, pick: "1.29", name: "Koa Peat", school: "Arizona", pos: "F", tier: 6, age: 19, ht: '6\'8"',
     pts: "3★", reb: "3★", ast: "3★", stl: "1★", blk: "3★", fg: "4★", ft: "1★", tpm: "1★", to: "3★",
     verdict: "A physical presence with real strength and rebounding — shows flashes of mid-range touch and the ability to impact games through interior physicality. A physicality-and-scoring development play." },
-  { rank: 30, pick: "1.30", name: "Henri Veesaar", school: "North Carolina", pos: "F/C", tier: 6, age: 22, ht: '7\'0"' },
+  { rank: 30, pick: "1.30", name: "Henri Veesaar", school: "North Carolina", pos: "F/C", tier: 7, age: 22, ht: '7\'0"',
+    pts: "4★", reb: "4★", ast: "3★", stl: "1★", blk: "4★", fg: "5★", ft: "1★", tpm: "4★", to: "3★",
+    verdict: "Elite FG% at 60.8% — a 7'0\" stretch big who shot 43% from three on nearly 100 attempts and posted 13 double-doubles. A skilled, mobile center with a soft shooting touch from mid-range and beyond the arc — fits the inside-out template every roster is hunting for. The shooting at his size is the dynasty calling card." },
+  { rank: 31, pick: "1.31", name: "Dillon Mitchell", school: "SJU", pos: "F", tier: 7, age: 22, ht: '6\'8"',
+    pts: "2★", reb: "4★", ast: "3★", stl: "4★", blk: "4★", fg: "5★", ft: "1★", tpm: "1★", to: "4★",
+    verdict: "Elite FG% — finishes everything at the rim and almost never settles for jumpers. A relentless motor on the glass and a surprisingly gifted connective passer for a forward, with an assist-to-turnover ratio that ranked top-15 nationally. The rebounding, steals and efficiency travel. A glue-guy profile that wins category weeks without needing the ball." },
+  { rank: 32, pick: "1.32", name: "Ja'Kobi Gillespie", school: "TENN", pos: "G", tier: 7, age: 22, ht: '6\'1"',
+    pts: "3★", reb: "2★", ast: "4★", stl: "4★", blk: "2★", fg: "2★", ft: "4★", tpm: "4★", to: "2★",
+    verdict: "Set Tennessee's single-season steals record (79) and became the first player in SEC history with 200 assists and 100 made threes in a season. A microwave lead guard with deep range and quick hands, the rare profile that anchors both the assist and steal columns while chipping in triples and free-throw percentage. Size is the NBA question; the category production is not." },
+  { rank: 33, pick: "1.33", name: "Ryan Conwell", school: "LOU", pos: "G", tier: 7, age: 22, ht: '6\'4"',
+    pts: "4★", reb: "2★", ast: "3★", stl: "3★", blk: "1★", fg: "1★", ft: "4★", tpm: "4★", to: "3★",
+    verdict: "One of the highest three-point volumes in the country at nearly 10 attempts per game, paired with a reliable 83% from the line. A pure movement shooter who lives at the rim and beyond the arc, almost never settling for long twos. The shooting gravity and free-throw efficiency are the dynasty anchors. A specialist whose one elite skill is the most portable in the modern game." },
+  { rank: 34, pick: "1.34", name: "Joshua Jefferson", school: "ISU", pos: "F", tier: 7, age: 22, ht: '6\'8"',
+    pts: "3★", reb: "3★", ast: "5★", stl: "5★", blk: "4★", fg: "3★", ft: "2★", tpm: "3★", to: "3★",
+    verdict: "Elite AST and elite STL — a 6'8\", 246-pound point-forward with elite passing, a high basketball IQ and multi-positional defence. The only player in Big 12 history to post 450+ points, 250+ rebounds, 100+ assists, 70+ steals and 25+ blocks in a season. A Denzel Valentine-style stat-stuffer whose all-around production fills every column on the sheet. Few forwards in this class carry this many categories." },
+  { rank: 35, pick: "1.35", name: "Chris Cenac Jr", school: "HOU", pos: "C", tier: 7, age: 19, ht: '6\'11"',
+    pts: "2★", reb: "4★", ast: "2★", stl: "3★", blk: "2★", fg: "3★", ft: "1★", tpm: "3★", to: "3★",
+    verdict: "Led Houston in rebounding as a freshman, the first to do so since 2011-12, with a career-high 18-board NCAA Tournament game. A mobile 6'11\" big with a 7'4\" wingspan who finishes as a lob and roll threat and has flashed three-point range. The youngest player in this tier and the only true freshman — the rebounding floor and developing shooting touch give him the longest dynasty runway of the group." },
+  { rank: 36, pick: "1.36", name: "Luigi Suigo", school: "INTL", pos: "F/C", tier: 7, age: 19, ht: '6\'9"',
+    pts: "2★", reb: "4★", ast: "2★", stl: "3★", blk: "4★", fg: "4★", ft: "3★", tpm: "3★", to: "3★",
+    verdict: "An international forward with a versatile defensive profile — the length and instincts to switch across multiple positions. The offensive development is still early but the defensive tools and rebounding foundation give him a floor to build on. A patient development hold." },
+  { rank: 37, pick: "1.37", name: "Baba Miller", school: "MICH", pos: "F", tier: 7, age: 21, ht: '6\'10"',
+    pts: "2★", reb: "4★", ast: "2★", stl: "3★", blk: "4★", fg: "4★", ft: "2★", tpm: "2★", to: "2★",
+    verdict: "A 6'10\" forward with a 7'1\" wingspan and a wing-like skill set in a big man's body — fluid ball-handling and elite recovery speed have scouts pushing him well into the first round. The physical tools and defensive versatility are rare at his size. The production hasn't matched the physical profile yet — a ceiling play built on the belief that ball skills catch up to the frame." },
+  { rank: 38, pick: "1.38", name: "Jaden Bradley", school: "IND", pos: "G", tier: 7, age: 21, ht: '6\'4"',
+    pts: "3★", reb: "2★", ast: "4★", stl: "4★", blk: "2★", fg: "3★", ft: "3★", tpm: "2★", to: "3★",
+    verdict: "A crafty, pass-first guard with active hands and defensive disruption — the playmaking instincts and steal creation are the dynasty calling cards. The shooting needs significant development before the full multi-category profile unlocks. A high-floor, moderate-ceiling prospect." },
+  { rank: 39, pick: "1.39", name: "Braden Smith", school: "PUR", pos: "G", tier: 8, age: 22, ht: '6\'1"',
+    pts: "2★", reb: "2★", ast: "5★", stl: "5★", blk: "1★", fg: "2★", ft: "4★", tpm: "5★", to: "3★",
+    verdict: "Elite AST, elite STL and elite 3PM — three category pillars from Purdue's floor general. One of the most complete point guard profiles in the class — anchors three columns while shooting efficiently from deep. The scoring and rebounding are limited by size but the playmaking, defensive activity and shooting translate at any level." },
+  { rank: 40, pick: "1.40", name: "Darrion Williams", school: "NCSU", pos: "F", tier: 8, age: 22, ht: '6\'6"',
+    pts: "4★", reb: "3★", ast: "3★", stl: "3★", blk: "2★", fg: "3★", ft: "4★", tpm: "4★", to: "3★",
+    verdict: "A versatile, productive wing whose value comes from contributing across multiple categories without a glaring weakness — scoring, shooting and free-throw efficiency all register. No single elite anchor but the balanced profile plays in every format. A steady, low-variance contributor." },
+  { rank: 41, pick: "1.41", name: "Bruce Thornton", school: "OSU", pos: "G", tier: 8, age: 22, ht: '6\'2"',
+    pts: "4★", reb: "2★", ast: "4★", stl: "3★", blk: "2★", fg: "3★", ft: "4★", tpm: "3★", to: "4★",
+    verdict: "A steady, high-IQ guard with scoring punch and playmaking vision — the type of backcourt piece who keeps the stat sheet balanced across multiple categories. No single elite anchor but the consistency and floor are real. Age and shooting development will determine the dynasty ceiling." },
+  { rank: 42, pick: "1.42", name: "Ugonna Onyenso", school: "KEN", pos: "C", tier: 8, age: 22, ht: '7\'0"',
+    pts: "2★", reb: "4★", ast: "2★", stl: "3★", blk: "5★", fg: "4★", ft: "2★", tpm: "2★", to: "4★",
+    verdict: "Elite BLK — a true rim protector whose shot-blocking rate is among the best in the class. The defensive impact anchors the entire profile. Offensively limited — the scoring and shooting will not carry dynasty value. A specialist whose one elite skill is genuinely impactful in category leagues." },
+  { rank: 43, pick: "1.43", name: "Alex Karaban", school: "UCONN", pos: "F", tier: 8, age: 23, ht: '6\'8"',
+    pts: "2★", reb: "2★", ast: "3★", stl: "2★", blk: "3★", fg: "3★", ft: "5★", tpm: "5★", to: "3★",
+    verdict: "Elite FT% and elite 3PM — two category pillars built on shooting efficiency. A 6'8\" forward who stretches the floor from every spot and converts at the line at an elite rate. The shooting translates immediately. Age 23.2 compresses the dynasty runway — the production is ready-made, the timeline is short." },
+  { rank: 44, pick: "1.44", name: "Trevon Brazile", school: "ARK", pos: "F/C", tier: 8, age: 24, ht: '6\'10"',
+    pts: "2★", reb: "3★", ast: "2★", stl: "5★", blk: "5★", fg: "4★", ft: "3★", tpm: "2★", to: "3★",
+    verdict: "Elite STL and elite BLK — a rare dual-defensive anchor at 6'10\" with near-7'4\" wingspan and a 41\" max vertical. The athletic ceiling is massive and the defensive rebound rate confirms the motor is real. A growing divide exists on whether the ball skills can catch up to the raw physical gifts — the defensive production is not a projection. It's already there." },
+  { rank: 45, pick: "1.45", name: "Jack Kayil", school: "INTL", pos: "G", tier: 8, age: 20, ht: '6\'5"',
+    pts: "4★", reb: "2★", ast: "5★", stl: "4★", blk: "1★", fg: "1★", ft: "3★", tpm: "2★", to: "3★",
+    verdict: "Elite AST — a playmaking guard who led Germany to a FIBA U19 silver medal with 6.6 APG and earned BBL Best Young Player honours at 20 years old against professionals nearly a decade his senior. The passing and ball skills are genuine. FG% and 3PM are the severe category drags — 40% from the field and 34% from deep need significant improvement at NBA level. A development play built on playmaking upside and age." },
+  { rank: 46, pick: "1.46", name: "Rafael Castro", school: "INTL", pos: "C", tier: 8, age: 24, ht: '6\'11"',
+    pts: "3★", reb: "5★", ast: "2★", stl: "4★", blk: "4★", fg: "5★", ft: "2★", tpm: "1★", to: "3★",
+    verdict: "Elite REB and elite FG% — two genuine category anchors. A physical, imposing center who dominates the glass and finishes at an elite rate around the rim. A non-shooter — the 3PM is absent. The dynasty case is built entirely on rebounding and efficiency as a traditional interior big." },
+  { rank: 47, pick: "1.47", name: "Sergio De Larrea", school: "INTL", pos: "G", tier: 8, age: 20, ht: '6\'6"',
+    pts: "3★", reb: "2★", ast: "5★", stl: "2★", blk: "2★", fg: "3★", ft: "3★", tpm: "3★", to: "1★",
+    verdict: "Elite AST — a creative, high-feel playmaker out of Valencia whose passing vision and court sense are the standout traits. The scoring and size are limited. A specialist point guard whose dynasty value lives and dies with assist volume and whether he earns NBA minutes." },
+  { rank: 48, pick: "1.48", name: "Duke Miles", school: "INTL", pos: "G", tier: 8, age: 20, ht: '6\'5"',
+    pts: "3★", reb: "2★", ast: "4★", stl: "4★", blk: "2★", fg: "3★", ft: "4★", tpm: "3★", to: "3★",
+    verdict: "A well-rounded international guard whose passing and defensive activity stand out — the profile contributes across multiple categories without a glaring weakness. No single elite anchor but the balanced production and versatility create a solid multi-category floor." },
+  { rank: 49, pick: "1.49", name: "Quadir Copeland", school: "NCSU", pos: "G", tier: 8, age: 23, ht: '6\'6"',
+    pts: "3★", reb: "2★", ast: "5★", stl: "5★", blk: "2★", fg: "3★", ft: "3★", tpm: "5★", to: "3★",
+    verdict: "Elite AST, elite STL and elite 3PM — three category pillars. Led the ACC in assists at 6.5 per game while shooting 39.7% from three on volume. Set a career high of 16 assists in one game. The passing, defensive activity and shooting combine in a way that makes this profile one of the best values on the entire board at pick 49." },
+  { rank: 50, pick: "1.50", name: "Nick Martinelli", school: "NWST", pos: "F", tier: 8, age: 22, ht: '6\'6"',
+    pts: "4★", reb: "3★", ast: "2★", stl: "2★", blk: "2★", fg: "3★", ft: "3★", tpm: "2★", to: "4★",
+    verdict: "A back-to-back Big Ten scoring champion who shot 42% from three — a left-handed forward with elite footwork, mismatch-hunting ability in the post and genuine physicality. The scoring touch and shooting efficiency are the dynasty calling cards. A major value grab at this range whose offensive skill set is more polished than most forwards ranked above him." },
 ];
 
 const CATS = ["pts", "reb", "ast", "stl", "blk", "fg", "ft", "tpm", "to"] as const;
@@ -102,11 +166,12 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 function starStyle(star: string): { color: string; fontWeight: number } {
-  if (star === "5★") return { color: "#15803d",             fontWeight: 700 };
-  if (star === "4★") return { color: "var(--green-elite)",  fontWeight: 700 };
-  if (star === "3★") return { color: "var(--dynasty-gold)", fontWeight: 400 };
-  if (star === "2★") return { color: "white",               fontWeight: 400 };
-  return                    { color: "var(--red-severe)",   fontWeight: 700 };
+  const count = parseInt(star);
+  if (count === 5) return { color: "var(--green-elite)",  fontWeight: 700 };
+  if (count === 4) return { color: "#15803d",             fontWeight: 400 };
+  if (count === 3) return { color: "var(--dynasty-gold)", fontWeight: 400 };
+  if (count === 2) return { color: "white",               fontWeight: 400 };
+  return                  { color: "var(--red-severe)",   fontWeight: 700 };
 }
 
 function tierInfo(tier: number): { color: string; label: string } {
@@ -115,11 +180,13 @@ function tierInfo(tier: number): { color: string; label: string } {
   if (tier === 3) return { color: "var(--blueprint-glow)", label: "STARTER_HIGH_END_TIER" };
   if (tier === 4) return { color: "#9b5de5",               label: "STARTER_LOW_END_TIER" };
   if (tier === 5) return { color: "var(--edge-orange)",    label: "UPSIDE_TIER" };
-  return           { color: "#f72585",                     label: "ROTATION_TIER" };
+  if (tier === 6) return { color: "#f72585",               label: "ROTATION_TIER" };
+  if (tier === 7) return { color: "#00c8e0",               label: "PRIORITY_2ND_ROUNDER_TIER" };
+  return           { color: "#64748b",                     label: "NOT_FANTASY_RELEVANT_TIER" };
 }
 
 function toKebabName(name: string): string {
-  return name.toLowerCase().replace(/[.,']/g, "").replace(/\s+/g, "-");
+  return name.toLowerCase().replace(/[.,]/g, "").replace(/['\s]+/g, "-").replace(/-+/g, "-");
 }
 
 function getInitials(name: string): string {
