@@ -170,7 +170,7 @@ function starStyle(star: string): { color: string; fontWeight: number } {
   if (count === 5) return { color: "var(--green-elite)",  fontWeight: 700 };
   if (count === 4) return { color: "#15803d",             fontWeight: 400 };
   if (count === 3) return { color: "var(--dynasty-gold)", fontWeight: 400 };
-  if (count === 2) return { color: "white",               fontWeight: 400 };
+  if (count === 2) return { color: "var(--text-muted)",    fontWeight: 400 };
   return                  { color: "var(--red-severe)",   fontWeight: 700 };
 }
 

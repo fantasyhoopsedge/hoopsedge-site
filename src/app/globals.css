@@ -83,20 +83,20 @@
 
 /* LIGHT THEME */
 [data-theme="light"] {
-  --bg-body: #FAFAFA;
-  --bg-surface: #F5F5F5;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #F5F5F5;
-  --dr-row: #FFFFFF;
-  --dr-row-alt: #F5F5F5;
-  --bg-nav: rgba(255, 255, 255, 0.88);
-  --bg-ticker: #ffffff;
-  --border-main: #E0E0E0;
-  --border-light: #E0E0E0;
-  --text-primary: #1a1a1a;
-  --text-secondary: #666666;
-  --text-muted: #94a3b8;
-  --hero-bg: linear-gradient(180deg, #2563EB 0%, #1e40af 55%, #f8faff 100%);
+  --bg-body: #EEF2FF;
+  --bg-surface: #E0E7FF;
+  --bg-card: #F5F8FF;
+  --bg-card-hover: #EEF2FF;
+  --dr-row: #F5F8FF;
+  --dr-row-alt: #EEF2FF;
+  --bg-nav: rgba(10, 18, 48, 0.96);
+  --bg-ticker: #E0E7FF;
+  --border-main: rgba(37, 99, 235, 0.2);
+  --border-light: rgba(37, 99, 235, 0.15);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --hero-bg: linear-gradient(180deg, #2563EB 0%, #1e40af 55%, #EEF2FF 100%);
   --hero-text: #ffffff;
   --hero-sub: rgba(255,255,255,0.7);
   --hero-strong: rgba(255,255,255,0.95);
@@ -108,39 +108,39 @@
   --hero-link-hover: #ffffff;
   --hero-glow1: rgba(255,255,255,0.08);
   --hero-glow2: rgba(255,255,255,0.05);
-  --dbp-bg: #ffffff;
-  --dbp-row-hover: #eff6ff;
-  --dbp-border: #e2e8f0;
-  --dbp-footer-bg: #f8fafc;
+  --dbp-bg: #F5F8FF;
+  --dbp-row-hover: rgba(37, 99, 235, 0.08);
+  --dbp-border: rgba(37, 99, 235, 0.2);
+  --dbp-footer-bg: #E0E7FF;
   --dbp-name: #0f172a;
-  --dbp-pos: #94a3b8;
-  --tier-elite-bg: #f0fdf4;
-  --tier-elite-text: #16a34a;
-  --tier-pos-bg: #eff6ff;
-  --tier-pos-text: #2563eb;
-  --feature-icon-blue: #dbeafe;
-  --feature-icon-orange: #fff7ed;
-  --feature-icon-gold: #fefce8;
-  --feature-icon-green: #f0fdf4;
-  --tag-live-bg: #f0fdf4;
-  --tag-live-text: #16a34a;
-  --tag-new-bg: #eff6ff;
-  --tag-new-text: #2563eb;
-  --tag-soon-bg: #fefce8;
-  --tag-soon-text: #ca8a04;
-  --footer-bg: #ffffff;
-  --modal-bg: #ffffff;
+  --dbp-pos: #64748b;
+  --tier-elite-bg: rgba(34, 197, 94, 0.15);
+  --tier-elite-text: #15803d;
+  --tier-pos-bg: rgba(37, 99, 235, 0.15);
+  --tier-pos-text: #1d4ed8;
+  --feature-icon-blue: rgba(37, 99, 235, 0.15);
+  --feature-icon-orange: rgba(255, 107, 43, 0.14);
+  --feature-icon-gold: rgba(240, 192, 64, 0.14);
+  --feature-icon-green: rgba(34, 197, 94, 0.14);
+  --tag-live-bg: rgba(34, 197, 94, 0.15);
+  --tag-live-text: #15803d;
+  --tag-new-bg: rgba(37, 99, 235, 0.15);
+  --tag-new-text: #1d4ed8;
+  --tag-soon-bg: rgba(240, 192, 64, 0.15);
+  --tag-soon-text: #b45309;
+  --footer-bg: #E0E7FF;
+  --modal-bg: #F5F8FF;
   --modal-text: #0f172a;
-  --modal-sub: #475569;
-  --modal-input-bg: #ffffff;
-  --modal-input-border: #e2e8f0;
-  --modal-google-bg: #ffffff;
-  --modal-google-hover: #f8fafc;
+  --modal-sub: #334155;
+  --modal-input-bg: #EEF2FF;
+  --modal-input-border: rgba(37, 99, 235, 0.25);
+  --modal-google-bg: #EEF2FF;
+  --modal-google-hover: #E0E7FF;
   --modal-google-text: #0f172a;
-  --modal-google-border: #e2e8f0;
-  --modal-divider: #e2e8f0;
-  --shadow-card: 0 12px 40px rgba(0,0,0,0.08);
-  --shadow-board: 0 20px 60px rgba(0,0,0,0.1);
+  --modal-google-border: rgba(37, 99, 235, 0.2);
+  --modal-divider: rgba(37, 99, 235, 0.15);
+  --shadow-card: 0 12px 40px rgba(37, 99, 235, 0.08);
+  --shadow-board: 0 20px 60px rgba(37, 99, 235, 0.12);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -225,9 +225,7 @@ nav {
   max-width: 100%;
 }
 
-[data-theme="light"] .nav-info-strip-inner {
-  color: var(--text-muted);
-}
+/* nav-info-strip stays white — nav bg is dark in both themes */
 
 /* ===== HERO ===== */
 .hero {
@@ -2996,7 +2994,8 @@ body:has(.dr-rankings-shell) {
 }
 
 /* ===== LIGHT MODE COMPONENT OVERRIDES =====
-   These rules fix hardcoded dark-mode colours that don't adapt to light theme.
+   Nav is dark navy in light mode — white text applies everywhere.
+   Content areas use blue-tinted backgrounds.
 */
 
 /* Sticky table header: override hardcoded dark bg */
@@ -3004,15 +3003,34 @@ body:has(.dr-rankings-shell) {
   background-color: var(--bg-surface);
 }
 
-/* Player avatar: override hardcoded dark bg */
-[data-theme="light"] .dr-player-avatar {
-  background: #e2e8f0;
-  color: #475569;
+/* Nav: dark navy bg — override base text/border to white at all viewports */
+[data-theme="light"] .nav-brand {
+  color: rgba(255, 255, 255, 0.95);
+}
+[data-theme="light"] .nav-links a {
+  color: rgba(255, 255, 255, 0.72);
+}
+[data-theme="light"] .nav-links a:hover {
+  color: #ffffff;
+}
+[data-theme="light"] .theme-toggle {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.7);
+}
+[data-theme="light"] .theme-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #ffffff;
 }
 
-/* Team pill: lighter surface on light bg */
+/* Player avatar: blue-tinted in light mode */
+[data-theme="light"] .dr-player-avatar {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+/* Team pill: blue-tinted on light bg */
 [data-theme="light"] .dr-team-pill {
-  background: rgba(100, 116, 139, 0.14);
+  background: rgba(37, 99, 235, 0.1);
 }
 
 /* Player meta text: use themed colours instead of hardcoded dark-mode values */
@@ -3042,9 +3060,9 @@ body:has(.dr-rankings-shell) {
   color: var(--text-secondary);
 }
 
-/* Draft board desktop: school badge border designed for white text on dark — override in light */
+/* Draft board desktop: school badge border designed for white-on-dark */
 [data-theme="light"] .draft-board-shell .dbp-school {
-  border-color: rgba(0, 0, 0, 0.13);
+  border-color: rgba(37, 99, 235, 0.25);
   color: var(--text-primary);
 }
 
@@ -3056,20 +3074,4 @@ body:has(.dr-rankings-shell) {
 [data-theme="light"] .draft-board-shell .dbp-tier.tier-six {
   background: rgba(100, 116, 139, 0.14);
   color: #475569;
-}
-
-/* Mobile nav: brand + link text hardcoded white — invisible on light nav bg */
-[data-theme="light"] .home-nav .nav-brand {
-  color: var(--text-primary);
-}
-[data-theme="light"] .home-nav .nav-links > li:first-child a {
-  color: var(--text-secondary);
-}
-[data-theme="light"] .draft-board-shell .nav-brand,
-[data-theme="light"] .dr-rankings-shell .nav-brand {
-  color: var(--text-primary);
-}
-[data-theme="light"] .draft-board-shell .nav-links > li.nav-mobile-opposite-link a,
-[data-theme="light"] .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link a {
-  color: var(--text-secondary);
 }
