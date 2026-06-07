@@ -95,7 +95,7 @@ const DRAFT_BOARD = [
   { rank: 29, pick: "1.29", name: "Koa Peat", school: "Arizona", pos: "F", tier: 6, age: 19, ht: '6\'8"',
     pts: "3★", reb: "3★", ast: "3★", stl: "1★", blk: "3★", fg: "4★", ft: "1★", tpm: "1★", to: "3★",
     verdict: "A physical presence with real strength and rebounding — shows flashes of mid-range touch and the ability to impact games through interior physicality. A physicality-and-scoring development play." },
-  { rank: 30, pick: "1.30", name: "Henri Veesaar", school: "North Carolina", pos: "F/C", tier: 7, age: 22, ht: '7\'0"',
+  { rank: 30, pick: "1.30", name: "Henri Veesaar", school: "North Carolina", pos: "F/C", tier: 6, age: 22, ht: '7\'0"',
     pts: "4★", reb: "4★", ast: "3★", stl: "1★", blk: "4★", fg: "5★", ft: "1★", tpm: "4★", to: "3★",
     verdict: "Elite FG% at 60.8% — a 7'0\" stretch big who shot 43% from three on nearly 100 attempts and posted 13 double-doubles. A skilled, mobile center with a soft shooting touch from mid-range and beyond the arc — fits the inside-out template every roster is hunting for. The shooting at his size is the dynasty calling card." },
   { rank: 31, pick: "1.31", name: "Dillon Mitchell", school: "SJU", pos: "F", tier: 7, age: 22, ht: '6\'8"',
