@@ -61,14 +61,10 @@ export default function Home() {
       {/* HERO */}
       <section className="hero">
         <div className="hero-content">
-          <div className="hero-badge">
-            <span className="dot"></span>
-            2026 Dynasty Rankings Live
-          </div>
           <h1>
-            Dynasty Edge.<br />
-            <span className="line2">Built for Category Leagues.</span><br />
-            <span className="line3">Built for Deep Leagues.</span>
+            Fantasy Hoops Edge.<br />
+            <span className="line2">Built Different.</span><br />
+            <span className="line3">Built for Dynasty.</span>
           </h1>
           <p className="hero-sub">
             Dynasty rankings, rookie draft boards, and prospect analysis for serious{" "}
@@ -77,7 +73,6 @@ export default function Home() {
           <button className="btn-hero" onClick={() => setModalOpen(true)}>
             Get The Edge →
           </button>
-          <div className="hero-note">Free dynasty rankings and rookie boards.</div>
           <div className="hero-links">
             <a href="/dynasty-rankings">View Rankings →</a>
             <a href="/draft-board">2026 Draft Board →</a>
@@ -140,29 +135,22 @@ export default function Home() {
 
       {/* FEATURES */}
       <section style={{ padding: "100px 60px" }}>
-        <div className="section-label">What You Get</div>
-        <h2 className="section-title">Built Different.<br />Built for Dynasty.</h2>
-        <p className="section-desc">
-          AI-powered advice. Predictions Arena where you can test your fantasy knowledge against other players.
-        </p>
         <div className="features-grid">
           <a className="feature-card feature-card-link" href="/dynasty-rankings">
             <div className="feature-icon fi-blue">📊</div>
             <h3>Dynasty Rankings</h3>
             <p>Live 9-cat dynasty rankings updated nightly from real box-score data. Filter by position, category strength, and league depth.</p>
-            <span className="feature-tag tag-live">Updated Nightly</span>
           </a>
           <a className="feature-card feature-card-link" href="/draft-board">
             <div className="feature-icon fi-orange">🏀</div>
             <h3>Rookie Draft Board</h3>
             <p>Top 12 dynasty rookie board free for all. Full top 100 board with category ratings and stat translations for subscribers.</p>
-            <span className="feature-tag tag-new">Top 12 Free</span>
           </a>
           <div className="feature-card">
             <div className="feature-icon fi-gold">⚡</div>
             <h3>The Edge AI</h3>
             <p>Ask anything — trade advice, punt strategy, rookie comps. All grounded in 9-cat data and deep-league context. Your 24/7 dynasty advisor.</p>
-            <span className="feature-tag tag-new">AI-Powered</span>
+            <span className="feature-tag tag-soon">Coming Soon</span>
           </div>
           <div className="feature-card">
             <div className="feature-icon fi-green">🎯</div>
