@@ -74,8 +74,18 @@ export default function Home() {
             Get The Edge →
           </button>
           <div className="hero-links">
-            <a href="/dynasty-rankings">View Rankings →</a>
-            <a href="/draft-board">2026 Draft Board →</a>
+            <a href="/dynasty-rankings" style={{
+              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
+              color: "var(--text-primary)", border: "1px solid var(--border-main)",
+              padding: "10px 20px", borderRadius: "8px",
+              textDecoration: "none", whiteSpace: "nowrap",
+            }}>VIEW DYNASTY RANKINGS →</a>
+            <a href="/draft-board" style={{
+              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
+              color: "var(--edge-orange)", border: "1px solid var(--edge-orange)",
+              padding: "10px 20px", borderRadius: "8px",
+              textDecoration: "none", whiteSpace: "nowrap",
+            }}>VIEW ROOKIE DRAFT BOARD →</a>
           </div>
         </div>
 
