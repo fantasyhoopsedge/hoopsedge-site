@@ -1,10 +1,16 @@
 "use client";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SiteNav } from "@/components/site-nav";
 import { DYNASTY_RANKINGS, type DynastyPlayer } from "@/lib/dynasty-rankings";
 
-function dbpTierClass(tier: number): "tier-elite" | "tier-positive" {
-  return tier === 1 ? "tier-elite" : "tier-positive";
+function tierColor(tier: number): string {
+  if (tier === 1) return "var(--dynasty-gold)";
+  if (tier === 2) return "var(--green-elite)";
+  if (tier === 3) return "var(--blueprint-glow)";
+  if (tier === 4) return "#9b5de5";
+  if (tier === 5) return "var(--edge-orange)";
+  return "#f72585";
 }
 
 type DraftBoardPanelRow = Pick<
@@ -21,6 +27,7 @@ const ROOKIE_DRAFT_BOARD_TOP5: DraftBoardPanelRow[] = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
 
   const { tickerTop30, panelTop10 } = useMemo(() => {
@@ -79,7 +86,11 @@ export default function Home() {
 
         {/* DRAFT BOARD PREVIEW */}
         <div className="hero-visual">
-          <div className="draft-board-preview">
+          <div
+            className="draft-board-preview"
+            onClick={() => router.push("/draft-board")}
+            style={{ cursor: "pointer" }}
+          >
             <div className="dbp-header">
               <div className="dbp-header-top">2026 NBA Draft</div>
               <h3>Rookie <span>Draft Board</span></h3>
@@ -88,7 +99,7 @@ export default function Home() {
             <div className="dbp-list">
               {panelTop10.map((p) => (
                 <div className="dbp-row" key={p.consensusRank}>
-                  <div className="dbp-rank">{p.consensusRank}</div>
+                  <div className="dbp-rank" style={{ color: tierColor(p.tier) }}>{p.consensusRank}</div>
                   <div className="dbp-info">
                     <div className="dbp-name">{p.player}</div>
                     <div className="dbp-meta">
@@ -96,14 +107,17 @@ export default function Home() {
                       <span className="dbp-pos">{p.position}</span>
                     </div>
                   </div>
-                  <div className={`dbp-tier ${dbpTierClass(p.tier)}`}>
+                  <div
+                    className="dbp-tier"
+                    style={{ color: tierColor(p.tier), borderColor: `${tierColor(p.tier)}60` }}
+                  >
                     TIER {p.tier}
                   </div>
                 </div>
               ))}
             </div>
             <div className="dbp-footer">
-              <a href="/draft-board">View Full Board (Top 100) →</a>
+              <a href="/draft-board" onClick={(e) => e.stopPropagation()}>View Full Board (Top 100) →</a>
             </div>
           </div>
         </div>
