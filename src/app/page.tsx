@@ -76,7 +76,7 @@ export default function Home() {
           <div className="hero-links">
             <a href="/dynasty-rankings" style={{
               fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
-              color: "var(--text-primary)", border: "1px solid var(--border-main)",
+              color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
               padding: "10px 20px", borderRadius: "8px",
               textDecoration: "none", whiteSpace: "nowrap",
             }}>VIEW DYNASTY RANKINGS →</a>

@@ -2762,7 +2762,7 @@ body:has(.dr-rankings-shell) {
   }
 
   .draft-board-shell .db-board-wrap {
-    padding: 80px 12px 60px !important;
+    padding: 14px 12px 60px !important;
   }
 
   .draft-board-shell .db-row {
@@ -2993,4 +2993,83 @@ body:has(.dr-rankings-shell) {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ===== LIGHT MODE COMPONENT OVERRIDES =====
+   These rules fix hardcoded dark-mode colours that don't adapt to light theme.
+*/
+
+/* Sticky table header: override hardcoded dark bg */
+[data-theme="light"] .dr-table-head th {
+  background-color: var(--bg-surface);
+}
+
+/* Player avatar: override hardcoded dark bg */
+[data-theme="light"] .dr-player-avatar {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+/* Team pill: lighter surface on light bg */
+[data-theme="light"] .dr-team-pill {
+  background: rgba(100, 116, 139, 0.14);
+}
+
+/* Player meta text: use themed colours instead of hardcoded dark-mode values */
+[data-theme="light"] .dr-player-meta-line {
+  color: var(--text-secondary);
+}
+[data-theme="light"] .dr-table .dr-player-meta-line .dr-team-pill:not(.dr-team-pill-rookie) {
+  color: var(--text-secondary);
+}
+[data-theme="light"] .dr-rank-nr {
+  color: var(--text-muted);
+}
+
+/* Rankings shell mobile: player names hardcoded white */
+[data-theme="light"] .dr-rankings-shell .dr-table .dr-player-name-line {
+  color: var(--text-primary);
+}
+[data-theme="light"] .dr-rankings-shell .dr-table .dr-player-team-inline-mobile {
+  color: var(--text-secondary);
+}
+
+/* Draft board mobile: player names + heights hardcoded white */
+[data-theme="light"] .draft-board-shell .db-player-name {
+  color: var(--text-primary);
+}
+[data-theme="light"] .draft-board-shell .db-player-meta-height {
+  color: var(--text-secondary);
+}
+
+/* Draft board desktop: school badge border designed for white text on dark — override in light */
+[data-theme="light"] .draft-board-shell .dbp-school {
+  border-color: rgba(0, 0, 0, 0.13);
+  color: var(--text-primary);
+}
+
+/* Draft board mobile: tier badges with hardcoded dark backgrounds */
+[data-theme="light"] .draft-board-shell .dbp-tier.tier-five {
+  background: rgba(155, 93, 229, 0.12);
+  color: #9b5de5;
+}
+[data-theme="light"] .draft-board-shell .dbp-tier.tier-six {
+  background: rgba(100, 116, 139, 0.14);
+  color: #475569;
+}
+
+/* Mobile nav: brand + link text hardcoded white — invisible on light nav bg */
+[data-theme="light"] .home-nav .nav-brand {
+  color: var(--text-primary);
+}
+[data-theme="light"] .home-nav .nav-links > li:first-child a {
+  color: var(--text-secondary);
+}
+[data-theme="light"] .draft-board-shell .nav-brand,
+[data-theme="light"] .dr-rankings-shell .nav-brand {
+  color: var(--text-primary);
+}
+[data-theme="light"] .draft-board-shell .nav-links > li.nav-mobile-opposite-link a,
+[data-theme="light"] .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link a {
+  color: var(--text-secondary);
 }
