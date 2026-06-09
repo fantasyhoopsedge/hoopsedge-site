@@ -142,7 +142,7 @@ export function ControlsBar(props: {
               onChange={(e) => setTierFilter(e.target.value === "" ? 0 : Number(e.target.value))}
             >
               <option value="">All Tiers</option>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((t) => (
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((t) => (
                 <option key={t} value={t}>
                   Tier {t}
                 </option>

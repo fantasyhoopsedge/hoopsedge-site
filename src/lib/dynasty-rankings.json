@@ -12,7 +12,7 @@
       "mball": 1,
       "dynatyze": 1
     },
-    "avgRank": 1.0,
+    "avgRank": 1,
     "rankedByCount": 5,
     "tier": 1,
     "trend": "flat"
@@ -30,7 +30,7 @@
       "mball": 2,
       "dynatyze": 2
     },
-    "avgRank": 2.0,
+    "avgRank": 2,
     "rankedByCount": 5,
     "tier": 1,
     "trend": "flat"
@@ -272,7 +272,7 @@
     "player": "Evan Mobley",
     "team": "CLE",
     "position": "F/C",
-    "age": 25.0,
+    "age": 25,
     "expertRanks": {
       "dizzle": 15,
       "angle": 21,
@@ -332,7 +332,7 @@
       "mball": 13,
       "dynatyze": 19
     },
-    "avgRank": 18.0,
+    "avgRank": 18,
     "rankedByCount": 5,
     "tier": 2,
     "trend": "flat"
@@ -386,7 +386,7 @@
       "mball": 26,
       "dynatyze": 27
     },
-    "avgRank": 24.0,
+    "avgRank": 24,
     "rankedByCount": 5,
     "tier": 2,
     "trend": "flat"
@@ -422,7 +422,7 @@
       "mball": 21,
       "dynatyze": 25
     },
-    "avgRank": 25.0,
+    "avgRank": 25,
     "rankedByCount": 5,
     "tier": 2,
     "trend": "flat"
@@ -432,7 +432,7 @@
     "player": "Austin Reaves",
     "team": "LAL",
     "position": "G",
-    "age": 28.0,
+    "age": 28,
     "expertRanks": {
       "dizzle": 22,
       "angle": 28,
@@ -494,7 +494,7 @@
       "mball": 20,
       "dynatyze": 33
     },
-    "avgRank": 28.0,
+    "avgRank": 28,
     "rankedByCount": 5,
     "tier": 2,
     "trend": "flat"
@@ -504,7 +504,7 @@
     "player": "AJ Dybantsa",
     "team": "2026 Rookie",
     "position": "G/F",
-    "age": 19.0,
+    "age": 19,
     "expertRanks": {
       "dizzle": 24,
       "hashtag": 38,
@@ -520,7 +520,7 @@
     "player": "Trey Murphy",
     "team": "NOR",
     "position": "F",
-    "age": 26.0,
+    "age": 26,
     "expertRanks": {
       "dizzle": 35,
       "angle": 29,
@@ -613,7 +613,7 @@
     "expertRanks": {
       "hashtag": 35
     },
-    "avgRank": 35.0,
+    "avgRank": 35,
     "rankedByCount": 1,
     "tier": 2,
     "trend": "flat",
@@ -809,7 +809,7 @@
       "mball": 49,
       "dynatyze": 44
     },
-    "avgRank": 45.0,
+    "avgRank": 45,
     "rankedByCount": 5,
     "tier": 3,
     "trend": "flat"
@@ -819,7 +819,7 @@
     "player": "Lauri Markkanen",
     "team": "UTA",
     "position": "F",
-    "age": 29.0,
+    "age": 29,
     "expertRanks": {
       "dizzle": 48,
       "angle": 49,
@@ -837,7 +837,7 @@
     "player": "Desmond Bane",
     "team": "ORL",
     "position": "G",
-    "age": 28.0,
+    "age": 28,
     "expertRanks": {
       "dizzle": 47,
       "angle": 43,
@@ -899,7 +899,7 @@
       "mball": 34,
       "dynatyze": 53
     },
-    "avgRank": 49.0,
+    "avgRank": 49,
     "rankedByCount": 5,
     "tier": 3,
     "trend": "flat"
@@ -1177,7 +1177,7 @@
     "player": "Jalen Suggs",
     "team": "ORL",
     "position": "G",
-    "age": 25.0,
+    "age": 25,
     "expertRanks": {
       "dizzle": 70,
       "angle": 50,
@@ -1203,7 +1203,7 @@
       "mball": 55,
       "dynatyze": 73
     },
-    "avgRank": 68.0,
+    "avgRank": 68,
     "rankedByCount": 5,
     "tier": 3,
     "trend": "flat"
@@ -1257,7 +1257,7 @@
       "mball": 74,
       "dynatyze": 69
     },
-    "avgRank": 71.0,
+    "avgRank": 71,
     "rankedByCount": 5,
     "tier": 3,
     "trend": "flat"
@@ -1301,7 +1301,7 @@
     "player": "Reed Sheppard",
     "team": "HOU",
     "position": "G",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "dizzle": 73,
       "angle": 65,
@@ -1340,9 +1340,9 @@
     "expertRanks": {
       "hashtag": 73
     },
-    "avgRank": 73.0,
+    "avgRank": 73,
     "rankedByCount": 1,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat",
     "consensusRank": 76
   },
@@ -1361,7 +1361,7 @@
     },
     "avgRank": 74.8,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1379,7 +1379,7 @@
     },
     "avgRank": 76.4,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1397,7 +1397,7 @@
     },
     "avgRank": 76.8,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1411,9 +1411,9 @@
       "hashtag": 79,
       "dynatyze": 76
     },
-    "avgRank": 77.0,
+    "avgRank": 77,
     "rankedByCount": 3,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1431,7 +1431,7 @@
     },
     "avgRank": 78.8,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1449,7 +1449,7 @@
     },
     "avgRank": 79.4,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1465,9 +1465,9 @@
       "mball": 68,
       "dynatyze": 82
     },
-    "avgRank": 80.0,
+    "avgRank": 80,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1485,7 +1485,7 @@
     },
     "avgRank": 80.6,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1493,7 +1493,7 @@
     "player": "Immanuel Quickley",
     "team": "TOR",
     "position": "G",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 94,
       "angle": 70,
@@ -1503,7 +1503,7 @@
     },
     "avgRank": 81.8,
     "rankedByCount": 5,
-    "tier": 4,
+    "tier": 3,
     "trend": "flat"
   },
   {
@@ -1529,7 +1529,7 @@
     "player": "Collin Murray-Boyles",
     "team": "TOR",
     "position": "F/C",
-    "age": 21.0,
+    "age": 21,
     "expertRanks": {
       "dizzle": 95,
       "angle": 86,
@@ -1823,7 +1823,7 @@
       "hashtag": 78,
       "dynatyze": 111
     },
-    "avgRank": 98.0,
+    "avgRank": 98,
     "rankedByCount": 3,
     "tier": 4,
     "trend": "flat"
@@ -1856,7 +1856,7 @@
       "hashtag": 115,
       "dynatyze": 99
     },
-    "avgRank": 102.0,
+    "avgRank": 102,
     "rankedByCount": 3,
     "tier": 4,
     "trend": "flat"
@@ -1892,7 +1892,7 @@
       "mball": 93,
       "dynatyze": 115
     },
-    "avgRank": 105.0,
+    "avgRank": 105,
     "rankedByCount": 5,
     "tier": 4,
     "trend": "flat"
@@ -1938,7 +1938,7 @@
     "player": "Ajay Mitchell",
     "team": "OKC",
     "position": "G",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "dizzle": 120,
       "angle": 107,
@@ -1956,7 +1956,7 @@
     "player": "Shaedon Sharpe",
     "team": "POR",
     "position": "G",
-    "age": 23.0,
+    "age": 23,
     "expertRanks": {
       "dizzle": 102,
       "angle": 99,
@@ -2000,7 +2000,7 @@
       "mball": 106,
       "dynatyze": 114
     },
-    "avgRank": 110.0,
+    "avgRank": 110,
     "rankedByCount": 5,
     "tier": 4,
     "trend": "flat"
@@ -2013,7 +2013,7 @@
     "expertRanks": {
       "hashtag": 111
     },
-    "avgRank": 111.0,
+    "avgRank": 111,
     "rankedByCount": 1,
     "tier": 4,
     "trend": "flat",
@@ -2042,7 +2042,7 @@
     "player": "Norman Powell",
     "team": "MIA",
     "position": "G",
-    "age": 33.0,
+    "age": 33,
     "expertRanks": {
       "dizzle": 139,
       "angle": 104,
@@ -2063,7 +2063,7 @@
     "expertRanks": {
       "hashtag": 113
     },
-    "avgRank": 113.0,
+    "avgRank": 113,
     "rankedByCount": 1,
     "tier": 4,
     "trend": "flat"
@@ -2113,7 +2113,7 @@
       "mball": 104,
       "dynatyze": 113
     },
-    "avgRank": 114.0,
+    "avgRank": 114,
     "rankedByCount": 5,
     "tier": 4,
     "trend": "flat"
@@ -2133,7 +2133,7 @@
     },
     "avgRank": 115.8,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2149,9 +2149,9 @@
       "mball": 97,
       "dynatyze": 133
     },
-    "avgRank": 116.0,
+    "avgRank": 116,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2169,7 +2169,7 @@
     },
     "avgRank": 120.2,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2187,7 +2187,7 @@
     },
     "avgRank": 120.6,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2203,9 +2203,9 @@
       "mball": 112,
       "dynatyze": 126
     },
-    "avgRank": 121.0,
+    "avgRank": 121,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2221,7 +2221,7 @@
     },
     "avgRank": 121.3333,
     "rankedByCount": 3,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2239,7 +2239,7 @@
     },
     "avgRank": 121.8,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2255,9 +2255,9 @@
       "mball": 111,
       "dynatyze": 123
     },
-    "avgRank": 122.0,
+    "avgRank": 122,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2275,7 +2275,7 @@
     },
     "avgRank": 122.4,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2293,7 +2293,7 @@
     },
     "avgRank": 124.8,
     "rankedByCount": 5,
-    "tier": 5,
+    "tier": 4,
     "trend": "flat"
   },
   {
@@ -2379,7 +2379,7 @@
       "mball": 130,
       "dynatyze": 135
     },
-    "avgRank": 128.0,
+    "avgRank": 128,
     "rankedByCount": 5,
     "tier": 5,
     "trend": "flat"
@@ -2392,7 +2392,7 @@
     "expertRanks": {
       "hashtag": 128
     },
-    "avgRank": 128.0,
+    "avgRank": 128,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat",
@@ -2427,7 +2427,7 @@
       "hashtag": 112,
       "dynatyze": 140
     },
-    "avgRank": 129.0,
+    "avgRank": 129,
     "rankedByCount": 3,
     "tier": 5,
     "trend": "flat"
@@ -2459,7 +2459,7 @@
     "expertRanks": {
       "dizzle": 132
     },
-    "avgRank": 132.0,
+    "avgRank": 132,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -2495,7 +2495,7 @@
       "mball": 127,
       "dynatyze": 139
     },
-    "avgRank": 135.0,
+    "avgRank": 135,
     "rankedByCount": 5,
     "tier": 5,
     "trend": "flat"
@@ -2505,7 +2505,7 @@
     "player": "RJ Barrett",
     "team": "TOR",
     "position": "G/F",
-    "age": 26.0,
+    "age": 26,
     "expertRanks": {
       "dizzle": 154,
       "angle": 109,
@@ -2513,7 +2513,7 @@
       "mball": 134,
       "dynatyze": 146
     },
-    "avgRank": 135.0,
+    "avgRank": 135,
     "rankedByCount": 5,
     "tier": 5,
     "trend": "flat"
@@ -2565,7 +2565,7 @@
       "mball": 113,
       "dynatyze": 128
     },
-    "avgRank": 136.0,
+    "avgRank": 136,
     "rankedByCount": 5,
     "tier": 5,
     "trend": "flat"
@@ -2697,7 +2697,7 @@
     "player": "Bennedict Mathurin",
     "team": "LAC",
     "position": "G/F",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "dizzle": 162,
       "angle": 101,
@@ -2772,7 +2772,7 @@
       "mball": 123,
       "dynatyze": 136
     },
-    "avgRank": 148.0,
+    "avgRank": 148,
     "rankedByCount": 5,
     "tier": 5,
     "trend": "flat"
@@ -2806,7 +2806,7 @@
       "mball": 180,
       "hashtag": 137
     },
-    "avgRank": 150.0,
+    "avgRank": 150,
     "rankedByCount": 4,
     "tier": 5,
     "trend": "flat"
@@ -2823,7 +2823,7 @@
       "hashtag": 147,
       "mball": 152
     },
-    "avgRank": 152.0,
+    "avgRank": 152,
     "rankedByCount": 4,
     "tier": 5,
     "trend": "flat"
@@ -2867,7 +2867,7 @@
     "player": "Collin Gillespie",
     "team": "PHO",
     "position": "G",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 208,
       "angle": 117,
@@ -2905,7 +2905,7 @@
     "expertRanks": {
       "hashtag": 159
     },
-    "avgRank": 159.0,
+    "avgRank": 159,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -2922,7 +2922,7 @@
       "hashtag": 188,
       "mball": 121
     },
-    "avgRank": 160.0,
+    "avgRank": 160,
     "rankedByCount": 4,
     "tier": 5,
     "trend": "flat"
@@ -2939,7 +2939,7 @@
       "hashtag": 136,
       "mball": 171
     },
-    "avgRank": 160.0,
+    "avgRank": 160,
     "rankedByCount": 4,
     "tier": 5,
     "trend": "flat"
@@ -2953,7 +2953,7 @@
     "expertRanks": {
       "hashtag": 160
     },
-    "avgRank": 160.0,
+    "avgRank": 160,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -2985,7 +2985,7 @@
     "expertRanks": {
       "hashtag": 162
     },
-    "avgRank": 162.0,
+    "avgRank": 162,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -2999,7 +2999,7 @@
     "expertRanks": {
       "hashtag": 163
     },
-    "avgRank": 163.0,
+    "avgRank": 163,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -3009,11 +3009,11 @@
     "player": "Morez Johnson Jr.",
     "team": "2026 Rookie",
     "position": "F/C",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "hashtag": 165
     },
-    "avgRank": 165.0,
+    "avgRank": 165,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -3044,7 +3044,7 @@
     "expertRanks": {
       "hashtag": 167
     },
-    "avgRank": 167.0,
+    "avgRank": 167,
     "rankedByCount": 1,
     "tier": 5,
     "trend": "flat"
@@ -3063,7 +3063,7 @@
     },
     "avgRank": 167.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3080,7 +3080,7 @@
     },
     "avgRank": 167.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3088,13 +3088,13 @@
     "player": "Karim Lopez",
     "team": "2026 Rookie",
     "position": "F",
-    "age": 19.0,
+    "age": 19,
     "expertRanks": {
       "hashtag": 168
     },
-    "avgRank": 168.0,
+    "avgRank": 168,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3111,7 +3111,7 @@
     },
     "avgRank": 168.5,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3119,7 +3119,7 @@
     "player": "Isaiah Stewart",
     "team": "DET",
     "position": "F/C",
-    "age": 25.0,
+    "age": 25,
     "expertRanks": {
       "dizzle": 202,
       "angle": 169,
@@ -3128,7 +3128,7 @@
     },
     "avgRank": 168.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3136,16 +3136,16 @@
     "player": "Jordan Poole",
     "team": "NOR",
     "position": "G",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 184,
       "angle": 208,
       "hashtag": 142,
       "mball": 142
     },
-    "avgRank": 169.0,
+    "avgRank": 169,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3156,9 +3156,9 @@
     "expertRanks": {
       "hashtag": 169
     },
-    "avgRank": 169.0,
+    "avgRank": 169,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat",
     "consensusRank": 182
   },
@@ -3176,7 +3176,7 @@
     },
     "avgRank": 169.5,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3187,9 +3187,9 @@
     "expertRanks": {
       "hashtag": 170
     },
-    "avgRank": 170.0,
+    "avgRank": 170,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat",
     "consensusRank": 184
   },
@@ -3207,7 +3207,7 @@
     },
     "avgRank": 170.5,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3218,9 +3218,9 @@
     "expertRanks": {
       "hashtag": 171
     },
-    "avgRank": 171.0,
+    "avgRank": 171,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat",
     "consensusRank": 186
   },
@@ -3233,9 +3233,9 @@
     "expertRanks": {
       "hashtag": 172
     },
-    "avgRank": 172.0,
+    "avgRank": 172,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3243,13 +3243,13 @@
     "player": "Koa Peat",
     "team": "2026 Rookie",
     "position": "F",
-    "age": 19.0,
+    "age": 19,
     "expertRanks": {
       "hashtag": 173
     },
-    "avgRank": 173.0,
+    "avgRank": 173,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3266,7 +3266,7 @@
     },
     "avgRank": 173.5,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3274,29 +3274,29 @@
     "player": "Anfernee Simons",
     "team": "CHI",
     "position": "G",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 205,
       "angle": 181,
       "hashtag": 152,
       "mball": 158
     },
-    "avgRank": 174.0,
+    "avgRank": 174,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
     "player": "Henri Veesaar",
     "team": "2026 Rookie",
     "position": "C",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 174
     },
-    "avgRank": 174.0,
+    "avgRank": 174,
     "rankedByCount": 1,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat",
     "consensusRank": 191
   },
@@ -3314,7 +3314,7 @@
     },
     "avgRank": 174.25,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3322,7 +3322,7 @@
     "player": "Jrue Holiday",
     "team": "POR",
     "position": "G",
-    "age": 36.0,
+    "age": 36,
     "expertRanks": {
       "dizzle": 174,
       "angle": 137,
@@ -3331,7 +3331,7 @@
     },
     "avgRank": 174.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3348,7 +3348,7 @@
     },
     "avgRank": 175.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3363,9 +3363,9 @@
       "hashtag": 272,
       "mball": 128
     },
-    "avgRank": 176.0,
+    "avgRank": 176,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3380,9 +3380,9 @@
       "hashtag": 192,
       "mball": 167
     },
-    "avgRank": 176.0,
+    "avgRank": 176,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3397,9 +3397,9 @@
       "hashtag": 252,
       "mball": 145
     },
-    "avgRank": 178.0,
+    "avgRank": 178,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3416,7 +3416,7 @@
     },
     "avgRank": 179.25,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3433,7 +3433,7 @@
     },
     "avgRank": 179.5,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3450,7 +3450,7 @@
     },
     "avgRank": 179.75,
     "rankedByCount": 4,
-    "tier": 6,
+    "tier": 5,
     "trend": "flat"
   },
   {
@@ -3516,7 +3516,7 @@
       "hashtag": 206,
       "mball": 172
     },
-    "avgRank": 186.0,
+    "avgRank": 186,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3560,7 +3560,7 @@
     "player": "Kasparas Jakucionis",
     "team": "MIA",
     "position": "G",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "dizzle": 192,
       "angle": 154,
@@ -3601,7 +3601,7 @@
       "hashtag": 184,
       "mball": 218
     },
-    "avgRank": 191.0,
+    "avgRank": 191,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3653,7 +3653,7 @@
       "mball": 143,
       "dynatyze": 145
     },
-    "avgRank": 192.0,
+    "avgRank": 192,
     "rankedByCount": 5,
     "tier": 6,
     "trend": "flat"
@@ -3687,7 +3687,7 @@
       "hashtag": 204,
       "mball": 163
     },
-    "avgRank": 193.0,
+    "avgRank": 193,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3704,7 +3704,7 @@
       "mball": 198,
       "hashtag": 208
     },
-    "avgRank": 195.0,
+    "avgRank": 195,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3721,7 +3721,7 @@
       "hashtag": 214,
       "mball": 169
     },
-    "avgRank": 200.0,
+    "avgRank": 200,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3738,7 +3738,7 @@
       "hashtag": 183,
       "mball": 190
     },
-    "avgRank": 200.0,
+    "avgRank": 200,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3805,7 +3805,7 @@
       "hashtag": 286,
       "mball": 202
     },
-    "avgRank": 208.0,
+    "avgRank": 208,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3822,7 +3822,7 @@
       "hashtag": 222,
       "mball": 228
     },
-    "avgRank": 208.0,
+    "avgRank": 208,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3839,7 +3839,7 @@
       "mball": 212,
       "hashtag": 195
     },
-    "avgRank": 208.0,
+    "avgRank": 208,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3873,7 +3873,7 @@
       "hashtag": 269,
       "mball": 187
     },
-    "avgRank": 211.0,
+    "avgRank": 211,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3900,14 +3900,14 @@
     "player": "De'Anthony Melton",
     "team": "GSW",
     "position": "G",
-    "age": 28.0,
+    "age": 28,
     "expertRanks": {
       "dizzle": 216,
       "angle": 191,
       "hashtag": 227,
       "mball": 214
     },
-    "avgRank": 212.0,
+    "avgRank": 212,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3917,14 +3917,14 @@
     "player": "Gui Santos",
     "team": "GSW",
     "position": "F",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "dizzle": 232,
       "angle": 193,
       "hashtag": 194,
       "mball": 229
     },
-    "avgRank": 212.0,
+    "avgRank": 212,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -3954,7 +3954,7 @@
     "expertRanks": {
       "hashtag": 218
     },
-    "avgRank": 218.0,
+    "avgRank": 218,
     "rankedByCount": 1,
     "tier": 6,
     "trend": "flat",
@@ -3989,7 +3989,7 @@
       "hashtag": 266,
       "mball": 203
     },
-    "avgRank": 219.0,
+    "avgRank": 219,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -4023,7 +4023,7 @@
       "hashtag": 200,
       "mball": 232
     },
-    "avgRank": 220.0,
+    "avgRank": 220,
     "rankedByCount": 4,
     "tier": 6,
     "trend": "flat"
@@ -4059,7 +4059,7 @@
     },
     "avgRank": 221.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4076,7 +4076,7 @@
     },
     "avgRank": 221.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4093,7 +4093,7 @@
     },
     "avgRank": 221.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4108,9 +4108,9 @@
       "hashtag": 246,
       "mball": 254
     },
-    "avgRank": 223.0,
+    "avgRank": 223,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4127,7 +4127,7 @@
     },
     "avgRank": 225.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4144,7 +4144,7 @@
     },
     "avgRank": 225.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4161,7 +4161,7 @@
     },
     "avgRank": 225.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4169,7 +4169,7 @@
     "player": "Nikola Jovic",
     "team": "MIA",
     "position": "F",
-    "age": 23.0,
+    "age": 23,
     "expertRanks": {
       "dizzle": 245,
       "angle": 228,
@@ -4178,7 +4178,7 @@
     },
     "avgRank": 226.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4195,20 +4195,20 @@
     },
     "avgRank": 227.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Dillon Mitchell",
     "team": "2026 Rookie",
     "position": "F",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 228
     },
-    "avgRank": 228.0,
+    "avgRank": 228,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 245
   },
@@ -4226,7 +4226,7 @@
     },
     "avgRank": 228.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4237,9 +4237,9 @@
     "expertRanks": {
       "hashtag": 229
     },
-    "avgRank": 229.0,
+    "avgRank": 229,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 247
   },
@@ -4257,7 +4257,7 @@
     },
     "avgRank": 229.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4274,20 +4274,20 @@
     },
     "avgRank": 229.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Ryan Conwell",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 230
     },
-    "avgRank": 230.0,
+    "avgRank": 230,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 250
   },
@@ -4305,7 +4305,7 @@
     },
     "avgRank": 230.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4322,7 +4322,7 @@
     },
     "avgRank": 230.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4339,7 +4339,7 @@
     },
     "avgRank": 230.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4356,7 +4356,7 @@
     },
     "avgRank": 230.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4367,9 +4367,9 @@
     "expertRanks": {
       "hashtag": 231
     },
-    "avgRank": 231.0,
+    "avgRank": 231,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 255
   },
@@ -4382,22 +4382,22 @@
     "expertRanks": {
       "hashtag": 232
     },
-    "avgRank": 232.0,
+    "avgRank": 232,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Luigi Suigo",
     "team": "2026 Rookie",
     "position": "F/C",
-    "age": 19.0,
+    "age": 19,
     "expertRanks": {
       "hashtag": 233
     },
-    "avgRank": 233.0,
+    "avgRank": 233,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 257
   },
@@ -4413,9 +4413,9 @@
       "hashtag": 265,
       "mball": 192
     },
-    "avgRank": 234.0,
+    "avgRank": 234,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4426,9 +4426,9 @@
     "expertRanks": {
       "hashtag": 234
     },
-    "avgRank": 234.0,
+    "avgRank": 234,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 259
   },
@@ -4436,13 +4436,13 @@
     "player": "Jaden Bradley",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 21.0,
+    "age": 21,
     "expertRanks": {
       "hashtag": 235
     },
-    "avgRank": 235.0,
+    "avgRank": 235,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 260
   },
@@ -4451,7 +4451,7 @@
     "player": "Ousmane Dieng",
     "team": "MIL",
     "position": "F",
-    "age": 23.0,
+    "age": 23,
     "expertRanks": {
       "dizzle": 255,
       "mball": 250,
@@ -4459,7 +4459,7 @@
     },
     "avgRank": 235.6667,
     "rankedByCount": 3,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4470,9 +4470,9 @@
     "expertRanks": {
       "hashtag": 236
     },
-    "avgRank": 236.0,
+    "avgRank": 236,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 262
   },
@@ -4490,7 +4490,7 @@
     },
     "avgRank": 236.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4505,22 +4505,22 @@
       "mball": 266,
       "hashtag": 209
     },
-    "avgRank": 237.0,
+    "avgRank": 237,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Darrion Williams",
     "team": "2026 Rookie",
     "position": "F",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 237
     },
-    "avgRank": 237.0,
+    "avgRank": 237,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 265
   },
@@ -4529,7 +4529,7 @@
     "player": "Nolan Traore",
     "team": "BKN",
     "position": "G",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "dizzle": 224,
       "angle": 224,
@@ -4538,7 +4538,7 @@
     },
     "avgRank": 237.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4553,22 +4553,22 @@
       "hashtag": 216,
       "mball": 213
     },
-    "avgRank": 238.0,
+    "avgRank": 238,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Bruce Thornton",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 238
     },
-    "avgRank": 238.0,
+    "avgRank": 238,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 268
   },
@@ -4586,7 +4586,7 @@
     },
     "avgRank": 238.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4603,7 +4603,7 @@
     },
     "avgRank": 238.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4620,20 +4620,20 @@
     },
     "avgRank": 238.75,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Ugonna Onyenso",
     "team": "2026 Rookie",
     "position": "C",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 239
     },
-    "avgRank": 239.0,
+    "avgRank": 239,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 272
   },
@@ -4642,7 +4642,7 @@
     "player": "Moses Moody",
     "team": "GSW",
     "position": "G/F",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "dizzle": 254,
       "angle": 186,
@@ -4651,7 +4651,7 @@
     },
     "avgRank": 239.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4662,9 +4662,9 @@
     "expertRanks": {
       "hashtag": 240
     },
-    "avgRank": 240.0,
+    "avgRank": 240,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 274
   },
@@ -4682,7 +4682,7 @@
     },
     "avgRank": 240.25,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4699,20 +4699,20 @@
     },
     "avgRank": 240.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
     "player": "Trevon Brazile",
     "team": "2026 Rookie",
     "position": "F/C",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "hashtag": 241
     },
-    "avgRank": 241.0,
+    "avgRank": 241,
     "rankedByCount": 1,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat",
     "consensusRank": 277
   },
@@ -4728,9 +4728,9 @@
       "hashtag": 283,
       "mball": 199
     },
-    "avgRank": 242.0,
+    "avgRank": 242,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4747,7 +4747,7 @@
     },
     "avgRank": 242.5,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4762,9 +4762,9 @@
       "hashtag": 223,
       "mball": 235
     },
-    "avgRank": 243.0,
+    "avgRank": 243,
     "rankedByCount": 4,
-    "tier": 7,
+    "tier": 6,
     "trend": "flat"
   },
   {
@@ -4897,7 +4897,7 @@
       "mball": 230,
       "hashtag": 323
     },
-    "avgRank": 253.0,
+    "avgRank": 253,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -4924,7 +4924,7 @@
     "player": "Sandro Mamukelashvili",
     "team": "TOR",
     "position": "F/C",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 316,
       "angle": 200,
@@ -4948,7 +4948,7 @@
       "hashtag": 247,
       "mball": 236
     },
-    "avgRank": 258.0,
+    "avgRank": 258,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -4982,7 +4982,7 @@
       "hashtag": 193,
       "mball": 281
     },
-    "avgRank": 260.0,
+    "avgRank": 260,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -5016,7 +5016,7 @@
       "hashtag": 260,
       "mball": 283
     },
-    "avgRank": 261.0,
+    "avgRank": 261,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -5026,14 +5026,14 @@
     "player": "Luke Kennard",
     "team": "LAL",
     "position": "G",
-    "age": 30.0,
+    "age": 30,
     "expertRanks": {
       "dizzle": 310,
       "angle": 249,
       "mball": 209,
       "hashtag": 276
     },
-    "avgRank": 261.0,
+    "avgRank": 261,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -5067,7 +5067,7 @@
       "hashtag": 224,
       "mball": 299
     },
-    "avgRank": 264.0,
+    "avgRank": 264,
     "rankedByCount": 4,
     "tier": 7,
     "trend": "flat"
@@ -5118,9 +5118,9 @@
       "mball": 217,
       "hashtag": 360
     },
-    "avgRank": 267.0,
+    "avgRank": 267,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5135,9 +5135,9 @@
       "mball": 246,
       "hashtag": 316
     },
-    "avgRank": 267.0,
+    "avgRank": 267,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5154,7 +5154,7 @@
     },
     "avgRank": 268.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5167,9 +5167,9 @@
       "dizzle": 270,
       "mball": 268
     },
-    "avgRank": 269.0,
+    "avgRank": 269,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5185,7 +5185,7 @@
     },
     "avgRank": 269.3333,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5199,9 +5199,9 @@
       "mball": 253,
       "hashtag": 219
     },
-    "avgRank": 270.0,
+    "avgRank": 270,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5214,9 +5214,9 @@
       "angle": 233,
       "hashtag": 309
     },
-    "avgRank": 271.0,
+    "avgRank": 271,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5231,9 +5231,9 @@
       "mball": 291,
       "hashtag": 304
     },
-    "avgRank": 274.0,
+    "avgRank": 274,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5250,7 +5250,7 @@
     },
     "avgRank": 274.25,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5267,7 +5267,7 @@
     },
     "avgRank": 274.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5284,7 +5284,7 @@
     },
     "avgRank": 274.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5299,9 +5299,9 @@
       "mball": 243,
       "hashtag": 363
     },
-    "avgRank": 275.0,
+    "avgRank": 275,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5318,7 +5318,7 @@
     },
     "avgRank": 275.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5335,7 +5335,7 @@
     },
     "avgRank": 276.25,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5352,7 +5352,7 @@
     },
     "avgRank": 276.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5369,7 +5369,7 @@
     },
     "avgRank": 277.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5384,7 +5384,7 @@
     },
     "avgRank": 278.5,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5401,7 +5401,7 @@
     },
     "avgRank": 278.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5417,7 +5417,7 @@
     },
     "avgRank": 280.6667,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5425,16 +5425,16 @@
     "player": "Royce O'Neale",
     "team": "PHO",
     "position": "F",
-    "age": 33.0,
+    "age": 33,
     "expertRanks": {
       "dizzle": 271,
       "angle": 238,
       "mball": 269,
       "hashtag": 346
     },
-    "avgRank": 281.0,
+    "avgRank": 281,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5449,9 +5449,9 @@
       "hashtag": 389,
       "mball": 231
     },
-    "avgRank": 283.0,
+    "avgRank": 283,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5468,7 +5468,7 @@
     },
     "avgRank": 283.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5485,7 +5485,7 @@
     },
     "avgRank": 284.25,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5498,9 +5498,9 @@
       "dizzle": 307,
       "mball": 263
     },
-    "avgRank": 285.0,
+    "avgRank": 285,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5517,7 +5517,7 @@
     },
     "avgRank": 286.25,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5525,7 +5525,7 @@
     "player": "Kobe Sanders",
     "team": "LAC",
     "position": "G/F",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "dizzle": 262,
       "angle": 294,
@@ -5534,7 +5534,7 @@
     },
     "avgRank": 286.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5542,7 +5542,7 @@
     "player": "Dominick Barlow",
     "team": "PHI",
     "position": "F",
-    "age": 23.0,
+    "age": 23,
     "expertRanks": {
       "dizzle": 306,
       "angle": 222,
@@ -5551,7 +5551,7 @@
     },
     "avgRank": 288.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5568,7 +5568,7 @@
     },
     "avgRank": 289.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5585,7 +5585,7 @@
     },
     "avgRank": 290.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5593,7 +5593,7 @@
     "player": "Spencer Jones",
     "team": "DEN",
     "position": "F",
-    "age": 25.0,
+    "age": 25,
     "expertRanks": {
       "dizzle": 311,
       "angle": 273,
@@ -5602,7 +5602,7 @@
     },
     "avgRank": 290.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5616,9 +5616,9 @@
       "mball": 292,
       "hashtag": 318
     },
-    "avgRank": 291.0,
+    "avgRank": 291,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5635,7 +5635,7 @@
     },
     "avgRank": 291.25,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5648,9 +5648,9 @@
       "dizzle": 326,
       "mball": 260
     },
-    "avgRank": 293.0,
+    "avgRank": 293,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5662,9 +5662,9 @@
     "expertRanks": {
       "angle": 295
     },
-    "avgRank": 295.0,
+    "avgRank": 295,
     "rankedByCount": 1,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5680,7 +5680,7 @@
     },
     "avgRank": 295.3333,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5697,7 +5697,7 @@
     },
     "avgRank": 295.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5709,9 +5709,9 @@
     "expertRanks": {
       "hashtag": 296
     },
-    "avgRank": 296.0,
+    "avgRank": 296,
     "rankedByCount": 1,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5725,9 +5725,9 @@
       "angle": 310,
       "hashtag": 328
     },
-    "avgRank": 298.0,
+    "avgRank": 298,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5741,9 +5741,9 @@
       "mball": 312,
       "hashtag": 281
     },
-    "avgRank": 298.0,
+    "avgRank": 298,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5758,7 +5758,7 @@
     },
     "avgRank": 298.5,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5774,7 +5774,7 @@
     },
     "avgRank": 298.6667,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5788,9 +5788,9 @@
       "hashtag": 270,
       "mball": 279
     },
-    "avgRank": 299.0,
+    "avgRank": 299,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5807,7 +5807,7 @@
     },
     "avgRank": 299.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5823,7 +5823,7 @@
     },
     "avgRank": 299.6667,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5838,7 +5838,7 @@
     },
     "avgRank": 302.5,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5852,9 +5852,9 @@
       "angle": 302,
       "mball": 311
     },
-    "avgRank": 303.0,
+    "avgRank": 303,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5870,7 +5870,7 @@
     },
     "avgRank": 303.3333,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5887,7 +5887,7 @@
     },
     "avgRank": 305.75,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5904,7 +5904,7 @@
     },
     "avgRank": 306.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5919,7 +5919,7 @@
     },
     "avgRank": 308.5,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5935,7 +5935,7 @@
     },
     "avgRank": 308.6667,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5949,9 +5949,9 @@
       "hashtag": 385,
       "mball": 242
     },
-    "avgRank": 309.0,
+    "avgRank": 309,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5968,7 +5968,7 @@
     },
     "avgRank": 309.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5983,7 +5983,7 @@
     },
     "avgRank": 309.5,
     "rankedByCount": 2,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -5991,7 +5991,7 @@
     "player": "Vit Krejci",
     "team": "POR",
     "position": "G/F",
-    "age": 26.0,
+    "age": 26,
     "expertRanks": {
       "dizzle": 277,
       "angle": 288,
@@ -6000,7 +6000,7 @@
     },
     "avgRank": 312.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -6008,7 +6008,7 @@
     "player": "Paul Reed",
     "team": "DET",
     "position": "F",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "dizzle": 359,
       "mball": 271,
@@ -6016,7 +6016,7 @@
     },
     "avgRank": 313.3333,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -6028,9 +6028,9 @@
     "expertRanks": {
       "hashtag": 314
     },
-    "avgRank": 314.0,
+    "avgRank": 314,
     "rankedByCount": 1,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -6047,20 +6047,20 @@
     },
     "avgRank": 315.5,
     "rankedByCount": 4,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
     "player": "Jamaree Bouyea",
     "team": "PHO",
     "position": "G",
-    "age": 27.0,
+    "age": 27,
     "expertRanks": {
       "mball": 316
     },
-    "avgRank": 316.0,
+    "avgRank": 316,
     "rankedByCount": 1,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat",
     "consensusRank": 359
   },
@@ -6077,7 +6077,7 @@
     },
     "avgRank": 316.3333,
     "rankedByCount": 3,
-    "tier": 8,
+    "tier": 7,
     "trend": "flat"
   },
   {
@@ -6092,7 +6092,7 @@
       "hashtag": 449,
       "mball": 270
     },
-    "avgRank": 317.0,
+    "avgRank": 317,
     "rankedByCount": 4,
     "tier": 8,
     "trend": "flat"
@@ -6109,7 +6109,7 @@
       "hashtag": 377,
       "mball": 309
     },
-    "avgRank": 317.0,
+    "avgRank": 317,
     "rankedByCount": 4,
     "tier": 8,
     "trend": "flat"
@@ -6123,7 +6123,7 @@
     "expertRanks": {
       "dizzle": 317
     },
-    "avgRank": 317.0,
+    "avgRank": 317,
     "rankedByCount": 1,
     "tier": 8,
     "trend": "flat"
@@ -6169,9 +6169,9 @@
     "expertRanks": {
       "hashtag": 319
     },
-    "avgRank": 319.0,
+    "avgRank": 319,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6186,9 +6186,9 @@
       "mball": 282,
       "hashtag": 321
     },
-    "avgRank": 322.0,
+    "avgRank": 322,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6200,9 +6200,9 @@
     "expertRanks": {
       "hashtag": 322
     },
-    "avgRank": 322.0,
+    "avgRank": 322,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6219,7 +6219,7 @@
     },
     "avgRank": 322.75,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6234,9 +6234,9 @@
       "mball": 293,
       "hashtag": 429
     },
-    "avgRank": 323.0,
+    "avgRank": 323,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6251,9 +6251,9 @@
       "hashtag": 289,
       "mball": 343
     },
-    "avgRank": 323.0,
+    "avgRank": 323,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6270,7 +6270,7 @@
     },
     "avgRank": 323.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6285,7 +6285,7 @@
     },
     "avgRank": 324.5,
     "rankedByCount": 2,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6298,9 +6298,9 @@
       "dizzle": 327,
       "mball": 323
     },
-    "avgRank": 325.0,
+    "avgRank": 325,
     "rankedByCount": 2,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6312,9 +6312,9 @@
     "expertRanks": {
       "hashtag": 325
     },
-    "avgRank": 325.0,
+    "avgRank": 325,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6331,7 +6331,7 @@
     },
     "avgRank": 325.25,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6339,7 +6339,7 @@
     "player": "Harrison Barnes",
     "team": "SAS",
     "position": "F",
-    "age": 34.0,
+    "age": 34,
     "expertRanks": {
       "dizzle": 294,
       "angle": 293,
@@ -6348,7 +6348,7 @@
     },
     "avgRank": 325.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6365,7 +6365,7 @@
     },
     "avgRank": 326.75,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6380,9 +6380,9 @@
       "mball": 382,
       "hashtag": 327
     },
-    "avgRank": 327.0,
+    "avgRank": 327,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6399,7 +6399,7 @@
     },
     "avgRank": 327.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6415,7 +6415,7 @@
     },
     "avgRank": 327.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6429,9 +6429,9 @@
       "mball": 347,
       "hashtag": 307
     },
-    "avgRank": 328.0,
+    "avgRank": 328,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6442,9 +6442,9 @@
     "expertRanks": {
       "mball": 329
     },
-    "avgRank": 329.0,
+    "avgRank": 329,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 383
   },
@@ -6462,7 +6462,7 @@
     },
     "avgRank": 329.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6479,7 +6479,7 @@
     },
     "avgRank": 331.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6490,9 +6490,9 @@
     "expertRanks": {
       "mball": 332
     },
-    "avgRank": 332.0,
+    "avgRank": 332,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 386
   },
@@ -6510,7 +6510,7 @@
     },
     "avgRank": 334.25,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6521,9 +6521,9 @@
     "expertRanks": {
       "mball": 335
     },
-    "avgRank": 335.0,
+    "avgRank": 335,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 388
   },
@@ -6538,9 +6538,9 @@
       "mball": 325,
       "hashtag": 336
     },
-    "avgRank": 338.0,
+    "avgRank": 338,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6556,7 +6556,7 @@
     },
     "avgRank": 338.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6570,9 +6570,9 @@
       "hashtag": 388,
       "mball": 272
     },
-    "avgRank": 342.0,
+    "avgRank": 342,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6588,7 +6588,7 @@
     },
     "avgRank": 344.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6605,7 +6605,7 @@
     },
     "avgRank": 345.25,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6613,7 +6613,7 @@
     "player": "Jaxson Hayes",
     "team": "LAL",
     "position": "C",
-    "age": 26.0,
+    "age": 26,
     "expertRanks": {
       "dizzle": 370,
       "angle": 289,
@@ -6622,7 +6622,7 @@
     },
     "avgRank": 345.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6633,9 +6633,9 @@
     "expertRanks": {
       "mball": 346
     },
-    "avgRank": 346.0,
+    "avgRank": 346,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 395
   },
@@ -6652,7 +6652,7 @@
     },
     "avgRank": 346.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6668,7 +6668,7 @@
     },
     "avgRank": 346.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6679,9 +6679,9 @@
     "expertRanks": {
       "hashtag": 347
     },
-    "avgRank": 347.0,
+    "avgRank": 347,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 398
   },
@@ -6699,7 +6699,7 @@
     },
     "avgRank": 348.75,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6713,9 +6713,9 @@
       "hashtag": 406,
       "mball": 319
     },
-    "avgRank": 349.0,
+    "avgRank": 349,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6727,9 +6727,9 @@
     "expertRanks": {
       "hashtag": 349
     },
-    "avgRank": 349.0,
+    "avgRank": 349,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6744,7 +6744,7 @@
     },
     "avgRank": 349.5,
     "rankedByCount": 2,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6760,7 +6760,7 @@
     },
     "avgRank": 349.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6772,9 +6772,9 @@
     "expertRanks": {
       "hashtag": 350
     },
-    "avgRank": 350.0,
+    "avgRank": 350,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6790,7 +6790,7 @@
     },
     "avgRank": 351.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6804,9 +6804,9 @@
       "mball": 366,
       "hashtag": 337
     },
-    "avgRank": 353.0,
+    "avgRank": 353,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6820,9 +6820,9 @@
       "mball": 397,
       "hashtag": 334
     },
-    "avgRank": 354.0,
+    "avgRank": 354,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6838,7 +6838,7 @@
     },
     "avgRank": 355.3333,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6853,7 +6853,7 @@
     },
     "avgRank": 355.5,
     "rankedByCount": 2,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6869,7 +6869,7 @@
     },
     "avgRank": 355.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6881,9 +6881,9 @@
     "expertRanks": {
       "dizzle": 357
     },
-    "avgRank": 357.0,
+    "avgRank": 357,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6895,9 +6895,9 @@
     "expertRanks": {
       "hashtag": 357
     },
-    "avgRank": 357.0,
+    "avgRank": 357,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6913,7 +6913,7 @@
     },
     "avgRank": 358.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6929,7 +6929,7 @@
     },
     "avgRank": 358.6667,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6941,9 +6941,9 @@
     "expertRanks": {
       "hashtag": 359
     },
-    "avgRank": 359.0,
+    "avgRank": 359,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6960,7 +6960,7 @@
     },
     "avgRank": 359.75,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -6972,9 +6972,9 @@
       "mball": 286,
       "hashtag": 434
     },
-    "avgRank": 360.0,
+    "avgRank": 360,
     "rankedByCount": 2,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 417
   },
@@ -6989,9 +6989,9 @@
       "mball": 355,
       "hashtag": 364
     },
-    "avgRank": 360.0,
+    "avgRank": 360,
     "rankedByCount": 3,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7008,7 +7008,7 @@
     },
     "avgRank": 360.5,
     "rankedByCount": 4,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7020,9 +7020,9 @@
     "expertRanks": {
       "hashtag": 361
     },
-    "avgRank": 361.0,
+    "avgRank": 361,
     "rankedByCount": 1,
-    "tier": 9,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7039,7 +7039,7 @@
     },
     "avgRank": 361.25,
     "rankedByCount": 4,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7050,9 +7050,9 @@
     "expertRanks": {
       "mball": 363
     },
-    "avgRank": 363.0,
+    "avgRank": 363,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 422
   },
@@ -7069,7 +7069,7 @@
     },
     "avgRank": 364.3333,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7084,7 +7084,7 @@
     },
     "avgRank": 365.5,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7096,9 +7096,9 @@
     "expertRanks": {
       "hashtag": 366
     },
-    "avgRank": 366.0,
+    "avgRank": 366,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7112,9 +7112,9 @@
       "hashtag": 409,
       "mball": 360
     },
-    "avgRank": 368.0,
+    "avgRank": 368,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7128,9 +7128,9 @@
       "hashtag": 383,
       "mball": 345
     },
-    "avgRank": 369.0,
+    "avgRank": 369,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7146,7 +7146,7 @@
     },
     "avgRank": 369.6667,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7158,9 +7158,9 @@
     "expertRanks": {
       "hashtag": 370
     },
-    "avgRank": 370.0,
+    "avgRank": 370,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7172,9 +7172,9 @@
       "mball": 350,
       "hashtag": 392
     },
-    "avgRank": 371.0,
+    "avgRank": 371,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 430
   },
@@ -7182,13 +7182,13 @@
     "player": "Jack Kayil",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "hashtag": 371
     },
-    "avgRank": 371.0,
+    "avgRank": 371,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 431
   },
@@ -7196,13 +7196,13 @@
     "player": "Rafael Castro",
     "team": "2026 Rookie",
     "position": "C",
-    "age": 24.0,
+    "age": 24,
     "expertRanks": {
       "hashtag": 372
     },
-    "avgRank": 372.0,
+    "avgRank": 372,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 432
   },
@@ -7210,13 +7210,13 @@
     "player": "Sergio De Larrea",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "hashtag": 373
     },
-    "avgRank": 373.0,
+    "avgRank": 373,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 433
   },
@@ -7233,20 +7233,20 @@
     },
     "avgRank": 373.3333,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
     "player": "Duke Miles",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 20.0,
+    "age": 20,
     "expertRanks": {
       "hashtag": 374
     },
-    "avgRank": 374.0,
+    "avgRank": 374,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 435
   },
@@ -7254,13 +7254,13 @@
     "player": "Quadir Copeland",
     "team": "2026 Rookie",
     "position": "G",
-    "age": 23.0,
+    "age": 23,
     "expertRanks": {
       "hashtag": 375
     },
-    "avgRank": 375.0,
+    "avgRank": 375,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 436
   },
@@ -7274,9 +7274,9 @@
       "dizzle": 398,
       "mball": 354
     },
-    "avgRank": 376.0,
+    "avgRank": 376,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7284,13 +7284,13 @@
     "player": "Nick Martinelli",
     "team": "2026 Rookie",
     "position": "F",
-    "age": 22.0,
+    "age": 22,
     "expertRanks": {
       "hashtag": 376
     },
-    "avgRank": 376.0,
+    "avgRank": 376,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7306,7 +7306,7 @@
     },
     "avgRank": 378.6667,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7318,9 +7318,9 @@
     "expertRanks": {
       "hashtag": 379
     },
-    "avgRank": 379.0,
+    "avgRank": 379,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7333,9 +7333,9 @@
       "dizzle": 383,
       "mball": 377
     },
-    "avgRank": 380.0,
+    "avgRank": 380,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7347,9 +7347,9 @@
     "expertRanks": {
       "hashtag": 380
     },
-    "avgRank": 380.0,
+    "avgRank": 380,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7365,7 +7365,7 @@
     },
     "avgRank": 380.3333,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7381,7 +7381,7 @@
     },
     "avgRank": 380.6667,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7393,9 +7393,9 @@
       "mball": 352,
       "hashtag": 414
     },
-    "avgRank": 383.0,
+    "avgRank": 383,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 445
   },
@@ -7404,7 +7404,7 @@
     "player": "Jordan Clarkson",
     "team": "NYK",
     "position": "G",
-    "age": 34.0,
+    "age": 34,
     "expertRanks": {
       "dizzle": 393,
       "hashtag": 390,
@@ -7412,7 +7412,7 @@
     },
     "avgRank": 383.6667,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7424,9 +7424,9 @@
     "expertRanks": {
       "hashtag": 384
     },
-    "avgRank": 384.0,
+    "avgRank": 384,
     "rankedByCount": 1,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7442,7 +7442,7 @@
     },
     "avgRank": 384.3333,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7458,7 +7458,7 @@
     },
     "avgRank": 384.3333,
     "rankedByCount": 3,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat"
   },
   {
@@ -7472,7 +7472,7 @@
     },
     "avgRank": 389.5,
     "rankedByCount": 2,
-    "tier": 10,
+    "tier": 8,
     "trend": "flat",
     "consensusRank": 450
   }

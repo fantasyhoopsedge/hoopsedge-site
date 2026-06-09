@@ -31,20 +31,23 @@ function teamPillClass(team: string) {
   return "dr-team-pill";
 }
 
+const TIER_COLORS: Record<number, string> = {
+  1: "#F0C040",
+  2: "#22c55e",
+  3: "#3b82f6",
+  4: "#9b5de5",
+  5: "#FF6B2B",
+  6: "#f72585",
+  7: "#00c8e0",
+  8: "#64748b",
+};
+
 function tierBadgeClass(tier: number) {
-  if (tier === 1) return "dr-tier dr-tier-1";
-  if (tier === 2) return "dr-tier dr-tier-2";
-  if (tier <= 4) return "dr-tier dr-tier-34";
-  if (tier <= 7) return "dr-tier dr-tier-57";
-  return "dr-tier dr-tier-810";
+  return `dr-tier dr-tier-t${tier}`;
 }
 
 function rankColorForTier(tier: number): string {
-  if (tier === 1) return "#22c55e";
-  if (tier === 2) return "#2563EB";
-  if (tier <= 4) return "#F0C040";
-  if (tier <= 7) return "#FF6B2B";
-  return "#9ca3af";
+  return TIER_COLORS[tier] ?? "#ffffff";
 }
 
 function playerInitials(name: string): string {

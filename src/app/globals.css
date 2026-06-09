@@ -2256,30 +2256,15 @@ body:has(.dr-rankings-shell) {
   box-sizing: border-box;
 }
 
-.dr-tier-1 {
-  background: var(--tier-elite-bg);
-  color: var(--tier-elite-text);
-}
-
-.dr-tier-2 {
-  background: var(--tier-pos-bg);
-  color: var(--tier-pos-text);
-}
-
-.dr-tier-34 {
-  background: rgba(240, 192, 64, 0.14);
-  color: var(--dynasty-gold);
-}
-
-.dr-tier-57 {
-  background: rgba(255, 107, 43, 0.14);
-  color: var(--edge-orange);
-}
-
-.dr-tier-810 {
-  background: rgba(239, 68, 68, 0.14);
-  color: #f87171;
-}
+/* Tier badge colours — 8-tier system matching draft board */
+.dr-tier-t1 { background: rgba(240, 192, 64, 0.14); color: #F0C040; }
+.dr-tier-t2 { background: rgba(34, 197, 94, 0.13);  color: #22c55e; }
+.dr-tier-t3 { background: rgba(59, 130, 246, 0.13); color: #3b82f6; }
+.dr-tier-t4 { background: rgba(155, 93, 229, 0.13); color: #9b5de5; }
+.dr-tier-t5 { background: rgba(255, 107, 43, 0.14); color: #FF6B2B; }
+.dr-tier-t6 { background: rgba(247, 37, 133, 0.13); color: #f72585; }
+.dr-tier-t7 { background: rgba(0, 200, 224, 0.13);  color: #00c8e0; }
+.dr-tier-t8 { background: rgba(100, 116, 139, 0.15); color: #64748b; }
 
 .dr-trend-up {
   color: var(--edge-orange);
@@ -2481,6 +2466,66 @@ body:has(.dr-rankings-shell) {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* Tier headshot — desktop only */
+.dr-tier-card-headshot {
+  width: 56px;
+  height: 42px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 6px;
+  flex-shrink: 0;
+  align-self: center;
+  background: var(--bg-surface);
+}
+
+@media (max-width: 767px) {
+  .dr-tier-card-headshot {
+    display: none;
+  }
+}
+
+/* Tier color coding — left accent + header tint + title/rank color */
+/* Colors match the rookie draft board tierInfo() palette */
+.dr-tc-1 { border-left: 4px solid #F0C040; }
+.dr-tc-1 .dr-tier-head { background: rgba(240, 192, 64, 0.07); }
+.dr-tc-1 .dr-tier-title { color: #F0C040; }
+.dr-tc-1 .dr-tier-card-rank { color: #F0C040; }
+
+.dr-tc-2 { border-left: 4px solid #22c55e; }
+.dr-tc-2 .dr-tier-head { background: rgba(34, 197, 94, 0.07); }
+.dr-tc-2 .dr-tier-title { color: #22c55e; }
+.dr-tc-2 .dr-tier-card-rank { color: #22c55e; }
+
+.dr-tc-3 { border-left: 4px solid #3b82f6; }
+.dr-tc-3 .dr-tier-head { background: rgba(59, 130, 246, 0.07); }
+.dr-tc-3 .dr-tier-title { color: #3b82f6; }
+.dr-tc-3 .dr-tier-card-rank { color: #3b82f6; }
+
+.dr-tc-4 { border-left: 4px solid #9b5de5; }
+.dr-tc-4 .dr-tier-head { background: rgba(155, 93, 229, 0.07); }
+.dr-tc-4 .dr-tier-title { color: #9b5de5; }
+.dr-tc-4 .dr-tier-card-rank { color: #9b5de5; }
+
+.dr-tc-5 { border-left: 4px solid #FF6B2B; }
+.dr-tc-5 .dr-tier-head { background: rgba(255, 107, 43, 0.07); }
+.dr-tc-5 .dr-tier-title { color: #FF6B2B; }
+.dr-tc-5 .dr-tier-card-rank { color: #FF6B2B; }
+
+.dr-tc-6 { border-left: 4px solid #f72585; }
+.dr-tc-6 .dr-tier-head { background: rgba(247, 37, 133, 0.07); }
+.dr-tc-6 .dr-tier-title { color: #f72585; }
+.dr-tc-6 .dr-tier-card-rank { color: #f72585; }
+
+.dr-tc-7 { border-left: 4px solid #00c8e0; }
+.dr-tc-7 .dr-tier-head { background: rgba(0, 200, 224, 0.07); }
+.dr-tc-7 .dr-tier-title { color: #00c8e0; }
+.dr-tc-7 .dr-tier-card-rank { color: #00c8e0; }
+
+.dr-tc-8 { border-left: 4px solid #64748b; }
+.dr-tc-8 .dr-tier-head { background: rgba(100, 116, 139, 0.06); }
+.dr-tc-8 .dr-tier-title { color: #64748b; }
+.dr-tc-8 .dr-tier-card-rank { color: #64748b; }
 
 /* ===== DRAFT BOARD PAGE ===== */
 .db-hero {

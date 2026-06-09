@@ -1,12 +1,38 @@
 "use client";
 
-import { useMemo } from "react";
-import { activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { useMemo, useState } from "react";
+import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 
 function teamPillClass(team: string) {
   if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
   return "dr-team-pill";
+}
+
+const TIER_META: Record<number, { colorClass: string; name: string }> = {
+  1: { colorClass: "dr-tc-1", name: "Fantasy-Altering Juggernauts" },
+  2: { colorClass: "dr-tc-2", name: "Dynasty Cornerstones" },
+  3: { colorClass: "dr-tc-3", name: "Proven Contributors" },
+  4: { colorClass: "dr-tc-4", name: "Depth Tilters" },
+  5: { colorClass: "dr-tc-5", name: "Developmental Assets" },
+  6: { colorClass: "dr-tc-6", name: "Speculative Holds" },
+  7: { colorClass: "dr-tc-7", name: "Deep League Filler" },
+  8: { colorClass: "dr-tc-8", name: "Lottery Tickets" },
+};
+
+function HeadshotImg({ player }: { player: DynastyPlayer }) {
+  const [hidden, setHidden] = useState(false);
+  const url = playerHeadshotUrl(player);
+  if (!url || hidden) return null;
+  return (
+    <img
+      src={url}
+      alt=""
+      aria-hidden
+      className="dr-tier-card-headshot"
+      onError={() => setHidden(true)}
+    />
+  );
 }
 
 function tierRangeLabel(players: DynastyPlayer[], activeExpertKey: string): string {
@@ -41,7 +67,7 @@ export function TierView(props: {
 
   const byTier = useMemo(() => {
     const map = new Map<number, DynastyPlayer[]>();
-    for (let t = 1; t <= 10; t++) map.set(t, []);
+    for (let t = 1; t <= 8; t++) map.set(t, []);
     for (const p of rows) {
       const list = map.get(p.tier);
       if (list) list.push(p);
@@ -54,15 +80,16 @@ export function TierView(props: {
 
   return (
     <div className="dr-tier-view">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((tier) => {
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((tier) => {
         const tierPlayers = byTier.get(tier) ?? [];
         if (tierPlayers.length === 0) return null;
         const isCollapsed = Boolean(collapsed[tier]);
         const n = tierPlayers.length;
         const rangePart = tierRangeLabel(tierPlayers, activeExpertKey);
-        const headerLine = `TIER ${tier} · ${rangePart} · ${n} player${n === 1 ? "" : "s"}`;
+        const { colorClass, name: tierName } = TIER_META[tier];
+        const headerLine = `TIER ${tier} · ${tierName} · ${rangePart} · ${n} player${n === 1 ? "" : "s"}`;
         return (
-          <section key={tier} className="dr-tier-section">
+          <section key={tier} className={`dr-tier-section ${colorClass}`}>
             <header className="dr-tier-head">
               <button
                 type="button"
@@ -92,6 +119,7 @@ export function TierView(props: {
               <div className="dr-tier-grid">
                 {tierPlayers.map((p) => (
                   <article key={`${p.consensusRank}-${p.player}`} className="dr-tier-card">
+                    <HeadshotImg player={p} />
                     <div className="dr-tier-card-rank">{p.consensusRank}</div>
                     <div className="dr-tier-card-body">
                       <div className="dr-tier-card-name">{p.player}</div>
