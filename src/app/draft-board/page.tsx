@@ -385,25 +385,6 @@ export default function DraftBoard() {
           );
         })}
 
-        <div style={{
-          textAlign: "center", padding: "48px 24px",
-          background: "var(--bg-card)",
-          border: "1px solid var(--border-main)",
-          borderRadius: "16px", marginTop: "16px"
-        }}>
-          <div style={{
-            fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-            fontSize: "24px", textTransform: "uppercase",
-            color: "var(--text-primary)", marginBottom: "8px"
-          }}>Unlock the Full Board</div>
-          <p style={{
-            fontSize: "14px", color: "var(--text-secondary)",
-            marginBottom: "24px"
-          }}>Sign up free to see picks 13–30 with full category ratings and dynasty verdicts.</p>
-          <button className="btn-hero" onClick={() => setShowModal(true)}>
-            Get The Edge →
-          </button>
-        </div>
       </div>
 
       <footer>
