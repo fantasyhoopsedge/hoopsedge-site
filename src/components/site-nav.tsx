@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 const STORAGE_KEY = "fhe-theme";
 
 export function SiteNav(props: {
-  active?: "rankings" | "draft" | "fantrax";
+  active?: "rankings" | "draft";
   joinFree?: ReactNode;
   /** Compact single-line summary (e.g. dynasty rankings meta), shown left of Join CTA */
   infoStrip?: ReactNode;
@@ -42,9 +42,7 @@ export function SiteNav(props: {
       ? { href: "/draft-board", label: "ROOKIE DRAFT BOARD" }
       : active === "draft"
         ? { href: "/dynasty-rankings", label: "DYNASTY RANKINGS" }
-        : active === "fantrax"
-          ? { href: "/dynasty-rankings", label: "DYNASTY RANKINGS" }
-          : null;
+        : null;
 
   return (
     <nav className={navClassName}>
@@ -71,11 +69,6 @@ export function SiteNav(props: {
         <li>
           <a href="/draft-board" style={active === "draft" ? { color: "var(--edge-orange)" } : { color: "#ffffff" }}>
             ROOKIE DRAFT BOARD
-          </a>
-        </li>
-        <li>
-          <a href="/fantrax" style={active === "fantrax" ? { color: "var(--edge-orange)" } : { color: "#ffffff" }}>
-            MY LEAGUE
           </a>
         </li>
         <li>
