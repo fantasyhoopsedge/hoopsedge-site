@@ -7,20 +7,58 @@ import { ControlsBar, type RankRangeKey } from "./_components/controls-bar";
 import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
 
-const EXPERT_NAMES: Record<string, string> = {
-  dizzle: "DIZZLE",
-  angle: "ANGLE",
-  mball: "MBALL",
-  hashtag: "HASHTAG",
-  dynatyze: "DYNATYZE",
+// ── Version registry ─────────────────────────────────────────────────────────
+// To add a new version:
+//   1. Run: node scripts/snapshot-rankings.js --version 1.1 --date "July 2026" ...
+//   2. Set isCurrent: false on the previous entry
+//   3. Add the new entry below with isCurrent: true
+// Version numbering: 1.0 → 1.1 → ... → 1.99 → 2.0
+export type VersionMeta = {
+  id: string;
+  label: string;
+  date: string;
+  isCurrent: boolean;
+  expertDates: Record<string, string>;
 };
 
-const EXPERT_DATES: Record<string, string> = {
-  dizzle: "Apr 2026",
-  angle: "May 2026",
-  mball: "May 2026",
-  hashtag: "2025-26",
-  dynatyze: "Daily",
+const VERSIONS: VersionMeta[] = [
+  {
+    id: "1.0",
+    label: "v1.0",
+    date: "June 2026",
+    isCurrent: true,
+    expertDates: {
+      dizzle:   "April 2026",
+      mball:    "April 2026",
+      angle:    "May 2026",
+      dynatyze: "June 2026",
+      hashtag:  "June 2026",
+    },
+  },
+];
+
+const CURRENT_VERSION = VERSIONS.find((v) => v.isCurrent) ?? VERSIONS[VERSIONS.length - 1];
+
+const EXPERT_NAMES: Record<string, string> = {
+  dizzle:   "Dizzle",
+  angle:    "Angle",
+  mball:    "MBall",
+  hashtag:  "Hashtag",
+  dynatyze: "Dynatyze",
+};
+
+type VersionRanking = {
+  player: string;
+  consensusRank: number;
+  avgRank: number;
+  tier: number;
+  expertRanks: Record<string, number | null>;
+};
+
+type VersionSnapshot = {
+  version: string;
+  expertDates: Record<string, string>;
+  rankings: VersionRanking[];
 };
 
 function normalizeSearch(s: string) {
@@ -43,7 +81,8 @@ function rankInRange(p: DynastyPlayer, range: RankRangeKey, expertKey: string): 
 }
 
 export default function DynastyRankingsPage() {
-  const data = DYNASTY_RANKINGS;
+  const [selectedVersionId, setSelectedVersionId] = useState(CURRENT_VERSION.id);
+  const [versionSnapshot, setVersionSnapshot] = useState<VersionSnapshot | null>(null);
 
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
   const [teamFilter, setTeamFilter] = useState("");
@@ -69,6 +108,35 @@ export default function DynastyRankingsPage() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
+  // Load historical snapshot when a past version is selected
+  useEffect(() => {
+    if (selectedVersionId === CURRENT_VERSION.id) {
+      setVersionSnapshot(null);
+      return;
+    }
+    fetch(`/data/versions/v${selectedVersionId}.json`)
+      .then((r) => r.json())
+      .then((snap: VersionSnapshot) => setVersionSnapshot(snap))
+      .catch(() => setVersionSnapshot(null));
+  }, [selectedVersionId]);
+
+  // Overlay historical ranks on current player metadata when viewing a past version
+  const displayData = useMemo<DynastyPlayer[]>(() => {
+    if (!versionSnapshot) return DYNASTY_RANKINGS;
+    const rankMap = new Map<string, VersionRanking>();
+    for (const r of versionSnapshot.rankings) rankMap.set(r.player, r);
+    return DYNASTY_RANKINGS
+      .map((p) => {
+        const hist = rankMap.get(p.player);
+        if (!hist) return null;
+        return { ...p, consensusRank: hist.consensusRank, expertRanks: hist.expertRanks, avgRank: hist.avgRank, tier: hist.tier };
+      })
+      .filter((p): p is DynastyPlayer => p !== null)
+      .sort((a, b) => a.consensusRank - b.consensusRank);
+  }, [versionSnapshot]);
+
+  const selectedVersion = VERSIONS.find((v) => v.id === selectedVersionId) ?? CURRENT_VERSION;
+
   const syncExpertSortKeyFromControls = (v: string) => {
     setExpertSortKey(v);
     if (v) {
@@ -81,14 +149,12 @@ export default function DynastyRankingsPage() {
 
   const teams = useMemo(() => {
     const set = new Set<string>();
-    for (const p of data) set.add(p.team);
+    for (const p of DYNASTY_RANKINGS) set.add(p.team);
     return Array.from(set);
-  }, [data]);
-
-  const totalProspectsAll = useMemo(() => data.filter(isProspect).length, [data]);
+  }, []);
 
   const filtered = useMemo(() => {
-    let rows: DynastyPlayer[] = data;
+    let rows: DynastyPlayer[] = displayData;
     const q = normalizeSearch(search);
 
     if (rankRange === "rookies2026") {
@@ -110,9 +176,7 @@ export default function DynastyRankingsPage() {
       rows = rows.filter((p) => p.player.toLowerCase().includes(q));
     }
     return rows;
-  }, [data, selectedPositions, teamFilter, search, rankRange, tierFilter, expertSortKey]);
-
-  const prospectCountInFilter = useMemo(() => filtered.filter(isProspect).length, [filtered]);
+  }, [displayData, selectedPositions, teamFilter, search, rankRange, tierFilter, expertSortKey]);
 
   const onSort = (key: SortKey) => {
     if (key === "avgRank" || key === "consensusRank") {
@@ -157,8 +221,16 @@ export default function DynastyRankingsPage() {
     setTierCollapsed((prev) => ({ ...prev, [tier]: !prev[tier] }));
   };
 
-  const empty = data.length === 0;
+  const empty = displayData.length === 0;
   const noFilterResults = !empty && filtered.length === 0;
+
+  // Build the expert label with date from the selected version
+  const expertDate = expertSortKey ? (selectedVersion.expertDates[expertSortKey] ?? "") : "";
+  const rankedByExpertLabel = expertSortKey
+    ? `${EXPERT_NAMES[expertSortKey] ?? expertSortKey.toUpperCase()}${expertDate ? ` (${expertDate})` : ""}`
+    : null;
+
+  const versionLabel = `${selectedVersion.label} · ${selectedVersion.date}`;
 
   return (
     <div className="dr-rankings-shell">
@@ -183,6 +255,9 @@ export default function DynastyRankingsPage() {
               setSearch={setSearch}
               viewMode={viewMode}
               setViewMode={setViewMode}
+              versions={VERSIONS}
+              selectedVersionId={selectedVersionId}
+              setSelectedVersionId={setSelectedVersionId}
             />
           </div>
         </div>
@@ -205,7 +280,8 @@ export default function DynastyRankingsPage() {
                 sortDir={sortDir}
                 onSort={onSort}
                 activeExpertKey={expertSortKey}
-                rankedByExpertLabel={expertSortKey ? EXPERT_NAMES[expertSortKey] ?? expertSortKey.toUpperCase() : null}
+                rankedByExpertLabel={rankedByExpertLabel}
+                versionLabel={versionLabel}
               />
             ) : (
               <div className="dr-tier-view-scroll">

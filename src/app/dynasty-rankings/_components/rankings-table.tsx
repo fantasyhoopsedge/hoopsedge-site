@@ -183,8 +183,9 @@ export function RankingsTable(props: {
   onSort: (key: SortKey) => void;
   activeExpertKey: string;
   rankedByExpertLabel: string | null;
+  versionLabel: string;
 }) {
-  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel } = props;
+  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, versionLabel } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingTimeoutRef = useRef<number | null>(null);
@@ -298,7 +299,8 @@ export function RankingsTable(props: {
             padding: "4px 0 2px 0",
           }}
         >
-          {rankedByExpertLabel ? `Ranked by ${rankedByExpertLabel}` : "Ranked by Consensus"}
+          <span>{rankedByExpertLabel ? `Ranked by ${rankedByExpertLabel}` : "Ranked by Consensus"}</span>
+          <span style={{ marginLeft: 10, opacity: 0.5 }}>{versionLabel}</span>
         </div>
         <table className="dr-table">
           <colgroup>

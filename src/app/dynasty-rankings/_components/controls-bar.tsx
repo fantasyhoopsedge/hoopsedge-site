@@ -31,6 +31,8 @@ const EXPERT_OPTIONS = [
   { key: "dynatyze", label: "Dynatyze" },
 ] as const;
 
+type VersionEntry = { id: string; label: string; date: string; isCurrent: boolean };
+
 export function ControlsBar(props: {
   teams: string[];
   rankRange: RankRangeKey;
@@ -47,6 +49,9 @@ export function ControlsBar(props: {
   setSearch: (v: string) => void;
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
+  versions: VersionEntry[];
+  selectedVersionId: string;
+  setSelectedVersionId: (id: string) => void;
 }) {
   const {
     teams,
@@ -64,6 +69,9 @@ export function ControlsBar(props: {
     setSearch,
     viewMode,
     setViewMode,
+    versions,
+    selectedVersionId,
+    setSelectedVersionId,
   } = props;
 
   const teamOptions = useMemo(() => teams.slice().sort((a, b) => a.localeCompare(b)), [teams]);
@@ -167,6 +175,26 @@ export function ControlsBar(props: {
             ))}
           </select>
         </div>
+
+        {versions.length > 1 && (
+          <div className="dr-filter-group dr-field-version">
+            <label className="dr-filter-label" htmlFor="dr-version">
+              Version
+            </label>
+            <select
+              id="dr-version"
+              className="dr-select"
+              value={selectedVersionId}
+              onChange={(e) => setSelectedVersionId(e.target.value)}
+            >
+              {versions.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.label}{v.isCurrent ? " (current)" : ""} · {v.date}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="dr-filter-group dr-field-team">
           <label className="dr-filter-label" htmlFor="dr-team">
