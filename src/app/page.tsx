@@ -195,7 +195,7 @@ export default function Home() {
           <a href="/draft-board">Draft Board</a>
         </div>
         <div className="footer-social">
-          <a href="#" title="X / Twitter">𝕏</a>
+          <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
         </div>
       </footer>
 
