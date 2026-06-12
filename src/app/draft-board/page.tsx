@@ -1,5 +1,5 @@
 "use client";
-import { useState, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { SiteNav } from "@/components/site-nav";
 
 // ============================================================
@@ -165,6 +165,8 @@ const CAT_LABELS: Record<string, string> = {
   pts: "PTS", reb: "REB", ast: "AST", stl: "STL", blk: "BLK", fg: "FG%", ft: "FT%", tpm: "3PM", to: "TO"
 };
 
+type BoardPlayer = typeof DRAFT_BOARD[0];
+
 function starStyle(star: string): { color: string; fontWeight: number } {
   const count = parseInt(star);
   if (count === 5) return { color: "var(--green-elite)",  fontWeight: 700 };
@@ -194,21 +196,17 @@ function getInitials(name: string): string {
   return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-function ProspectHeadshot({ name }: { name: string }) {
+function ProspectHeadshot({ name, size = 48 }: { name: string; size?: number }) {
   const kebabName = toKebabName(name);
   const initials = getInitials(name);
-
-  const circleStyle: React.CSSProperties = {
-    width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
-  };
-
+  const circleStyle: React.CSSProperties = { width: size, height: size, borderRadius: "50%", flexShrink: 0 };
   return (
     <div style={{ position: "relative", ...circleStyle }}>
       <img
         src={`/images/prospects/${kebabName}.jpg`}
         alt={name}
-        width={48}
-        height={48}
+        width={size}
+        height={size}
         style={{ ...circleStyle, objectFit: "cover", display: "block" }}
         onError={(e) => {
           (e.currentTarget as HTMLImageElement).style.display = "none";
@@ -220,7 +218,8 @@ function ProspectHeadshot({ name }: { name: string }) {
         ...circleStyle,
         background: "#2563EB", color: "white",
         display: "none", alignItems: "center", justifyContent: "center",
-        fontSize: "13px", fontWeight: 700,
+        fontSize: Math.round(size * 0.27) + "px", fontWeight: 700,
+        fontFamily: "'Oswald', sans-serif",
         position: "absolute", top: 0, left: 0,
       }}>{initials}</div>
     </div>
@@ -250,13 +249,196 @@ function positionBadge(pos: string) {
   return <span className="db-pos-badge db-pos-badge-g">{pos}</span>;
 }
 
-export default function DraftBoard() {
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const [showModal, setShowModal] = useState(false);
+// ── Prospect Detail Modal ──────────────────────────────────────
+function ProspectModal({ player, onClose }: { player: BoardPlayer | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!player) return;
+    document.body.style.overflow = "hidden";
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handler);
+    return () => {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handler);
+    };
+  }, [player, onClose]);
 
-  const toggle = (rank: number) => {
-    setExpanded(expanded === rank ? null : rank);
-  };
+  if (!player) return null;
+
+  const { color: tierColor } = tierInfo(player.tier);
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(0,0,0,0.72)",
+        backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "16px",
+      }}
+    >
+      <div style={{
+        background: "var(--bg-main)",
+        border: "1px solid var(--border-main)",
+        borderRadius: 16,
+        width: "100%", maxWidth: 580,
+        maxHeight: "90vh",
+        overflowY: "auto",
+        position: "relative",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        animation: "fadeUp 0.22s ease-out",
+      }}>
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          style={{
+            position: "sticky", top: 12, float: "right",
+            marginRight: 12, zIndex: 10,
+            background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.15)",
+            color: "white", borderRadius: "50%",
+            width: 32, height: 32, cursor: "pointer",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 14,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >✕</button>
+
+        {/* Hero */}
+        <div style={{
+          background: "var(--blueprint)", position: "relative",
+          overflow: "hidden", padding: "28px 28px 24px",
+          borderRadius: "16px 16px 0 0",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}>
+          {/* Watermark */}
+          <div aria-hidden style={{
+            position: "absolute", right: -8, top: -12,
+            fontFamily: "'Oswald', sans-serif", fontSize: 100,
+            fontWeight: 800, color: "rgba(255,255,255,0.04)",
+            userSelect: "none", letterSpacing: 8, pointerEvents: "none",
+          }}>ROOKIE</div>
+
+          {/* Breadcrumb */}
+          <div style={{
+            fontFamily: "'Oswald', sans-serif", fontSize: 9,
+            letterSpacing: 3, textTransform: "uppercase",
+            color: "rgba(255,255,255,0.35)", marginBottom: 16,
+          }}>
+            2026 Dynasty Rookie Board · Pick {player.pick}
+          </div>
+
+          {/* Identity row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative" }}>
+            {/* Rank */}
+            <div style={{
+              fontFamily: "'Oswald', sans-serif", fontWeight: 700,
+              fontSize: 48, lineHeight: 1, color: tierColor,
+              minWidth: 48, textAlign: "center", flexShrink: 0,
+            }}>{player.rank}</div>
+
+            <ProspectHeadshot name={player.name} size={64} />
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{
+                fontFamily: "'Oswald', sans-serif", fontWeight: 700,
+                fontSize: 24, textTransform: "uppercase",
+                letterSpacing: 0.5, color: "white", lineHeight: 1.1,
+                marginBottom: 8,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}>
+                {player.name}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {positionBadge(player.pos)}
+                <span style={{
+                  fontFamily: "'Oswald', sans-serif", fontSize: 11,
+                  letterSpacing: 2, textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.6)",
+                }}>{player.school}</span>
+                {player.ht && (
+                  <span style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 10, color: "rgba(255,255,255,0.35)",
+                  }}>{player.ht}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: "24px 28px 28px" }}>
+
+          {/* Category Ratings */}
+          <div style={{
+            fontFamily: "'Oswald', sans-serif", fontSize: 11,
+            letterSpacing: 3, textTransform: "uppercase",
+            color: "var(--edge-orange)", marginBottom: 14,
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border-main)" }} />
+            Category Ratings
+            <div style={{ flex: 1, height: 1, background: "var(--border-main)" }} />
+          </div>
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border-main)",
+            borderRadius: 10, padding: "16px 12px", marginBottom: 20,
+            display: "grid", gridTemplateColumns: "repeat(9, 1fr)", gap: 6,
+          }}>
+            {CATS.map((cat) => {
+              const val = (player as unknown as Record<string, string>)[cat];
+              if (!val) return null;
+              const style = starStyle(val);
+              return (
+                <div key={cat} style={{ textAlign: "center" }}>
+                  <div style={{
+                    fontFamily: "'Oswald', sans-serif", fontSize: 11,
+                    fontWeight: 600, letterSpacing: 1,
+                    color: "var(--text-muted)", marginBottom: 5,
+                  }}>{CAT_LABELS[cat]}</div>
+                  <div style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 12, ...style,
+                  }}>{val}</div>
+                  <div style={{
+                    height: 3, borderRadius: 2,
+                    background: style.color,
+                    marginTop: 5, opacity: 0.6,
+                  }} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Dynasty Verdict */}
+          <div style={{
+            fontFamily: "'Oswald', sans-serif", fontSize: 11,
+            letterSpacing: 3, textTransform: "uppercase",
+            color: "var(--edge-orange)", marginBottom: 14,
+            display: "flex", alignItems: "center", gap: 10,
+          }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border-main)" }} />
+            Dynasty Verdict
+            <div style={{ flex: 1, height: 1, background: "var(--border-main)" }} />
+          </div>
+          <div style={{
+            background: "var(--bg-card)", border: "1px solid var(--border-main)",
+            borderRadius: 10, padding: "16px 20px", marginBottom: 20,
+          }}>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7, margin: 0 }}>
+              {player.verdict}
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────
+export default function DraftBoard() {
+  const [selectedPlayer, setSelectedPlayer] = useState<BoardPlayer | null>(null);
+  const [showSignup, setShowSignup] = useState(false);
 
   return (
     <div className="draft-board-shell">
@@ -266,21 +448,16 @@ export default function DraftBoard() {
           <a
             href="#"
             className="nav-cta"
-            onClick={(e) => {
-              e.preventDefault();
-              setShowModal(true);
-            }}
+            onClick={(e) => { e.preventDefault(); setShowSignup(true); }}
           >
             Join Free
           </a>
         }
       />
 
-<div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
+      <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
         {DRAFT_BOARD.map((p, i) => {
-          const isExpanded = expanded === p.rank;
           const { color: tierColor, label: tierLabel } = tierInfo(p.tier);
-          const hasCard = !!(p as unknown as Record<string, string>).verdict;
           const prev = i > 0 ? DRAFT_BOARD[i - 1] : null;
           const showDivider = i === 0 || (!!prev && p.tier !== prev.tier);
 
@@ -288,35 +465,27 @@ export default function DraftBoard() {
             <Fragment key={p.rank}>
               {showDivider && (
                 <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
+                  display: "flex", alignItems: "center", gap: "12px",
                   margin: p.tier === 1 ? "0 0 8px" : "28px 0 8px",
                 }}>
                   <div style={{ flex: 1, height: "1px", background: `${tierColor}40` }} />
                   <span style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    letterSpacing: "2px",
-                    color: tierColor,
-                    whiteSpace: "nowrap",
+                    fontSize: "10px", fontWeight: 700,
+                    letterSpacing: "2px", color: tierColor, whiteSpace: "nowrap",
                   }}>// {tierLabel}</span>
                 </div>
               )}
-            <div style={{ position: "relative" }}>
+
               <div
-                onClick={() => (hasCard ? toggle(p.rank) : undefined)}
-                className={`db-row ${isExpanded ? "db-row-expanded" : "db-row-collapsed"}`}
-                style={{
-                  background: isExpanded ? "var(--bg-card-hover)" : "var(--bg-card)",
-                  cursor: hasCard ? "pointer" : "default",
-                }}
+                onClick={() => setSelectedPlayer(p)}
+                className="db-row db-row-collapsed"
+                style={{ background: "var(--bg-card)", cursor: "pointer" }}
               >
                 <div style={{
                   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
                   fontSize: "28px", color: tierColor,
-                  minWidth: "44px", textAlign: "center"
+                  minWidth: "44px", textAlign: "center",
                 }}>{p.rank}</div>
                 <ProspectHeadshot name={p.name} />
                 <div className="db-player-main">
@@ -327,64 +496,11 @@ export default function DraftBoard() {
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
-                {hasCard && (
-                  <div className="db-expand-arrow" style={{
-                    transform: isExpanded ? "rotate(180deg)" : "rotate(0)"
-                  }}>▼</div>
-                )}
+                <div className="db-expand-arrow" style={{ transform: "rotate(-90deg)", opacity: 0.4 }}>▼</div>
               </div>
-
-              {isExpanded && hasCard && (
-                <div className="db-expanded-panel" style={{ animation: "fadeUp 0.3s ease-out" }}>
-                  <div style={{
-                    fontFamily: "'Oswald', sans-serif", fontSize: "11px",
-                    letterSpacing: "3px", textTransform: "uppercase",
-                    color: "var(--edge-orange)", marginBottom: "16px"
-                  }}>Category Ratings</div>
-                  <div style={{
-                    display: "grid", gridTemplateColumns: "repeat(9, 1fr)",
-                    gap: "8px", marginBottom: "24px"
-                  }}>
-                    {CATS.map((cat) => {
-                      const val = (p as unknown as Record<string, string>)[cat];
-                      if (!val) return null;
-                      return (
-                        <div key={cat} style={{ textAlign: "center" }}>
-                          <div style={{
-                            fontFamily: "'Oswald', sans-serif", fontSize: "12px",
-                            fontWeight: 600, letterSpacing: "1px",
-                            color: "var(--text-muted)", marginBottom: "6px"
-                          }}>{CAT_LABELS[cat]}</div>
-                          <div style={{
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontSize: "13px",
-                            ...starStyle(val),
-                          }}>{val}</div>
-                          <div style={{
-                            height: "3px", borderRadius: "2px",
-                            background: starStyle(val).color,
-                            marginTop: "6px", opacity: 0.6
-                          }}></div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{
-                    fontFamily: "'Oswald', sans-serif", fontSize: "11px",
-                    letterSpacing: "3px", textTransform: "uppercase",
-                    color: "var(--edge-orange)", marginBottom: "10px"
-                  }}>Dynasty Verdict</div>
-                  <p style={{
-                    fontSize: "14px", color: "var(--text-secondary)",
-                    lineHeight: 1.65
-                  }}>{(p as unknown as Record<string, string>).verdict}</p>
-                </div>
-              )}
-            </div>
             </Fragment>
           );
         })}
-
       </div>
 
       <footer>
@@ -400,12 +516,16 @@ export default function DraftBoard() {
         </div>
       </footer>
 
+      {/* Prospect detail modal */}
+      <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
+
+      {/* Join Free signup modal */}
       <div
-        className={`modal-overlay ${showModal ? "active" : ""}`}
-        onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        className={`modal-overlay ${showSignup ? "active" : ""}`}
+        onClick={(e) => { if (e.target === e.currentTarget) setShowSignup(false); }}
       >
         <div className="modal-box">
-          <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+          <button className="modal-close" onClick={() => setShowSignup(false)}>✕</button>
           <div className="modal-title">Get The Edge</div>
           <p className="modal-sub">Free dynasty rankings, rookie boards, and AI-powered advice.</p>
           <button className="modal-google">
