@@ -23,7 +23,7 @@ export type QuestionType = "boolean" | "single_choice" | "multi_choice" | "ranki
 // Native values of the game_status enum (see
 // supabase/migrations/20260612000000_prediction_arena.sql). 'draft' =
 // agent-proposed, awaiting analyst approval.
-export type GameStatus = "draft" | "active" | "locked" | "resolved";
+export type GameStatus = "draft" | "active" | "locked" | "resolved" | "skipped";
 
 export interface Database {
   public: {

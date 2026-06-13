@@ -30,8 +30,25 @@ export const adminStyles = `
 .adm-meta-label { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--text-muted); }
 .adm-meta time { font-size: 0.85rem; color: var(--text-secondary); }
 
-.adm-approve { margin-top: 4px; align-self: flex-start; background: var(--edge-orange); color: #fff; font-size: 0.92rem; font-weight: 700; border: none; border-radius: 10px; padding: 11px 22px; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
+/* ── Editable review fields ─────────────────────────────────────────────── */
+.adm-field-label { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--text-muted); margin: 4px 0 6px; }
+.adm-input, .adm-textarea { width: 100%; background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-main); border-radius: 8px; padding: 9px 11px; font-size: 0.92rem; font-family: inherit; }
+.adm-input:focus, .adm-textarea:focus { outline: none; border-color: var(--edge-orange); }
+.adm-textarea { resize: vertical; line-height: 1.5; }
+
+.adm-opts { display: flex; flex-direction: column; gap: 8px; }
+.adm-opt-row { display: flex; align-items: center; gap: 8px; }
+.adm-opt-num { flex: 0 0 auto; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 107, 43, 0.14); color: var(--edge-orange); font-size: 0.72rem; font-weight: 700; }
+.adm-opt-remove { flex: 0 0 auto; background: none; border: 1px solid var(--border-main); color: var(--text-muted); border-radius: 8px; width: 30px; height: 30px; cursor: pointer; font-size: 0.8rem; }
+.adm-opt-remove:hover:not(:disabled) { color: var(--red-severe); border-color: var(--red-severe); }
+.adm-add { align-self: flex-start; margin-top: 2px; background: none; border: 1px dashed var(--border-main); color: var(--text-secondary); border-radius: 8px; padding: 7px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.adm-add:hover:not(:disabled) { color: var(--text-primary); border-color: var(--text-muted); }
+
+.adm-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.adm-approve { background: var(--edge-orange); color: #fff; font-size: 0.92rem; font-weight: 700; border: none; border-radius: 10px; padding: 11px 22px; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
 .adm-approve:hover:not(:disabled) { transform: translateY(-2px); }
-.adm-approve:disabled { opacity: 0.6; cursor: progress; }
+.adm-approve:disabled, .adm-skip:disabled { opacity: 0.6; cursor: progress; }
+.adm-skip { background: none; border: 1px solid var(--border-main); color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; border-radius: 10px; padding: 11px 18px; cursor: pointer; }
+.adm-skip:hover:not(:disabled) { color: var(--text-primary); border-color: var(--text-muted); }
 .adm-error { color: var(--red-severe); font-size: 0.82rem; margin: 8px 0 0; }
 `;
