@@ -36,11 +36,11 @@ export default async function AdminPredictionsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, analyst_badge, is_admin")
+    .select("username, analyst_badge")
     .eq("id", user.id)
     .single();
 
-  const isAnalyst = Boolean(profile?.analyst_badge || profile?.is_admin);
+  const isAnalyst = Boolean(profile?.analyst_badge);
 
   if (!isAnalyst) {
     return (

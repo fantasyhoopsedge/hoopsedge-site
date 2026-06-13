@@ -20,8 +20,9 @@ export type Json =
 
 export type GameTier = "nightly" | "monthly" | "seasonal";
 export type QuestionType = "boolean" | "single_choice" | "multi_choice" | "ranking";
-// 'draft' = agent-proposed, awaiting analyst approval (see
-// supabase/migrations/20260613000000_agent_draft_status.sql).
+// Native values of the game_status enum (see
+// supabase/migrations/20260612000000_prediction_arena.sql). 'draft' =
+// agent-proposed, awaiting analyst approval.
 export type GameStatus = "draft" | "active" | "locked" | "resolved";
 
 export interface Database {
@@ -34,16 +35,15 @@ export interface Database {
           avatar_url: string | null;
           edge_points: number;
           analyst_badge: boolean;
-          is_admin: boolean;
           created_at: string;
         };
         Insert: {
           id: string;
           username?: string | null;
           avatar_url?: string | null;
-          // edge_points / analyst_badge / is_admin are server-managed:
-          // column grants reject them from client writes, so they are
-          // intentionally absent from Insert/Update.
+          // edge_points / analyst_badge are server-managed and intentionally
+          // omitted from Insert/Update; the column-grant hardening migration
+          // enforces that at the DB layer.
         };
         Update: {
           username?: string | null;
@@ -130,12 +130,7 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: {
-      is_admin: {
-        Args: Record<string, never>;
-        Returns: boolean;
-      };
-    };
+    Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

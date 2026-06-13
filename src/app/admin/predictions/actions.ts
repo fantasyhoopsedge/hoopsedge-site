@@ -27,10 +27,10 @@ export async function approveGame(gameId: string): Promise<ApproveResult> {
   // 2. Authorize — analysts (or admins) only.
   const { data: profile } = await supabase
     .from("profiles")
-    .select("analyst_badge, is_admin")
+    .select("analyst_badge")
     .eq("id", user.id)
     .single();
-  if (!profile?.analyst_badge && !profile?.is_admin) {
+  if (!profile?.analyst_badge) {
     return { ok: false, error: "Analyst badge required." };
   }
 
