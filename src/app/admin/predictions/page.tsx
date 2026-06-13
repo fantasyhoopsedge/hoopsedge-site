@@ -73,17 +73,17 @@ export default async function AdminPredictionsPage() {
       <div className="adm-wrap">
         <span className="adm-eyebrow">FHE ADMIN · AGENT REVIEW</span>
         <h1 className="adm-h1">
-          Pending drafts{" "}
+          Pending games{" "}
           <span className="adm-count">{games.length}</span>
         </h1>
         <p className="adm-lede">
           Each card is a prediction game proposed by the Opus 4.8 content agent.
-          Review the structure, then post it live for players.
+          Review it, then post it live for players.
         </p>
 
         {games.length === 0 ? (
           <div className="adm-empty">
-            <p>No drafts waiting. The agent hasn&apos;t pitched anything new.</p>
+            <p>No games waiting. The agent hasn&apos;t proposed anything new.</p>
           </div>
         ) : (
           <div className="adm-grid">
@@ -105,7 +105,7 @@ export default async function AdminPredictionsPage() {
 
                   {game.description ? (
                     <p className="adm-pitch">
-                      <span className="adm-pitch-label">AGENT PITCH</span>
+                      <span className="adm-pitch-label">SUMMARY</span>
                       {game.description}
                     </p>
                   ) : null}

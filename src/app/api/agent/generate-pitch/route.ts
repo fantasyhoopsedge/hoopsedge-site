@@ -44,7 +44,8 @@ type AgentPitch = {
   q_type: QuestionType;
   options: string[];
   deadline: string; // ISO 8601
-  boss_pitch: string;
+  description: string; // clean, user-facing subtitle shown on the game card
+  boss_pitch: string;  // internal sell — Discord/admin announcement only, never shown to users
 };
 
 // Structured-output JSON schema. Note the API's strict-schema rules: every
@@ -60,9 +61,10 @@ const PITCH_SCHEMA = {
     q_type: { type: "string", enum: Q_TYPES },
     options: { type: "array", items: { type: "string" } },
     deadline: { type: "string", format: "date-time" },
+    description: { type: "string" },
     boss_pitch: { type: "string" },
   },
-  required: ["title", "tier", "q_type", "options", "deadline", "boss_pitch"],
+  required: ["title", "tier", "q_type", "options", "deadline", "description", "boss_pitch"],
 } as const;
 
 const SYSTEM_PROMPT = `You are the FantasyHoopsEdge (FHE) Prediction Arena content agent. Your job is to invent ONE fresh, engaging NBA prediction prop for FHE's dynasty/fantasy audience and return it as structured data.
@@ -72,13 +74,15 @@ Rules:
 - Pick a q_type: 'boolean' (yes/no), 'single_choice' (pick one), 'multi_choice' (pick several), or 'ranking' (order them).
 - "options" must contain EXACTLY 4 entries, each a real player or clearly-labelled choice as a plain string.
 - "deadline" must be a FUTURE ISO-8601 timestamp — strictly after the current date/time given in the user message — appropriate to the tier (a nightly prop locks at tip-off tonight; a seasonal one near season's end). Never use a past date.
-- "boss_pitch" MUST begin with exactly: "Hi Boss, I am ready to post a new prediction game" — then a short, energetic 1-2 sentence pitch for why this prop will drive engagement.
+- "description" is a single punchy sentence shown to END USERS on the game card. Write it for fans — engaging and specific. NEVER address "Boss" and NEVER begin with "Hi Boss".
+- "boss_pitch" is INTERNAL — it goes only to the admin review channel, never to users — and MUST begin with exactly: "Hi Boss, I am ready to post a new prediction game" — then a short, energetic 1-2 sentence pitch for why this prop will drive engagement.
 - Keep titles punchy and specific.
 
 Here is one example of a well-formed pitch to match in style and structure:
 
 {
   "title": "2026 Draft Riser: Who climbs the FHE dynasty board first?",
+  "description": "A draft-night race between Keaton Wagler, Darius Acuff, and the top of the 2026 board — who rises first?",
   "tier": "seasonal",
   "q_type": "single_choice",
   "options": ["Keaton Wagler", "Darius Acuff", "Cameron Boozer", "AJ Dybantsa"],
@@ -129,6 +133,7 @@ function parsePitch(raw: string): AgentPitch {
 function validatePitch(p: AgentPitch): string | null {
   if (!p || typeof p !== "object") return "Pitch is not an object.";
   if (typeof p.title !== "string" || !p.title.trim()) return "Missing title.";
+  if (typeof p.description !== "string" || !p.description.trim()) return "Missing description.";
   if (!TIERS.includes(p.tier)) return `Invalid tier: ${p.tier}`;
   if (!Q_TYPES.includes(p.q_type)) return `Invalid q_type: ${p.q_type}`;
   if (!Array.isArray(p.options) || p.options.length !== 4) {
@@ -224,9 +229,8 @@ export async function POST(request: NextRequest) {
     .from("prediction_games")
     .insert({
       title: pitch.title,
-      // Persist the boss pitch so the analyst sees the agent's reasoning in the
-      // review panel; description is a free-text column.
-      description: pitch.boss_pitch,
+      // Clean, user-facing blurb. The boss_pitch stays internal (Discord only).
+      description: pitch.description,
       tier: pitch.tier,
       question_type: pitch.q_type, // model field q_type → DB column question_type
       options: pitch.options,
