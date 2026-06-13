@@ -252,18 +252,39 @@ export async function POST(request: NextRequest) {
   let webhookDelivered = false;
   const webhookUrl = process.env.AGENT_WEBHOOK_URL;
   if (webhookUrl) {
+    // Discord incoming-webhook payload: a rich embed. The "Review & approve"
+    // link is a masked markdown link in the description (embed descriptions
+    // support markdown; the top-level `content` field does not). The deadline
+    // uses a Discord <t:unix:F> tag so it renders in each reader's timezone.
+    const deadlineUnix = Math.floor(Date.parse(pitch.deadline) / 1000);
+    const discordPayload = {
+      username: "FHE Prediction Agent",
+      embeds: [
+        {
+          title: "🏀 New prediction draft ready for review",
+          description: `${pitch.boss_pitch}\n\n**[Review & approve →](${reviewUrl})**`,
+          color: 0xff6b2b,
+          fields: [
+            { name: "Title", value: pitch.title },
+            { name: "Tier", value: pitch.tier, inline: true },
+            { name: "Type", value: pitch.q_type, inline: true },
+            {
+              name: "Options",
+              value: pitch.options.map((o, i) => `${i + 1}. ${o}`).join("\n"),
+            },
+            { name: "Locks", value: `<t:${deadlineUnix}:F>` },
+          ],
+          footer: { text: `game ${inserted.id}` },
+        },
+      ],
+    };
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: pitch.boss_pitch,
-          boss_pitch: pitch.boss_pitch,
-          game_id: inserted.id,
-          title: pitch.title,
-          review_url: reviewUrl,
-        }),
+        body: JSON.stringify(discordPayload),
       });
+      // Discord returns 204 No Content on success.
       webhookDelivered = res.ok;
     } catch {
       // A delivery failure must not roll back the draft — it's already saved
