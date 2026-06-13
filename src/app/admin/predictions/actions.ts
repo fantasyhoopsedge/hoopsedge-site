@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { generateGameDraft } from "@/lib/generate-game";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -88,6 +89,13 @@ export async function skipGame(gameId: string): Promise<ActionResult> {
     .eq("status", "draft");
 
   if (error) return { ok: false, error: error.message };
+
+  // Auto-replenish: immediately queue a fresh game so the boss always has one
+  // to review after skipping. Best-effort — if generation fails (e.g. API
+  // hiccup) the skip still stands; the queue just shows empty until the next
+  // scheduled run. We await it so revalidatePath surfaces the new game at once.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "";
+  await generateGameDraft({ siteUrl });
 
   revalidatePath("/admin/predictions");
   return { ok: true };
