@@ -71,7 +71,7 @@ Rules:
 - Pick a tier that fits the question's time horizon: 'nightly' (tonight's slate), 'monthly' (a month-long leader/breakout race), or 'seasonal' (awards, standings, dynasty arcs).
 - Pick a q_type: 'boolean' (yes/no), 'single_choice' (pick one), 'multi_choice' (pick several), or 'ranking' (order them).
 - "options" must contain EXACTLY 4 entries, each a real player or clearly-labelled choice as a plain string.
-- "deadline" must be a future ISO-8601 timestamp appropriate to the tier (a nightly prop locks at tip-off tonight; a seasonal one near season's end).
+- "deadline" must be a FUTURE ISO-8601 timestamp — strictly after the current date/time given in the user message — appropriate to the tier (a nightly prop locks at tip-off tonight; a seasonal one near season's end). Never use a past date.
 - "boss_pitch" MUST begin with exactly: "Hi Boss, I am ready to post a new prediction game" — then a short, energetic 1-2 sentence pitch for why this prop will drive engagement.
 - Keep titles punchy and specific.
 
@@ -140,6 +140,9 @@ function validatePitch(p: AgentPitch): string | null {
   if (typeof p.deadline !== "string" || Number.isNaN(Date.parse(p.deadline))) {
     return `Invalid deadline: ${p.deadline}`;
   }
+  if (Date.parse(p.deadline) <= Date.now()) {
+    return `Deadline is in the past: ${p.deadline}`;
+  }
   if (
     typeof p.boss_pitch !== "string" ||
     !p.boss_pitch.startsWith("Hi Boss, I am ready to post a new prediction game")
@@ -168,6 +171,10 @@ export async function POST(request: NextRequest) {
   // ── 1. Ask Claude for a structured pitch ──────────────────────────────────
   const anthropic = new Anthropic({ apiKey });
 
+  // Anchor the model to the real clock — without this it invents a plausible
+  // but often past-dated deadline from its training cutoff.
+  const nowIso = new Date().toISOString();
+
   let pitch: AgentPitch;
   try {
     const message = await anthropic.messages.create({
@@ -184,8 +191,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "user",
-          content:
-            "Generate one new NBA prediction prop for the FHE Prediction Arena now.",
+          content: `The current date and time is ${nowIso}. Generate one new NBA prediction prop for the FHE Prediction Arena. The "deadline" you choose MUST be a real timestamp in the future relative to this moment.`,
         },
       ],
     });
