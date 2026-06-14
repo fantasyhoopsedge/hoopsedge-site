@@ -154,17 +154,7 @@ export const dnStyles = `
 .dn-lock-btn:disabled { opacity: 0.5; cursor: default; }
 .dn-error { color: var(--red-severe); font-size: 13px; }
 
-/* ── auth prompt ── */
-.dn-auth-overlay {
-  position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 20px;
-}
-.dn-auth-box {
-  position: relative; background: var(--modal-bg); border: 1px solid var(--border-main);
-  border-radius: 18px; padding: 40px 32px; max-width: 400px; width: 100%; text-align: center;
-}
-.dn-auth-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 26px; text-transform: uppercase; color: var(--text-primary); margin-bottom: 8px; }
-.dn-auth-sub { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+/* ── results sign-in button (shared sign-up modal handles the gate) ── */
 .dn-google-btn {
   width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   background: var(--modal-google-bg); border: 1px solid var(--modal-google-border);
@@ -172,7 +162,6 @@ export const dnStyles = `
   font-weight: 600; padding: 14px; border-radius: 10px; cursor: pointer; transition: background .2s;
 }
 .dn-google-btn:hover { background: var(--modal-google-hover); }
-.dn-auth-note { font-size: 12px; color: var(--text-muted); margin-top: 16px; }
 
 /* ── results ── */
 .dn-results { display: flex; flex-direction: column; }

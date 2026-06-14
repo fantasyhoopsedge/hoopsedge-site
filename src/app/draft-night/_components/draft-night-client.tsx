@@ -81,7 +81,7 @@ export function DraftNightClient({
   result: DnResult | null;
   prospects: ProspectMap;
 }) {
-  const { user, profile, supabase, signInWithGoogle } = useAuth();
+  const { user, profile, supabase, openSignUp } = useAuth();
 
   const [held, setHeld] = useState<Held>(() => {
     const base: Held = {};
@@ -93,7 +93,6 @@ export function DraftNightClient({
   const [activeKey, setActiveKey] = useState<DnMiniGameKey | null>(null);
   const [submitted, setSubmitted] = useState<Record<string, DnPrediction>>({});
   const [leaderboard, setLeaderboard] = useState<DnLeaderboardRow[]>([]);
-  const [authPromptFor, setAuthPromptFor] = useState<DnMiniGameKey | null>(null);
   const [busyKey, setBusyKey] = useState<DnMiniGameKey | null>(null);
   const [panelError, setPanelError] = useState<string | null>(null);
 
@@ -233,8 +232,9 @@ export function DraftNightClient({
       saveHeldKey(key, payload);
 
       if (!user) {
-        addPending(key); // flushed on return from auth
-        setAuthPromptFor(key);
+        addPending(key); // flushed on return from auth (see the predictions effect)
+        setActiveKey(null);
+        openSignUp(NEXT_PATH); // shared modal: Google + email/password
         return;
       }
 
@@ -243,7 +243,7 @@ export function DraftNightClient({
       setBusyKey(null);
       setActiveKey(null);
     },
-    [held, user, minisByKey, submitMini],
+    [held, user, minisByKey, submitMini, openSignUp],
   );
 
   const displayName =
@@ -279,8 +279,8 @@ export function DraftNightClient({
             <span className="dn-eyebrow">RESULTS ARE IN</span>
             <h1 className="dn-h1">The draft is graded</h1>
             <p className="dn-lede">Sign in to see your Draft Night Score and your &quot;Called It&quot; card.</p>
-            <button type="button" className="dn-google-btn" onClick={() => void signInWithGoogle(NEXT_PATH)}>
-              Continue with Google
+            <button type="button" className="dn-google-btn" onClick={() => openSignUp(NEXT_PATH)}>
+              Sign in to see your score
             </button>
             <h2 className="dn-section-h">Leaderboard</h2>
             <ol className="dn-leaderboard">
@@ -362,13 +362,6 @@ export function DraftNightClient({
         />
       ) : null}
 
-      {authPromptFor ? (
-        <AuthPrompt
-          onGoogle={() => void signInWithGoogle(NEXT_PATH)}
-          onClose={() => setAuthPromptFor(null)}
-        />
-      ) : null}
-
       <style>{dnStyles}</style>
     </div>
   );
@@ -439,17 +432,3 @@ function ActivePanel({
   );
 }
 
-// ── Sign-in prompt shown when locking while signed out ───────────────────────
-function AuthPrompt({ onGoogle, onClose }: { onGoogle: () => void; onClose: () => void }) {
-  return (
-    <div className="dn-auth-overlay" role="dialog" aria-modal="true" aria-label="Sign in to lock your picks">
-      <div className="dn-auth-box">
-        <button type="button" className="dn-panel-close" onClick={onClose} aria-label="Close">✕</button>
-        <h2 className="dn-auth-title">One step to lock it in</h2>
-        <p className="dn-auth-sub">Your picks are saved. Sign in to lock them and join the leaderboard.</p>
-        <button type="button" className="dn-google-btn" onClick={onGoogle}>Continue with Google</button>
-        <p className="dn-auth-note">Free to play. We&apos;ll bring you right back to your picks.</p>
-      </div>
-    </div>
-  );
-}
