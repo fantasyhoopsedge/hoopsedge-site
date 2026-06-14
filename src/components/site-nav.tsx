@@ -13,7 +13,7 @@ export function SiteNav(props: {
   navClassName?: string;
 }) {
   const { active, joinFree, infoStrip, navClassName } = props;
-  const { user, openSignUp } = useAuth();
+  const { user, openSignUp, signOut } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -34,9 +34,28 @@ export function SiteNav(props: {
   const join =
     joinFree ??
     (user ? (
-      <a href="/prediction-arena" className="nav-cta">
-        My Arena
-      </a>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "14px" }}>
+        <button
+          type="button"
+          onClick={() => void signOut()}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontFamily: "'Oswald', sans-serif",
+            fontWeight: 500,
+            fontSize: "13px",
+            letterSpacing: "2px",
+            textTransform: "uppercase",
+            color: "var(--text-secondary)",
+          }}
+        >
+          Sign Out
+        </button>
+        <a href="/prediction-arena" className="nav-cta">
+          My Arena
+        </a>
+      </span>
     ) : (
       <a
         href="#"
