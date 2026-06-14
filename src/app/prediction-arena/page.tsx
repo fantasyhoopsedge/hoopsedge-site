@@ -43,6 +43,48 @@ const TIERS = [
   },
 ] as const;
 
+// ── Featured live game: Draft Night Challenge ────────────────────────────────
+function DraftNightFeature() {
+  return (
+    <a
+      href="/draft-night"
+      style={{
+        display: "block",
+        textDecoration: "none",
+        background: "linear-gradient(135deg, rgba(240,192,64,0.14), var(--bg-card))",
+        border: "1px solid var(--dynasty-gold)",
+        borderRadius: "16px",
+        padding: "24px 28px",
+        marginBottom: "32px",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+        <div style={{ minWidth: 0 }}>
+          <span className="pa-chip" style={{ background: "rgba(240,192,64,0.15)", color: "var(--dynasty-gold)" }}>
+            🏆 LIVE NOW · DRAFT NIGHT
+          </span>
+          <h2 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 800, fontSize: "1.8rem", textTransform: "uppercase", margin: "10px 0 6px", color: "var(--text-primary)" }}>
+            The Draft Night Challenge
+          </h2>
+          <p style={{ color: "var(--text-secondary)", fontSize: "15px", maxWidth: 560, margin: 0, lineHeight: 1.5 }}>
+            Four fast mini-games on the 2026 NBA Draft. Mock the lottery, call the head-to-heads, and lock your picks before tip-off.
+          </p>
+        </div>
+        <span
+          style={{
+            background: "var(--edge-orange)", color: "#fff",
+            fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "14px",
+            letterSpacing: "1.5px", textTransform: "uppercase",
+            padding: "14px 26px", borderRadius: "10px", whiteSpace: "nowrap",
+          }}
+        >
+          Play now →
+        </span>
+      </div>
+    </a>
+  );
+}
+
 // ── Skeleton (loading) state ─────────────────────────────────────────────────
 function ArenaSkeleton() {
   return (
@@ -77,6 +119,8 @@ function ArenaLanding({ onSignIn }: { onSignIn: () => void }) {
         Three tiers of NBA prediction games. Every question locks on a hard deadline,
         every result is scored on the record — no edits, no take-backs, no revisionist history.
       </p>
+
+      <DraftNightFeature />
 
       <div className="pa-tier-grid">
         {TIERS.map((t) => (
@@ -163,6 +207,8 @@ function ArenaDashboard() {
           </button>
         </div>
       </div>
+
+      <DraftNightFeature />
 
       <PredictionFeed />
     </div>

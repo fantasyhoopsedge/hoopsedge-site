@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const STORAGE_KEY = "fhe-theme";
 
@@ -12,6 +13,7 @@ export function SiteNav(props: {
   navClassName?: string;
 }) {
   const { active, joinFree, infoStrip, navClassName } = props;
+  const { user, openSignUp } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -31,11 +33,22 @@ export function SiteNav(props: {
 
   const join =
     joinFree ??
-    (
-      <a href="#" className="nav-cta">
+    (user ? (
+      <a href="/prediction-arena" className="nav-cta">
+        My Arena
+      </a>
+    ) : (
+      <a
+        href="#"
+        className="nav-cta"
+        onClick={(e) => {
+          e.preventDefault();
+          openSignUp("/prediction-arena");
+        }}
+      >
         Join Free
       </a>
-    );
+    ));
 
   const mobileOppositeLink =
     active === "rankings"

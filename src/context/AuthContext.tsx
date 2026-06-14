@@ -38,6 +38,14 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   /** Re-fetch the profile row (e.g. after points are awarded). */
   refreshProfile: () => Promise<void>;
+  // ── Site-wide sign-up modal (rendered once at the root) ───────────────────
+  /** True while the shared sign-up/log-in modal is open. */
+  signUpModalOpen: boolean;
+  /** Same-origin path to return to after OAuth/email-confirm sign-up. */
+  signUpNext: string;
+  /** Open the shared sign-up modal; `next` is where to land after auth. */
+  openSignUp: (next?: string) => void;
+  closeSignUp: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -57,6 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false);
+  const [signUpNext, setSignUpNext] = useState("/prediction-arena");
 
   // Track auth state. onAuthStateChange fires INITIAL_SESSION on mount, so it
   // doubles as the initial load. Profile fetching happens in the effect below
@@ -196,6 +206,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase]);
 
+  const openSignUp = useCallback((next: string = "/prediction-arena") => {
+    setAuthError(null);
+    setAuthMessage(null);
+    const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/prediction-arena";
+    setSignUpNext(safeNext);
+    setSignUpModalOpen(true);
+  }, []);
+
+  const closeSignUp = useCallback(() => setSignUpModalOpen(false), []);
+
   const refreshProfile = useCallback(async () => {
     if (!user || !supabase) return;
     const { data } = await supabase
@@ -220,6 +240,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithEmail,
       signOut,
       refreshProfile,
+      signUpModalOpen,
+      signUpNext,
+      openSignUp,
+      closeSignUp,
     }),
     [
       user,
@@ -233,6 +257,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUpWithEmail,
       signOut,
       refreshProfile,
+      signUpModalOpen,
+      signUpNext,
+      openSignUp,
+      closeSignUp,
     ],
   );
 
