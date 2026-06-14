@@ -26,13 +26,15 @@ type AuthContextValue = {
   authMessage: string | null;
   /** Shared typed client for data fetches; null when env isn't configured. */
   supabase: SupabaseClient<Database> | null;
-  signInWithGoogle: () => Promise<void>;
+  /** OAuth sign-in. `next` is the same-origin path to return to (default /prediction-arena). */
+  signInWithGoogle: (next?: string) => Promise<void>;
   /** Alias of signInWithGoogle. */
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (next?: string) => Promise<void>;
   /** Email + password sign-in. */
   signInWithEmail: (email: string, password: string) => Promise<void>;
-  /** Email + password sign-up (sends a confirmation email). */
-  signUpWithEmail: (email: string, password: string) => Promise<void>;
+  /** Email + password sign-up (sends a confirmation email). `next` is where the
+   * confirmation link returns the user (default /prediction-arena). */
+  signUpWithEmail: (email: string, password: string, next?: string) => Promise<void>;
   signOut: () => Promise<void>;
   /** Re-fetch the profile row (e.g. after points are awarded). */
   refreshProfile: () => Promise<void>;
@@ -117,17 +119,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (next: string = "/prediction-arena") => {
     setAuthError(null);
     setAuthMessage(null);
     if (!supabase) {
       setAuthError("Sign-in isn't available yet — Supabase environment variables are not configured.");
       return;
     }
+    const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/prediction-arena";
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/prediction-arena`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
         queryParams: {
           access_type: "offline",
           prompt: "select_account",
@@ -153,18 +156,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signUpWithEmail = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, next: string = "/prediction-arena") => {
       setAuthError(null);
       setAuthMessage(null);
       if (!supabase) {
         setAuthError("Sign-up isn't available yet — Supabase environment variables are not configured.");
         return;
       }
+      const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/prediction-arena";
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/prediction-arena`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(safeNext)}`,
         },
       });
       if (error) {

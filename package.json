@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:grader": "tsc --module commonjs --target es2019 --outDir .tmp --skipLibCheck src/lib/draftNight/grader.ts src/lib/draftNight/config.ts scripts/draft-night-grader-dryrun.ts && node .tmp/scripts/draft-night-grader-dryrun.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

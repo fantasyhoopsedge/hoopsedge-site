@@ -25,6 +25,17 @@ export type QuestionType = "boolean" | "single_choice" | "multi_choice" | "ranki
 // agent-proposed, awaiting analyst approval.
 export type GameStatus = "draft" | "active" | "locked" | "resolved" | "skipped";
 
+// ── Draft Night Challenge (dedicated MVP schema) ────────────────────────────
+// supabase/migrations/20260614010000_draft_night.sql. Intentionally separate
+// from the Prediction Arena tables above.
+export type DnGameStatus = "draft" | "live" | "locked" | "resolved";
+export type DnMiniGameKey =
+  | "mock_lottery"
+  | "guard_order"
+  | "drafted_higher"
+  | "first_round";
+export type DnMiniGameType = "rank_order" | "single_pick" | "multi_select";
+
 export interface Database {
   public: {
     Tables: {
@@ -128,8 +139,140 @@ export interface Database {
           },
         ];
       };
+      dn_games: {
+        Row: {
+          id: string;
+          slug: string;
+          title: string;
+          status: DnGameStatus;
+          lock_at: string;
+          resolved_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          title: string;
+          status?: DnGameStatus;
+          lock_at: string;
+          resolved_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          slug?: string;
+          title?: string;
+          status?: DnGameStatus;
+          lock_at?: string;
+          resolved_at?: string | null;
+        };
+        Relationships: [];
+      };
+      dn_mini_games: {
+        Row: {
+          id: string;
+          game_id: string;
+          key: DnMiniGameKey;
+          type: DnMiniGameType;
+          sort: number;
+          config: Json;
+        };
+        Insert: {
+          id?: string;
+          game_id: string;
+          key: DnMiniGameKey;
+          type: DnMiniGameType;
+          sort?: number;
+          config: Json;
+        };
+        Update: {
+          sort?: number;
+          config?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "dn_mini_games_game_id_fkey";
+            columns: ["game_id"];
+            referencedRelation: "dn_games";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      dn_predictions: {
+        Row: {
+          id: string;
+          user_id: string;
+          mini_game_id: string;
+          payload: Json;
+          score: number | null;
+          locked: boolean;
+          submitted_at: string;
+        };
+        Insert: {
+          user_id: string;
+          mini_game_id: string;
+          payload: Json;
+          locked?: boolean;
+          // score is server-managed (the grader writes it via the service role).
+        };
+        // Users cannot update (no RLS update policy → immutable for them); only
+        // the service-role grader writes `score` back at resolution.
+        Update: { score?: number | null };
+        Relationships: [
+          {
+            foreignKeyName: "dn_predictions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dn_predictions_mini_game_id_fkey";
+            columns: ["mini_game_id"];
+            referencedRelation: "dn_mini_games";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      dn_results: {
+        Row: {
+          id: string;
+          game_id: string;
+          picks: Json;
+          resolved_at: string;
+        };
+        Insert: {
+          id?: string;
+          game_id: string;
+          picks: Json;
+          resolved_at?: string;
+        };
+        Update: {
+          picks?: Json;
+          resolved_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "dn_results_game_id_fkey";
+            columns: ["game_id"];
+            referencedRelation: "dn_games";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
-    Views: Record<string, never>;
+    Views: {
+      dn_leaderboard: {
+        Row: {
+          game_id: string;
+          user_id: string;
+          username: string | null;
+          avatar_url: string | null;
+          score: number;
+          rank: number;
+          percentile: number;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -142,3 +285,11 @@ export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 export type PredictionGame = Database["public"]["Tables"]["prediction_games"]["Row"];
 export type UserPrediction = Database["public"]["Tables"]["user_predictions"]["Row"];
 export type UserPredictionInsert = Database["public"]["Tables"]["user_predictions"]["Insert"];
+
+// ── Draft Night convenience aliases ─────────────────────────────────────────
+export type DnGame = Database["public"]["Tables"]["dn_games"]["Row"];
+export type DnMiniGame = Database["public"]["Tables"]["dn_mini_games"]["Row"];
+export type DnPrediction = Database["public"]["Tables"]["dn_predictions"]["Row"];
+export type DnPredictionInsert = Database["public"]["Tables"]["dn_predictions"]["Insert"];
+export type DnResult = Database["public"]["Tables"]["dn_results"]["Row"];
+export type DnLeaderboardRow = Database["public"]["Views"]["dn_leaderboard"]["Row"];

@@ -125,3 +125,27 @@ export function getProspectBySlug(slug: string): Prospect | null {
 export function getAllProspectSlugs(): { slug: string }[] {
   return loadProspects().map((p) => ({ slug: p.slug }));
 }
+
+/** Minimal prospect display fields, keyed by slug — for client UIs (Draft
+ * Night) that can't read the fs-backed CSV directly. */
+export interface ProspectLite {
+  slug: string;
+  name: string;
+  pos: string;
+  school: string;
+  rank: number;
+}
+
+export function getProspectLiteMap(): Record<string, ProspectLite> {
+  const map: Record<string, ProspectLite> = {};
+  for (const p of loadProspects()) {
+    map[p.slug] = {
+      slug: p.slug,
+      name: p.name,
+      pos: p.pos,
+      school: p.school,
+      rank: p.pickNumber,
+    };
+  }
+  return map;
+}
