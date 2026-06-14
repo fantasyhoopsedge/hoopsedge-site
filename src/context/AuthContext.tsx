@@ -22,11 +22,17 @@ type AuthContextValue = {
   loading: boolean;
   /** Error message from the last auth operation, if any. */
   authError: string | null;
+  /** Info/success message (e.g. "check your email"), separate from errors. */
+  authMessage: string | null;
   /** Shared typed client for data fetches; null when env isn't configured. */
   supabase: SupabaseClient<Database> | null;
   signInWithGoogle: () => Promise<void>;
   /** Alias of signInWithGoogle. */
   loginWithGoogle: () => Promise<void>;
+  /** Email + password sign-in. */
+  signInWithEmail: (email: string, password: string) => Promise<void>;
+  /** Email + password sign-up (sends a confirmation email). */
+  signUpWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   /** Re-fetch the profile row (e.g. after points are awarded). */
   refreshProfile: () => Promise<void>;
@@ -48,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
 
   // Track auth state. onAuthStateChange fires INITIAL_SESSION on mount, so it
   // doubles as the initial load. Profile fetching happens in the effect below
@@ -112,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = useCallback(async () => {
     setAuthError(null);
+    setAuthMessage(null);
     if (!supabase) {
       setAuthError("Sign-in isn't available yet — Supabase environment variables are not configured.");
       return;
@@ -128,6 +136,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (error) setAuthError(error.message);
   }, [supabase]);
+
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      setAuthError(null);
+      setAuthMessage(null);
+      if (!supabase) {
+        setAuthError("Sign-in isn't available yet — Supabase environment variables are not configured.");
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) setAuthError(error.message);
+      // Success → onAuthStateChange fires and the dashboard renders.
+    },
+    [supabase],
+  );
+
+  const signUpWithEmail = useCallback(
+    async (email: string, password: string) => {
+      setAuthError(null);
+      setAuthMessage(null);
+      if (!supabase) {
+        setAuthError("Sign-up isn't available yet — Supabase environment variables are not configured.");
+        return;
+      }
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/prediction-arena`,
+        },
+      });
+      if (error) {
+        setAuthError(error.message);
+        return;
+      }
+      // With email confirmation on, there is no session until the user clicks
+      // the link in their inbox.
+      if (!data.session) {
+        setAuthMessage("Almost there — check your email for a confirmation link, then sign in.");
+      }
+    },
+    [supabase],
+  );
 
   const signOut = useCallback(async () => {
     if (!supabase) return;
@@ -157,13 +208,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profile,
       loading,
       authError,
+      authMessage,
       supabase,
       signInWithGoogle,
       loginWithGoogle: signInWithGoogle,
+      signInWithEmail,
+      signUpWithEmail,
       signOut,
       refreshProfile,
     }),
-    [user, profile, loading, authError, supabase, signInWithGoogle, signOut, refreshProfile],
+    [
+      user,
+      profile,
+      loading,
+      authError,
+      authMessage,
+      supabase,
+      signInWithGoogle,
+      signInWithEmail,
+      signUpWithEmail,
+      signOut,
+      refreshProfile,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

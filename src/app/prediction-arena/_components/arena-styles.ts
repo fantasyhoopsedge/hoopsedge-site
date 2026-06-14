@@ -26,6 +26,18 @@ export const paStyles = `
 .pa-google-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 32px rgba(37, 99, 235, 0.4); }
 .pa-cta-note { color: var(--text-muted); font-size: 0.82rem; margin: 0; }
 .pa-error { color: var(--red-severe); font-size: 0.85rem; margin: 0; }
+.pa-message { color: var(--blueprint); font-size: 0.85rem; margin: 0; text-align: center; }
+
+.pa-form { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 340px; }
+.pa-input { width: 100%; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-main); border-radius: 10px; padding: 12px 14px; font-size: 0.95rem; font-family: inherit; }
+.pa-input:focus { outline: none; border-color: var(--edge-orange); }
+.pa-submit { width: 100%; background: var(--edge-orange); color: #fff; font-size: 0.98rem; font-weight: 700; border: none; border-radius: 10px; padding: 13px; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
+.pa-submit:hover:not(:disabled) { transform: translateY(-2px); }
+.pa-submit:disabled { opacity: 0.6; cursor: progress; }
+.pa-toggle { font-size: 0.85rem; color: var(--text-muted); margin: 2px 0 0; text-align: center; }
+.pa-link { background: none; border: none; color: var(--edge-orange); font-weight: 600; cursor: pointer; font-size: 0.85rem; padding: 0; }
+.pa-divider { display: flex; align-items: center; gap: 12px; width: 100%; max-width: 340px; color: var(--text-muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.pa-divider::before, .pa-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-main); }
 
 .pa-welcome { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; text-align: left; background: var(--bg-card); border: 1px solid var(--border-main); border-radius: 14px; padding: 24px 28px; margin-bottom: 28px; }
 .pa-welcome-id { display: flex; align-items: center; gap: 16px; }
