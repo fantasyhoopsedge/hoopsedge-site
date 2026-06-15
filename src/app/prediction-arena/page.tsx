@@ -6,82 +6,48 @@ import { PredictionFeed } from "./_components/prediction-feed";
 import { EmailAuthForm } from "./_components/email-auth-form";
 import { paStyles } from "./_components/arena-styles";
 
-// ── Reward tier definitions ──────────────────────────────────────────────────
-const TIERS = [
-  {
-    n: 1,
-    cadence: "NIGHTLY",
-    title: "Quick Calls",
-    blurb: "Fast boolean and pick'em questions on tonight's slate. Locked at tip-off, scored by sunrise.",
-    reward: "FHE Edge Points",
-    rewardDetail: "Stack points every night you call it right.",
-    accent: "var(--blueprint)",
-    badgeBg: "rgba(37, 99, 235, 0.12)",
-    icon: "⚡",
-  },
-  {
-    n: 2,
-    cadence: "MONTHLY",
-    title: "Trend Lines",
-    blurb: "Single and multi-choice calls on monthly leaders, breakouts, and fades. Higher stakes, bigger swings.",
-    reward: "Analyst Badges",
-    rewardDetail: "Top monthly accuracy earns the badge on your profile.",
-    accent: "var(--edge-orange)",
-    badgeBg: "rgba(255, 107, 43, 0.12)",
-    icon: "📈",
-  },
-  {
-    n: 3,
-    cadence: "SEASONAL",
-    title: "The Long Game",
-    blurb: "Ranking-style predictions on awards, standings, and dynasty risers — settled when the season is.",
-    reward: '"Called It" Cards',
-    rewardDetail: "Permanent, timestamped proof you saw it coming.",
-    accent: "var(--dynasty-gold)",
-    badgeBg: "rgba(240, 192, 64, 0.12)",
-    icon: "🏆",
-  },
-] as const;
-
-// ── Featured live game: Draft Night Challenge ────────────────────────────────
-function DraftNightFeature() {
+// ── Game card: Draft Night Challenge ─────────────────────────────────────────
+function DraftNightCard() {
   return (
     <a
       href="/draft-night"
-      style={{
-        display: "block",
-        textDecoration: "none",
-        background: "linear-gradient(135deg, rgba(240,192,64,0.14), var(--bg-card))",
-        border: "1px solid var(--dynasty-gold)",
-        borderRadius: "16px",
-        padding: "24px 28px",
-        marginBottom: "32px",
-      }}
+      className="pa-game-tile pa-game-tile--live"
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-        <div style={{ minWidth: 0 }}>
-          <span className="pa-chip" style={{ background: "rgba(240,192,64,0.15)", color: "var(--dynasty-gold)" }}>
+      <div className="pa-game-tile-inner">
+        <div className="pa-game-tile-body">
+          <span className="pa-chip pa-chip--gold">
             🏆 LIVE NOW · DRAFT NIGHT
           </span>
-          <h2 style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 800, fontSize: "1.8rem", textTransform: "uppercase", margin: "10px 0 6px", color: "var(--text-primary)" }}>
-            The Draft Night Challenge
-          </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: "15px", maxWidth: 560, margin: 0, lineHeight: 1.5 }}>
-            Four fast mini-games on the 2026 NBA Draft. Mock the lottery, call the head-to-heads, and lock your picks before tip-off.
+          <h2 className="pa-game-tile-title">The Draft Night Challenge</h2>
+          <p className="pa-game-tile-blurb">
+            Four fast mini-games on the 2026 NBA Draft. Mock the lottery, call the head-to-heads,
+            and lock your picks before tip-off.
           </p>
         </div>
-        <span
-          style={{
-            background: "var(--edge-orange)", color: "#fff",
-            fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "14px",
-            letterSpacing: "1.5px", textTransform: "uppercase",
-            padding: "14px 26px", borderRadius: "10px", whiteSpace: "nowrap",
-          }}
-        >
-          Play now →
-        </span>
+        <span className="pa-game-tile-cta">Play now →</span>
       </div>
     </a>
+  );
+}
+
+// ── Game card: Season-long Predictions ───────────────────────────────────────
+function SeasonLongCard() {
+  return (
+    <div className="pa-game-tile pa-game-tile--soon" aria-label="Season-long Predictions — coming soon">
+      <div className="pa-game-tile-inner">
+        <div className="pa-game-tile-body">
+          <span className="pa-chip pa-chip--muted">
+            🏅 COMING SOON · SEASON-LONG
+          </span>
+          <h2 className="pa-game-tile-title">Season-long Predictions</h2>
+          <p className="pa-game-tile-blurb">
+            Ranking-style calls on awards, standings, and dynasty risers — locked before opening
+            night and settled when the season is. Permanent, timestamped proof you saw it coming.
+          </p>
+        </div>
+        <span className="pa-game-tile-cta pa-game-tile-cta--locked">Coming soon</span>
+      </div>
+    </div>
   );
 }
 
@@ -116,30 +82,13 @@ function ArenaLanding({ onSignIn }: { onSignIn: () => void }) {
         Make the call. <span style={{ color: "var(--edge-orange)" }}>Earn the edge.</span>
       </h1>
       <p className="pa-lede">
-        Three tiers of NBA prediction games. Every question locks on a hard deadline,
-        every result is scored on the record — no edits, no take-backs, no revisionist history.
+        NBA prediction games with hard deadlines and results on the record —
+        no edits, no take-backs, no revisionist history.
       </p>
 
-      <DraftNightFeature />
-
-      <div className="pa-tier-grid">
-        {TIERS.map((t) => (
-          <div key={t.n} className="pa-card" style={{ borderTop: `3px solid ${t.accent}` }}>
-            <div className="pa-card-head">
-              <span className="pa-chip" style={{ background: t.badgeBg, color: t.accent }}>
-                TIER {t.n} · {t.cadence}
-              </span>
-              <span className="pa-icon" aria-hidden>{t.icon}</span>
-            </div>
-            <h2 className="pa-card-title">{t.title}</h2>
-            <p className="pa-card-blurb">{t.blurb}</p>
-            <div className="pa-reward">
-              <span className="pa-reward-label">REWARD</span>
-              <span className="pa-reward-name" style={{ color: t.accent }}>{t.reward}</span>
-              <span className="pa-reward-detail">{t.rewardDetail}</span>
-            </div>
-          </div>
-        ))}
+      <div className="pa-game-stack">
+        <DraftNightCard />
+        <SeasonLongCard />
       </div>
 
       <div className="pa-cta-zone">
@@ -208,7 +157,10 @@ function ArenaDashboard() {
         </div>
       </div>
 
-      <DraftNightFeature />
+      <div className="pa-game-stack">
+        <DraftNightCard />
+        <SeasonLongCard />
+      </div>
 
       <PredictionFeed />
     </div>

@@ -193,14 +193,78 @@ export function gradeMiniGame(
 }
 
 /**
- * Combined Draft Night Score (§2.5): the sum of every mini-game score, floored
- * at 0 so no sign-up finishes underwater. Per-mini-game scores (including a
- * negative first_round) stay visible on the results screen; only this total is
- * floored.
+ * Returns true when the user nailed every pick in the mini-game given the
+ * actual results. This is the "Called It" card trigger (§2.6):
+ *   mock_lottery   — all 14 slots exactly right (slot == actual pick)
+ *   guard_order    — all 5 guards in perfect draft order
+ *   drafted_higher — all 5 head-to-heads correct; a push (both undrafted) fails
+ *   first_round    — every prospect's R1/R2 fate correctly called
  */
-export function combinedScore(miniScores: number[]): number {
+export function isCalledIt(
+  config: MiniGameConfig,
+  payload: string[],
+  picks: ResultsPicks,
+): boolean {
+  switch (config.key) {
+    case "mock_lottery": {
+      if (payload.length < config.slots) return false;
+      for (let s = 1; s <= config.slots; s++) {
+        if (pickOf(picks, payload[s - 1]) !== s) return false;
+      }
+      return true;
+    }
+    case "guard_order": {
+      const actualOrder = config.pool
+        .map((slug, idx) => ({ slug, idx, a: pickOf(picks, slug) ?? Infinity }))
+        .sort((x, y) => (x.a === y.a ? x.idx - y.idx : x.a - y.a))
+        .map((e) => e.slug);
+      return (
+        payload.length === actualOrder.length &&
+        payload.every((slug, i) => slug === actualOrder[i])
+      );
+    }
+    case "drafted_higher": {
+      for (let i = 0; i < config.pairs.length; i++) {
+        const [a, b] = config.pairs[i];
+        const pa = pickOf(picks, a) ?? Infinity;
+        const pb = pickOf(picks, b) ?? Infinity;
+        if (pa === Infinity && pb === Infinity) return false; // push = not called it
+        const winner = pa < pb ? a : b;
+        if (payload[i] !== winner) return false;
+      }
+      return true;
+    }
+    case "first_round": {
+      const tagged = new Set(payload);
+      for (const slug of config.pool) {
+        const a = pickOf(picks, slug);
+        const draftedR1 = a !== null && a <= config.r1Threshold;
+        if (tagged.has(slug) !== draftedR1) return false;
+      }
+      return true;
+    }
+  }
+}
+
+/**
+ * Bonus points awarded for holding multiple Called It cards in the same game:
+ *   0–1 cards → 0, 2 cards → +50, 3 cards → +100, 4 cards → +150
+ */
+export function calledItBonus(cardCount: number): number {
+  if (cardCount <= 1) return 0;
+  if (cardCount === 2) return 50;
+  if (cardCount === 3) return 100;
+  return 150;
+}
+
+/**
+ * Combined Draft Night Score (§2.5 + §2.6): sum of every mini-game score plus
+ * the Called It multi-card bonus, floored at 0. Per-mini-game scores stay
+ * visible on the results screen; only this total is floored.
+ */
+export function combinedScore(miniScores: number[], calledItCards = 0): number {
   return Math.max(
     0,
-    miniScores.reduce((sum, s) => sum + s, 0),
+    miniScores.reduce((sum, s) => sum + s, 0) + calledItBonus(calledItCards),
   );
 }

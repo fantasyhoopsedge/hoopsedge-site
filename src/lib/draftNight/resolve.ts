@@ -12,6 +12,7 @@
 import { createAdminClient } from "@/utils/supabase/admin";
 import {
   gradeMiniGame,
+  isCalledIt,
   type MiniGameConfig,
   type ResultsPicks,
 } from "@/lib/draftNight/grader";
@@ -60,9 +61,10 @@ export async function resolveDraftNight(gameSlug: string): Promise<ResolveSummar
     for (const pred of preds ?? []) {
       const payload = (pred.payload as string[]) ?? [];
       const score = gradeMiniGame(config, payload, picks);
+      const called_it = isCalledIt(config, payload, picks);
       const { error: updErr } = await admin
         .from("dn_predictions")
-        .update({ score })
+        .update({ score, called_it })
         .eq("id", pred.id);
       if (updErr) throw updErr;
       graded++;

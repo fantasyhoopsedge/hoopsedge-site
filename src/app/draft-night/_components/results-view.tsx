@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { DnMiniGame, DnLeaderboardRow, DnPrediction } from "@/types/database";
-import { combinedScore } from "@/lib/draftNight/grader";
+import { combinedScore, calledItBonus } from "@/lib/draftNight/grader";
 import { MINI_META } from "./meta";
 
 export function ResultsView({
@@ -23,9 +23,10 @@ export function ResultsView({
 
   const miniScores = minis.map((m) => {
     const pred = predictions[m.id];
-    return { mini: m, score: pred?.score ?? null };
+    return { mini: m, score: pred?.score ?? null, calledIt: pred?.called_it === true };
   });
-  const combined = combinedScore(miniScores.map((s) => s.score ?? 0));
+  const calledItCards = miniScores.filter((s) => s.calledIt).length;
+  const combined = combinedScore(miniScores.map((s) => s.score ?? 0), calledItCards);
 
   const me = leaderboard.find((r) => r.user_id === userId) ?? null;
   const pct = me ? Math.round(me.percentile * 100) : null;
@@ -79,9 +80,38 @@ export function ResultsView({
         </div>
       ) : null}
 
+      {calledItCards > 0 && (
+        <>
+          <h2 className="dn-section-h">Called It</h2>
+          <div className="dn-ci-grid" style={{ marginBottom: 14 }}>
+            {miniScores.filter((s) => s.calledIt).map(({ mini }) => {
+              const meta = MINI_META[mini.key];
+              return (
+                <div className="dn-ci-card" key={mini.id} style={{ borderLeftColor: meta.accent }}>
+                  <span className="dn-ci-icon" aria-hidden>{meta.icon}</span>
+                  <span className="dn-ci-body">
+                    <span className="dn-ci-name">{meta.title}</span>
+                    <span className="dn-ci-sub">Perfect ✓</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          {calledItBonus(calledItCards) > 0 ? (
+            <p className="dn-ci-bonus" style={{ marginBottom: 28 }}>
+              ⭐ {calledItCards} Called It cards · +{calledItBonus(calledItCards)} bonus applied
+            </p>
+          ) : (
+            <p className="dn-ci-hint" style={{ marginBottom: 28 }}>
+              1 Called It card — get 2+ perfect games for a score bonus
+            </p>
+          )}
+        </>
+      )}
+
       <h2 className="dn-section-h">Per-game breakdown</h2>
       <div className="dn-breakdown">
-        {miniScores.map(({ mini, score }) => {
+        {miniScores.map(({ mini, score, calledIt }) => {
           const meta = MINI_META[mini.key];
           const played = predictions[mini.id] != null;
           return (
@@ -91,6 +121,7 @@ export function ResultsView({
                 <span className="dn-break-title">{meta.title}</span>
                 <span className="dn-break-sub">{played ? `ceiling ${meta.ceiling}` : "not played"}</span>
               </span>
+              {calledIt && <span className="dn-called-it-badge">CALLED IT</span>}
               <span
                 className="dn-break-score"
                 style={{ color: score != null && score < 0 ? "var(--red-severe)" : "var(--text-primary)" }}
@@ -100,6 +131,16 @@ export function ResultsView({
             </div>
           );
         })}
+        {calledItBonus(calledItCards) > 0 && (
+          <div className="dn-bonus-row">
+            <span className="dn-break-icon" aria-hidden>⭐</span>
+            <span className="dn-break-id">
+              <span className="dn-break-title">Called It Bonus</span>
+              <span className="dn-break-sub">{calledItCards} perfect games</span>
+            </span>
+            <span className="dn-bonus-score">+{calledItBonus(calledItCards)}</span>
+          </div>
+        )}
       </div>
 
       <h2 className="dn-section-h">Leaderboard</h2>

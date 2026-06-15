@@ -546,35 +546,26 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
 
               {expandedRank === p.rank && (
                 <div className="db-mobile-stars">
-                  {CATS.map((cat) => {
-                    const val = (p as unknown as Record<string, string>)[cat];
-                    if (!val) return null;
-                    const st = starStyle(val);
-                    return (
-                      <div className="db-ms-cell" key={cat}>
-                        <span className="db-ms-label">{CAT_LABELS[cat]}</span>
-                        <span className="db-ms-val" style={{ color: st.color, fontWeight: st.fontWeight }}>{val}</span>
-                      </div>
-                    );
-                  })}
+                  <div className="db-ms-row">
+                    {CATS.map((cat) => {
+                      const val = (p as unknown as Record<string, string>)[cat];
+                      if (!val) return null;
+                      const st = starStyle(val);
+                      return (
+                        <div className="db-ms-cell" key={cat}>
+                          <span className="db-ms-label">{CAT_LABELS[cat]}</span>
+                          <span className="db-ms-val" style={{ color: st.color, fontWeight: st.fontWeight }}>{val}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="db-ms-verdict">{p.verdict}</p>
                 </div>
               )}
             </Fragment>
           );
         })}
       </div>
-
-      <footer>
-        <div className="footer-brand">Fantasy Hoops <span className="accent">Edge</span></div>
-        <div className="footer-links">
-          <a href="/dynasty-rankings">Dynasty Rankings</a>
-          <a href="/draft-board">Rookies</a>
-          <a href="/prediction-arena">Predictions Arena</a>
-        </div>
-        <div className="footer-social">
-          <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
-        </div>
-      </footer>
 
       {/* Prospect detail modal */}
       <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} />
@@ -583,20 +574,30 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
         .db-mobile-stars { display: none; }
         @media (max-width: 767px) {
           .db-mobile-stars {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             background: var(--bg-card);
             border: 1px solid var(--border-main);
             border-top: none;
             border-radius: 0 0 12px 12px;
             margin: -8px 0 10px;
-            padding: 14px 16px 16px;
+            padding: 12px 12px 16px;
+          }
+          .db-ms-row {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 0;
           }
         }
-        .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1px; color: var(--text-muted); }
-        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+        .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 9px; letter-spacing: 0.5px; color: var(--text-muted); }
+        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .db-ms-verdict {
+          font-size: 12px; line-height: 1.55; color: var(--text-secondary);
+          margin: 0; padding-top: 4px;
+          border-top: 1px solid var(--border-main);
+        }
 
         /* Live age badge */
         .db-age {

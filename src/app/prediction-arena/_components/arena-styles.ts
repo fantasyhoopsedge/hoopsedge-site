@@ -6,20 +6,43 @@ export const paStyles = `
 .pa-h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; margin: 0 0 16px; }
 .pa-lede { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.6; max-width: 640px; margin: 0 auto 48px; }
 
-.pa-tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: left; margin-bottom: 48px; }
-@media (max-width: 820px) { .pa-tier-grid { grid-template-columns: 1fr; } }
+/* ── Game stack (two stacked full-width cards) ─────────────────────────────── */
+.pa-game-stack { display: flex; flex-direction: column; gap: 16px; text-align: left; margin-bottom: 48px; }
 
-.pa-card { background: var(--bg-card); border: 1px solid var(--border-main); border-radius: 14px; padding: 24px; transition: transform 0.15s ease, background 0.15s ease; }
-.pa-card:hover { transform: translateY(-3px); background: var(--bg-card-hover); }
-.pa-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+/* Base game tile */
+.pa-game-tile { display: block; text-decoration: none; border-radius: 16px; border: 1px solid var(--border-main); background: var(--bg-card); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.pa-game-tile--live { background: linear-gradient(135deg, rgba(240,192,64,0.13) 0%, var(--bg-card) 60%); border-color: var(--dynasty-gold); border-width: 2px; }
+.pa-game-tile--live:hover { transform: translateY(-3px); box-shadow: 0 8px 36px rgba(240,192,64,0.18); }
+.pa-game-tile--soon { opacity: 0.6; cursor: default; }
+
+.pa-game-tile-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 26px 30px; flex-wrap: wrap; }
+.pa-game-tile-body { flex: 1; min-width: 0; }
+.pa-game-tile-title { font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 1.75rem; text-transform: uppercase; margin: 10px 0 6px; color: var(--text-primary); }
+.pa-game-tile-blurb { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.55; margin: 0; max-width: 580px; }
+
+.pa-game-tile-cta { flex-shrink: 0; background: var(--edge-orange); color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; padding: 14px 26px; border-radius: 10px; white-space: nowrap; }
+.pa-game-tile-cta--locked { background: var(--bg-surface); color: var(--text-muted); border: 1px solid var(--border-main); letter-spacing: 0.08em; font-size: 13px; }
+
+/* Chips */
 .pa-chip { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; border-radius: 999px; padding: 4px 10px; }
-.pa-icon { font-size: 1.3rem; }
-.pa-card-title { font-size: 1.25rem; font-weight: 700; margin: 0 0 8px; color: var(--text-primary); }
-.pa-card-blurb { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.55; margin: 0 0 18px; }
-.pa-reward { display: flex; flex-direction: column; gap: 3px; border-top: 1px solid var(--border-main); padding-top: 14px; }
-.pa-reward-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; color: var(--text-muted); }
-.pa-reward-name { font-size: 1rem; font-weight: 700; }
-.pa-reward-detail { font-size: 0.8rem; color: var(--text-muted); }
+.pa-chip--gold { background: rgba(240,192,64,0.15); color: var(--dynasty-gold); }
+.pa-chip--muted { background: var(--bg-surface); color: var(--text-muted); }
+
+/* ── Mobile ── */
+@media (max-width: 680px) {
+  .pa-wrap { padding: 44px 16px 64px; }
+  .pa-h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+  .pa-lede { font-size: 0.98rem; margin-bottom: 32px; }
+  .pa-game-stack { gap: 12px; margin-bottom: 36px; }
+  .pa-game-tile-inner { padding: 20px 18px; gap: 14px; flex-direction: column; align-items: flex-start; }
+  .pa-game-tile-title { font-size: 1.45rem; margin: 8px 0 4px; }
+  .pa-game-tile-blurb { font-size: 0.88rem; }
+  .pa-game-tile-cta { width: 100%; text-align: center; padding: 13px; font-size: 13px; }
+  .pa-google-btn { width: 100%; max-width: 340px; justify-content: center; }
+  .pa-welcome { padding: 16px 18px; flex-direction: column; align-items: flex-start; gap: 16px; }
+  .pa-stats { width: 100%; justify-content: space-between; }
+  .pa-stat { align-items: flex-start; }
+}
 
 .pa-cta-zone { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .pa-google-btn { display: inline-flex; align-items: center; gap: 12px; background: #ffffff; color: #1f1f1f; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; padding: 14px 28px; cursor: pointer; box-shadow: 0 4px 24px rgba(37, 99, 235, 0.25); transition: transform 0.12s ease, box-shadow 0.12s ease; }

@@ -166,20 +166,6 @@ export default function Home() {
         <p className="cta-note">No spam. Dynasty content only. Unsubscribe anytime.</p>
       </section>
 
-      {/* FOOTER */}
-      <footer>
-        <div className="footer-brand">
-          Fantasy Hoops <span className="accent">Edge</span>
-        </div>
-        <div className="footer-links">
-          <a href="/dynasty-rankings">Dynasty Rankings</a>
-          <a href="/draft-board">Rookies</a>
-          <a href="/prediction-arena">Predictions Arena</a>
-        </div>
-        <div className="footer-social">
-          <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
-        </div>
-      </footer>
     </>
   );
 }

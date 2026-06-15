@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
+import { Footer } from "@/components/footer";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
   { key: "dizzle", label: "DIZZLE" },
@@ -297,6 +298,9 @@ export function RankingsTable(props: {
             fontSize: 11,
             color: "#9a9aaa",
             padding: "4px 0 2px 0",
+            maxWidth: 1200,
+            marginLeft: "auto",
+            marginRight: "auto",
           }}
         >
           <span>{rankedByExpertLabel ? `Ranked by ${rankedByExpertLabel}` : "Ranked by Consensus"}</span>
@@ -529,6 +533,7 @@ export function RankingsTable(props: {
         ) : null}
 
         {hasMore ? <div ref={sentinelRef} style={{ height: 1, width: "100%" }} aria-hidden /> : null}
+        {!hasMore && !isLoadingMore ? <Footer /> : null}
       </div>
     </>
   );

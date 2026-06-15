@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { GAME_SLUG } from "@/lib/draftNight/config";
-import { combinedScore } from "@/lib/draftNight/grader";
-import { MINI_META } from "../../_components/meta";
+import { combinedScore, calledItBonus } from "@/lib/draftNight/grader";
+import { MINI_META } from "../../../_components/meta";
 import type { DnMiniGameKey } from "@/types/database";
 
 // Brand tokens (satori needs literal colors, not CSS vars).
@@ -16,9 +16,9 @@ const MUTED = "#9a9aaa";
 const SIZE = { width: 1200, height: 630 };
 
 /**
- * The auto-generated "Called It" share card (handoff §5). Reads the resolved
- * score via the service role so a shared URL renders for anyone (not just the
- * owner, whose predictions are otherwise RLS-protected).
+ * The auto-generated "Called It" share card OG image (handoff §5).
+ * Served at /draft-night/card/[userId]/og so it can coexist with the
+ * in-browser page at /draft-night/card/[userId].
  */
 export async function GET(
   _req: Request,
@@ -61,16 +61,30 @@ export async function GET(
 
       const { data: preds } = await admin
         .from("dn_predictions")
-        .select("mini_game_id, score")
+        .select("mini_game_id, score, called_it")
         .eq("user_id", userId);
 
       const scored = (preds ?? []).filter((p) => typeof p.score === "number");
       if (scored.length) {
-        if (!combined) combined = combinedScore(scored.map((p) => p.score as number));
-        const best = scored.reduce((a, b) => ((b.score as number) > (a.score as number) ? b : a));
-        const bestKey = keyById.get(best.mini_game_id);
-        if (bestKey && (best.score as number) > 0) {
-          flex = `${MINI_META[bestKey].title}: +${best.score}`;
+        const calledItCount = scored.filter((p) => p.called_it).length;
+        if (!combined) combined = combinedScore(scored.map((p) => p.score as number), calledItCount);
+
+        if (calledItCount >= 2) {
+          const bonus = calledItBonus(calledItCount);
+          const names = scored
+            .filter((p) => p.called_it)
+            .map((p) => { const k = keyById.get(p.mini_game_id); return k ? MINI_META[k].title : ""; })
+            .filter(Boolean)
+            .join("  ·  ");
+          flex = `${names}  ·  +${bonus} Called It bonus`;
+        } else if (calledItCount === 1) {
+          const cp = scored.find((p) => p.called_it);
+          const k = cp ? keyById.get(cp.mini_game_id) : null;
+          flex = k ? `Called It: ${MINI_META[k].title}` : "Called It!";
+        } else {
+          const best = scored.reduce((a, b) => ((b.score as number) > (a.score as number) ? b : a));
+          const bestKey = keyById.get(best.mini_game_id);
+          if (bestKey && (best.score as number) > 0) flex = `${MINI_META[bestKey].title}: +${best.score}`;
         }
       }
     }

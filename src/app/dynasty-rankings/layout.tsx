@@ -12,6 +12,8 @@ export default function DynastyRankingsLayout({ children }: { children: ReactNod
   const schema = generateConsensusRankingsSchema("https://fantasyhoopsedge.com");
   return (
     <>
+      {/* Footer is rendered inside the shell; suppress the root layout one */}
+      <style>{`.site-footer-global { display: none !important; }`}</style>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

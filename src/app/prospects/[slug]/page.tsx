@@ -284,17 +284,6 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
         </div>
       </div>
 
-      <footer>
-        <div className="footer-brand">Fantasy Hoops <span className="accent">Edge</span></div>
-        <div className="footer-links">
-          <a href="/">Home</a>
-          <a href="/dynasty-rankings">Dynasty Rankings</a>
-          <a href="/draft-board">Rookie Draft Board</a>
-        </div>
-        <div className="footer-social">
-          <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
-        </div>
-      </footer>
     </div>
   );
 }

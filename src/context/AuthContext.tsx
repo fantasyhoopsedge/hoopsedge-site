@@ -36,6 +36,8 @@ type AuthContextValue = {
    * confirmation link returns the user (default /prediction-arena). */
   signUpWithEmail: (email: string, password: string, next?: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /** Update the signed-in user's display name and/or avatar URL. */
+  updateProfile: (updates: { username?: string; avatar_url?: string }) => Promise<string | null>;
   /** Re-fetch the profile row (e.g. after points are awarded). */
   refreshProfile: () => Promise<void>;
   // ── Site-wide sign-up modal (rendered once at the root) ───────────────────
@@ -206,6 +208,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase]);
 
+  const updateProfile = useCallback(
+    async (updates: { username?: string; avatar_url?: string }): Promise<string | null> => {
+      if (!supabase || !user) return "Not signed in.";
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", user.id);
+      if (error) return error.message;
+      // Optimistically update local state so the nav reflects the change immediately.
+      setProfile((prev) => (prev ? { ...prev, ...updates } : prev));
+      return null;
+    },
+    [supabase, user],
+  );
+
   const openSignUp = useCallback((next: string = "/prediction-arena") => {
     setAuthError(null);
     setAuthMessage(null);
@@ -239,6 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       signOut,
+      updateProfile,
       refreshProfile,
       signUpModalOpen,
       signUpNext,
@@ -256,6 +274,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       signOut,
+      updateProfile,
       refreshProfile,
       signUpModalOpen,
       signUpNext,

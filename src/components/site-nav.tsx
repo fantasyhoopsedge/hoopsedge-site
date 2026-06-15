@@ -1,9 +1,143 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 const STORAGE_KEY = "fhe-theme";
+
+// ── Tiny avatar with initials fallback ───────────────────────────────────────
+function NavAvatar({ src, name, size = 32 }: { src: string | null; name: string; size?: number }) {
+  const [imgOk, setImgOk] = useState(true);
+  const letters = name.trim().slice(0, 2).toUpperCase();
+
+  if (src && imgOk) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        onError={() => setImgOk(false)}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "2px solid var(--border-main)",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: "linear-gradient(135deg, var(--blueprint) 0%, var(--edge-orange) 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Oswald', sans-serif",
+        fontWeight: 700,
+        fontSize: Math.round(size * 0.38),
+        color: "#fff",
+        flexShrink: 0,
+        border: "2px solid var(--border-main)",
+      }}
+    >
+      {letters || "?"}
+    </div>
+  );
+}
+
+// ── User dropdown menu (click-activated) ─────────────────────────────────────
+function UserMenu({ user, profile, signOut }: {
+  user: NonNullable<ReturnType<typeof useAuth>["user"]>;
+  profile: ReturnType<typeof useAuth>["profile"];
+  signOut: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const displayName = profile?.username ?? user.email?.split("@")[0] ?? "User";
+  const avatarUrl = profile?.avatar_url ?? null;
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="usermenu-wrap">
+      <button
+        type="button"
+        className="usermenu-trigger"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        <NavAvatar src={avatarUrl} name={displayName} size={30} />
+        <span className="usermenu-name">{displayName}</span>
+        <span className="usermenu-caret" aria-hidden>▾</span>
+      </button>
+
+      {open && (
+        <div className="usermenu-dropdown" role="menu">
+          {/* Identity block */}
+          <div className="usermenu-identity">
+            <NavAvatar src={avatarUrl} name={displayName} size={36} />
+            <div className="usermenu-identity-text">
+              <span className="usermenu-identity-name">{displayName}</span>
+              <span className="usermenu-identity-email">{user.email}</span>
+            </div>
+          </div>
+          <div className="usermenu-divider" />
+
+          {/* Nav links */}
+          <a href="/prediction-arena" className="usermenu-item" role="menuitem" onClick={() => setOpen(false)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+            </svg>
+            Predictions
+          </a>
+          <a href="/profile" className="usermenu-item" role="menuitem" onClick={() => setOpen(false)}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+              <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Profile &amp; Account
+          </a>
+
+          <div className="usermenu-divider" />
+
+          <button type="button" className="usermenu-item usermenu-item--signout" role="menuitem"
+            onClick={() => { setOpen(false); void signOut(); }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <polyline points="16 17 21 12 16 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function SiteNav(props: {
   active?: "rankings" | "draft";
@@ -13,7 +147,7 @@ export function SiteNav(props: {
   navClassName?: string;
 }) {
   const { active, joinFree, infoStrip, navClassName } = props;
-  const { user, openSignUp, signOut } = useAuth();
+  const { user, profile, openSignUp, signOut } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
@@ -34,28 +168,7 @@ export function SiteNav(props: {
   const join =
     joinFree ??
     (user ? (
-      <span style={{ display: "inline-flex", alignItems: "center", gap: "14px" }}>
-        <button
-          type="button"
-          onClick={() => void signOut()}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "'Oswald', sans-serif",
-            fontWeight: 500,
-            fontSize: "13px",
-            letterSpacing: "2px",
-            textTransform: "uppercase",
-            color: "var(--text-secondary)",
-          }}
-        >
-          Sign Out
-        </button>
-        <a href="/prediction-arena" className="nav-cta">
-          My Arena
-        </a>
-      </span>
+      <UserMenu user={user} profile={profile} signOut={signOut} />
     ) : (
       <a
         href="#"
@@ -83,7 +196,7 @@ export function SiteNav(props: {
           <span className="nav-brand-full">
             Fantasy Hoops <span className="accent">Edge</span>
           </span>
-          <span className="nav-brand-mobile">FHE</span>
+          <span className="nav-brand-mobile">FH<span className="accent">E</span></span>
         </div>
       </a>
       <ul className="nav-links">
@@ -107,7 +220,7 @@ export function SiteNav(props: {
           </ul>
         </li>
         <li className="nav-arena">
-          <a href="/prediction-arena">Predictions Arena</a>
+          <a href="/prediction-arena">Arena</a>
         </li>
         <li className="nav-theme">
           <button type="button" className="theme-toggle" onClick={toggleTheme} title="Toggle light/dark theme" aria-label="Toggle theme">
@@ -142,6 +255,7 @@ export function SiteNav(props: {
         <li className="nav-join">{join}</li>
       </ul>
       <style>{`
+        /* ── Rankings dropdown ───────────────────────────────────────────── */
         .nav-dropdown { position: relative; }
         .nav-dropdown-trigger {
           background: none; border: none; cursor: pointer; padding: 0;
@@ -151,7 +265,6 @@ export function SiteNav(props: {
         }
         .nav-dropdown-trigger:hover { color: var(--edge-orange); }
         .nav-caret { font-size: 9px; }
-        /* invisible hover bridge so the menu stays open crossing the gap */
         .nav-dropdown::after {
           content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 12px;
         }
@@ -174,17 +287,73 @@ export function SiteNav(props: {
         .nav-arena a { color: #ffffff; }
         .nav-arena a:hover { color: var(--edge-orange); }
 
-        /* Mobile: show Rankings + Predictions Arena on every page; the Rankings
-           dropdown already covers both ranking pages, so drop the redundant
-           opposite-link and the theme toggle to keep the bar uncluttered. */
+        /* ── User menu ───────────────────────────────────────────────────── */
+        .usermenu-wrap { position: relative; }
+        .usermenu-trigger {
+          display: inline-flex; align-items: center; gap: 8px;
+          background: none; border: 1px solid var(--border-main);
+          border-radius: 40px; padding: 3px 12px 3px 4px; cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;
+        }
+        .usermenu-trigger:hover { border-color: var(--blueprint); background: var(--bg-card); }
+        .usermenu-name {
+          font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 13px;
+          letter-spacing: 1px; color: var(--text-primary); max-width: 90px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .usermenu-caret { font-size: 9px; color: var(--text-muted); }
+
+        .usermenu-dropdown {
+          position: absolute; top: calc(100% + 10px); right: 0; min-width: 230px;
+          background: var(--bg-surface); border: 1px solid var(--border-main);
+          border-radius: 14px; box-shadow: var(--shadow-card);
+          padding: 8px; z-index: 300; display: flex; flex-direction: column; gap: 2px;
+        }
+        .usermenu-identity {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 12px 12px;
+        }
+        .usermenu-identity-text {
+          display: flex; flex-direction: column; gap: 2px; min-width: 0;
+        }
+        .usermenu-identity-name {
+          font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px;
+          color: var(--text-primary); letter-spacing: 0.5px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .usermenu-identity-email {
+          font-size: 11px; color: var(--text-muted);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .usermenu-divider {
+          height: 1px; background: var(--border-main); margin: 4px 0;
+        }
+        .usermenu-item {
+          display: flex; align-items: center; gap: 10px;
+          padding: 10px 12px; border-radius: 8px;
+          font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 13px;
+          letter-spacing: 1px; text-transform: uppercase;
+          color: var(--text-secondary); text-decoration: none;
+          background: none; border: none; width: 100%; cursor: pointer; text-align: left;
+          transition: background 0.15s, color 0.15s;
+        }
+        .usermenu-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .usermenu-item--signout { color: #ef4444; }
+        .usermenu-item--signout:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
+
+        /* ── Mobile ──────────────────────────────────────────────────────── */
         @media (max-width: 767px) {
           .nav-links > li.nav-theme,
           .nav-links > li.nav-mobile-opposite-link { display: none !important; }
           .nav-links > li.nav-rankings,
           .nav-links > li.nav-arena { display: list-item !important; }
-          .nav-links { gap: 12px; }
-          .nav-dropdown-trigger, .nav-arena a { font-size: 12px; letter-spacing: 1px; }
-          .nav-dropdown-menu { min-width: 190px; }
+          .nav-links { gap: 10px; }
+          .nav-dropdown-trigger, .nav-arena a { font-size: 11px; letter-spacing: 0.5px; }
+          .nav-dropdown-menu { min-width: 180px; }
+          /* On mobile, just show avatar circle, hide name text */
+          .usermenu-name, .usermenu-caret { display: none; }
+          .usermenu-trigger { padding: 3px 3px; border-color: transparent; }
+          .usermenu-dropdown { right: 0; min-width: 200px; }
         }
       `}</style>
     </nav>

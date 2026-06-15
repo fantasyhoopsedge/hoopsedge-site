@@ -44,3 +44,6 @@ next-env.d.ts
 # local secrets / scratch (never commit DB passwords, dumps, etc.)
 supabase/*.txt
 .tmp
+
+# Claude Code internal worktrees
+.claude/worktrees/

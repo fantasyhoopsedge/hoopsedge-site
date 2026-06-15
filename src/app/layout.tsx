@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { SignUpModal } from "@/components/sign-up-modal";
+import { Footer } from "@/components/footer";
 
 export const metadata: Metadata = {
   title: "Fantasy Hoops Edge — Dynasty Intelligence for Category Leagues",
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AuthProvider>
           <SignUpModal />
           {children}
+          <Footer className="site-footer-global" />
         </AuthProvider>
       </body>
     </html>

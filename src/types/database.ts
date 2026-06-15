@@ -204,6 +204,7 @@ export interface Database {
           mini_game_id: string;
           payload: Json;
           score: number | null;
+          called_it: boolean;
           locked: boolean;
           submitted_at: string;
         };
@@ -215,8 +216,8 @@ export interface Database {
           // score is server-managed (the grader writes it via the service role).
         };
         // Users cannot update (no RLS update policy → immutable for them); only
-        // the service-role grader writes `score` back at resolution.
-        Update: { score?: number | null };
+        // the service-role grader writes `score` and `called_it` via the service role.
+        Update: { score?: number | null; called_it?: boolean };
         Relationships: [
           {
             foreignKeyName: "dn_predictions_user_id_fkey";
@@ -267,6 +268,7 @@ export interface Database {
           username: string | null;
           avatar_url: string | null;
           score: number;
+          called_it_cards: number;
           rank: number;
           percentile: number;
         };

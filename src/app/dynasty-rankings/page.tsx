@@ -271,7 +271,7 @@ export default function DynastyRankingsPage() {
         ) : (
           <div
             className="dr-table-view-wrap"
-            style={{ maxWidth: 1200, marginLeft: "auto", marginRight: "auto", width: "100%" }}
+            style={{ width: "100%" }}
           >
             {viewMode === "table" || isMobileNav ? (
               <RankingsTable
