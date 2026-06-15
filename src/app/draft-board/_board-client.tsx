@@ -167,6 +167,27 @@ const CAT_LABELS: Record<string, string> = {
 
 type BoardPlayer = typeof DRAFT_BOARD[0];
 
+// Exact birth dates (Proballers / Wikipedia) → live age computed at view time so
+// the board never goes stale. Prospects without a DOB yet fall back to the master
+// CSV age advanced from its snapshot date — still dynamic, accurate to ~weeks.
+const BIRTH_DATES: Record<string, string> = {
+  "Cameron Boozer": "2007-07-18",
+  "Darryn Peterson": "2007-01-17",
+  "AJ Dybantsa": "2007-01-29",
+  "Caleb Wilson": "2006-07-18",
+};
+const AGE_SNAPSHOT_MS = new Date("2026-01-22T00:00:00Z").getTime();
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+/** Current age in decimal years — from DOB when known, else the snapshot age
+ * advanced to today. Returns null when no age data exists. */
+function liveAge(name: string, fallbackStaticAge: number | null, nowMs: number): number | null {
+  const dob = BIRTH_DATES[name];
+  if (dob) return (nowMs - new Date(dob).getTime()) / MS_PER_YEAR;
+  if (fallbackStaticAge != null) return fallbackStaticAge + (nowMs - AGE_SNAPSHOT_MS) / MS_PER_YEAR;
+  return null;
+}
+
 function starStyle(star: string): { color: string; fontWeight: number } {
   const count = parseInt(star);
   if (count === 5) return { color: "var(--green-elite)",  fontWeight: 700 };
@@ -250,7 +271,7 @@ function positionBadge(pos: string) {
 }
 
 // ── Prospect Detail Modal ──────────────────────────────────────
-function ProspectModal({ player, onClose, ageByName }: { player: BoardPlayer | null; onClose: () => void; ageByName: Record<string, number> }) {
+function ProspectModal({ player, onClose, age }: { player: BoardPlayer | null; onClose: () => void; age?: number }) {
   useEffect(() => {
     if (!player) return;
     document.body.style.overflow = "hidden";
@@ -360,11 +381,11 @@ function ProspectModal({ player, onClose, ageByName }: { player: BoardPlayer | n
                     fontSize: 10, color: "rgba(255,255,255,0.35)",
                   }}>{player.ht}</span>
                 )}
-                {(ageByName[player.name] ?? player.age) != null && (
+                {age != null && (
                   <span style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10, color: "rgba(255,255,255,0.35)",
-                  }}>· {ageByName[player.name] ?? player.age} yrs</span>
+                    fontFamily: "'Oswald', sans-serif", fontWeight: 700,
+                    fontSize: 13, letterSpacing: 0.5, color: "var(--dynasty-gold)",
+                  }}>{age.toFixed(1)} YRS</span>
                 )}
               </div>
             </div>
@@ -448,6 +469,16 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
   const [selectedPlayer, setSelectedPlayer] = useState<BoardPlayer | null>(null);
   // Mobile only: which row's star ratings are expanded inline. Desktop keeps the modal.
   const [expandedRank, setExpandedRank] = useState<number | null>(null);
+  // Live ages, computed once at view time (lazy init keeps it pure + current).
+  const [liveAges] = useState<Record<string, number>>(() => {
+    const now = Date.now();
+    const out: Record<string, number> = {};
+    for (const p of DRAFT_BOARD) {
+      const a = liveAge(p.name, ageByName[p.name] ?? p.age, now);
+      if (a != null) out[p.name] = a;
+    }
+    return out;
+  });
 
   return (
     <div className="draft-board-shell">
@@ -499,11 +530,14 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
                     {positionBadge(p.pos)}
                     <span className="dbp-school">{p.school}</span>
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
-                    {(ageByName[p.name] ?? p.age) != null && (
-                      <span className="db-player-meta-text">· {ageByName[p.name] ?? p.age} yrs</span>
-                    )}
                   </div>
                 </div>
+                {liveAges[p.name] != null && (
+                  <div className="db-age" title="Age today">
+                    <span className="db-age-num">{liveAges[p.name].toFixed(1)}</span>
+                    <span className="db-age-cap">AGE</span>
+                  </div>
+                )}
                 <div
                   className="db-expand-arrow"
                   style={{ transform: expandedRank === p.rank ? "rotate(0deg)" : "rotate(-90deg)", opacity: 0.4 }}
@@ -543,7 +577,7 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
       </footer>
 
       {/* Prospect detail modal */}
-      <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} ageByName={ageByName} />
+      <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} />
 
       <style>{`
         .db-mobile-stars { display: none; }
@@ -563,6 +597,27 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
         .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1px; color: var(--text-muted); }
         .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+
+        /* Live age badge */
+        .db-age {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          min-width: 52px; flex-shrink: 0; margin-left: 8px;
+          padding: 4px 8px; border-radius: 10px;
+          background: rgba(240, 192, 64, 0.10); border: 1px solid rgba(240, 192, 64, 0.22);
+        }
+        .db-age-num {
+          font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 22px; line-height: 1;
+          color: var(--dynasty-gold); font-variant-numeric: tabular-nums;
+        }
+        .db-age-cap {
+          font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 9px;
+          letter-spacing: 2px; color: var(--text-muted); margin-top: 3px;
+        }
+        @media (max-width: 767px) {
+          .db-age { min-width: 44px; padding: 3px 6px; margin-left: 6px; }
+          .db-age-num { font-size: 18px; }
+          .db-age-cap { font-size: 8px; letter-spacing: 1.5px; }
+        }
       `}</style>
     </div>
   );
