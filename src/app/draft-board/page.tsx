@@ -438,6 +438,8 @@ function ProspectModal({ player, onClose }: { player: BoardPlayer | null; onClos
 // ── Main Page ──────────────────────────────────────────────────
 export default function DraftBoard() {
   const [selectedPlayer, setSelectedPlayer] = useState<BoardPlayer | null>(null);
+  // Mobile only: which row's star ratings are expanded inline. Desktop keeps the modal.
+  const [expandedRank, setExpandedRank] = useState<number | null>(null);
 
   return (
     <div className="draft-board-shell">
@@ -466,7 +468,14 @@ export default function DraftBoard() {
               )}
 
               <div
-                onClick={() => setSelectedPlayer(p)}
+                onClick={() => {
+                  // Mobile: expand the star ratings inline. Desktop: open the modal (unchanged).
+                  if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+                    setExpandedRank((prev) => (prev === p.rank ? null : p.rank));
+                  } else {
+                    setSelectedPlayer(p);
+                  }
+                }}
                 className="db-row db-row-collapsed"
                 style={{ background: "var(--bg-card)", cursor: "pointer" }}
               >
@@ -484,8 +493,27 @@ export default function DraftBoard() {
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
-                <div className="db-expand-arrow" style={{ transform: "rotate(-90deg)", opacity: 0.4 }}>▼</div>
+                <div
+                  className="db-expand-arrow"
+                  style={{ transform: expandedRank === p.rank ? "rotate(0deg)" : "rotate(-90deg)", opacity: 0.4 }}
+                >▼</div>
               </div>
+
+              {expandedRank === p.rank && (
+                <div className="db-mobile-stars">
+                  {CATS.map((cat) => {
+                    const val = (p as unknown as Record<string, string>)[cat];
+                    if (!val) return null;
+                    const st = starStyle(val);
+                    return (
+                      <div className="db-ms-cell" key={cat}>
+                        <span className="db-ms-label">{CAT_LABELS[cat]}</span>
+                        <span className="db-ms-val" style={{ color: st.color, fontWeight: st.fontWeight }}>{val}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </Fragment>
           );
         })}
@@ -494,10 +522,9 @@ export default function DraftBoard() {
       <footer>
         <div className="footer-brand">Fantasy Hoops <span className="accent">Edge</span></div>
         <div className="footer-links">
-          <a href="/">Home</a>
-          <a href="/draft-board">Draft Board</a>
-          <a href="#">Prospect Lab</a>
-          <a href="#">Predictions</a>
+          <a href="/dynasty-rankings">Dynasty Rankings</a>
+          <a href="/draft-board">Rookies</a>
+          <a href="/prediction-arena">Predictions Arena</a>
         </div>
         <div className="footer-social">
           <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
@@ -506,6 +533,26 @@ export default function DraftBoard() {
 
       {/* Prospect detail modal */}
       <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
+
+      <style>{`
+        .db-mobile-stars { display: none; }
+        @media (max-width: 767px) {
+          .db-mobile-stars {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-main);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            margin: -8px 0 10px;
+            padding: 14px 16px 16px;
+          }
+        }
+        .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 10px; letter-spacing: 1px; color: var(--text-muted); }
+        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+      `}</style>
     </div>
   );
 }

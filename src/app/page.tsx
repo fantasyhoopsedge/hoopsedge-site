@@ -66,13 +66,13 @@ export default function Home() {
               color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
               padding: "10px 20px", borderRadius: "8px",
               textDecoration: "none", whiteSpace: "nowrap",
-            }}>VIEW DYNASTY RANKINGS →</a>
+            }}>View Consensus Dynasty Rankings →</a>
             <a href="/draft-board" style={{
               fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
               color: "var(--edge-orange)", border: "1px solid var(--edge-orange)",
               padding: "10px 20px", borderRadius: "8px",
               textDecoration: "none", whiteSpace: "nowrap",
-            }}>VIEW ROOKIE DRAFT BOARD →</a>
+            }}>View Rookie Draft Board →</a>
           </div>
         </div>
 
@@ -143,12 +143,6 @@ export default function Home() {
             <h3>Rookie Draft Board</h3>
             <p>Top 12 dynasty rookie board free for all. Full top 100 board with category ratings and stat translations for subscribers.</p>
           </a>
-          <div className="feature-card">
-            <div className="feature-icon fi-gold">⚡</div>
-            <h3>The Edge AI</h3>
-            <p>Ask anything — trade advice, punt strategy, rookie comps. All grounded in 9-cat data and deep-league context. Your 24/7 dynasty advisor.</p>
-            <span className="feature-tag tag-soon">Coming Soon</span>
-          </div>
           <a className="feature-card feature-card-link" href="/prediction-arena">
             <div className="feature-icon fi-green">🎯</div>
             <h3>Prediction Arena</h3>
@@ -178,8 +172,9 @@ export default function Home() {
           Fantasy Hoops <span className="accent">Edge</span>
         </div>
         <div className="footer-links">
-          <a href="/dynasty-rankings">Rankings</a>
-          <a href="/draft-board">Draft Board</a>
+          <a href="/dynasty-rankings">Dynasty Rankings</a>
+          <a href="/draft-board">Rookies</a>
+          <a href="/prediction-arena">Predictions Arena</a>
         </div>
         <div className="footer-social">
           <a href="https://x.com/FantasyHoopEdge" target="_blank" rel="noopener noreferrer" title="X / Twitter">𝕏</a>
