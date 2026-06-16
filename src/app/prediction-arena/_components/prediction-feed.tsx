@@ -100,18 +100,10 @@ export function PredictionFeed() {
     );
   }
 
+  // No active games — render nothing rather than an empty placeholder, so the
+  // Arena reads as Draft-Night-only until the prediction feed is launched.
   if (games.length === 0) {
-    return (
-      <div className="pa-placeholder">
-        <span className="pa-chip" style={{ background: "var(--tag-soon-bg)", color: "var(--tag-soon-text)" }}>
-          BOARD CLEAR
-        </span>
-        <h2 className="pa-card-title" style={{ marginTop: 12 }}>No open predictions right now</h2>
-        <p className="pa-card-blurb" style={{ maxWidth: 480, margin: "0 auto" }}>
-          New nightly calls drop with each slate. Check back before tip-off.
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (
