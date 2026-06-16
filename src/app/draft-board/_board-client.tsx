@@ -270,109 +270,106 @@ function positionBadge(pos: string) {
   return <span className="db-pos-badge db-pos-badge-g">{pos}</span>;
 }
 
-// ── Prospect Detail Modal ──────────────────────────────────────
-function ProspectModal({ player, onClose, age }: { player: BoardPlayer | null; onClose: () => void; age?: number }) {
+// ── Prospect Detail Panel (desktop: docked to the right of the board) ──
+function ProspectDetailPanel({ player, onClose, age }: { player: BoardPlayer | null; onClose: () => void; age?: number }) {
   useEffect(() => {
     if (!player) return;
-    document.body.style.overflow = "hidden";
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
-    return () => {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", handler);
-    };
+    return () => document.removeEventListener("keydown", handler);
   }, [player, onClose]);
 
-  if (!player) return null;
+  if (!player) {
+    return (
+      <div className="db-detail-empty">
+        Select a prospect to view full ratings and dynasty verdict.
+      </div>
+    );
+  }
 
   const { color: tierColor } = tierInfo(player.tier);
 
   return (
     <div
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.72)",
-        backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      <div style={{
-        background: "var(--bg-main)",
+        background: "var(--bg-surface)",
         border: "1px solid var(--border-main)",
         borderRadius: 16,
-        width: "100%", maxWidth: 580,
-        maxHeight: "90vh",
+        width: "100%",
+        maxHeight: "calc(100vh - 120px)",
         overflowY: "auto",
         position: "relative",
-        boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.35)",
         animation: "fadeUp 0.22s ease-out",
       }}>
-        {/* Close button */}
+        {/* Close button — sits on top of the hero */}
         <button
           onClick={onClose}
           style={{
-            position: "sticky", top: 12, float: "right",
-            marginRight: 12, zIndex: 10,
-            background: "rgba(0,0,0,0.5)", border: "1px solid rgba(255,255,255,0.15)",
+            position: "absolute", top: 14, right: 14, zIndex: 10,
+            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
             color: "white", borderRadius: "50%",
-            width: 32, height: 32, cursor: "pointer",
-            fontFamily: "'JetBrains Mono', monospace", fontSize: 14,
+            width: 30, height: 30, cursor: "pointer",
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >✕</button>
 
         {/* Hero */}
         <div style={{
-          background: "var(--blueprint)", position: "relative",
-          overflow: "hidden", padding: "28px 28px 24px",
+          background: "var(--bg-nav)", position: "relative",
+          overflow: "hidden", padding: "26px 26px 22px",
           borderRadius: "16px 16px 0 0",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}>
-          {/* Watermark */}
+          {/* Subtle corner glow, replaces the old clipped watermark text */}
           <div aria-hidden style={{
-            position: "absolute", right: -8, top: -12,
-            fontFamily: "'Oswald', sans-serif", fontSize: 100,
-            fontWeight: 800, color: "rgba(255,255,255,0.04)",
-            userSelect: "none", letterSpacing: 8, pointerEvents: "none",
-          }}>ROOKIE</div>
+            position: "absolute", right: -40, top: -40,
+            width: 140, height: 140, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(255,255,255,0.07), transparent 70%)",
+            pointerEvents: "none",
+          }} />
 
           {/* Breadcrumb */}
           <div style={{
             fontFamily: "'Oswald', sans-serif", fontSize: 9,
-            letterSpacing: 3, textTransform: "uppercase",
-            color: "rgba(255,255,255,0.35)", marginBottom: 16,
+            letterSpacing: 1.5, textTransform: "uppercase",
+            color: "rgba(255,255,255,0.4)", marginBottom: 18,
+            position: "relative", whiteSpace: "nowrap",
           }}>
-            2026 Dynasty Rookie Board · Pick {player.pick}
+            2026 ROOKIE BOARD · PICK {player.pick}
           </div>
 
-          {/* Identity row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative" }}>
-            {/* Rank */}
-            <div style={{
-              fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-              fontSize: 48, lineHeight: 1, color: tierColor,
-              minWidth: 48, textAlign: "center", flexShrink: 0,
-            }}>{player.rank}</div>
-
-            <ProspectHeadshot name={player.name} size={64} />
+          {/* Identity */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 14, position: "relative" }}>
+            {/* Headshot with rank badge */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <ProspectHeadshot name={player.name} size={60} />
+              <div style={{
+                position: "absolute", bottom: -4, right: -4,
+                background: tierColor, color: "#0b0e14",
+                fontFamily: "'Oswald', sans-serif", fontWeight: 800,
+                fontSize: 12, lineHeight: 1,
+                width: 22, height: 22, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                border: "2px solid var(--blueprint)",
+              }}>{player.rank}</div>
+            </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{
                 fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-                fontSize: 24, textTransform: "uppercase",
-                letterSpacing: 0.5, color: "white", lineHeight: 1.1,
-                marginBottom: 8,
-                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                fontSize: 19, textTransform: "uppercase",
+                letterSpacing: 0.3, color: "white", lineHeight: 1.18,
+                marginBottom: 8, wordBreak: "break-word",
               }}>
                 {player.name}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                 {positionBadge(player.pos)}
                 <span style={{
-                  fontFamily: "'Oswald', sans-serif", fontSize: 11,
-                  letterSpacing: 2, textTransform: "uppercase",
+                  fontFamily: "'Oswald', sans-serif", fontSize: 10.5,
+                  letterSpacing: 1.5, textTransform: "uppercase",
                   color: "rgba(255,255,255,0.6)",
                 }}>{player.school}</span>
                 {player.ht && (
@@ -384,7 +381,7 @@ function ProspectModal({ player, onClose, age }: { player: BoardPlayer | null; o
                 {age != null && (
                   <span style={{
                     fontFamily: "'Oswald', sans-serif", fontWeight: 700,
-                    fontSize: 13, letterSpacing: 0.5, color: "var(--dynasty-gold)",
+                    fontSize: 12.5, letterSpacing: 0.5, color: "var(--dynasty-gold)",
                   }}>{age.toFixed(1)} YRS</span>
                 )}
               </div>
@@ -458,7 +455,6 @@ function ProspectModal({ player, onClose, age }: { player: BoardPlayer | null; o
 
         </div>
       </div>
-    </div>
   );
 }
 
@@ -467,7 +463,7 @@ function ProspectModal({ player, onClose, age }: { player: BoardPlayer | null; o
 // server page wrapper and matched by name; falls back to the board's own value.
 export function DraftBoardClient({ ageByName }: { ageByName: Record<string, number> }) {
   const [selectedPlayer, setSelectedPlayer] = useState<BoardPlayer | null>(null);
-  // Mobile only: which row's star ratings are expanded inline. Desktop keeps the modal.
+  // Mobile only: which row's star ratings are expanded inline. Desktop docks the detail panel to the right.
   const [expandedRank, setExpandedRank] = useState<number | null>(null);
   // Live ages, computed once at view time (lazy init keeps it pure + current).
   const [liveAges] = useState<Record<string, number>>(() => {
@@ -484,7 +480,9 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
     <div className="draft-board-shell">
       <SiteNav active="draft" />
 
-      <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "900px", width: "100%", margin: "0 auto" }}>
+      <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "1180px", width: "100%", margin: "0 auto" }}>
+      <div className="db-layout">
+      <div className="db-list-col">
         {DRAFT_BOARD.map((p, i) => {
           const { color: tierColor, label: tierLabel } = tierInfo(p.tier);
           const prev = i > 0 ? DRAFT_BOARD[i - 1] : null;
@@ -508,8 +506,8 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
 
               <div
                 onClick={() => {
-                  // Mobile: expand the star ratings inline. Desktop: open the modal (unchanged).
-                  if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+                  // Below the desktop side-panel breakpoint: expand the star ratings inline.
+                  if (typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches) {
                     setExpandedRank((prev) => (prev === p.rank ? null : p.rank));
                   } else {
                     setSelectedPlayer(p);
@@ -567,12 +565,52 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
         })}
       </div>
 
-      {/* Prospect detail modal */}
-      <ProspectModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} />
+      {/* Prospect detail panel — desktop only, docked to the right */}
+      <div className="db-detail-col">
+        <div className="db-detail-sticky">
+          <ProspectDetailPanel player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} />
+        </div>
+      </div>
+      </div>
+      </div>
 
       <style>{`
+        .db-layout { display: block; }
+        .db-list-col { width: 100%; }
+        .db-detail-col { display: none; }
+
+        @media (min-width: 1024px) {
+          .db-layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 28px;
+          }
+          .db-list-col {
+            flex: 1 1 auto;
+            max-width: 600px;
+          }
+          .db-detail-col {
+            display: block;
+            flex: 1 1 480px;
+            max-width: 520px;
+            position: sticky;
+            top: 96px;
+            align-self: flex-start;
+          }
+        }
+        .db-detail-empty {
+          background: var(--bg-card);
+          border: 1px solid var(--border-main);
+          border-radius: 16px;
+          padding: 40px 24px;
+          text-align: center;
+          color: var(--text-muted);
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
         .db-mobile-stars { display: none; }
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) {
           .db-mobile-stars {
             display: flex;
             flex-direction: column;
