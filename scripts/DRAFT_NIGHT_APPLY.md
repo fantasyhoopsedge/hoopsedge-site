@@ -44,6 +44,19 @@ Both are idempotent (upsert on `slug` / `(game_id, key)`), so re-running is safe
 The game is seeded with `status = 'live'` and `lock_at = 2026-06-24T00:00:00Z`
 (8 PM ET, Jun 23). Picks auto-stop accepting at `lock_at` via RLS.
 
+## 2b. Check participation (users & picks to date)
+
+Read-only snapshot — profile count, users with ≥1 pick, full entries (4/4),
+per-mini-game picks, and a completion funnel:
+
+```bash
+npx tsx scripts/draft-night-stats.ts            # draft-night-2026
+npx tsx scripts/draft-night-stats.ts <gameSlug> # another game
+```
+
+Uses the service role so it counts **every** user's predictions (RLS would
+otherwise scope `dn_predictions` to the caller). Writes nothing.
+
 ## 3. Draft night — enter results & resolve
 
 1. As picks come in, fill the **`dn_results`** row for the game:
