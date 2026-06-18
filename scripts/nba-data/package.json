@@ -1,0 +1,4 @@
+{
+  "//": "Scopes the NBA pipeline scripts to ES modules so tsx loads the ESM-only hyparquet via its import condition. Does not affect the rest of the repo.",
+  "type": "module"
+}
