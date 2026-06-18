@@ -10,8 +10,8 @@
  *   npx tsx scripts/nba-data/stats_backfill.ts            # write
  *   npx tsx scripts/nba-data/stats_backfill.ts --dry-run  # no writes, report only
  */
-import { CURRENT_SEASON } from "./client.ts";
-import { ingestSeasons } from "./stats_refresh.ts";
+import { CURRENT_SEASON } from "./client";
+import { ingestSeasons } from "./stats_refresh";
 
 const SEASONS = [CURRENT_SEASON, CURRENT_SEASON - 1, CURRENT_SEASON - 2, CURRENT_SEASON - 3];
 

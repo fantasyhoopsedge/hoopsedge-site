@@ -21,7 +21,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
-import { CURRENT_SEASON, getServiceClient, normalizeName } from "./client.ts";
+import { CURRENT_SEASON, getServiceClient, normalizeName } from "./client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");

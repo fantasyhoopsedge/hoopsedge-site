@@ -18,7 +18,7 @@
  *   npx tsx scripts/nba-data/staleness_check.ts
  *   npx tsx scripts/nba-data/staleness_check.ts --force   # send regardless of age (test)
  */
-import { getServiceClient, loadEnv } from "./client.ts";
+import { getServiceClient, loadEnv } from "./client";
 
 const STALE_AFTER_DAYS = 10;
 

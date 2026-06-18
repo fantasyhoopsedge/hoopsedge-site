@@ -18,7 +18,7 @@ import {
   mapBoxRow,
   type GameLog,
   type Player,
-} from "./client.ts";
+} from "./client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const UPSERT_CHUNK = 500;
