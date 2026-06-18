@@ -259,6 +259,100 @@ export interface Database {
           },
         ];
       };
+      // ── NBA data pipeline (supabase/migrations/20260618000000_nba_pipeline.sql) ──
+      // Public read-only for the app; all writes go through the service-role
+      // ingest scripts (scripts/nba-data/), so Insert/Update are `never` here.
+      nba_teams: {
+        Row: {
+          id: string;
+          abbreviation: string;
+          full_name: string | null;
+          conference: string | null;
+          division: string | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      nba_players: {
+        Row: {
+          id: string;
+          full_name: string;
+          norm_name: string;
+          team: string | null;
+          position: string | null;
+          is_active: boolean;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      nba_player_game_logs: {
+        Row: {
+          game_id: string;
+          player_id: string;
+          game_date: string | null;
+          season: number;
+          season_type: string;
+          team: string | null;
+          min: number | null;
+          pts: number | null;
+          reb: number | null;
+          oreb: number | null;
+          dreb: number | null;
+          ast: number | null;
+          stl: number | null;
+          blk: number | null;
+          tov: number | null;
+          fgm: number | null;
+          fga: number | null;
+          fg3m: number | null;
+          fg3a: number | null;
+          ftm: number | null;
+          fta: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "nba_player_game_logs_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "nba_players";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      nba_contracts: {
+        Row: {
+          player_id: string | null;
+          salary_player_name: string;
+          norm_name: string;
+          team: string | null;
+          salary_current: number | null;
+          salary_y2: number | null;
+          salary_y3: number | null;
+          salary_y4: number | null;
+          contract_note: string | null;
+          free_agent_year: number | null;
+          free_agent_status: string | null;
+          is_two_way: boolean | null;
+          source: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "nba_contracts_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "nba_players";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -271,6 +365,50 @@ export interface Database {
           called_it_cards: number;
           rank: number;
           percentile: number;
+        };
+        Relationships: [];
+      };
+      // Aggregated per-game season averages (materialized view).
+      nba_season_averages: {
+        Row: {
+          player_id: string;
+          season: number;
+          season_type: string;
+          gp: number;
+          min: number | null;
+          pts: number | null;
+          reb: number | null;
+          ast: number | null;
+          stl: number | null;
+          blk: number | null;
+          tov: number | null;
+          fg3m: number | null;
+          fg_pct: number | null;
+          ft_pct: number | null;
+        };
+        Relationships: [];
+      };
+      nba_free_agents: {
+        Row: {
+          player_id: string | null;
+          player: string;
+          team: string | null;
+          free_agent_status: string | null;
+          free_agent_year: number | null;
+          salary_current: number | null;
+        };
+        Relationships: [];
+      };
+      nba_trade_candidates: {
+        Row: {
+          player_id: string | null;
+          player: string;
+          team: string | null;
+          free_agent_status: string | null;
+          free_agent_year: number | null;
+          salary_current: number | null;
+          fhe_signal: string;
+          disclaimer: string;
         };
         Relationships: [];
       };
@@ -295,3 +433,12 @@ export type DnPrediction = Database["public"]["Tables"]["dn_predictions"]["Row"]
 export type DnPredictionInsert = Database["public"]["Tables"]["dn_predictions"]["Insert"];
 export type DnResult = Database["public"]["Tables"]["dn_results"]["Row"];
 export type DnLeaderboardRow = Database["public"]["Views"]["dn_leaderboard"]["Row"];
+
+// ── NBA data pipeline convenience aliases ───────────────────────────────────
+export type NbaTeam = Database["public"]["Tables"]["nba_teams"]["Row"];
+export type NbaPlayer = Database["public"]["Tables"]["nba_players"]["Row"];
+export type NbaPlayerGameLog = Database["public"]["Tables"]["nba_player_game_logs"]["Row"];
+export type NbaContract = Database["public"]["Tables"]["nba_contracts"]["Row"];
+export type NbaSeasonAverage = Database["public"]["Views"]["nba_season_averages"]["Row"];
+export type NbaFreeAgent = Database["public"]["Views"]["nba_free_agents"]["Row"];
+export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidates"]["Row"];

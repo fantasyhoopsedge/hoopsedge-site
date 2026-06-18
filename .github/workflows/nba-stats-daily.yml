@@ -1,0 +1,45 @@
+name: NBA stats daily
+
+# Daily stats refresh: pull the current-season hoopR player-box parquet,
+# upsert players + game logs, refresh the season-averages matview, then run
+# the salary-staleness alarm. 11:00 UTC is after west-coast games settle.
+on:
+  schedule:
+    - cron: "0 11 * * *"
+  workflow_dispatch: {}
+
+# Never let two refreshes overlap (they upsert the same rows).
+concurrency:
+  group: nba-stats-daily
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Refresh current-season stats
+        run: npm run nba:refresh
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Always run the staleness alarm — even if the refresh failed — so a
+      # stale-data reminder can still go out. The script never exits non-zero.
+      - name: Salary staleness check
+        if: always()
+        run: npm run nba:staleness
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          STALENESS_ALERT_TO: ${{ secrets.STALENESS_ALERT_TO }}

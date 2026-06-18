@@ -7,10 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "nba:backfill": "tsx scripts/nba-data/stats_backfill.ts",
+    "nba:refresh": "tsx scripts/nba-data/stats_refresh.ts",
+    "nba:salary": "tsx scripts/nba-data/salary_ingest.ts",
+    "nba:staleness": "tsx scripts/nba-data/staleness_check.ts",
     "test:grader": "tsc --module commonjs --target es2019 --outDir .tmp --skipLibCheck src/lib/draftNight/grader.ts src/lib/draftNight/config.ts scripts/draft-night-grader-dryrun.ts && node .tmp/scripts/draft-night-grader-dryrun.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.1",
     "csv-parse": "^5.6.0",
@@ -25,7 +30,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.2.9",
+    "hyparquet": "^1.26.0",
     "tailwindcss": "^4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   },
   "overrides": {
