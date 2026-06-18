@@ -1,0 +1,43 @@
+name: NBA salary ingest
+
+# Runs when a human commits an updated salary file. Salary data enters the
+# system ONLY through this committed CSV — no salary website is ever fetched.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/nba-salaries/current.csv"
+  workflow_dispatch: {}
+
+concurrency:
+  group: nba-salary-ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Ingest salary CSV
+        run: npm run nba:salary
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Surface the unmatched-rows report for human review (kept 14 days).
+      - name: Upload unmatched report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nba-salary-unmatched
+          path: data/nba-salaries/_unmatched.json
+          if-no-files-found: ignore
+          retention-days: 14
