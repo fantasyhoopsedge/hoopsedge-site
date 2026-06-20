@@ -2908,8 +2908,9 @@ body:has(.dr-rankings-shell) {
     gap: 4px;
   }
 
+  /* mobile rookie-board typography bump */
   .draft-board-shell .db-player-name {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 700;
     text-transform: none;
     letter-spacing: 0;
@@ -2930,11 +2931,11 @@ body:has(.dr-rankings-shell) {
   }
 
   .draft-board-shell .dbp-school {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .draft-board-shell .db-player-meta-text {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .draft-board-shell .db-player-meta-pos {

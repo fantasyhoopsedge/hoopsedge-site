@@ -628,9 +628,9 @@ export function DraftBoardClient({ ageByName }: { ageByName: Record<string, numb
             gap: 0;
           }
         }
-        .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 9px; letter-spacing: 0.5px; color: var(--text-muted); }
-        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-transform: uppercase; color: var(--text-secondary); }
+        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; }
         .db-ms-verdict {
           font-size: 12px; line-height: 1.55; color: var(--text-secondary);
           margin: 0; padding-top: 4px;
