@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "label": "Rookie Board 1.1",
+  "label": "Pre-draft Board",
   "updatedAt": "2026-06-21",
   "tiers": [
     {
@@ -669,7 +669,7 @@
       "rank": 32,
       "pick": "1.32",
       "name": "Bruce Thornton",
-      "school": "OSU",
+      "school": "Ohio State",
       "pos": "G",
       "tier": 7,
       "age": 22,
@@ -689,7 +689,7 @@
       "rank": 33,
       "pick": "1.33",
       "name": "Ryan Conwell",
-      "school": "LOU",
+      "school": "Louisville",
       "pos": "G",
       "tier": 7,
       "age": 22,
@@ -1014,7 +1014,7 @@
       "rank": 49,
       "pick": "1.49",
       "name": "Ugonna Onyenso",
-      "school": "KEN",
+      "school": "Kentucky",
       "pos": "C",
       "tier": 8,
       "age": 22,

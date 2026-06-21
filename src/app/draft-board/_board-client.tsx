@@ -2,8 +2,8 @@
 import { useState, useEffect, Fragment } from "react";
 import { SiteNav } from "@/components/site-nav";
 import {
-  CATS, CAT_LABELS, tierInfo,
-  type BoardPlayer, type BoardTier, type RookieBoard,
+  CATS, CAT_LABELS, tierInfo, normalizeName,
+  type BoardPlayer, type BoardTier, type RookieBoard, type MovementInfo, type MovementMap,
 } from "@/lib/rookie-board";
 
 // ============================================================
@@ -106,8 +106,27 @@ function positionBadge(pos: string) {
   return <span className="db-pos-badge db-pos-badge-g">{pos}</span>;
 }
 
+// Compact rank-movement chip: ▲n up (green), ▼n down (red), NEW (blueprint),
+// – no change (muted). Renders nothing only when there's no prior version to
+// compare against (m is null/undefined), so every row stays uniform otherwise.
+function MovementChip({ m }: { m: MovementInfo | null | undefined }) {
+  if (!m) return null;
+  if (m.isNew) return <span className="db-mv db-mv-new" title="New on the board this version">NEW</span>;
+  const delta = m.delta ?? 0;
+  if (delta === 0) return <span className="db-mv db-mv-same" title="No change since the previous version">–</span>;
+  const up = delta > 0;
+  return (
+    <span
+      className={"db-mv " + (up ? "db-mv-up" : "db-mv-down")}
+      title={`${up ? "Up" : "Down"} ${Math.abs(delta)} since the previous version (was #${m.from})`}
+    >
+      {up ? "▲" : "▼"}{Math.abs(delta)}
+    </span>
+  );
+}
+
 // ── Prospect Detail Panel (desktop: docked to the right of the board) ──
-function ProspectDetailPanel({ player, onClose, age, tiers }: { player: BoardPlayer | null; onClose: () => void; age?: number; tiers: BoardTier[] }) {
+function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player: BoardPlayer | null; onClose: () => void; age?: number; tiers: BoardTier[]; movement?: MovementInfo }) {
   useEffect(() => {
     if (!player) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -221,6 +240,21 @@ function ProspectDetailPanel({ player, onClose, age, tiers }: { player: BoardPla
                   }}>{age.toFixed(1)} YRS</span>
                 )}
               </div>
+              {movement && (
+                <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
+                  <MovementChip m={movement} />
+                  <span style={{
+                    fontFamily: "'Oswald', sans-serif", fontSize: 10.5,
+                    letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
+                  }}>
+                    {movement.isNew
+                      ? "New this version"
+                      : (movement.delta ?? 0) === 0
+                        ? "No change since last update"
+                        : `${(movement.delta ?? 0) > 0 ? "Up" : "Down"} ${Math.abs(movement.delta ?? 0)} from #${movement.from} since last update`}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -297,9 +331,10 @@ function ProspectDetailPanel({ player, onClose, age, tiers }: { player: BoardPla
 // ── Main Page ──────────────────────────────────────────────────
 // Ages are sourced from the master CSV (fhe_2026_prospects_master) via the
 // server page wrapper and matched by name; falls back to the board's own value.
-export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; ageByName: Record<string, number> }) {
+export function DraftBoardClient({ board, ageByName, movement = {} }: { board: RookieBoard; ageByName: Record<string, number>; movement?: MovementMap }) {
   const DRAFT_BOARD = board.players;
   const tiers = board.tiers;
+  const movementFor = (name: string): MovementInfo | undefined => movement[normalizeName(name)];
   const [selectedPlayer, setSelectedPlayer] = useState<BoardPlayer | null>(null);
   // Mobile only: which row's star ratings are expanded inline. Desktop docks the detail panel to the right.
   const [expandedRank, setExpandedRank] = useState<number | null>(null);
@@ -319,6 +354,17 @@ export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; age
       <SiteNav active="draft" />
 
       <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "1280px", width: "100%", margin: "0 auto" }}>
+      {/* Published-version header — the live board's name + version */}
+      <div className="db-version-banner">
+        <div className="db-vb-left">
+          <span className="db-vb-eyebrow">2026 Rookie Board · Published</span>
+          <span className="db-vb-title">{board.label}</span>
+        </div>
+        <div className="db-vb-right">
+          <span className="db-vb-chip">v{board.version}</span>
+          {board.updatedAt && <span className="db-vb-date">Updated {board.updatedAt}</span>}
+        </div>
+      </div>
       <div className="db-layout">
       <div className="db-list-col">
         {DRAFT_BOARD.map((p, i) => {
@@ -361,7 +407,10 @@ export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; age
                 }}>{p.rank}</div>
                 <ProspectHeadshot name={p.name} />
                 <div className="db-player-main">
-                  <div className="db-player-name">{p.name}</div>
+                  <div className="db-player-name-row">
+                    <MovementChip m={movementFor(p.name)} />
+                    <span className="db-player-name">{p.name}</span>
+                  </div>
                   <div className="db-player-meta">
                     {positionBadge(p.pos)}
                     <span className="dbp-school">{p.school}</span>
@@ -406,13 +455,45 @@ export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; age
       {/* Prospect detail panel — desktop only, docked to the right */}
       <div className="db-detail-col">
         <div className="db-detail-sticky">
-          <ProspectDetailPanel player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} tiers={tiers} />
+          <ProspectDetailPanel player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} tiers={tiers} movement={selectedPlayer ? movementFor(selectedPlayer.name) : undefined} />
         </div>
       </div>
       </div>
       </div>
 
       <style>{`
+        /* Published-version banner */
+        .db-version-banner {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 16px; flex-wrap: wrap;
+          background: var(--bg-card); border: 1px solid var(--border-main);
+          border-radius: 14px; padding: 16px 22px; margin-bottom: 28px;
+        }
+        .db-vb-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .db-vb-eyebrow {
+          font-family: 'JetBrains Mono', monospace; font-size: 10px;
+          letter-spacing: 2.5px; text-transform: uppercase; color: var(--edge-orange);
+        }
+        .db-vb-title {
+          font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 23px;
+          text-transform: uppercase; letter-spacing: 0.5px; color: #fff; line-height: 1.1;
+        }
+        .db-vb-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .db-vb-chip {
+          font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 14px;
+          letter-spacing: 1px; color: #04222e; background: var(--dynasty-gold);
+          padding: 5px 12px; border-radius: 8px; white-space: nowrap;
+        }
+        .db-vb-date {
+          font-family: 'JetBrains Mono', monospace; font-size: 11px;
+          color: var(--text-muted); white-space: nowrap;
+        }
+        @media (max-width: 767px) {
+          .db-version-banner { padding: 13px 16px; margin-bottom: 18px; }
+          .db-vb-title { font-size: 18px; }
+          .db-vb-date { display: none; }
+        }
+
         .db-layout { display: block; }
         .db-list-col { width: 100%; }
         .db-detail-col { display: none; }

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import {
-  loadForEditor, saveDraft, discardDraft, publishBoard, isRbAdmin,
-  RB_SUPABASE_ENABLED,
+  loadForEditor, saveDraft, discardDraft, publishBoard, publishDetails,
+  OrderChangedError, isRbAdmin, RB_SUPABASE_ENABLED,
 } from "@/lib/rookie-board-store";
 import { MAX_BOARD_SIZE, type BoardPlayer, type BoardTier } from "@/lib/rookie-board";
 
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
   const denied = await authorize();
   if (denied) return denied;
 
-  let body: { players?: unknown; tiers?: unknown; draft?: boolean };
+  let body: { players?: unknown; tiers?: unknown; draft?: boolean; mode?: string };
   try {
     body = await request.json();
   } catch {
@@ -127,9 +127,17 @@ export async function POST(request: Request) {
       const board = await saveDraft(players, tiers);
       return NextResponse.json({ ok: true, draft: true, board });
     }
+    if (body.mode === "details") {
+      const { version, board } = await publishDetails(players, tiers);
+      return NextResponse.json({ ok: true, mode: "details", version, players: players.length, board });
+    }
     const { version, previousVersion, board } = await publishBoard(players, tiers);
     return NextResponse.json({ ok: true, version, previousVersion, players: players.length, board });
   } catch (err) {
+    // A details-publish over a changed roster is a client mistake (409), not a 500.
+    if (err instanceof OrderChangedError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }
 }

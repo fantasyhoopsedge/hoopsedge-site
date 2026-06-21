@@ -1,5 +1,5 @@
 import { getAllProspects } from "@/lib/prospects";
-import { getLiveBoard } from "@/lib/rookie-board-store";
+import { getLiveBoard, getBoardMovement } from "@/lib/rookie-board-store";
 import { DraftBoardClient } from "./_board-client";
 
 // ISR: the board is cached and regenerated at most hourly as a safety net,
@@ -13,11 +13,11 @@ export const revalidate = 3600;
  * an admin publishes, so this page is fast but never stale.
  */
 export default async function DraftBoardPage() {
-  const board = await getLiveBoard();
+  const [board, movement] = await Promise.all([getLiveBoard(), getBoardMovement()]);
 
   const ageByName: Record<string, number> = {};
   for (const p of getAllProspects()) {
     if (p.age != null) ageByName[p.name] = p.age;
   }
-  return <DraftBoardClient board={board} ageByName={ageByName} />;
+  return <DraftBoardClient board={board} ageByName={ageByName} movement={movement} />;
 }

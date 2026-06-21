@@ -92,6 +92,7 @@ export function RookieBoardEditor() {
   const [saving, setSaving] = useState(false);
   const [isDraft, setIsDraft] = useState(false); // editing a persisted WIP draft (not published)
   const [liveVersion, setLiveVersion] = useState<string>("");
+  const [liveOrder, setLiveOrder] = useState<string[]>([]); // live ranking (player names) for the re-rank check
   const [toast, setToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
 
   const dragFrom = useRef<number | null>(null);
@@ -111,6 +112,7 @@ export function RookieBoardEditor() {
         setTiers(d.board.tiers);
         setVersion(d.board.version);
         setLiveVersion(d.liveVersion ?? d.board.version);
+        setLiveOrder(d.liveOrder ?? d.board.players.map((p: BoardPlayer) => p.name));
         setVersions(d.versions ?? []);
         setCanWrite(d.canWrite);
         setIsDraft(Boolean(d.isDraft));
@@ -144,6 +146,15 @@ export function RookieBoardEditor() {
     () => players.find((p) => p.rank === selectedRank) ?? null,
     [players, selectedRank],
   );
+
+  // Has the ranked roster changed vs the live board? If so, edits are a re-rank
+  // and must go out as a new version; "Publish details" is disabled. Matched by
+  // normalized name (renaming a player reads as a roster change — rare, intended).
+  const orderChanged = useMemo(() => {
+    const cur = players.map((p) => normalizeName(p.name));
+    const liv = liveOrder.map(normalizeName);
+    return cur.length !== liv.length || cur.some((n, i) => n !== liv[i]);
+  }, [players, liveOrder]);
 
   // Pool prospects not currently on the board — removing a player frees them up
   // again. Names are normalized (accents/suffixes/punctuation stripped) so a
@@ -347,11 +358,42 @@ export function RookieBoardEditor() {
       setVersions((v) => [...v, { version: d.version, label: d.board.label, savedAt: d.board.updatedAt, players: d.players }]);
       setPlayers(d.board.players);
       setTiers(d.board.tiers);
+      setLiveOrder(d.board.players.map((p: BoardPlayer) => p.name));
       setDirty(false);
       setIsDraft(false); // publishing supersedes the draft
       setHistory([]);
       coalesceRef.current = null;
       setToast({ kind: "ok", msg: `Published ${d.board.label} — it's now live (previous archived as v${d.previousVersion}).` });
+    } catch (e) {
+      setToast({ kind: "err", msg: (e as Error).message });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /** Push player detail edits live WITHOUT a version bump (same players, same
+   * order). Rejected server-side if the roster changed — use Publish then. */
+  async function publishDetails() {
+    if (!canWrite) {
+      setToast({ kind: "err", msg: "Saving is disabled in production. Run the tool locally." });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/rookie-board", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ players, tiers, mode: "details" }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "publish failed");
+      setPlayers(d.board.players);
+      setTiers(d.board.tiers);
+      setDirty(false);
+      setIsDraft(false); // detail publish also clears any WIP draft server-side
+      setHistory([]);
+      coalesceRef.current = null;
+      setToast({ kind: "ok", msg: `Detail edits are live — board stays v${d.version}, no new version.` });
     } catch (e) {
       setToast({ kind: "err", msg: (e as Error).message });
     } finally {
@@ -453,6 +495,18 @@ export function RookieBoardEditor() {
             title="Save your work-in-progress without publishing a new version"
           >
             {saving ? "Saving…" : "💾 Save WIP"}
+          </button>
+          <button
+            className="rb-btn details"
+            onClick={publishDetails}
+            disabled={saving || (!dirty && !isDraft) || orderChanged}
+            title={
+              orderChanged
+                ? "You've reordered or changed the roster — use Publish → version to snapshot that."
+                : "Push player detail edits (ratings, verdict, bio, tier colors) live without a new version"
+            }
+          >
+            {saving ? "Publishing…" : "Publish details"}
           </button>
           <button className="rb-btn primary" onClick={save} disabled={saving || (!dirty && !isDraft)}>
             {saving ? "Publishing…" : `Publish → v${bumpMinor(liveVersion || version)}`}
@@ -796,6 +850,9 @@ const STYLES = `
   .rb-btn.wip { background: transparent; border-color: var(--dynasty-gold, #f0c040); color: var(--dynasty-gold, #f0c040); font-weight: 700; }
   .rb-btn.wip:hover:not(:disabled) { background: rgba(240,192,64,.1); }
   .rb-btn.wip:disabled { opacity: .4; cursor: not-allowed; }
+  .rb-btn.details { background: var(--blueprint-glow, #38bdf8); color: #04222e; font-weight: 700; }
+  .rb-btn.details:hover:not(:disabled) { filter: brightness(1.08); }
+  .rb-btn.details:disabled { background: #1e293b; color: #475569; cursor: not-allowed; }
   .rb-draft-tag { color: var(--dynasty-gold, #f0c040); font-weight: 600; }
   .rb-draft-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px;
     background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.35); color: #f5d77a;

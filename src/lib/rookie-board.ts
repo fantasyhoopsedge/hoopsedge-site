@@ -108,3 +108,28 @@ export function ageFromBirthdate(dob: string | null | undefined): number | null 
   const t = new Date(dob).getTime();
   return Number.isNaN(t) ? null : (Date.now() - t) / MS_PER_YEAR;
 }
+
+/** Loose name key for matching a player across board versions/sources:
+ * lowercased, accents removed, punctuation and Jr/Sr/II/III/IV suffixes stripped.
+ * Players have no stable id, so this is how movement + roster diffs match them. */
+export function normalizeName(name: string): string {
+  return name
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[.,'‘’]/g, "")
+    .replace(/\b(jr|sr|ii|iii|iv)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Rank movement of a player on the live board vs the previous published
+ * version. `delta` is positive when the player moved UP (lower rank number);
+ * `isNew` marks a player who wasn't on the prior version. Unchanged players get
+ * an empty object. Keyed by normalizeName(). */
+export interface MovementInfo {
+  delta?: number;
+  /** Rank on the previous version (present when `delta` is set). */
+  from?: number;
+  isNew?: boolean;
+}
+export type MovementMap = Record<string, MovementInfo>;
