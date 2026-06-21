@@ -1,16 +1,23 @@
 import { getAllProspects } from "@/lib/prospects";
+import { getLiveBoard } from "@/lib/rookie-board-store";
 import { DraftBoardClient } from "./_board-client";
 
+// ISR: the board is cached and regenerated at most hourly as a safety net,
+// and busted instantly when an admin publishes (revalidatePath('/draft-board')).
+export const revalidate = 3600;
+
 /**
- * Server wrapper: pulls each prospect's age from the master CSV
- * (data/fhe_2026_prospects_master.csv via getAllProspects) and passes a
- * name→age map to the client board, so ages stay sourced from the master
- * rather than the board's hand-maintained array.
+ * Server wrapper: pulls the live board from the store (Supabase in production,
+ * bundled JSON as fallback) and a name→age map from the master CSV, then hands
+ * both to the client board. The board read is cached and revalidated the moment
+ * an admin publishes, so this page is fast but never stale.
  */
-export default function DraftBoardPage() {
+export default async function DraftBoardPage() {
+  const board = await getLiveBoard();
+
   const ageByName: Record<string, number> = {};
   for (const p of getAllProspects()) {
     if (p.age != null) ageByName[p.name] = p.age;
   }
-  return <DraftBoardClient ageByName={ageByName} />;
+  return <DraftBoardClient board={board} ageByName={ageByName} />;
 }

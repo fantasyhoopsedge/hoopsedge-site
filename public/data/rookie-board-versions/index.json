@@ -1,0 +1,18 @@
+{
+  "current": "1.1",
+  "versions": [
+    {
+      "version": "1.0",
+      "label": "Rookie Board 1.0",
+      "savedAt": "2026-06-20",
+      "players": 49,
+      "note": "Baseline snapshot — board as of May 2026 sync (Luigi Suigo removed: out of draft)."
+    },
+    {
+      "version": "1.1",
+      "label": "Rookie Board 1.1",
+      "savedAt": "2026-06-21",
+      "players": 58
+    }
+  ]
+}

@@ -51,3 +51,6 @@ supabase/*.txt
 # NBA pipeline: regenerated each salary ingest; raw HoopsHype staging paste
 data/nba-salaries/_unmatched.json
 data/nba-salaries/current_raw.csv
+
+# Rookie board editor: unpublished work-in-progress draft (local only)
+src/data/rookie-board.draft.json

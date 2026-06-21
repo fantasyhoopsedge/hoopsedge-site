@@ -11,6 +11,7 @@
     "nba:refresh": "tsx scripts/nba-data/stats_refresh.ts",
     "nba:salary": "tsx scripts/nba-data/salary_ingest.ts",
     "nba:staleness": "tsx scripts/nba-data/staleness_check.ts",
+    "rb:seed": "tsx scripts/seed-rookie-board-supabase.ts",
     "test:grader": "tsc --module commonjs --target es2019 --outDir .tmp --skipLibCheck src/lib/draftNight/grader.ts src/lib/draftNight/config.ts scripts/draft-night-grader-dryrun.ts && node .tmp/scripts/draft-night-grader-dryrun.js"
   },
   "dependencies": {
