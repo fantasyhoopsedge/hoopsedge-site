@@ -155,10 +155,18 @@ export function SiteNav(props: {
   useEffect(() => {
     if (!user || !supabase) { setIsBoardAdmin(false); return; }
     let cancelled = false;
-    const rpc = (supabase as unknown as { rpc: (fn: string) => PromiseLike<{ data: boolean | null }> }).rpc;
-    Promise.resolve(rpc("is_rb_admin"))
-      .then(({ data }) => { if (!cancelled) setIsBoardAdmin(Boolean(data)); })
-      .catch(() => {});
+    // Call rpc as a BOUND member (never detach it — supabase-js's rpc needs
+    // `this`), and guard everything so this nav-only check can never crash a
+    // page for a signed-in user.
+    (async () => {
+      try {
+        const sb = supabase as unknown as { rpc(fn: string): Promise<{ data: boolean | null }> };
+        const { data } = await sb.rpc("is_rb_admin");
+        if (!cancelled) setIsBoardAdmin(Boolean(data));
+      } catch {
+        if (!cancelled) setIsBoardAdmin(false);
+      }
+    })();
     return () => { cancelled = true; };
   }, [user, supabase]);
   const showBoardEditor = process.env.NODE_ENV !== "production" || isBoardAdmin;
