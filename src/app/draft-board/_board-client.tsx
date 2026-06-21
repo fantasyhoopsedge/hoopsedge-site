@@ -318,7 +318,7 @@ export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; age
     <div className="draft-board-shell">
       <SiteNav active="draft" />
 
-      <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "1180px", width: "100%", margin: "0 auto" }}>
+      <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "1280px", width: "100%", margin: "0 auto" }}>
       <div className="db-layout">
       <div className="db-list-col">
         {DRAFT_BOARD.map((p, i) => {
@@ -425,12 +425,12 @@ export function DraftBoardClient({ board, ageByName }: { board: RookieBoard; age
           }
           .db-list-col {
             flex: 1 1 auto;
-            max-width: 600px;
+            max-width: 660px;
           }
           .db-detail-col {
             display: block;
             flex: 1 1 480px;
-            max-width: 520px;
+            max-width: 500px;
             position: sticky;
             top: 96px;
             align-self: flex-start;
