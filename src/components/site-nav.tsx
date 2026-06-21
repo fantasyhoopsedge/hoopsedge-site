@@ -147,8 +147,21 @@ export function SiteNav(props: {
   navClassName?: string;
 }) {
   const { active, joinFree, infoStrip, navClassName } = props;
-  const { user, profile, openSignUp, signOut } = useAuth();
+  const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  // Show the rookie-board editor link to admins (and always on localhost).
+  const [isBoardAdmin, setIsBoardAdmin] = useState(false);
+  useEffect(() => {
+    if (!user || !supabase) { setIsBoardAdmin(false); return; }
+    let cancelled = false;
+    const rpc = (supabase as unknown as { rpc: (fn: string) => PromiseLike<{ data: boolean | null }> }).rpc;
+    Promise.resolve(rpc("is_rb_admin"))
+      .then(({ data }) => { if (!cancelled) setIsBoardAdmin(Boolean(data)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user, supabase]);
+  const showBoardEditor = process.env.NODE_ENV !== "production" || isBoardAdmin;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -222,6 +235,11 @@ export function SiteNav(props: {
         <li className="nav-arena">
           <a href="/prediction-arena">Arena</a>
         </li>
+        {showBoardEditor && (
+          <li className="nav-arena nav-admin-dev">
+            <a href="/admin/rookie-board" title="Rookie board editor (admins only)">✎ Board Editor</a>
+          </li>
+        )}
         <li className="nav-theme">
           <button type="button" className="theme-toggle" onClick={toggleTheme} title="Toggle light/dark theme" aria-label="Toggle theme">
             {theme === "dark" ? (
@@ -339,6 +357,10 @@ export function SiteNav(props: {
         }
         .usermenu-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
         .usermenu-item--signout { color: #ef4444; }
+
+        /* Dev-only rookie board editor link (localhost only) */
+        .nav-admin-dev a { color: var(--edge-orange); }
+        .nav-admin-dev a:hover { color: var(--edge-orange); opacity: 0.8; }
         .usermenu-item--signout:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 
         /* ── Mobile ──────────────────────────────────────────────────────── */

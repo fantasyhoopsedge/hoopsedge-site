@@ -19,6 +19,16 @@ const PROTECTED_PREFIXES: string[] = [
 ];
 
 export async function proxy(request: NextRequest) {
+  // The rookie board editor is a dev-only local authoring tool: writes are
+  // dev-only and the page itself 404s in production. On localhost it needs no
+  // login — never bounce it through the auth gate.
+  if (
+    process.env.NODE_ENV !== "production" &&
+    request.nextUrl.pathname.startsWith("/admin/rookie-board")
+  ) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
