@@ -216,6 +216,7 @@ export function SiteNav(props: {
           </button>
           <ul className="nav-dropdown-menu">
             <li><a href="/dynasty-rankings">Dynasty Consensus</a></li>
+            <li><a href="/seasonal-rankings">Seasonal Values</a></li>
             <li><a href="/draft-board">2026 Rookie Draft</a></li>
           </ul>
         </li>

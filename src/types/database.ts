@@ -353,6 +353,62 @@ export interface Database {
           },
         ];
       };
+      season_player_stats: {
+        Row: {
+          player_id: string;
+          name: string;
+          team: string | null;
+          position: string | null;
+          headshot_id: string | null;
+          g: number | null;
+          mpg: number | null;
+          pts: number | null;
+          fg3m: number | null;
+          reb: number | null;
+          ast: number | null;
+          stl: number | null;
+          blk: number | null;
+          tov: number | null;
+          fga: number | null;
+          fta: number | null;
+          fg_pct: number | null;
+          ft_pct: number | null;
+          consensus_rank: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      season_player_values: {
+        Row: {
+          player_id: string;
+          league_size: number;
+          v_pts: number | null;
+          v_fg3: number | null;
+          v_reb: number | null;
+          v_ast: number | null;
+          v_stl: number | null;
+          v_blk: number | null;
+          v_fg: number | null;
+          v_ft: number | null;
+          v_to: number | null;
+          value: number | null;
+          minus1v: number | null;
+          value_rank: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "season_player_values_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "season_player_stats";
+            referencedColumns: ["player_id"];
+          },
+        ];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -444,3 +500,7 @@ export type NbaContract = Database["public"]["Tables"]["nba_contracts"]["Row"];
 export type NbaSeasonAverage = Database["public"]["Views"]["nba_season_averages"]["Row"];
 export type NbaFreeAgent = Database["public"]["Views"]["nba_free_agents"]["Row"];
 export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidates"]["Row"];
+
+// ── Seasonal rankings convenience aliases ───────────────────────────────────
+export type SeasonPlayerStats = Database["public"]["Tables"]["season_player_stats"]["Row"];
+export type SeasonPlayerValues = Database["public"]["Tables"]["season_player_values"]["Row"];
