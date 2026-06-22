@@ -383,6 +383,8 @@ export interface Database {
           blk: number | null;
           tov: number | null;
           fg3m: number | null;
+          fga: number | null;
+          fta: number | null;
           fg_pct: number | null;
           ft_pct: number | null;
         };
