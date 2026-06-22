@@ -7,16 +7,29 @@ import { SeasonalRankingsTable } from "./_components/seasonal-rankings-table";
 // scripts/build-seasonal-values.ts so there is no per-request math.
 export const dynamic = "force-dynamic";
 
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+// PostgREST caps a single response at ~1000 rows; the value table holds one row
+// per player × league size, so we page through it.
+async function fetchAll<T>(supabase: SupabaseClient, table: "season_player_stats" | "season_player_values"): Promise<T[]> {
+  const PAGE = 1000;
+  const out: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase.from(table).select("*").range(from, from + PAGE - 1);
+    if (error || !data) break;
+    out.push(...(data as T[]));
+    if (data.length < PAGE) break;
+  }
+  return out;
+}
+
 export default async function SeasonalRankingsPage() {
   const supabase = await createClient();
 
-  const [statsRes, valuesRes] = await Promise.all([
-    supabase.from("season_player_stats").select("*"),
-    supabase.from("season_player_values").select("*"),
+  const [stats, values] = await Promise.all([
+    fetchAll<SeasonPlayerStats>(supabase, "season_player_stats"),
+    fetchAll<SeasonPlayerValues>(supabase, "season_player_values"),
   ]);
-
-  const stats = (statsRes.data ?? []) as SeasonPlayerStats[];
-  const values = (valuesRes.data ?? []) as SeasonPlayerValues[];
 
   // Group value rows by league size: { [size]: { [player_id]: row } }.
   const valuesBySize: Record<number, Record<string, SeasonPlayerValues>> = {};
