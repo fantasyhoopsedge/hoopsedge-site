@@ -13,9 +13,32 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 // Every column the table can sort by. value/minus1v come from the value set;
 // consensus from the stat row; the rest are raw per-game (or totalled) stats.
 type SortKey =
-  | "value" | "minus1v" | "consensus"
+  | "value" | "minus1v" | "consensus" | "g" | "mpg"
   | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov";
 type SortDir = "asc" | "desc";
+
+// The 9 category V-scores mapped to the stat cell they color, in canonical order.
+// Minus1V drops a player's WORST category (the argmin of these), so we surface it.
+const CAT_VKEYS = [
+  ["pts", "v_pts"], ["fg3m", "v_fg3"], ["reb", "v_reb"], ["ast", "v_ast"],
+  ["stl", "v_stl"], ["blk", "v_blk"], ["fg_pct", "v_fg"], ["ft_pct", "v_ft"], ["tov", "v_to"],
+] as const;
+
+/** Which stat cell is dropped from Minus1V = the player's lowest of the 9 V-scores. */
+function droppedCat(v: SeasonPlayerValues | null): string | null {
+  if (!v) return null;
+  let best: string | null = null;
+  let bestV = Infinity;
+  for (const [cell, vk] of CAT_VKEYS) {
+    const val = v[vk] as number | null;
+    if (val == null || !Number.isFinite(val)) continue;
+    if (val < bestV) {
+      bestV = val;
+      best = cell;
+    }
+  }
+  return best;
+}
 
 const POSITIONS = ["G", "F", "C", "G/F", "F/C"] as const;
 
@@ -190,6 +213,7 @@ export function SeasonalRankingsTable(props: {
       case "value": return v?.value ?? null;
       case "minus1v": return v?.minus1v ?? null;
       case "consensus": return s.consensus_rank ?? null;
+      case "g": return s.g ?? null; // a count — never totalled
       case "fg_pct": return s.fg_pct ?? null;
       case "ft_pct": return s.ft_pct ?? null;
       default: {
@@ -412,6 +436,8 @@ export function SeasonalRankingsTable(props: {
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
                   <th className="sr-th">TEAM</th>
                   <th className="sr-th">POS</th>
+                  <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
+                  <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
                   <SortTh label="VALUE" sortKey="value" sort={sort} onSort={onSort} strong />
                   <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
@@ -430,6 +456,8 @@ export function SeasonalRankingsTable(props: {
                   const g = s.g ?? 0;
                   const tot = (perGameVal: number | null | undefined) =>
                     perGameVal == null ? null : perGameVal * g;
+                  const cGP = s.g == null ? "—" : String(s.g);
+                  const cMin = perGame ? f1(s.mpg) : fInt(tot(s.mpg));
                   const cP = perGame ? f1(s.pts) : fInt(tot(s.pts));
                   const c3 = perGame ? f1(s.fg3m) : fInt(tot(s.fg3m));
                   const cR = perGame ? f1(s.reb) : fInt(tot(s.reb));
@@ -437,6 +465,10 @@ export function SeasonalRankingsTable(props: {
                   const cS = perGame ? f1(s.stl) : fInt(tot(s.stl));
                   const cB = perGame ? f1(s.blk) : fInt(tot(s.blk));
                   const cTo = perGame ? f1(s.tov) : fInt(tot(s.tov));
+
+                  // When ranked by Minus1V, ring the one category that's dropped.
+                  const dropped = sort.key === "minus1v" ? droppedCat(v) : null;
+                  const drop = (cell: string) => (dropped === cell ? " sr-dropped" : "");
 
                   return (
                     <tr key={s.player_id} className="sr-tr">
@@ -447,21 +479,23 @@ export function SeasonalRankingsTable(props: {
                       <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
                       <td className="sr-td sr-td-team">{s.team ?? "—"}</td>
                       <td className="sr-td">{s.position ?? "—"}</td>
+                      <td className="sr-td sr-num">{cGP}</td>
+                      <td className="sr-td sr-num">{cMin}</td>
                       <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(v?.value) }}>
                         {f3v(v?.value)}
                       </td>
                       <td className="sr-td sr-num" style={{ background: valueBg(v?.minus1v) }}>
                         {f3v(v?.minus1v)}
                       </td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_pts) }}>{cP}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_fg3) }}>{c3}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_reb) }}>{cR}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_ast) }}>{cA}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_stl) }}>{cS}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_blk) }}>{cB}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_fg) }}>{fPct(s.fg_pct)}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_ft) }}>{fPct(s.ft_pct)}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(v?.v_to) }}>{cTo}</td>
+                      <td className={`sr-td sr-num${drop("pts")}`} style={{ background: statBg(v?.v_pts) }}>{cP}</td>
+                      <td className={`sr-td sr-num${drop("fg3m")}`} style={{ background: statBg(v?.v_fg3) }}>{c3}</td>
+                      <td className={`sr-td sr-num${drop("reb")}`} style={{ background: statBg(v?.v_reb) }}>{cR}</td>
+                      <td className={`sr-td sr-num${drop("ast")}`} style={{ background: statBg(v?.v_ast) }}>{cA}</td>
+                      <td className={`sr-td sr-num${drop("stl")}`} style={{ background: statBg(v?.v_stl) }}>{cS}</td>
+                      <td className={`sr-td sr-num${drop("blk")}`} style={{ background: statBg(v?.v_blk) }}>{cB}</td>
+                      <td className={`sr-td sr-num${drop("fg_pct")}`} style={{ background: statBg(v?.v_fg) }}>{fPct(s.fg_pct)}</td>
+                      <td className={`sr-td sr-num${drop("ft_pct")}`} style={{ background: statBg(v?.v_ft) }}>{fPct(s.ft_pct)}</td>
+                      <td className={`sr-td sr-num${drop("tov")}`} style={{ background: statBg(v?.v_to) }}>{cTo}</td>
                     </tr>
                   );
                 })}
@@ -533,12 +567,12 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 980px; margin: 0 auto; max-width: 1400px;
+          min-width: 1080px; margin: 0 auto; max-width: 1400px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-surface);
-          font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600;
+          font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600;
           letter-spacing: 1px; color: var(--text-secondary); text-transform: uppercase;
           padding: 10px 8px; text-align: left; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
@@ -566,6 +600,11 @@ export function SeasonalRankingsTable(props: {
           font-variant-numeric: tabular-nums;
         }
         .sr-num-strong { font-weight: 700; }
+        /* Minus1V "punt" view: ring the dropped category in FHE orange. */
+        .sr-dropped {
+          box-shadow: inset 0 0 0 2px var(--edge-orange);
+          border-radius: 4px; color: var(--edge-orange); font-weight: 700;
+        }
         .sr-td-player { font-weight: 600; }
         .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); font-size: 12px; }
 
