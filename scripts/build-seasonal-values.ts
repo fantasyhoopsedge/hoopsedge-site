@@ -1,39 +1,53 @@
 /**
  * Build the precomputed seasonal-rankings value sets and persist them.
  *
- *   npm run seasonal:build              # latest season, upsert to Supabase
- *   npm run seasonal:build -- --season 2026
- *   npm run seasonal:build -- --dry-run # compute + validate, NO writes
+ *   npm run seasonal:build                     # ALL datasets, upsert to Supabase
+ *   npm run seasonal:build -- --only 2026:regular
+ *   npm run seasonal:build -- --dry-run        # compute + validate, NO writes
  *
- * Pipeline:
- *   1. Aggregate per-game season averages from nba_player_game_logs (the
- *      documented source of truth) for one season's regular games. We read the
- *      logs directly rather than the matview so fga/fta are always available.
+ * Datasets: the regular season + playoffs for the seasons that have game logs
+ * (see DATASETS). Each is built independently — same engine, its own baseline.
+ *
+ * Pipeline (per dataset):
+ *   1. Aggregate per-game averages from nba_player_game_logs (the documented
+ *      source of truth) for that season + season_type. We read the logs directly
+ *      rather than the matview so fga/fta are always available.
  *   2. Run the BBM-style 9-cat value engine for every league size.
- *   3. Validation gate (league_size 400) — must reproduce the reference BBM
- *      export within tolerance, else STOP.
- *   4. Left-join dynasty consensus rank by aggressive-normalized name.
- *   5. Upsert season_player_stats (one row/player) + season_player_values
- *      (one row per player × league_size).
+ *   3. Validation gate (league_size 400, 2025-26 regular ONLY) — must reproduce
+ *      the reference BBM export within tolerance, else STOP.
+ *   4. Left-join dynasty consensus rank + position by aggressive-normalized name
+ *      (consensus position overrides the nba_players position when present).
+ *   5. Upsert season_player_stats + season_player_values, keyed by season +
+ *      season_type so datasets coexist.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, normalizeName, loadEnv } from "./nba-data/client";
 import {
-  LEAGUE_SIZES,
   computeAllLeagueSizes,
   type PlayerStats,
   type RankedPlayerValues,
 } from "../src/lib/value/compute-values";
+import {
+  SEASON_DATASETS,
+  GATE_DATASET as GATE,
+  type SeasonType,
+  type SeasonDataset as Dataset,
+} from "../src/lib/value/seasons";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+// Datasets + the validation-gate target come from the shared module so the page
+// and the build stay in lockstep. (SEASON_DATASETS, GATE, types imported above.)
+const DATASETS = SEASON_DATASETS;
 
 // ── args ──────────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run");
-const seasonArgIdx = argv.indexOf("--season");
-const SEASON_OVERRIDE = seasonArgIdx >= 0 ? Number(argv[seasonArgIdx + 1]) : null;
+const onlyArgIdx = argv.indexOf("--only");
+// --only 2026:regular  → build just that dataset (key = `${season}:${type}`).
+const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
 
 // ── validation gate reference (BBM export, league_size = 400) ──────────────────
 const REF_VALUES: Record<string, number> = {
@@ -78,7 +92,7 @@ type Aggregate = {
 
 const n = (v: number | null) => (v == null ? 0 : v);
 
-async function fetchAllLogs(season: number): Promise<LogRow[]> {
+async function fetchAllLogs(season: number, seasonType: SeasonType): Promise<LogRow[]> {
   const supabase = getServiceClient();
   const cols = "player_id,min,pts,reb,ast,stl,blk,tov,fg3m,fgm,fga,ftm,fta";
   const all: LogRow[] = [];
@@ -88,7 +102,7 @@ async function fetchAllLogs(season: number): Promise<LogRow[]> {
       .from("nba_player_game_logs")
       .select(cols)
       .eq("season", season)
-      .eq("season_type", "regular")
+      .eq("season_type", seasonType)
       .range(from, from + PAGE - 1);
     if (error) throw new Error(`game-log fetch failed: ${error.message}`);
     const rows = (data ?? []) as LogRow[];
@@ -96,19 +110,6 @@ async function fetchAllLogs(season: number): Promise<LogRow[]> {
     if (rows.length < PAGE) break;
   }
   return all;
-}
-
-async function latestSeason(): Promise<number> {
-  const supabase = getServiceClient();
-  const { data, error } = await supabase
-    .from("nba_player_game_logs")
-    .select("season")
-    .eq("season_type", "regular")
-    .order("season", { ascending: false })
-    .limit(1);
-  if (error) throw new Error(`season probe failed: ${error.message}`);
-  if (!data || data.length === 0) throw new Error("no regular-season game logs found");
-  return data[0].season as number;
 }
 
 async function fetchPlayers(): Promise<Map<string, { name: string; team: string | null; position: string | null }>> {
@@ -128,14 +129,16 @@ async function fetchPlayers(): Promise<Map<string, { name: string; team: string 
   return map;
 }
 
-/** dynasty-rankings.json → normalized name → consensusRank. */
-function loadConsensusRanks(): Map<string, number> {
+type ConsensusInfo = { rank: number; position: string | null };
+
+/** dynasty-rankings.json → normalized name → { consensus rank, position }. */
+function loadConsensus(): Map<string, ConsensusInfo> {
   const raw = readFileSync(resolve(REPO_ROOT, "src/lib/dynasty-rankings.json"), "utf8");
-  const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number }>;
-  const m = new Map<string, number>();
+  const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number; position?: string | null }>;
+  const m = new Map<string, ConsensusInfo>();
   for (const p of players) {
     const key = normalizeName(p.player);
-    if (!m.has(key)) m.set(key, p.consensusRank);
+    if (!m.has(key)) m.set(key, { rank: p.consensusRank, position: pos5(p.position ?? null) });
   }
   return m;
 }
@@ -260,10 +263,11 @@ function pos5(position: string | null): string | null {
 }
 
 async function upsert(
+  ds: Dataset,
   stats: PlayerStats[],
   agg: Map<string, Aggregate>,
   players: Map<string, { name: string; team: string | null; position: string | null }>,
-  consensus: Map<string, number>,
+  consensus: Map<string, ConsensusInfo>,
   values: Map<number, RankedPlayerValues[]>,
 ): Promise<void> {
   const supabase = getServiceClient();
@@ -273,11 +277,16 @@ async function upsert(
     const a = agg.get(s.playerId)!;
     const meta = players.get(s.playerId);
     const name = meta?.name ?? s.playerId;
+    const cons = consensus.get(normalizeName(name)) ?? null;
     return {
       player_id: s.playerId,
+      season: ds.season,
+      season_type: ds.type,
       name,
       team: meta?.team ?? null,
-      position: pos5(meta?.position ?? null),
+      // Consensus position wins when the player is ranked; else fall back to the
+      // nba_players position. (Item 2.)
+      position: cons?.position ?? pos5(meta?.position ?? null),
       headshot_id: s.playerId, // ESPN athlete id (page builds the ESPN headshot URL from this)
       g: a.gp,
       mpg: round1(a.sumMin / a.gp),
@@ -292,7 +301,7 @@ async function upsert(
       fta: round1(s.fta),
       fg_pct: round3(s.fgPct),
       ft_pct: round3(s.ftPct),
-      consensus_rank: consensus.get(normalizeName(name)) ?? null,
+      consensus_rank: cons?.rank ?? null,
       updated_at: now,
     };
   });
@@ -302,6 +311,8 @@ async function upsert(
     for (const r of rows) {
       valueRows.push({
         player_id: r.playerId,
+        season: ds.season,
+        season_type: ds.type,
         league_size: size,
         v_pts: round3(r.vPts),
         v_fg3: round3(r.vFg3),
@@ -320,9 +331,9 @@ async function upsert(
     }
   }
 
-  await batchUpsert(supabase, "season_player_stats", statRows, "player_id");
-  await batchUpsert(supabase, "season_player_values", valueRows, "player_id,league_size");
-  console.log(`\n✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
+  await batchUpsert(supabase, "season_player_stats", statRows, "player_id,season,season_type");
+  await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
+  console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
 }
 
 const round1 = (x: number) => Math.round(x * 10) / 10;
@@ -342,35 +353,54 @@ async function batchUpsert(
   }
 }
 
-async function main(): Promise<void> {
-  loadEnv();
-  const season = SEASON_OVERRIDE ?? (await latestSeason());
-  console.log(`Building seasonal values for season ${season} (regular)${DRY_RUN ? " [DRY RUN]" : ""}`);
-
-  const logs = await fetchAllLogs(season);
-  console.log(`fetched ${logs.length} game-log rows`);
+async function buildDataset(
+  ds: Dataset,
+  players: Map<string, { name: string; team: string | null; position: string | null }>,
+  consensus: Map<string, ConsensusInfo>,
+): Promise<void> {
+  console.log(`\n══ ${ds.label}  (season ${ds.season} / ${ds.type}) ══`);
+  const logs = await fetchAllLogs(ds.season, ds.type);
+  console.log(`  fetched ${logs.length} game-log rows`);
   const agg = aggregate(logs);
   const stats = buildStats(agg);
-  console.log(`aggregated ${stats.length} players (the feed)`);
-
-  const players = await fetchPlayers();
-  const values = computeAllLeagueSizes(stats);
-  for (const size of LEAGUE_SIZES) {
-    console.log(`  league_size ${size}: ${values.get(size)!.length} players scored`);
-  }
-
-  assertFinite(values);
-  runValidationGate(stats, agg, players, values);
-
-  const consensus = loadConsensusRanks();
-  const matched = stats.filter((s) => consensus.has(normalizeName(players.get(s.playerId)?.name ?? ""))).length;
-  console.log(`consensus rank matched for ${matched}/${stats.length} players`);
-
-  if (DRY_RUN) {
-    console.log("\n[DRY RUN] skipping upsert.");
+  console.log(`  aggregated ${stats.length} players (the feed)`);
+  if (stats.length === 0) {
+    console.log("  (no players — skipping)");
     return;
   }
-  await upsert(stats, agg, players, consensus, values);
+
+  const values = computeAllLeagueSizes(stats);
+  assertFinite(values);
+
+  // The reference export only applies to the calibrated dataset; other seasons /
+  // playoffs have no reference, so the gate would be meaningless there.
+  if (ds.season === GATE.season && ds.type === GATE.type) {
+    runValidationGate(stats, agg, players, values);
+  }
+
+  const matched = stats.filter((s) => consensus.has(normalizeName(players.get(s.playerId)?.name ?? ""))).length;
+  console.log(`  consensus matched for ${matched}/${stats.length} players`);
+
+  if (DRY_RUN) {
+    console.log("  [DRY RUN] skipping upsert.");
+    return;
+  }
+  await upsert(ds, stats, agg, players, consensus, values);
+}
+
+async function main(): Promise<void> {
+  loadEnv();
+  const datasets = ONLY ? DATASETS.filter((d) => `${d.season}:${d.type}` === ONLY) : DATASETS;
+  if (datasets.length === 0) throw new Error(`--only "${ONLY}" matched no dataset`);
+  console.log(`Building ${datasets.length} dataset(s)${DRY_RUN ? " [DRY RUN]" : ""}: ${datasets.map((d) => d.label).join(", ")}`);
+
+  const players = await fetchPlayers();
+  const consensus = loadConsensus();
+
+  for (const ds of datasets) {
+    await buildDataset(ds, players, consensus);
+  }
+  console.log(`\n✓ done (${datasets.length} dataset${datasets.length === 1 ? "" : "s"})`);
 }
 
 main().catch((e) => {

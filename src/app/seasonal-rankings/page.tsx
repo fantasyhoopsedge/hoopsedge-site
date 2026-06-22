@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { LEAGUE_SIZES, CANONICAL_SIZE } from "@/lib/value/compute-values";
+import { SEASON_DATASETS, datasetFromKey, datasetKey } from "@/lib/value/seasons";
 import { SeasonalRankingsTable } from "./_components/seasonal-rankings-table";
 
 // Read live from Supabase on each request; the value sets are precomputed by
@@ -9,13 +10,23 @@ export const dynamic = "force-dynamic";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
-// PostgREST caps a single response at ~1000 rows; the value table holds one row
-// per player × league size, so we page through it.
-async function fetchAll<T>(supabase: SupabaseClient, table: "season_player_stats" | "season_player_values"): Promise<T[]> {
+// PostgREST caps a single response at ~1000 rows, so we page through one
+// dataset (season + season_type) at a time.
+async function fetchDataset<T>(
+  supabase: SupabaseClient,
+  table: "season_player_stats" | "season_player_values",
+  season: number,
+  seasonType: string,
+): Promise<T[]> {
   const PAGE = 1000;
   const out: T[] = [];
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase.from(table).select("*").range(from, from + PAGE - 1);
+    const { data, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("season", season)
+      .eq("season_type", seasonType)
+      .range(from, from + PAGE - 1);
     if (error || !data) break;
     out.push(...(data as T[]));
     if (data.length < PAGE) break;
@@ -23,12 +34,20 @@ async function fetchAll<T>(supabase: SupabaseClient, table: "season_player_stats
   return out;
 }
 
-export default async function SeasonalRankingsPage() {
+export default async function SeasonalRankingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const sp = await searchParams;
+  const dKey = typeof sp.d === "string" ? sp.d : undefined;
+  const dataset = datasetFromKey(dKey);
+
   const supabase = await createClient();
 
   const [stats, values] = await Promise.all([
-    fetchAll<SeasonPlayerStats>(supabase, "season_player_stats"),
-    fetchAll<SeasonPlayerValues>(supabase, "season_player_values"),
+    fetchDataset<SeasonPlayerStats>(supabase, "season_player_stats", dataset.season, dataset.type),
+    fetchDataset<SeasonPlayerValues>(supabase, "season_player_values", dataset.season, dataset.type),
   ]);
 
   // Group value rows by league size: { [size]: { [player_id]: row } }.
@@ -44,6 +63,8 @@ export default async function SeasonalRankingsPage() {
       valuesBySize={valuesBySize}
       leagueSizes={[...LEAGUE_SIZES]}
       canonicalSize={CANONICAL_SIZE}
+      seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
+      activeSeason={datasetKey(dataset.season, dataset.type)}
     />
   );
 }

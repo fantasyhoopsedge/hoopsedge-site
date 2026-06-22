@@ -356,6 +356,8 @@ export interface Database {
       season_player_stats: {
         Row: {
           player_id: string;
+          season: number;
+          season_type: string;
           name: string;
           team: string | null;
           position: string | null;
@@ -383,6 +385,8 @@ export interface Database {
       season_player_values: {
         Row: {
           player_id: string;
+          season: number;
+          season_type: string;
           league_size: number;
           v_pts: number | null;
           v_fg3: number | null;

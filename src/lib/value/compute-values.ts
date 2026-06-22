@@ -17,12 +17,17 @@
  *     pool), realized here as Σ(pct·att)/Σ(att).
  */
 
-/** Fixed menu of league sizes (teams × roster spots). The league size is the baseline. */
-export const LEAGUE_SIZES = [144, 256, 400, 450] as const;
+/**
+ * Fixed menu of baseline pool sizes (total rostered players across the league).
+ * The pool size IS the baseline, so values are computed once per size. 400 is
+ * retained because the build's validation gate is calibrated against the BBM
+ * reference at size 400.
+ */
+export const LEAGUE_SIZES = [250, 280, 300, 320, 340, 360, 380, 400, 420, 450] as const;
 export type LeagueSize = (typeof LEAGUE_SIZES)[number];
 
-/** Default size shown on the page (30 teams × 15). */
-export const CANONICAL_SIZE: LeagueSize = 450;
+/** Default pool shown on the page. */
+export const CANONICAL_SIZE: LeagueSize = 400;
 
 /** Iteration cap for pool convergence; real data converges in ~3–4 passes. */
 const MAX_ITERS = 12;

@@ -1,0 +1,40 @@
+/**
+ * The seasonal-rankings datasets — one source of truth shared by the build
+ * script (scripts/build-seasonal-values.ts) and the page (/seasonal-rankings).
+ *
+ * Season N = the (N-1)/N NBA season in hoopR terms (2026 = 2025-26). Only
+ * seasons with game logs are listed; 2026-27 (season 2027) is omitted until it
+ * is played. Order here is the order the UI selector shows.
+ */
+
+export type SeasonType = "regular" | "postseason";
+
+export type SeasonDataset = {
+  season: number;
+  type: SeasonType;
+  label: string;
+};
+
+export const SEASON_DATASETS: readonly SeasonDataset[] = [
+  { season: 2026, type: "regular", label: "2025-26" },
+  { season: 2025, type: "regular", label: "2024-25" },
+  { season: 2024, type: "regular", label: "2023-24" },
+  { season: 2026, type: "postseason", label: "Playoffs 26" },
+  { season: 2025, type: "postseason", label: "Playoffs 25" },
+  { season: 2024, type: "postseason", label: "Playoffs 24" },
+] as const;
+
+/** Default dataset shown on first load. */
+export const DEFAULT_DATASET: SeasonDataset = SEASON_DATASETS[0]; // 2025-26 regular
+
+/** Dataset the build's validation gate is calibrated against. */
+export const GATE_DATASET = { season: 2026, type: "regular" as SeasonType };
+
+/** Stable key for a (season, season_type) pair, used in URLs + lookups. */
+export const datasetKey = (season: number, type: string): string => `${season}:${type}`;
+
+/** Resolve a key (e.g. from a URL param) back to a dataset, or the default. */
+export function datasetFromKey(key: string | null | undefined): SeasonDataset {
+  if (!key) return DEFAULT_DATASET;
+  return SEASON_DATASETS.find((d) => datasetKey(d.season, d.type) === key) ?? DEFAULT_DATASET;
+}
