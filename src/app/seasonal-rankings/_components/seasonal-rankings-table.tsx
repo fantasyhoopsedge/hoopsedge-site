@@ -13,7 +13,7 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 // Every column the table can sort by. value/minus1v/fg_v/ft_v come from the
 // active value set; consensus from the stat row; the rest are raw stats.
 type SortKey =
-  | "value" | "minus1v" | "consensus" | "g" | "mpg"
+  | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg"
   | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov"
   | "fg_v" | "ft_v";
 type SortDir = "asc" | "desc";
@@ -164,9 +164,14 @@ export function SeasonalRankingsTable(props: {
   canonicalSize: number;
   seasons: SeasonOption[];
   activeSeason: string;
+  ageByRank: Record<number, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank } = props;
   const router = useRouter();
+
+  // Age is keyed by the consensus rank each stat row carries (null = unranked).
+  const ageOf = (s: SeasonPlayerStats): number | null =>
+    s.consensus_rank != null ? (ageByRank[s.consensus_rank] ?? null) : null;
 
   // Season switch reloads the page with a new dataset (server refetch); a tiny
   // pending flag dims the table while the new data streams in.
@@ -233,6 +238,7 @@ export function SeasonalRankingsTable(props: {
       case "fg_v": return av?.fg ?? null;
       case "ft_v": return av?.ft ?? null;
       case "consensus": return s.consensus_rank ?? null;
+      case "age": return ageOf(s);
       case "g": return s.g ?? null; // a count — never totalled
       case "fg_pct": return s.fg_pct ?? null;
       case "ft_pct": return s.ft_pct ?? null;
@@ -470,6 +476,7 @@ export function SeasonalRankingsTable(props: {
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
                   <th className="sr-th">TEAM</th>
                   <th className="sr-th">POS</th>
+                  <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
                   <SortTh label="VALUE" sortKey="value" sort={sort} onSort={onSort} strong />
@@ -517,6 +524,7 @@ export function SeasonalRankingsTable(props: {
                       <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
                       <td className="sr-td sr-td-team">{s.team ?? "—"}</td>
                       <td className="sr-td">{s.position ?? "—"}</td>
+                      <td className="sr-td sr-num">{f1(ageOf(s))}</td>
                       <td className="sr-td sr-num">{cGP}</td>
                       <td className="sr-td sr-num">{cMin}</td>
                       <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(av?.value) }}>
@@ -567,12 +575,12 @@ export function SeasonalRankingsTable(props: {
         .sr-group { display: flex; flex-direction: column; gap: 6px; }
         .sr-group-search { flex: 1 1 160px; min-width: 140px; }
         .sr-label {
-          font-family: 'Oswald', sans-serif; font-size: 10px; font-weight: 600;
+          font-family: 'VT323', monospace; font-size: 10px; font-weight: 600;
           letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
         }
         .sr-pill-row { display: flex; gap: 4px; flex-wrap: wrap; }
         .sr-pill {
-          font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 500;
+          font-family: 'VT323', monospace; font-size: 12px; font-weight: 500;
           letter-spacing: 0.5px; padding: 6px 10px; border-radius: 7px; cursor: pointer;
           background: var(--bg-card, #1a1a1a); color: var(--text-secondary);
           border: 1px solid var(--border-main); transition: all 0.15s; white-space: nowrap;
@@ -582,7 +590,7 @@ export function SeasonalRankingsTable(props: {
           background: var(--blueprint); color: #fff; border-color: var(--blueprint);
         }
         .sr-select, .sr-num, .sr-search {
-          font-family: 'Source Sans 3', sans-serif; font-size: 13px;
+          font-family: 'VT323', monospace; font-size: 13px;
           padding: 7px 10px; border-radius: 7px;
           background: var(--bg-card, #1a1a1a); color: var(--text-primary);
           border: 1px solid var(--border-main); height: 34px;
@@ -595,10 +603,10 @@ export function SeasonalRankingsTable(props: {
         .sr-main { flex: 1; }
         .sr-empty {
           text-align: center; color: var(--text-secondary); padding: 60px 20px;
-          font-family: 'Source Sans 3', sans-serif;
+          font-family: 'VT323', monospace;
         }
         .sr-empty code {
-          font-family: 'JetBrains Mono', monospace; font-size: 12px;
+          font-family: 'VT323', monospace; font-size: 12px;
           background: var(--bg-card, #1a1a1a); padding: 2px 6px; border-radius: 4px;
         }
         /* Inner scroll box → both the thead (top:0) and the player column (left:0)
@@ -607,18 +615,19 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1180px; margin: 0 auto; max-width: 1480px;
+          min-width: 1240px; margin: 0 auto; max-width: 1500px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-surface);
-          font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600;
-          letter-spacing: 1px; color: var(--text-secondary); text-transform: uppercase;
-          padding: 10px 8px; text-align: left; white-space: nowrap;
+          font-family: 'VT323', monospace; font-size: 16px; font-weight: 400;
+          letter-spacing: 0.5px; color: var(--text-secondary); text-transform: uppercase;
+          padding: 9px 5px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
           box-shadow: inset 0 -1px 0 var(--border-main);
         }
-        .sr-num-h { text-align: center; }
+        /* Every value/number column shares one fixed width (header + cells). */
+        .sr-num-h, .sr-num { width: 54px; min-width: 54px; max-width: 54px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
@@ -631,22 +640,23 @@ export function SeasonalRankingsTable(props: {
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
-          padding: 7px 8px; font-size: 13px; color: var(--text-primary);
+          padding: 6px 6px; font-size: 18px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
-          font-family: 'Source Sans 3', sans-serif;
+          font-family: 'VT323', monospace; text-align: center; line-height: 1.1;
         }
+        /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
-          text-align: center; font-family: 'JetBrains Mono', monospace;
+          text-align: center; font-size: 15px; padding: 6px 4px;
           font-variant-numeric: tabular-nums;
         }
-        .sr-num-strong { font-weight: 700; }
+        .sr-num-strong { font-weight: 700; color: var(--text-primary); }
         /* Minus1V "punt" view: ring the dropped category in FHE orange. */
         .sr-dropped {
           box-shadow: inset 0 0 0 2px var(--edge-orange);
           border-radius: 4px; color: var(--edge-orange); font-weight: 700;
         }
-        .sr-td-player { font-weight: 600; }
-        .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); font-size: 12px; }
+        .sr-td-player { font-weight: 700; }
+        .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
 
         /* sticky player column */
         .sr-sticky-col { position: sticky; left: 0; z-index: 5; background: var(--bg-surface); }
@@ -664,7 +674,7 @@ export function SeasonalRankingsTable(props: {
         }
         .sr-count {
           text-align: center; font-size: 11px; color: var(--text-muted);
-          padding: 10px 0 24px; font-family: 'Source Sans 3', sans-serif;
+          padding: 10px 0 24px; font-family: 'VT323', monospace;
         }
 
         @media (max-width: 767px) {

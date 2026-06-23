@@ -2,7 +2,15 @@ import { createClient } from "@/utils/supabase/server";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { LEAGUE_SIZES, CANONICAL_SIZE } from "@/lib/value/compute-values";
 import { SEASON_DATASETS, datasetFromKey, datasetKey } from "@/lib/value/seasons";
+import rankings from "@/lib/dynasty-rankings.json";
 import { SeasonalRankingsTable } from "./_components/seasonal-rankings-table";
+
+// Age comes from the dynasty consensus, keyed by consensus rank (which every
+// stat row already carries) — so no extra join or DB column is needed.
+const AGE_BY_RANK: Record<number, number> = {};
+for (const p of rankings as Array<{ consensusRank: number; age?: number }>) {
+  if (typeof p.age === "number") AGE_BY_RANK[p.consensusRank] = p.age;
+}
 
 // Read live from Supabase on each request; the value sets are precomputed by
 // scripts/build-seasonal-values.ts so there is no per-request math.
@@ -65,6 +73,7 @@ export default async function SeasonalRankingsPage({
       canonicalSize={CANONICAL_SIZE}
       seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
       activeSeason={datasetKey(dataset.season, dataset.type)}
+      ageByRank={AGE_BY_RANK}
     />
   );
 }
