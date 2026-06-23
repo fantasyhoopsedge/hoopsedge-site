@@ -10,27 +10,56 @@ type SeasonOption = { key: string; label: string };
 
 type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 
-// Every column the table can sort by. value/minus1v come from the value set;
-// consensus from the stat row; the rest are raw per-game (or totalled) stats.
+// Every column the table can sort by. value/minus1v/fg_v/ft_v come from the
+// active value set; consensus from the stat row; the rest are raw stats.
 type SortKey =
   | "value" | "minus1v" | "consensus" | "g" | "mpg"
-  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov";
+  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov"
+  | "fg_v" | "ft_v";
 type SortDir = "asc" | "desc";
+
+// The active (per-game OR totals) value set for one player: the 9 category
+// V-scores plus the two summary scores, already mode-resolved.
+type ActiveV = {
+  value: number | null; minus1v: number | null;
+  pts: number | null; fg3: number | null; reb: number | null; ast: number | null;
+  stl: number | null; blk: number | null; fg: number | null; ft: number | null; to: number | null;
+};
+
+// Per Game uses the base columns; Totals uses the *_tot columns (falling back to
+// per-game if a totals value is missing, e.g. before the totals rebuild ran).
+function pickV(v: SeasonPlayerValues | null, perGame: boolean): ActiveV | null {
+  if (!v) return null;
+  if (perGame) {
+    return {
+      value: v.value, minus1v: v.minus1v,
+      pts: v.v_pts, fg3: v.v_fg3, reb: v.v_reb, ast: v.v_ast,
+      stl: v.v_stl, blk: v.v_blk, fg: v.v_fg, ft: v.v_ft, to: v.v_to,
+    };
+  }
+  const t = (tot: number | null, pg: number | null) => (tot == null ? pg : tot);
+  return {
+    value: t(v.value_tot, v.value), minus1v: t(v.minus1v_tot, v.minus1v),
+    pts: t(v.v_pts_tot, v.v_pts), fg3: t(v.v_fg3_tot, v.v_fg3), reb: t(v.v_reb_tot, v.v_reb),
+    ast: t(v.v_ast_tot, v.v_ast), stl: t(v.v_stl_tot, v.v_stl), blk: t(v.v_blk_tot, v.v_blk),
+    fg: t(v.v_fg_tot, v.v_fg), ft: t(v.v_ft_tot, v.v_ft), to: t(v.v_to_tot, v.v_to),
+  };
+}
 
 // The 9 category V-scores mapped to the stat cell they color, in canonical order.
 // Minus1V drops a player's WORST category (the argmin of these), so we surface it.
-const CAT_VKEYS = [
-  ["pts", "v_pts"], ["fg3m", "v_fg3"], ["reb", "v_reb"], ["ast", "v_ast"],
-  ["stl", "v_stl"], ["blk", "v_blk"], ["fg_pct", "v_fg"], ["ft_pct", "v_ft"], ["tov", "v_to"],
-] as const;
+const CAT_CELLS: [string, keyof ActiveV][] = [
+  ["pts", "pts"], ["fg3m", "fg3"], ["reb", "reb"], ["ast", "ast"],
+  ["stl", "stl"], ["blk", "blk"], ["fg_pct", "fg"], ["ft_pct", "ft"], ["tov", "to"],
+];
 
 /** Which stat cell is dropped from Minus1V = the player's lowest of the 9 V-scores. */
-function droppedCat(v: SeasonPlayerValues | null): string | null {
-  if (!v) return null;
+function droppedCat(av: ActiveV | null): string | null {
+  if (!av) return null;
   let best: string | null = null;
   let bestV = Infinity;
-  for (const [cell, vk] of CAT_VKEYS) {
-    const val = v[vk] as number | null;
+  for (const [cell, f] of CAT_CELLS) {
+    const val = av[f];
     if (val == null || !Number.isFinite(val)) continue;
     if (val < bestV) {
       bestV = val;
@@ -49,6 +78,7 @@ const defaultDir = (key: SortKey): SortDir => (key === "consensus" ? "asc" : "de
 type Row = {
   s: SeasonPlayerStats;
   v: SeasonPlayerValues | null;
+  rank: number; // 1-based rank in the FULL set by the active sort (retained under filters)
 };
 
 // Diverging background anchored to a V-score (NOT raw magnitude). Fixed scale:
@@ -188,30 +218,20 @@ export function SeasonalRankingsTable(props: {
 
   // Merge stats with the value set for the ACTIVE league size (the only control
   // that changes Value/Minus1V, because it changes the baseline pool).
-  const merged = useMemo<Row[]>(() => {
+  const merged = useMemo(() => {
     const vmap = valuesBySize[leagueSize] ?? {};
     return players.map((s) => ({ s, v: vmap[s.player_id] ?? null }));
   }, [players, valuesBySize, leagueSize]);
 
-  const filtered = useMemo<Row[]>(() => {
-    const q = search.trim().toLowerCase();
-    return merged.filter(({ s }) => {
-      if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
-      if (posFilter.size > 0 && !(s.position && posFilter.has(s.position))) return false;
-      if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
-      if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
-      if (q && !s.name.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [merged, teamFilter, posFilter, minGames, minMins, search]);
-
-  // Pull the value a row sorts by for the active key. Counting stats follow the
-  // per-game/totals display toggle so the ordering matches what's on screen.
-  const sortValue = (row: Row, key: SortKey): number | null => {
-    const { s, v } = row;
+  // Pull the value a row sorts by for the active key. value/minus1v/fg_v/ft_v
+  // follow the Per Game vs Totals toggle (different value sets); counting stats
+  // follow it via totalling, so ordering matches what's on screen.
+  const sortValue = (s: SeasonPlayerStats, av: ActiveV | null, key: SortKey): number | null => {
     switch (key) {
-      case "value": return v?.value ?? null;
-      case "minus1v": return v?.minus1v ?? null;
+      case "value": return av?.value ?? null;
+      case "minus1v": return av?.minus1v ?? null;
+      case "fg_v": return av?.fg ?? null;
+      case "ft_v": return av?.ft ?? null;
       case "consensus": return s.consensus_rank ?? null;
       case "g": return s.g ?? null; // a count — never totalled
       case "fg_pct": return s.fg_pct ?? null;
@@ -224,20 +244,34 @@ export function SeasonalRankingsTable(props: {
     }
   };
 
-  const sorted = useMemo<Row[]>(() => {
-    const rows = [...filtered];
+  // Rank the WHOLE set by the active sort first, stamp a 1-based rank on each
+  // row, THEN filter — so the left-hand rank is retained under any filter. (Item 2.)
+  const rankedAll = useMemo<Row[]>(() => {
     const { key, dir } = sort;
+    const rows = merged.map(({ s, v }) => ({ s, v, av: pickV(v, perGame) }));
     rows.sort((a, b) => {
-      const av = sortValue(a, key);
-      const bv = sortValue(b, key);
+      const av = sortValue(a.s, a.av, key);
+      const bv = sortValue(b.s, b.av, key);
       if (av == null && bv == null) return 0;
       if (av == null) return 1; // nulls always to the bottom
       if (bv == null) return -1;
       return dir === "asc" ? av - bv : bv - av;
     });
-    return rows;
+    return rows.map(({ s, v }, i) => ({ s, v, rank: i + 1 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, sort, perGame]);
+  }, [merged, sort, perGame]);
+
+  const visible = useMemo<Row[]>(() => {
+    const q = search.trim().toLowerCase();
+    return rankedAll.filter(({ s }) => {
+      if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
+      if (posFilter.size > 0 && !(s.position && posFilter.has(s.position))) return false;
+      if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
+      if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
+      if (q && !s.name.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [rankedAll, teamFilter, posFilter, minGames, minMins, search]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -449,10 +483,12 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
                   <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
                   <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
+                  <SortTh label="FG%V" sortKey="fg_v" sort={sort} onSort={onSort} />
+                  <SortTh label="FT%V" sortKey="ft_v" sort={sort} onSort={onSort} />
                 </tr>
               </thead>
               <tbody>
-                {sorted.map(({ s, v }, i) => {
+                {visible.map(({ s, v, rank }) => {
                   const g = s.g ?? 0;
                   const tot = (perGameVal: number | null | undefined) =>
                     perGameVal == null ? null : perGameVal * g;
@@ -466,13 +502,15 @@ export function SeasonalRankingsTable(props: {
                   const cB = perGame ? f1(s.blk) : fInt(tot(s.blk));
                   const cTo = perGame ? f1(s.tov) : fInt(tot(s.tov));
 
+                  // Mode-resolved value set drives the summary/value cells + heatmap.
+                  const av = pickV(v, perGame);
                   // When ranked by Minus1V, ring the one category that's dropped.
-                  const dropped = sort.key === "minus1v" ? droppedCat(v) : null;
+                  const dropped = sort.key === "minus1v" ? droppedCat(av) : null;
                   const drop = (cell: string) => (dropped === cell ? " sr-dropped" : "");
 
                   return (
                     <tr key={s.player_id} className="sr-tr">
-                      <td className="sr-td sr-num">{i + 1}</td>
+                      <td className="sr-td sr-num">{rank}</td>
                       <td className="sr-td sr-td-shot">
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
@@ -481,21 +519,23 @@ export function SeasonalRankingsTable(props: {
                       <td className="sr-td">{s.position ?? "—"}</td>
                       <td className="sr-td sr-num">{cGP}</td>
                       <td className="sr-td sr-num">{cMin}</td>
-                      <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(v?.value) }}>
-                        {f3v(v?.value)}
+                      <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(av?.value) }}>
+                        {f3v(av?.value)}
                       </td>
-                      <td className="sr-td sr-num" style={{ background: valueBg(v?.minus1v) }}>
-                        {f3v(v?.minus1v)}
+                      <td className="sr-td sr-num" style={{ background: valueBg(av?.minus1v) }}>
+                        {f3v(av?.minus1v)}
                       </td>
-                      <td className={`sr-td sr-num${drop("pts")}`} style={{ background: statBg(v?.v_pts) }}>{cP}</td>
-                      <td className={`sr-td sr-num${drop("fg3m")}`} style={{ background: statBg(v?.v_fg3) }}>{c3}</td>
-                      <td className={`sr-td sr-num${drop("reb")}`} style={{ background: statBg(v?.v_reb) }}>{cR}</td>
-                      <td className={`sr-td sr-num${drop("ast")}`} style={{ background: statBg(v?.v_ast) }}>{cA}</td>
-                      <td className={`sr-td sr-num${drop("stl")}`} style={{ background: statBg(v?.v_stl) }}>{cS}</td>
-                      <td className={`sr-td sr-num${drop("blk")}`} style={{ background: statBg(v?.v_blk) }}>{cB}</td>
-                      <td className={`sr-td sr-num${drop("fg_pct")}`} style={{ background: statBg(v?.v_fg) }}>{fPct(s.fg_pct)}</td>
-                      <td className={`sr-td sr-num${drop("ft_pct")}`} style={{ background: statBg(v?.v_ft) }}>{fPct(s.ft_pct)}</td>
-                      <td className={`sr-td sr-num${drop("tov")}`} style={{ background: statBg(v?.v_to) }}>{cTo}</td>
+                      <td className={`sr-td sr-num${drop("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
+                      <td className={`sr-td sr-num${drop("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
+                      <td className={`sr-td sr-num${drop("reb")}`} style={{ background: statBg(av?.reb) }}>{cR}</td>
+                      <td className={`sr-td sr-num${drop("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
+                      <td className={`sr-td sr-num${drop("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
+                      <td className={`sr-td sr-num${drop("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
+                      <td className={`sr-td sr-num${drop("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
+                      <td className={`sr-td sr-num${drop("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
+                      <td className={`sr-td sr-num${drop("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
+                      <td className="sr-td sr-num" style={{ background: statBg(av?.fg) }}>{f3v(av?.fg)}</td>
+                      <td className="sr-td sr-num" style={{ background: statBg(av?.ft) }}>{f3v(av?.ft)}</td>
                     </tr>
                   );
                 })}
@@ -505,7 +545,7 @@ export function SeasonalRankingsTable(props: {
         )}
         {!empty && (
           <p className="sr-count">
-            Showing {sorted.length} of {players.length} players · baseline = top {leagueSize} players
+            Showing {visible.length} of {players.length} players · baseline = top {leagueSize} players · {perGame ? "per-game" : "totals"} values
           </p>
         )}
       </div>
@@ -567,7 +607,7 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1080px; margin: 0 auto; max-width: 1400px;
+          min-width: 1180px; margin: 0 auto; max-width: 1480px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;

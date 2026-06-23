@@ -248,6 +248,34 @@ function buildStats(agg: Map<string, Aggregate>): PlayerStats[] {
   return out;
 }
 
+/**
+ * Season-TOTALS feed for the totals value mode: counting stats and attempts are
+ * the season sums; percentages are unchanged (their impact scales via the total
+ * attempts). Same engine, but standardized against the totals pool — so a player
+ * who plays more games gets more value, unlike per-game.
+ */
+function buildTotalsStats(agg: Map<string, Aggregate>): PlayerStats[] {
+  const out: PlayerStats[] = [];
+  for (const [playerId, a] of agg) {
+    if (a.gp === 0) continue;
+    out.push({
+      playerId,
+      pts: a.sumPts,
+      fg3m: a.sumFg3m,
+      reb: a.sumReb,
+      ast: a.sumAst,
+      stl: a.sumStl,
+      blk: a.sumBlk,
+      tov: a.sumTov,
+      fgPct: a.sumFga === 0 ? 0 : a.sumFgm / a.sumFga,
+      fga: a.sumFga, // total attempts
+      ftPct: a.sumFta === 0 ? 0 : a.sumFtm / a.sumFta,
+      fta: a.sumFta, // total attempts
+    });
+  }
+  return out;
+}
+
 function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
   for (const [size, rows] of values) {
     for (const r of rows) {
@@ -327,6 +355,7 @@ async function upsert(
   players: Map<string, { name: string; team: string | null; position: string | null }>,
   consensus: Map<string, ConsensusInfo>,
   values: Map<number, RankedPlayerValues[]>,
+  totals: Map<number, RankedPlayerValues[]>,
 ): Promise<void> {
   const supabase = getServiceClient();
   const now = new Date().toISOString();
@@ -364,9 +393,14 @@ async function upsert(
     };
   });
 
+  // index totals values by size+player for a parallel lookup
+  const totIndex = new Map<string, RankedPlayerValues>();
+  for (const [size, rows] of totals) for (const r of rows) totIndex.set(`${size}:${r.playerId}`, r);
+
   const valueRows: Record<string, unknown>[] = [];
   for (const [size, rows] of values) {
     for (const r of rows) {
+      const t = totIndex.get(`${size}:${r.playerId}`) ?? null;
       valueRows.push({
         player_id: r.playerId,
         season: ds.season,
@@ -384,6 +418,18 @@ async function upsert(
         value: round3(r.value),
         minus1v: round3(r.minus1v),
         value_rank: r.valueRank,
+        // totals-mode (null only if a player somehow lacks a totals row)
+        v_pts_tot: t ? round3(t.vPts) : null,
+        v_fg3_tot: t ? round3(t.vFg3) : null,
+        v_reb_tot: t ? round3(t.vReb) : null,
+        v_ast_tot: t ? round3(t.vAst) : null,
+        v_stl_tot: t ? round3(t.vStl) : null,
+        v_blk_tot: t ? round3(t.vBlk) : null,
+        v_fg_tot: t ? round3(t.vFg) : null,
+        v_ft_tot: t ? round3(t.vFt) : null,
+        v_to_tot: t ? round3(t.vTo) : null,
+        value_tot: t ? round3(t.value) : null,
+        minus1v_tot: t ? round3(t.minus1v) : null,
         updated_at: now,
       });
     }
@@ -440,8 +486,12 @@ async function buildDataset(
   const values = computeAllLeagueSizes(stats);
   assertFinite(values);
 
-  // The reference export only applies to the calibrated dataset; other seasons /
-  // playoffs have no reference, so the gate would be meaningless there.
+  // Totals mode: same engine over season totals (rewards volume/durability).
+  const totals = computeAllLeagueSizes(buildTotalsStats(agg));
+  assertFinite(totals);
+
+  // The reference export only applies to the calibrated dataset (per-game); other
+  // seasons / playoffs have no reference, so the gate would be meaningless there.
   if (ds.season === GATE.season && ds.type === GATE.type) {
     runValidationGate(stats, agg, players, values);
   }
@@ -453,7 +503,7 @@ async function buildDataset(
     console.log("  [DRY RUN] skipping upsert.");
     return;
   }
-  await upsert(ds, stats, agg, players, consensus, values);
+  await upsert(ds, stats, agg, players, consensus, values, totals);
 }
 
 async function main(): Promise<void> {

@@ -400,6 +400,18 @@ export interface Database {
           value: number | null;
           minus1v: number | null;
           value_rank: number | null;
+          // Totals-mode values (standardized against season totals, not per-game).
+          v_pts_tot: number | null;
+          v_fg3_tot: number | null;
+          v_reb_tot: number | null;
+          v_ast_tot: number | null;
+          v_stl_tot: number | null;
+          v_blk_tot: number | null;
+          v_fg_tot: number | null;
+          v_ft_tot: number | null;
+          v_to_tot: number | null;
+          value_tot: number | null;
+          minus1v_tot: number | null;
           updated_at: string;
         };
         Insert: never;
