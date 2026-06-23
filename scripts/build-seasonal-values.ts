@@ -60,6 +60,9 @@ const VALUE_TOLERANCE = 0.03;
 
 type LogRow = {
   player_id: string;
+  game_id: string | null;
+  game_date: string | null;
+  team: string | null;
   min: number | null;
   pts: number | null;
   reb: number | null;
@@ -73,6 +76,61 @@ type LogRow = {
   ftm: number | null;
   fta: number | null;
 };
+
+// The 30 NBA teams in this feed's ESPN-style abbreviations. We allowlist these
+// so All-Star / Rising Stars exhibition rows — whose "team" label changes every
+// year (2024: EAST/WEST, 2025: CHK/SHQ/KEN/CAN, 2026: STARS/STRIPES/WORLD) and
+// which the feed mislabels season_type='regular' — are dropped generically.
+const NBA_TEAMS = new Set([
+  "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GS",
+  "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NO", "NY",
+  "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SA", "TOR", "UTAH", "WSH",
+]);
+
+/**
+ * The NBA Cup (In-Season Tournament) CHAMPIONSHIP game does not count toward
+ * regular-season stats, but the feed tags it season_type='regular', giving the
+ * two finalists 83 games. Detect it generically (no hardcoded ids): it's the
+ * game the two >82-game teams share inside the tournament-final window
+ * (~Dec 6-20, neutral site). Returns game_ids to drop. Regular season only.
+ */
+function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
+  const drop = new Set<string>();
+  if (ds.type !== "regular") return drop;
+  const byTeam = new Map<string, Set<string>>();
+  const dateOf = new Map<string, string>();
+  for (const r of logs) {
+    if (!r.game_id || !r.team) continue;
+    if (r.game_date) dateOf.set(r.game_id, r.game_date);
+    (byTeam.get(r.team) ?? byTeam.set(r.team, new Set()).get(r.team)!).add(r.game_id);
+  }
+  const finalists = [...byTeam.entries()].filter(([, s]) => s.size > 82).map(([t]) => t);
+  for (let i = 0; i < finalists.length; i++) {
+    for (let j = i + 1; j < finalists.length; j++) {
+      const a = byTeam.get(finalists[i])!;
+      const b = byTeam.get(finalists[j])!;
+      for (const g of a) {
+        if (!b.has(g)) continue;
+        const md = (dateOf.get(g) ?? "").slice(5); // MM-DD
+        if (md >= "12-06" && md <= "12-20") drop.add(g);
+      }
+    }
+  }
+  return drop;
+}
+
+/** Drop exhibition (non-NBA-team) rows + the Cup final from a season's logs. */
+function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
+  const nba = logs.filter((r) => r.team != null && NBA_TEAMS.has(r.team));
+  const drop = cupFinalGameIds(nba, ds);
+  const kept = drop.size > 0 ? nba.filter((r) => !(r.game_id && drop.has(r.game_id))) : nba;
+  const exhibition = logs.length - nba.length;
+  const cup = nba.length - kept.length;
+  if (exhibition > 0 || cup > 0) {
+    console.log(`  excluded ${exhibition} exhibition + ${cup} cup-final rows (non-counting)`);
+  }
+  return kept;
+}
 
 type Aggregate = {
   gp: number;
@@ -94,7 +152,7 @@ const n = (v: number | null) => (v == null ? 0 : v);
 
 async function fetchAllLogs(season: number, seasonType: SeasonType): Promise<LogRow[]> {
   const supabase = getServiceClient();
-  const cols = "player_id,min,pts,reb,ast,stl,blk,tov,fg3m,fgm,fga,ftm,fta";
+  const cols = "player_id,game_id,game_date,team,min,pts,reb,ast,stl,blk,tov,fg3m,fgm,fga,ftm,fta";
   const all: LogRow[] = [];
   const PAGE = 1000;
   for (let from = 0; ; from += PAGE) {
@@ -359,14 +417,24 @@ async function buildDataset(
   consensus: Map<string, ConsensusInfo>,
 ): Promise<void> {
   console.log(`\n══ ${ds.label}  (season ${ds.season} / ${ds.type}) ══`);
-  const logs = await fetchAllLogs(ds.season, ds.type);
-  console.log(`  fetched ${logs.length} game-log rows`);
+  const rawLogs = await fetchAllLogs(ds.season, ds.type);
+  const logs = filterRealGames(rawLogs, ds);
+  console.log(`  ${logs.length} game-log rows (of ${rawLogs.length} fetched)`);
   const agg = aggregate(logs);
   const stats = buildStats(agg);
   console.log(`  aggregated ${stats.length} players (the feed)`);
   if (stats.length === 0) {
     console.log("  (no players — skipping)");
     return;
+  }
+
+  // Sanity: no regular-season player should exceed 82 games once non-counting
+  // games are removed. Surface any drift (e.g. a new exhibition label) loudly.
+  if (ds.type === "regular") {
+    const over = [...agg.entries()].filter(([, a]) => a.gp > 82);
+    if (over.length > 0) {
+      console.warn(`  ⚠ ${over.length} player(s) still >82 GP: ${over.map(([id, a]) => `${id}:${a.gp}`).join(", ")}`);
+    }
   }
 
   const values = computeAllLeagueSizes(stats);
