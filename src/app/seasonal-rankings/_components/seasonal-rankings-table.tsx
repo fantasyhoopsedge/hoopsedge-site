@@ -99,6 +99,7 @@ const valueBg = (v: number | null | undefined) => vBg(v, 1.0, 0.6);
 // ── number formatting (matches dynasty-rankings precision) ────────────────────
 const f1 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(1));
 const fInt = (x: number | null | undefined) => (x == null ? "—" : String(Math.round(x)));
+const fAge = (x: number | null | undefined) => (x == null ? "—" : String(Math.floor(x))); // whole years
 const f3v = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(3));
 const fPct = (x: number | null | undefined) =>
   x == null ? "—" : x.toFixed(3).replace(/^0(?=\.)/, ""); // .529
@@ -169,9 +170,15 @@ export function SeasonalRankingsTable(props: {
   const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank } = props;
   const router = useRouter();
 
-  // Age is keyed by the consensus rank each stat row carries (null = unranked).
-  const ageOf = (s: SeasonPlayerStats): number | null =>
-    s.consensus_rank != null ? (ageByRank[s.consensus_rank] ?? null) : null;
+  // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
+  // back one year per prior season so the displayed age is dynamic to the dataset.
+  const seasonNum = parseInt(activeSeason, 10) || 2026;
+  const ageOf = (s: SeasonPlayerStats): number | null => {
+    if (s.consensus_rank == null) return null;
+    const base = ageByRank[s.consensus_rank];
+    if (base == null) return null;
+    return base - (2026 - seasonNum);
+  };
 
   // Season switch reloads the page with a new dataset (server refetch); a tiny
   // pending flag dims the table while the new data streams in.
@@ -192,6 +199,16 @@ export function SeasonalRankingsTable(props: {
   const [minMins, setMinMins] = useState(0);
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "value", dir: "desc" });
   const [search, setSearch] = useState("");
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [tickedOnly, setTickedOnly] = useState(false);
+
+  const toggleCheck = (id: string) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // Freeze the header pane + controls: size the scroll box to the remaining
   // viewport so the thead sticks at its top. The control bar height varies as it
@@ -270,6 +287,7 @@ export function SeasonalRankingsTable(props: {
   const visible = useMemo<Row[]>(() => {
     const q = search.trim().toLowerCase();
     return rankedAll.filter(({ s }) => {
+      if (tickedOnly && !checked.has(s.player_id)) return false;
       if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
       if (posFilter.size > 0 && !(s.position && posFilter.has(s.position))) return false;
       if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
@@ -277,7 +295,7 @@ export function SeasonalRankingsTable(props: {
       if (q && !s.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [rankedAll, teamFilter, posFilter, minGames, minMins, search]);
+  }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, minGames, minMins, search]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -454,6 +472,30 @@ export function SeasonalRankingsTable(props: {
               autoComplete="off"
             />
           </div>
+
+          {/* Ticked-player filter */}
+          <div className="sr-group">
+            <span className="sr-label">My List</span>
+            <div className="sr-pill-row">
+              <button
+                type="button"
+                className={`sr-pill ${tickedOnly ? "sr-pill-on" : ""}`}
+                onClick={() => setTickedOnly((v) => !v)}
+                disabled={checked.size === 0}
+              >
+                Ticked Only ({checked.size})
+              </button>
+              {checked.size > 0 && (
+                <button
+                  type="button"
+                  className="sr-pill"
+                  onClick={() => { setChecked(new Set()); setTickedOnly(false); }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -521,10 +563,20 @@ export function SeasonalRankingsTable(props: {
                       <td className="sr-td sr-td-shot">
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
-                      <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
+                      <td className="sr-td sr-td-player sr-sticky-col">
+                        <label className="sr-pick">
+                          <input
+                            type="checkbox"
+                            checked={checked.has(s.player_id)}
+                            onChange={() => toggleCheck(s.player_id)}
+                            aria-label={`Tick ${s.name}`}
+                          />
+                          <span>{s.name}</span>
+                        </label>
+                      </td>
                       <td className="sr-td sr-td-team">{s.team ?? "—"}</td>
                       <td className="sr-td">{s.position ?? "—"}</td>
-                      <td className="sr-td sr-num">{f1(ageOf(s))}</td>
+                      <td className="sr-td sr-num">{fAge(ageOf(s))}</td>
                       <td className="sr-td sr-num">{cGP}</td>
                       <td className="sr-td sr-num">{cMin}</td>
                       <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(av?.value) }}>
@@ -615,41 +667,45 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1240px; margin: 0 auto; max-width: 1500px;
+          min-width: 1160px; margin: 0 auto; max-width: 1460px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
-          background: var(--bg-surface);
-          font-family: 'VT323', monospace; font-size: 16px; font-weight: 400;
-          letter-spacing: 0.5px; color: var(--text-secondary); text-transform: uppercase;
-          padding: 9px 5px; text-align: center; white-space: nowrap;
+          background: var(--bg-body);
+          font-family: 'VT323', monospace; font-size: 12px; font-weight: 400;
+          letter-spacing: 0.3px; color: var(--text-secondary); text-transform: uppercase;
+          padding: 7px 3px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
-          box-shadow: inset 0 -1px 0 var(--border-main);
         }
-        /* Every value/number column shares one fixed width (header + cells). */
-        .sr-num-h, .sr-num { width: 54px; min-width: 54px; max-width: 54px; }
+        /* Every value/number column shares one fixed width (header + cells), sized
+           so the widest header (MINUS1V) shows in full. */
+        .sr-num-h, .sr-num { width: 52px; min-width: 52px; max-width: 52px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
         .sr-th-active { color: var(--edge-orange); }
-        .sr-sort-arrow { margin-left: 3px; font-size: 10px; }
-        .sr-th-shot { width: 48px; }
-        .sr-th-player { min-width: 160px; }
+        .sr-sort-arrow { margin-left: 2px; font-size: 10px; }
+        .sr-th-shot { width: 44px; }
+        .sr-th-player { width: 132px; min-width: 132px; max-width: 132px; }
         /* the frozen corner cell (PLAYER header) needs to win on both axes */
-        .sr-th.sr-sticky-col { left: 0; z-index: 20; }
+        .sr-th.sr-sticky-col { left: 0; z-index: 20; background: var(--bg-body); }
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
-          padding: 6px 6px; font-size: 18px; color: var(--text-primary);
+          padding: 5px 5px; font-size: 15px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
-          font-family: 'VT323', monospace; text-align: center; line-height: 1.1;
+          font-family: 'VT323', monospace; text-align: center; line-height: 1.05;
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
-          text-align: center; font-size: 15px; padding: 6px 4px;
+          text-align: center; font-size: 12px; padding: 5px 3px;
           font-variant-numeric: tabular-nums;
         }
         .sr-num-strong { font-weight: 700; color: var(--text-primary); }
+        /* tick box + player name sit together; name wraps inside the narrow col */
+        .sr-pick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+        .sr-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; flex-shrink: 0; }
+        .sr-pick span { white-space: normal; text-align: left; }
         /* Minus1V "punt" view: ring the dropped category in FHE orange. */
         .sr-dropped {
           box-shadow: inset 0 0 0 2px var(--edge-orange);
@@ -658,17 +714,18 @@ export function SeasonalRankingsTable(props: {
         .sr-td-player { font-weight: 700; }
         .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
 
-        /* sticky player column */
-        .sr-sticky-col { position: sticky; left: 0; z-index: 5; background: var(--bg-surface); }
+        /* sticky player column — same base background as the data cells (which
+           show the page body), so no column has a different shade in either theme */
+        .sr-sticky-col { position: sticky; left: 0; z-index: 5; background: var(--bg-body); }
         .sr-tr:hover .sr-sticky-col { background: var(--bg-card-hover, #1c1c1c); }
 
         .sr-headshot-img {
-          width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+          width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
           object-position: center top; background: var(--bg-card, #1a1a1a);
           display: block;
         }
         .sr-headshot-fallback {
-          width: 40px; height: 40px; border-radius: 50%;
+          width: 34px; height: 34px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
           background: var(--bg-card, #1a1a1a); color: var(--text-muted);
         }
