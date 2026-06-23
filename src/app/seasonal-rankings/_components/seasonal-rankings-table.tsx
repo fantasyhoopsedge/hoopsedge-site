@@ -513,11 +513,12 @@ export function SeasonalRankingsTable(props: {
             <table className="sr-table">
               <thead>
                 <tr>
+                  <th className="sr-th sr-th-pick" aria-label="Tick" />
                   <th className="sr-th sr-num-h">RANK</th>
                   <th className="sr-th sr-th-shot" aria-label="Headshot" />
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
-                  <th className="sr-th">TEAM</th>
-                  <th className="sr-th">POS</th>
+                  <th className="sr-th sr-w">TEAM</th>
+                  <th className="sr-th sr-w">POS</th>
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
@@ -556,46 +557,46 @@ export function SeasonalRankingsTable(props: {
                   // When ranked by Minus1V, ring the one category that's dropped.
                   const dropped = sort.key === "minus1v" ? droppedCat(av) : null;
                   const drop = (cell: string) => (dropped === cell ? " sr-dropped" : "");
+                  // Bold the actively-sorted column's cells (and only that column).
+                  const bold = (key: SortKey) => (sort.key === key ? " sr-sorted" : "");
 
                   return (
                     <tr key={s.player_id} className="sr-tr">
+                      <td className="sr-td sr-td-pick">
+                        <input
+                          type="checkbox"
+                          checked={checked.has(s.player_id)}
+                          onChange={() => toggleCheck(s.player_id)}
+                          aria-label={`Tick ${s.name}`}
+                        />
+                      </td>
                       <td className="sr-td sr-num">{rank}</td>
                       <td className="sr-td sr-td-shot">
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
-                      <td className="sr-td sr-td-player sr-sticky-col">
-                        <label className="sr-pick">
-                          <input
-                            type="checkbox"
-                            checked={checked.has(s.player_id)}
-                            onChange={() => toggleCheck(s.player_id)}
-                            aria-label={`Tick ${s.name}`}
-                          />
-                          <span>{s.name}</span>
-                        </label>
-                      </td>
-                      <td className="sr-td sr-td-team">{s.team ?? "—"}</td>
-                      <td className="sr-td">{s.position ?? "—"}</td>
-                      <td className="sr-td sr-num">{fAge(ageOf(s))}</td>
-                      <td className="sr-td sr-num">{cGP}</td>
-                      <td className="sr-td sr-num">{cMin}</td>
-                      <td className="sr-td sr-num sr-num-strong" style={{ background: valueBg(av?.value) }}>
+                      <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
+                      <td className={`sr-td sr-td-team sr-w`}>{s.team ?? "—"}</td>
+                      <td className="sr-td sr-w">{s.position ?? "—"}</td>
+                      <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
+                      <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
+                      <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
+                      <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(av?.value) }}>
                         {f3v(av?.value)}
                       </td>
-                      <td className="sr-td sr-num" style={{ background: valueBg(av?.minus1v) }}>
+                      <td className={`sr-td sr-num${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
                         {f3v(av?.minus1v)}
                       </td>
-                      <td className={`sr-td sr-num${drop("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
-                      <td className={`sr-td sr-num${drop("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
-                      <td className={`sr-td sr-num${drop("reb")}`} style={{ background: statBg(av?.reb) }}>{cR}</td>
-                      <td className={`sr-td sr-num${drop("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
-                      <td className={`sr-td sr-num${drop("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
-                      <td className={`sr-td sr-num${drop("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
-                      <td className={`sr-td sr-num${drop("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
-                      <td className={`sr-td sr-num${drop("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
-                      <td className={`sr-td sr-num${drop("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(av?.fg) }}>{f3v(av?.fg)}</td>
-                      <td className="sr-td sr-num" style={{ background: statBg(av?.ft) }}>{f3v(av?.ft)}</td>
+                      <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
+                      <td className={`sr-td sr-num${drop("fg3m")}${bold("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
+                      <td className={`sr-td sr-num${drop("reb")}${bold("reb")}`} style={{ background: statBg(av?.reb) }}>{cR}</td>
+                      <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
+                      <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
+                      <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
+                      <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
+                      <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
+                      <td className={`sr-td sr-num${drop("tov")}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
+                      <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{f3v(av?.fg)}</td>
+                      <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{f3v(av?.ft)}</td>
                     </tr>
                   );
                 })}
@@ -667,7 +668,7 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1160px; margin: 0 auto; max-width: 1460px;
+          min-width: 1300px; margin: 0 auto; max-width: 1560px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
@@ -677,16 +678,20 @@ export function SeasonalRankingsTable(props: {
           padding: 7px 3px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
         }
-        /* Every value/number column shares one fixed width (header + cells), sized
-           so the widest header (MINUS1V) shows in full. */
-        .sr-num-h, .sr-num { width: 52px; min-width: 52px; max-width: 52px; }
+        /* Number/value columns AND team/pos share one fixed width (header + cells),
+           sized so the widest header (MINUS1V) shows in full. */
+        .sr-num-h, .sr-num, .sr-w { width: 54px; min-width: 54px; max-width: 54px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
-        .sr-th-active { color: var(--edge-orange); }
+        .sr-th-active { color: var(--edge-orange); font-weight: 700; }
         .sr-sort-arrow { margin-left: 2px; font-size: 10px; }
-        .sr-th-shot { width: 44px; }
-        .sr-th-player { width: 132px; min-width: 132px; max-width: 132px; }
+        /* leading tick-box column — fixed + aligned far left, before RANK */
+        .sr-th-pick, .sr-td-pick { width: 30px; min-width: 30px; max-width: 30px; padding: 0 0 0 10px; }
+        .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; display: block; margin: 0 auto; }
+        .sr-th-shot { width: 40px; }
+        /* PLAYER wide enough to keep every name on one line */
+        .sr-th-player { width: 210px; min-width: 210px; max-width: 210px; }
         /* the frozen corner cell (PLAYER header) needs to win on both axes */
         .sr-th.sr-sticky-col { left: 0; z-index: 20; background: var(--bg-body); }
 
@@ -701,17 +706,14 @@ export function SeasonalRankingsTable(props: {
           text-align: center; font-size: 12px; padding: 5px 3px;
           font-variant-numeric: tabular-nums;
         }
-        .sr-num-strong { font-weight: 700; color: var(--text-primary); }
-        /* tick box + player name sit together; name wraps inside the narrow col */
-        .sr-pick { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-        .sr-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; flex-shrink: 0; }
-        .sr-pick span { white-space: normal; text-align: left; }
+        /* Bold only the actively-sorted column's cells. */
+        .sr-sorted { font-weight: 700; color: var(--text-primary); }
         /* Minus1V "punt" view: ring the dropped category in FHE orange. */
         .sr-dropped {
           box-shadow: inset 0 0 0 2px var(--edge-orange);
           border-radius: 4px; color: var(--edge-orange); font-weight: 700;
         }
-        .sr-td-player { font-weight: 700; }
+        .sr-td-player { font-weight: 400; }
         .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
 
         /* sticky player column — same base background as the data cells (which
