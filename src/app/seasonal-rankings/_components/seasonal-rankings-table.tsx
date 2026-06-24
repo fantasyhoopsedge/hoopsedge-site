@@ -69,7 +69,9 @@ function droppedCat(av: ActiveV | null): string | null {
   return best;
 }
 
-const POSITIONS = ["G", "F", "C", "G/F", "F/C"] as const;
+// Filter on the three base positions; each matches any slot containing it, so
+// G → {G, G/F}, F → {F, G/F, F/C}, C → {C, F/C}.
+const POSITIONS = ["G", "F", "C"] as const;
 
 // consensus reads best ascending (1 at top); everything else descending (best first).
 const defaultDir = (key: SortKey): SortDir => (key === "consensus" ? "asc" : "desc");
@@ -180,14 +182,19 @@ export function SeasonalRankingsTable(props: {
     return base - (2026 - seasonNum);
   };
 
-  // Season switch reloads the page with a new dataset (server refetch); a tiny
-  // pending flag dims the table while the new data streams in.
+  // Season switch is a soft navigation (server refetch); a pending flag dims the
+  // table while the new data streams in. The client component is NOT remounted,
+  // so we must clear the flag once the new dataset arrives — keyed on the
+  // activeSeason prop changing — else the table stays dimmed + non-interactive.
   const [seasonPending, setSeasonPending] = useState(false);
   const onSeasonChange = (key: string) => {
     if (key === activeSeason) return;
     setSeasonPending(true);
     router.push(`/seasonal-rankings?d=${encodeURIComponent(key)}`);
   };
+  useEffect(() => {
+    setSeasonPending(false);
+  }, [activeSeason]);
 
   const [leagueSize, setLeagueSize] = useState<number>(
     leagueSizes.includes(canonicalSize) ? canonicalSize : leagueSizes[leagueSizes.length - 1],
@@ -289,7 +296,7 @@ export function SeasonalRankingsTable(props: {
     return rankedAll.filter(({ s }) => {
       if (tickedOnly && !checked.has(s.player_id)) return false;
       if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
-      if (posFilter.size > 0 && !(s.position && posFilter.has(s.position))) return false;
+      if (posFilter.size > 0 && !(s.position && [...posFilter].some((p) => s.position!.includes(p)))) return false;
       if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
       if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
       if (q && !s.name.toLowerCase().includes(q)) return false;
@@ -392,6 +399,30 @@ export function SeasonalRankingsTable(props: {
             </div>
           </div>
 
+          {/* Ticked-player filter — grouped with the other pill buttons */}
+          <div className="sr-group">
+            <span className="sr-label">My List</span>
+            <div className="sr-pill-row">
+              <button
+                type="button"
+                className={`sr-pill ${tickedOnly ? "sr-pill-on" : ""}`}
+                onClick={() => setTickedOnly((v) => !v)}
+                disabled={checked.size === 0}
+              >
+                Ticked Only ({checked.size})
+              </button>
+              {checked.size > 0 && (
+                <button
+                  type="button"
+                  className="sr-pill"
+                  onClick={() => { setChecked(new Set()); setTickedOnly(false); }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Rank by (mirrors header-click sorting) */}
           <div className="sr-group">
             <label className="sr-label" htmlFor="sr-rankby">Rank By</label>
@@ -471,30 +502,6 @@ export function SeasonalRankingsTable(props: {
               onChange={(e) => setSearch(e.target.value)}
               autoComplete="off"
             />
-          </div>
-
-          {/* Ticked-player filter */}
-          <div className="sr-group">
-            <span className="sr-label">My List</span>
-            <div className="sr-pill-row">
-              <button
-                type="button"
-                className={`sr-pill ${tickedOnly ? "sr-pill-on" : ""}`}
-                onClick={() => setTickedOnly((v) => !v)}
-                disabled={checked.size === 0}
-              >
-                Ticked Only ({checked.size})
-              </button>
-              {checked.size > 0 && (
-                <button
-                  type="button"
-                  className="sr-pill"
-                  onClick={() => { setChecked(new Set()); setTickedOnly(false); }}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -631,13 +638,18 @@ export function SeasonalRankingsTable(props: {
           font-family: 'VT323', monospace; font-size: 10px; font-weight: 600;
           letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
         }
-        .sr-pill-row { display: flex; gap: 4px; flex-wrap: wrap; }
+        .sr-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        /* All filter buttons: same font/size, uppercase, and the same 34px height
+           as the dropdowns for a consistent control row. */
         .sr-pill {
-          font-family: 'VT323', monospace; font-size: 12px; font-weight: 500;
-          letter-spacing: 0.5px; padding: 6px 10px; border-radius: 7px; cursor: pointer;
+          font-family: 'VT323', monospace; font-size: 13px; font-weight: 500;
+          letter-spacing: 0.5px; text-transform: uppercase;
+          height: 34px; padding: 0 12px; border-radius: 7px; cursor: pointer;
+          display: inline-flex; align-items: center;
           background: var(--bg-card, #1a1a1a); color: var(--text-secondary);
           border: 1px solid var(--border-main); transition: all 0.15s; white-space: nowrap;
         }
+        .sr-pill:disabled { opacity: 0.4; cursor: not-allowed; }
         .sr-pill:hover { color: var(--text-primary); border-color: var(--blueprint); }
         .sr-pill-on {
           background: var(--blueprint); color: #fff; border-color: var(--blueprint);
@@ -717,7 +729,7 @@ export function SeasonalRankingsTable(props: {
           box-shadow: inset 0 0 0 2px var(--edge-orange);
           border-radius: 4px; color: var(--edge-orange); font-weight: 700;
         }
-        .sr-td-player { font-weight: 400; }
+        .sr-td-player { font-weight: 400; text-transform: uppercase; }
         .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
 
         /* sticky player column — same base background as the data cells (which
