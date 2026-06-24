@@ -61,6 +61,12 @@ export default function Home() {
             Get The Edge →
           </button>
           <div className="hero-links">
+            <a href="/seasonal-rankings" style={{
+              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
+              color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
+              padding: "10px 20px", borderRadius: "8px",
+              textDecoration: "none", whiteSpace: "nowrap",
+            }}>View Player Category Values →</a>
             <a href="/dynasty-rankings" style={{
               fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
               color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
@@ -133,6 +139,11 @@ export default function Home() {
       {/* FEATURES */}
       <section style={{ padding: "100px 60px" }}>
         <div className="features-grid">
+          <a className="feature-card feature-card-link" href="/seasonal-rankings">
+            <div className="feature-icon fi-gold">📈</div>
+            <h3>Player Category Values</h3>
+            <p>9-cat seasonal player values with per-league-size baselines. Rank every player by total category production and category strengths.</p>
+          </a>
           <a className="feature-card feature-card-link" href="/dynasty-rankings">
             <div className="feature-icon fi-blue">📊</div>
             <h3>Dynasty Rankings</h3>

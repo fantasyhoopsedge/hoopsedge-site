@@ -63,7 +63,10 @@
       "Bash(git -C \"C:\\\\fantasyhoopsedge\" check-ignore -v \".claude/worktrees\" \".claude/settings.local.json\" \"2026 Rookies/\")",
       "Bash(Get-Content \"C:\\\\fantasyhoopsedge\\\\.gitignore\" -ErrorAction SilentlyContinue)",
       "PowerShell(git -C \"C:\\\\fantasyhoopsedge\" log --oneline main..HEAD)",
-      "PowerShell(git -C \"C:\\\\fantasyhoopsedge\" log --oneline HEAD..main)"
+      "PowerShell(git -C \"C:\\\\fantasyhoopsedge\" log --oneline HEAD..main)",
+      "Bash(xargs grep -l -i \"nba\\\\|season\")",
+      "Bash(npx tsx *)",
+      "Bash(command -v psql)"
     ]
   }
 }

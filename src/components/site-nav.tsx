@@ -236,6 +236,7 @@ export function SiteNav(props: {
             Rankings <span className="nav-caret" aria-hidden>▾</span>
           </button>
           <ul className="nav-dropdown-menu">
+            <li><a href="/seasonal-rankings">Player Category Values</a></li>
             <li><a href="/dynasty-rankings">Dynasty Consensus</a></li>
             <li><a href="/draft-board">2026 Rookie Draft</a></li>
           </ul>
@@ -310,6 +311,10 @@ export function SiteNav(props: {
           color: var(--text-secondary); text-decoration: none; transition: background 0.2s, color 0.2s;
         }
         .nav-dropdown-menu a:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        /* Light mode: render dropdown links in the navy used by the nav bar.
+           High specificity so it wins over the faded/mobile .nav-links a rules. */
+        [data-theme="light"] .nav-links li.nav-dropdown .nav-dropdown-menu a,
+        [data-theme="light"] .nav-links li.nav-dropdown .nav-dropdown-menu a:hover { color: #0a1230; }
         .nav-arena a { color: #ffffff; }
         .nav-arena a:hover { color: var(--edge-orange); }
 

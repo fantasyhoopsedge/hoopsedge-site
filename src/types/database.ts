@@ -353,6 +353,78 @@ export interface Database {
           },
         ];
       };
+      season_player_stats: {
+        Row: {
+          player_id: string;
+          season: number;
+          season_type: string;
+          name: string;
+          team: string | null;
+          position: string | null;
+          headshot_id: string | null;
+          g: number | null;
+          mpg: number | null;
+          pts: number | null;
+          fg3m: number | null;
+          reb: number | null;
+          ast: number | null;
+          stl: number | null;
+          blk: number | null;
+          tov: number | null;
+          fga: number | null;
+          fta: number | null;
+          fg_pct: number | null;
+          ft_pct: number | null;
+          consensus_rank: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      season_player_values: {
+        Row: {
+          player_id: string;
+          season: number;
+          season_type: string;
+          league_size: number;
+          v_pts: number | null;
+          v_fg3: number | null;
+          v_reb: number | null;
+          v_ast: number | null;
+          v_stl: number | null;
+          v_blk: number | null;
+          v_fg: number | null;
+          v_ft: number | null;
+          v_to: number | null;
+          value: number | null;
+          minus1v: number | null;
+          value_rank: number | null;
+          // Totals-mode values (standardized against season totals, not per-game).
+          v_pts_tot: number | null;
+          v_fg3_tot: number | null;
+          v_reb_tot: number | null;
+          v_ast_tot: number | null;
+          v_stl_tot: number | null;
+          v_blk_tot: number | null;
+          v_fg_tot: number | null;
+          v_ft_tot: number | null;
+          v_to_tot: number | null;
+          value_tot: number | null;
+          minus1v_tot: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "season_player_values_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "season_player_stats";
+            referencedColumns: ["player_id"];
+          },
+        ];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -383,6 +455,8 @@ export interface Database {
           blk: number | null;
           tov: number | null;
           fg3m: number | null;
+          fga: number | null;
+          fta: number | null;
           fg_pct: number | null;
           ft_pct: number | null;
         };
@@ -442,3 +516,7 @@ export type NbaContract = Database["public"]["Tables"]["nba_contracts"]["Row"];
 export type NbaSeasonAverage = Database["public"]["Views"]["nba_season_averages"]["Row"];
 export type NbaFreeAgent = Database["public"]["Views"]["nba_free_agents"]["Row"];
 export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidates"]["Row"];
+
+// ── Seasonal rankings convenience aliases ───────────────────────────────────
+export type SeasonPlayerStats = Database["public"]["Tables"]["season_player_stats"]["Row"];
+export type SeasonPlayerValues = Database["public"]["Tables"]["season_player_values"]["Row"];

@@ -8,6 +8,7 @@ export function Footer({ className }: { className?: string }) {
           Fantasy Hoops <span className="accent">Edge</span>
         </div>
         <div className="footer-links">
+          <Link href="/seasonal-rankings">Player Category Values</Link>
           <Link href="/dynasty-rankings">Dynasty Rankings</Link>
           <Link href="/draft-board">Rookies</Link>
           <Link href="/prediction-arena">Predictions Arena</Link>
