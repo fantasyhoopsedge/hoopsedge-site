@@ -670,20 +670,21 @@ export function SeasonalRankingsTable(props: {
         .sr-table-scroll { overflow: auto; width: 100%; }
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
-          border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1640px; margin: 0 auto; max-width: 1840px;
+          /* size to the fixed columns and centre, so wide viewports get white
+             space on both sides instead of the table spanning the whole page */
+          border-collapse: separate; border-spacing: 0; margin: 0 auto;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-body);
-          font-family: 'VT323', monospace; font-size: 15px; font-weight: 400;
+          font-family: 'VT323', monospace; font-size: 13px; font-weight: 400;
           letter-spacing: 0; color: var(--text-secondary); text-transform: uppercase;
           padding: 7px 4px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
         }
         /* Number/value columns AND team/pos share one fixed width (header + cells),
            sized so the widest header (MINUS1V) shows in full. */
-        .sr-num-h, .sr-num, .sr-w { width: 70px; min-width: 70px; max-width: 70px; }
+        .sr-num-h, .sr-num, .sr-w { width: 56px; min-width: 56px; max-width: 56px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
@@ -694,19 +695,19 @@ export function SeasonalRankingsTable(props: {
         .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; display: block; margin: 0 auto; }
         .sr-th-shot { width: 40px; }
         /* PLAYER wide enough to keep every name on one line */
-        .sr-th-player { width: 210px; min-width: 210px; max-width: 210px; }
+        .sr-th-player { width: 175px; min-width: 175px; max-width: 175px; }
         /* the frozen corner cell (PLAYER header) needs to win on both axes */
         .sr-th.sr-sticky-col { left: 0; z-index: 20; background: var(--bg-body); }
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
-          padding: 5px 5px; font-size: 15px; color: var(--text-primary);
+          padding: 5px 5px; font-size: 13px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
           font-family: 'VT323', monospace; text-align: center; line-height: 1.05;
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
-          text-align: center; font-size: 15px; padding: 5px 4px;
+          text-align: center; font-size: 13px; padding: 5px 4px;
           font-variant-numeric: tabular-nums;
         }
         /* Bold only the actively-sorted column's cells. */
