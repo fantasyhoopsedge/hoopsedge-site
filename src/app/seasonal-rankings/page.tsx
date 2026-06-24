@@ -1,5 +1,6 @@
-import { createClient } from "@/utils/supabase/server";
-import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
+import { unstable_cache } from "next/cache";
+import { createClient as createPublicClient } from "@supabase/supabase-js";
+import type { Database, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { LEAGUE_SIZES, CANONICAL_SIZE } from "@/lib/value/compute-values";
 import { SEASON_DATASETS, datasetFromKey, datasetKey } from "@/lib/value/seasons";
 import rankings from "@/lib/dynasty-rankings.json";
@@ -12,14 +13,30 @@ for (const p of rankings as Array<{ consensusRank: number; age?: number }>) {
   if (typeof p.age === "number") AGE_BY_RANK[p.consensusRank] = p.age;
 }
 
-// Read live from Supabase on each request; the value sets are precomputed by
-// scripts/build-seasonal-values.ts so there is no per-request math.
+// The value sets are precomputed by scripts/build-seasonal-values.ts and are
+// PUBLIC (identical for every visitor), so we read them with a cookieless anon
+// client and cache each dataset for 15 minutes (see getDataset below). After a
+// `seasonal:build`, refreshed data appears within the window — or immediately
+// via revalidateTag("seasonal-rankings").
 export const dynamic = "force-dynamic";
 
-type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+// Cookieless client → safe to call inside unstable_cache (which forbids
+// cookies()/headers()). No auth session needed; this data is world-readable.
+function createReadClient() {
+  return createPublicClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
 
-// PostgREST caps a single response at ~1000 rows, so we page through one
-// dataset (season + season_type) at a time.
+type SupabaseClient = ReturnType<typeof createReadClient>;
+
+// PostgREST caps a single response at ~1000 rows. The first page is fetched with
+// an exact count, so a single-page table (e.g. stats, ~600 rows) costs ONE round
+// trip; for a multi-page table (values = ~600 players × 10 league sizes ≈ 6 pages)
+// the remaining pages are fetched CONCURRENTLY rather than sequentially. This is
+// the season-switch hot path — sequential paging was ~6 serial round trips.
 async function fetchDataset<T>(
   supabase: SupabaseClient,
   table: "season_player_stats" | "season_player_values",
@@ -27,20 +44,65 @@ async function fetchDataset<T>(
   seasonType: string,
 ): Promise<T[]> {
   const PAGE = 1000;
-  const out: T[] = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase
-      .from(table)
+  const first = await supabase
+    .from(table)
+    .select("*", { count: "exact" })
+    .eq("season", season)
+    .eq("season_type", seasonType)
+    .range(0, PAGE - 1);
+  if (first.error || !first.data) return [];
+
+  const out: T[] = [...(first.data as T[])];
+  const total = first.count ?? out.length;
+  if (total <= PAGE) return out;
+
+  // Fetch every remaining page in parallel.
+  const pageCount = Math.ceil(total / PAGE);
+  const rest = await Promise.all(
+    Array.from({ length: pageCount - 1 }, (_, i) => {
+      const from = (i + 1) * PAGE;
+      return supabase
+        .from(table)
+        .select("*")
+        .eq("season", season)
+        .eq("season_type", seasonType)
+        .range(from, from + PAGE - 1);
+    }),
+  );
+  for (const r of rest) if (r.data) out.push(...(r.data as T[]));
+  return out;
+}
+
+// Caching is split into per-table / per-league-size entries: the Next.js Data
+// Cache rejects any single entry over 2MB, and the full values payload (~600
+// players × 10 sizes) is ~3.5MB. Each slice below is well under the limit, and
+// the slices are fetched concurrently, so a warm season switch skips Supabase
+// entirely. All share the "seasonal-rankings" tag for one-shot revalidation.
+const CACHE_OPTS = { revalidate: 900, tags: ["seasonal-rankings"] };
+
+const getStats = unstable_cache(
+  async (season: number, seasonType: string) =>
+    fetchDataset<SeasonPlayerStats>(createReadClient(), "season_player_stats", season, seasonType),
+  ["seasonal-stats"],
+  CACHE_OPTS,
+);
+
+// One cache entry per league size — each is a single page (~600 rows < the 1000
+// PostgREST cap), so no internal paging is needed.
+const getValuesForSize = unstable_cache(
+  async (season: number, seasonType: string, size: number) => {
+    const { data } = await createReadClient()
+      .from("season_player_values")
       .select("*")
       .eq("season", season)
       .eq("season_type", seasonType)
-      .range(from, from + PAGE - 1);
-    if (error || !data) break;
-    out.push(...(data as T[]));
-    if (data.length < PAGE) break;
-  }
-  return out;
-}
+      .eq("league_size", size)
+      .range(0, 1499);
+    return (data ?? []) as SeasonPlayerValues[];
+  },
+  ["seasonal-values-size"],
+  CACHE_OPTS,
+);
 
 export default async function SeasonalRankingsPage({
   searchParams,
@@ -51,12 +113,11 @@ export default async function SeasonalRankingsPage({
   const dKey = typeof sp.d === "string" ? sp.d : undefined;
   const dataset = datasetFromKey(dKey);
 
-  const supabase = await createClient();
-
-  const [stats, values] = await Promise.all([
-    fetchDataset<SeasonPlayerStats>(supabase, "season_player_stats", dataset.season, dataset.type),
-    fetchDataset<SeasonPlayerValues>(supabase, "season_player_values", dataset.season, dataset.type),
+  const [stats, ...valueChunks] = await Promise.all([
+    getStats(dataset.season, dataset.type),
+    ...LEAGUE_SIZES.map((size) => getValuesForSize(dataset.season, dataset.type, size)),
   ]);
+  const values = valueChunks.flat();
 
   // Group value rows by league size: { [size]: { [player_id]: row } }.
   const valuesBySize: Record<number, Record<string, SeasonPlayerValues>> = {};
