@@ -2,7 +2,7 @@
 -- FHE NBA DATA PIPELINE — add FG/FT attempt volumes to season averages
 --
 -- The 9-cat value engine (/seasonal-rankings) standardizes FG% and FT% as
--- VOLUME-WEIGHTED impact, BBM/Hashtag style: a player's percentage deviation
+-- VOLUME-WEIGHTED impact: a player's percentage deviation
 -- from the baseline is scaled by how many attempts they take. That requires
 -- per-game attempts, which the original nba_season_averages view did not carry.
 --

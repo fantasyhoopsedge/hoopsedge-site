@@ -1,5 +1,5 @@
 /**
- * BBM-style 9-category value engine for /seasonal-rankings.
+ * Industry-standard 9-category value engine for /seasonal-rankings.
  *
  * THE ONE RULE: the 9 category V-scores, Value, and Minus1V are z-scores
  * standardized against a BASELINE POOL. The pool = the top-N players by Value,
@@ -10,7 +10,7 @@
  * Per-game/totals display and min-games/min-minutes filters live in the UI and
  * NEVER enter this math.
  *
- * Verified conventions (do not change without re-validating against the BBM
+ * Verified conventions (do not change without re-validating against the
  * reference export — see scripts/build-seasonal-values.ts validation gate):
  *   • σ is the SAMPLE standard deviation (ddof = 1, divide by N−1).
  *   • League FG%/FT% averages are VOLUME-WEIGHTED (Σmakes / Σattempts over the
@@ -20,8 +20,8 @@
 /**
  * Fixed menu of baseline pool sizes (total rostered players across the league).
  * The pool size IS the baseline, so values are computed once per size. 400 is
- * retained because the build's validation gate is calibrated against the BBM
- * reference at size 400.
+ * retained because the build's validation gate is calibrated against the
+ * reference export at size 400.
  */
 export const LEAGUE_SIZES = [250, 280, 300, 320, 340, 360, 380, 400, 420, 450] as const;
 export type LeagueSize = (typeof LEAGUE_SIZES)[number];

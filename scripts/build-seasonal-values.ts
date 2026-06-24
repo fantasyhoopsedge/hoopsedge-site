@@ -12,9 +12,9 @@
  *   1. Aggregate per-game averages from nba_player_game_logs (the documented
  *      source of truth) for that season + season_type. We read the logs directly
  *      rather than the matview so fga/fta are always available.
- *   2. Run the BBM-style 9-cat value engine for every league size.
+ *   2. Run the industry-standard 9-cat value engine for every league size.
  *   3. Validation gate (league_size 400, 2025-26 regular ONLY) — must reproduce
- *      the reference BBM export within tolerance, else STOP.
+ *      the reference export within tolerance, else STOP.
  *   4. Left-join dynasty consensus rank + position by aggressive-normalized name
  *      (consensus position overrides the nba_players position when present).
  *   5. Upsert season_player_stats + season_player_values, keyed by season +
@@ -49,7 +49,7 @@ const onlyArgIdx = argv.indexOf("--only");
 // --only 2026:regular  → build just that dataset (key = `${season}:${type}`).
 const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
 
-// ── validation gate reference (BBM export, league_size = 400) ──────────────────
+// ── validation gate reference (league_size = 400) ──────────────────────────────
 const REF_VALUES: Record<string, number> = {
   "nikola jokic": 1.637,
   "victor wembanyama": 1.537,

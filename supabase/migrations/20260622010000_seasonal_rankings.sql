@@ -1,7 +1,7 @@
 -- ============================================================================
 -- FHE SEASONAL RANKINGS — precomputed 9-cat value store (/seasonal-rankings)
 --
--- Values are BBM-style z-scores standardized against a baseline pool = the
+-- Values are industry-standard z-scores standardized against a baseline pool = the
 -- top-N players by value, where N = league roster capacity. The league size IS
 -- the baseline, so values are precomputed ONCE PER LEAGUE SIZE by
 -- scripts/build-seasonal-values.ts and stored here. Per-game/totals and
