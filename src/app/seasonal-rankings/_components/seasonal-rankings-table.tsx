@@ -728,7 +728,7 @@ export function SeasonalRankingsTable(props: {
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-body);
-          font-family: 'VT323', monospace; font-size: 13px; font-weight: 400;
+          font-family: 'VT323', monospace; font-size: 15px; font-weight: 400;
           letter-spacing: 0; color: var(--text-secondary); text-transform: uppercase;
           padding: 7px 4px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
@@ -752,13 +752,13 @@ export function SeasonalRankingsTable(props: {
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
-          padding: 5px 5px; font-size: 13px; color: var(--text-primary);
+          padding: 5px 5px; font-size: 15px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
           font-family: 'VT323', monospace; text-align: center; line-height: 1.05;
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
-          text-align: center; font-size: 13px; padding: 5px 4px;
+          text-align: center; font-size: 15px; padding: 5px 4px;
           font-variant-numeric: tabular-nums;
         }
         /* Bold only the actively-sorted column's cells. */
