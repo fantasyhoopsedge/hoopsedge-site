@@ -102,7 +102,7 @@ const valueBg = (v: number | null | undefined) => vBg(v, 1.0, 0.6);
 const f1 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(1));
 const fInt = (x: number | null | undefined) => (x == null ? "—" : String(Math.round(x)));
 const fAge = (x: number | null | undefined) => (x == null ? "—" : String(Math.floor(x))); // whole years
-const f3v = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(3));
+const fVal = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(2)); // Value/Minus1V/FG%V/FT%V
 const fPct = (x: number | null | undefined) =>
   x == null ? "—" : x.toFixed(3).replace(/^0(?=\.)/, ""); // .529
 
@@ -588,10 +588,10 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(av?.value) }}>
-                        {f3v(av?.value)}
+                        {fVal(av?.value)}
                       </td>
                       <td className={`sr-td sr-num${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
-                        {f3v(av?.minus1v)}
+                        {fVal(av?.minus1v)}
                       </td>
                       <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
                       <td className={`sr-td sr-num${drop("fg3m")}${bold("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
@@ -602,8 +602,8 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
                       <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
                       <td className={`sr-td sr-num${drop("tov")}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
-                      <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{f3v(av?.fg)}</td>
-                      <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{f3v(av?.ft)}</td>
+                      <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
+                      <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{fVal(av?.ft)}</td>
                     </tr>
                   );
                 })}
