@@ -642,13 +642,16 @@ export function SeasonalRankingsTable(props: {
         .sr-pill-on {
           background: var(--blueprint); color: #fff; border-color: var(--blueprint);
         }
-        .sr-select, .sr-num, .sr-search {
+        /* Form controls only — NOT the table's numeric cells (which reuse the
+           .sr-num class); keep these selectors off .sr-num to avoid painting a
+           --bg-card background onto RANK/AGE/GP/MIN. */
+        .sr-select, .sr-search {
           font-family: 'VT323', monospace; font-size: 13px;
           padding: 7px 10px; border-radius: 7px;
           background: var(--bg-card, #1a1a1a); color: var(--text-primary);
           border: 1px solid var(--border-main); height: 34px;
         }
-        .sr-select:focus, .sr-num:focus, .sr-search:focus {
+        .sr-select:focus, .sr-search:focus {
           outline: none; border-color: var(--blueprint);
         }
         .sr-search { width: 100%; }
