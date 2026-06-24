@@ -205,6 +205,10 @@ export function SeasonalRankingsTable(props: {
   const [minGames, setMinGames] = useState(0); // 0 = any; else strictly greater than
   const [minMins, setMinMins] = useState(0);
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "value", dir: "desc" });
+  // CatV mode: which of the three values the CatV column shows + ranks by.
+  // 9CatV = standard value (avg of 9 z-scores); 8CatV = turnovers removed
+  // (avg of the other 8); Minus1V = best 8 (drop each player's worst category).
+  const [catMode, setCatMode] = useState<"9cat" | "8cat" | "minus1v">("9cat");
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [tickedOnly, setTickedOnly] = useState(false);
@@ -252,12 +256,28 @@ export function SeasonalRankingsTable(props: {
     return players.map((s) => ({ s, v: vmap[s.player_id] ?? null }));
   }, [players, valuesBySize, leagueSize]);
 
+  // The CatV value a row displays/sorts by. `value` is the AVERAGE of the 9
+  // category z-scores (sum/9) and `minus1v` the average of the best 8, so 8CatV
+  // must re-average over 8: drop the turnover z-score from the sum (value·9) and
+  // divide by 8 → (value·9 − v_to)/8. (v_to is already sign-flipped so fewer TOs
+  // read positive, hence subtraction removes the turnover category cleanly.)
+  const catValue = (av: ActiveV | null): number | null => {
+    const base = av?.value;
+    if (base == null || !Number.isFinite(base)) return null;
+    if (catMode === "minus1v") return av?.minus1v ?? null;
+    if (catMode === "8cat") {
+      const to = av?.to;
+      return to == null || !Number.isFinite(to) ? base : (base * 9 - to) / 8;
+    }
+    return base;
+  };
+
   // Pull the value a row sorts by for the active key. value/minus1v/fg_v/ft_v
   // follow the Per Game vs Totals toggle (different value sets); counting stats
   // follow it via totalling, so ordering matches what's on screen.
   const sortValue = (s: SeasonPlayerStats, av: ActiveV | null, key: SortKey): number | null => {
     switch (key) {
-      case "value": return av?.value ?? null;
+      case "value": return catValue(av);
       case "minus1v": return av?.minus1v ?? null;
       case "fg_v": return av?.fg ?? null;
       case "ft_v": return av?.ft ?? null;
@@ -289,7 +309,7 @@ export function SeasonalRankingsTable(props: {
     });
     return rows.map(({ s, v }, i) => ({ s, v, rank: i + 1 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [merged, sort, perGame]);
+  }, [merged, sort, perGame, catMode]);
 
   const visible = useMemo<Row[]>(() => {
     const q = search.trim().toLowerCase();
@@ -351,6 +371,22 @@ export function SeasonalRankingsTable(props: {
               {sizesAsc.map((size) => (
                 <option key={size} value={size}>{size}</option>
               ))}
+            </select>
+          </div>
+
+          {/* Cat Value mode — 9CatV (full) vs 8CatV (turnovers removed) */}
+          <div className="sr-group">
+            <label className="sr-label" htmlFor="sr-catmode">Cat Value</label>
+            <select
+              id="sr-catmode"
+              className="sr-select"
+              value={catMode}
+              onChange={(e) => setCatMode(e.target.value as "9cat" | "8cat" | "minus1v")}
+              title="9CatV = standard · 8CatV removes turnovers · Minus1V drops each player's worst category"
+            >
+              <option value="9cat">9CatV</option>
+              <option value="8cat">8CatV (no TO)</option>
+              <option value="minus1v">Minus1V</option>
             </select>
           </div>
 
@@ -435,7 +471,7 @@ export function SeasonalRankingsTable(props: {
                 setSort({ key: k, dir: defaultDir(k) });
               }}
             >
-              <option value="value">Value</option>
+              <option value="value">CatV</option>
               <option value="minus1v">Minus1V</option>
               <option value="consensus">Consensus Rank</option>
               {!["value", "minus1v", "consensus"].includes(sort.key) && (
@@ -529,7 +565,7 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
-                  <SortTh label="VALUE" sortKey="value" sort={sort} onSort={onSort} strong />
+                  <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
                   <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
                   <SortTh label="3PM" sortKey="fg3m" sort={sort} onSort={onSort} />
@@ -561,9 +597,12 @@ export function SeasonalRankingsTable(props: {
 
                   // Mode-resolved value set drives the summary/value cells + heatmap.
                   const av = pickV(v, perGame);
-                  // When ranked by Minus1V, ring the one category that's dropped.
-                  const dropped = sort.key === "minus1v" ? droppedCat(av) : null;
-                  const drop = (cell: string) => (dropped === cell ? " sr-dropped" : "");
+                  // Minus1V mode: thin blue outline on the one category dropped
+                  // (each player's worst), so you can see what they're punting.
+                  const dropped = catMode === "minus1v" ? droppedCat(av) : null;
+                  const drop = (cell: string) => (dropped === cell ? " sr-outline" : "");
+                  // 8CatV ignores turnovers → dim the TO column data.
+                  const toDim = catMode === "8cat" ? " sr-dim" : "";
                   // Bold the actively-sorted column's cells (and only that column).
                   const bold = (key: SortKey) => (sort.key === key ? " sr-sorted" : "");
 
@@ -587,8 +626,8 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
-                      <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(av?.value) }}>
-                        {fVal(av?.value)}
+                      <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
+                        {fVal(catValue(av))}
                       </td>
                       <td className={`sr-td sr-num${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
                         {fVal(av?.minus1v)}
@@ -601,7 +640,7 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
                       <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
                       <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
-                      <td className={`sr-td sr-num${drop("tov")}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
+                      <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
                       <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
                       <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{fVal(av?.ft)}</td>
                     </tr>
@@ -724,11 +763,10 @@ export function SeasonalRankingsTable(props: {
         }
         /* Bold only the actively-sorted column's cells. */
         .sr-sorted { font-weight: 700; color: var(--text-primary); }
-        /* Minus1V "punt" view: ring the dropped category in FHE orange. */
-        .sr-dropped {
-          box-shadow: inset 0 0 0 2px var(--edge-orange);
-          border-radius: 4px; color: var(--edge-orange); font-weight: 700;
-        }
+        /* 8CatV: the ignored turnover column is dimmed to near invisible. */
+        .sr-dim { opacity: 0.16; transition: opacity 0.15s; }
+        /* Minus1V: a very thin blue outline marks each player's dropped category. */
+        .sr-outline { box-shadow: inset 0 0 0 1px var(--blueprint); border-radius: 4px; }
         .sr-td-player { font-weight: 400; text-transform: uppercase; }
         .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
 
