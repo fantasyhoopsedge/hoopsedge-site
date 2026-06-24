@@ -187,18 +187,53 @@ export function SeasonalRankingsTable(props: {
   // so we must clear the flag once the new dataset arrives — keyed on the
   // activeSeason prop changing — else the table stays dimmed + non-interactive.
   const [seasonPending, setSeasonPending] = useState(false);
+  // Only the canonical league size ships with the page; other sizes are fetched
+  // on demand and cached here. poolPending dims the table during that fetch.
+  const [loadedValues, setLoadedValues] = useState<ValuesBySize>(valuesBySize);
+  const [poolPending, setPoolPending] = useState(false);
   const onSeasonChange = (key: string) => {
     if (key === activeSeason) return;
     setSeasonPending(true);
     router.push(`/seasonal-rankings?d=${encodeURIComponent(key)}`);
   };
+  // On season change the server ships the new dataset's canonical size; reset the
+  // on-demand cache so sizes loaded for the previous season aren't reused.
   useEffect(() => {
     setSeasonPending(false);
+    setLoadedValues(valuesBySize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSeason]);
 
   const [leagueSize, setLeagueSize] = useState<number>(
     leagueSizes.includes(canonicalSize) ? canonicalSize : leagueSizes[leagueSizes.length - 1],
   );
+
+  // Fetch a league size's values on demand when the Player Pool changes to a
+  // size not yet loaded. When it arrives, loadedValues updates → this effect
+  // re-runs, the guard hits, and poolPending clears.
+  useEffect(() => {
+    if (loadedValues[leagueSize]) {
+      setPoolPending(false);
+      return;
+    }
+    let cancelled = false;
+    setPoolPending(true);
+    const [seasonStr, type] = activeSeason.split(":");
+    fetch(`/api/seasonal-values?season=${seasonStr}&type=${encodeURIComponent(type)}&size=${leagueSize}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((rows: SeasonPlayerValues[]) => {
+        if (cancelled) return;
+        const map: Record<string, SeasonPlayerValues> = {};
+        for (const v of rows) map[v.player_id] = v;
+        setLoadedValues((prev) => ({ ...prev, [leagueSize]: map }));
+      })
+      .catch(() => {
+        if (!cancelled) setPoolPending(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [leagueSize, activeSeason, loadedValues]);
   const [teamFilter, setTeamFilter] = useState<Set<string>>(new Set());
   const [posFilter, setPosFilter] = useState<Set<string>>(new Set());
   const [perGame, setPerGame] = useState(true);
@@ -252,9 +287,9 @@ export function SeasonalRankingsTable(props: {
   // Merge stats with the value set for the ACTIVE league size (the only control
   // that changes Value/Minus1V, because it changes the baseline pool).
   const merged = useMemo(() => {
-    const vmap = valuesBySize[leagueSize] ?? {};
+    const vmap = loadedValues[leagueSize] ?? {};
     return players.map((s) => ({ s, v: vmap[s.player_id] ?? null }));
-  }, [players, valuesBySize, leagueSize]);
+  }, [players, loadedValues, leagueSize]);
 
   // The CatV value a row displays/sorts by. `value` is the AVERAGE of the 9
   // category z-scores (sum/9) and `minus1v` the average of the best 8, so 8CatV
@@ -550,7 +585,7 @@ export function SeasonalRankingsTable(props: {
           </p>
         ) : (
           <div
-            className={`sr-table-scroll ${seasonPending ? "sr-pending" : ""}`}
+            className={`sr-table-scroll ${seasonPending || poolPending ? "sr-pending" : ""}`}
             style={{ maxHeight: `calc(100vh - ${topOffset}px)` }}
           >
             <table className="sr-table">
