@@ -671,19 +671,19 @@ export function SeasonalRankingsTable(props: {
         .sr-pending { opacity: 0.45; transition: opacity 0.15s; pointer-events: none; }
         .sr-table {
           border-collapse: separate; border-spacing: 0; width: 100%;
-          min-width: 1300px; margin: 0 auto; max-width: 1560px;
+          min-width: 1640px; margin: 0 auto; max-width: 1840px;
         }
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-body);
-          font-family: 'VT323', monospace; font-size: 12px; font-weight: 400;
-          letter-spacing: 0.3px; color: var(--text-secondary); text-transform: uppercase;
-          padding: 7px 3px; text-align: center; white-space: nowrap;
+          font-family: 'VT323', monospace; font-size: 15px; font-weight: 400;
+          letter-spacing: 0; color: var(--text-secondary); text-transform: uppercase;
+          padding: 7px 4px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
         }
         /* Number/value columns AND team/pos share one fixed width (header + cells),
            sized so the widest header (MINUS1V) shows in full. */
-        .sr-num-h, .sr-num, .sr-w { width: 54px; min-width: 54px; max-width: 54px; }
+        .sr-num-h, .sr-num, .sr-w { width: 70px; min-width: 70px; max-width: 70px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
@@ -706,7 +706,7 @@ export function SeasonalRankingsTable(props: {
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
-          text-align: center; font-size: 12px; padding: 5px 3px;
+          text-align: center; font-size: 15px; padding: 5px 4px;
           font-variant-numeric: tabular-nums;
         }
         /* Bold only the actively-sorted column's cells. */
