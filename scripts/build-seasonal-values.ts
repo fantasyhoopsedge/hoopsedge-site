@@ -51,11 +51,11 @@ const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
 
 // ── validation gate reference (league_size = 400) ──────────────────────────────
 const REF_VALUES: Record<string, number> = {
-  "nikola jokic": 1.637,
-  "victor wembanyama": 1.537,
-  "shai gilgeous-alexander": 1.414,
+  "nikola jokic": 1.640,
+  "victor wembanyama": 1.545,
+  "shai gilgeous-alexander": 1.423,
 };
-const REF_BASELINE_PTS_MU = 11.76;
+const REF_BASELINE_PTS_MU = 11.783;
 const VALUE_TOLERANCE = 0.03;
 
 type LogRow = {
@@ -86,6 +86,12 @@ const NBA_TEAMS = new Set([
   "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NO", "NY",
   "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SA", "TOR", "UTAH", "WSH",
 ]);
+
+// dynasty-rankings.json uses different abbreviations for 7 teams. Map to the
+// ESPN-style abbreviations used everywhere else in this pipeline.
+const CONSENSUS_TEAM_MAP: Record<string, string> = {
+  SAS: "SA", GSW: "GS", NYK: "NY", NOR: "NO", PHO: "PHX", WAS: "WSH", UTA: "UTAH",
+};
 
 /**
  * The NBA Cup (In-Season Tournament) CHAMPIONSHIP game does not count toward
@@ -161,6 +167,8 @@ async function fetchAllLogs(season: number, seasonType: SeasonType): Promise<Log
       .select(cols)
       .eq("season", season)
       .eq("season_type", seasonType)
+      .order("game_date", { ascending: true })
+      .order("game_id", { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) throw new Error(`game-log fetch failed: ${error.message}`);
     const rows = (data ?? []) as LogRow[];
@@ -187,16 +195,23 @@ async function fetchPlayers(): Promise<Map<string, { name: string; team: string 
   return map;
 }
 
-type ConsensusInfo = { rank: number; position: string | null };
+type ConsensusInfo = { rank: number; position: string | null; team: string | null };
 
-/** dynasty-rankings.json → normalized name → { consensus rank, position }. */
+/** dynasty-rankings.json → normalized name → { consensus rank, position, team }. */
 function loadConsensus(): Map<string, ConsensusInfo> {
   const raw = readFileSync(resolve(REPO_ROOT, "src/lib/dynasty-rankings.json"), "utf8");
-  const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number; position?: string | null }>;
+  const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number; position?: string | null; team?: string | null }>;
   const m = new Map<string, ConsensusInfo>();
   for (const p of players) {
     const key = normalizeName(p.player);
-    if (!m.has(key)) m.set(key, { rank: p.consensusRank, position: pos5(p.position ?? null) });
+    if (!m.has(key)) {
+      const mapped = p.team ? (CONSENSUS_TEAM_MAP[p.team] ?? p.team) : null;
+      m.set(key, {
+        rank: p.consensusRank,
+        position: pos5(p.position ?? null),
+        team: mapped && NBA_TEAMS.has(mapped) ? mapped : null,
+      });
+    }
   }
   return m;
 }
@@ -354,6 +369,7 @@ async function upsert(
   agg: Map<string, Aggregate>,
   players: Map<string, { name: string; team: string | null; position: string | null }>,
   consensus: Map<string, ConsensusInfo>,
+  lastGameTeam: Map<string, string>,
   values: Map<number, RankedPlayerValues[]>,
   totals: Map<number, RankedPlayerValues[]>,
 ): Promise<void> {
@@ -370,7 +386,16 @@ async function upsert(
       season: ds.season,
       season_type: ds.type,
       name,
-      team: meta?.team ?? null,
+      // Team priority:
+      // 1. Consensus (current season only) — catches traded-but-didn't-play cases
+      //    like a player moved at the deadline who never suited up for the new team.
+      // 2. Last game log team — the team they actually finished the season with.
+      // 3. nba_players snapshot — final fallback when neither source has data.
+      // Historical seasons skip (1) because the consensus reflects today's roster,
+      // not where a player finished that season.
+      team: (ds.season === GATE.season
+        ? (consensus.get(normalizeName(name))?.team ?? null)
+        : null) ?? lastGameTeam.get(s.playerId) ?? meta?.team ?? null,
       // Consensus position wins when the player is ranked; else fall back to the
       // nba_players position. (Item 2.)
       position: cons?.position ?? pos5(meta?.position ?? null),
@@ -466,6 +491,20 @@ async function buildDataset(
   const rawLogs = await fetchAllLogs(ds.season, ds.type);
   const logs = filterRealGames(rawLogs, ds);
   console.log(`  ${logs.length} game-log rows (of ${rawLogs.length} fetched)`);
+
+  // Last team each player appeared for in this season's game logs (game_date is
+  // YYYY-MM-DD so lexicographic comparison gives chronological order).
+  const lastGameEntry = new Map<string, { date: string; team: string }>();
+  for (const r of logs) {
+    if (!r.team || !r.game_date) continue;
+    const prev = lastGameEntry.get(r.player_id);
+    if (!prev || r.game_date > prev.date) {
+      lastGameEntry.set(r.player_id, { date: r.game_date, team: r.team });
+    }
+  }
+  const lastGameTeam = new Map<string, string>(
+    [...lastGameEntry.entries()].map(([id, e]) => [id, e.team]),
+  );
   const agg = aggregate(logs);
   const stats = buildStats(agg);
   console.log(`  aggregated ${stats.length} players (the feed)`);
@@ -503,7 +542,7 @@ async function buildDataset(
     console.log("  [DRY RUN] skipping upsert.");
     return;
   }
-  await upsert(ds, stats, agg, players, consensus, values, totals);
+  await upsert(ds, stats, agg, players, consensus, lastGameTeam, values, totals);
 }
 
 async function main(): Promise<void> {
