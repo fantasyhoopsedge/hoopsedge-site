@@ -274,6 +274,19 @@ export interface Database {
         };
         Relationships: [];
       };
+      dn_mini_leaderboard: {
+        Row: {
+          mini_game_id: string;
+          mini_game_key: string;
+          game_id: string;
+          user_id: string;
+          score: number;
+          rank: number;
+          total_players: number;
+          tied_at_rank: number;
+        };
+        Relationships: [];
+      };
     };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
@@ -295,3 +308,6 @@ export type DnPrediction = Database["public"]["Tables"]["dn_predictions"]["Row"]
 export type DnPredictionInsert = Database["public"]["Tables"]["dn_predictions"]["Insert"];
 export type DnResult = Database["public"]["Tables"]["dn_results"]["Row"];
 export type DnLeaderboardRow = Database["public"]["Views"]["dn_leaderboard"]["Row"];
+export type DnMiniLeaderboardRow = Database["public"]["Views"]["dn_mini_leaderboard"]["Row"] & {
+  mini_game_key: DnMiniGameKey;
+};

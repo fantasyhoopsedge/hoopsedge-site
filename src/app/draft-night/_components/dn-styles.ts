@@ -431,4 +431,59 @@ export const dnStyles = `
   .dn-pair { grid-template-columns: 1fr; }
   .dn-vs { padding: 0; font-size: 10px; }
 }
+
+/* ── Resolved results layout ─────────────────────────────────────────────── */
+.dn-results-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 28px;
+  align-items: start;
+  margin-top: 8px;
+}
+.dn-results-left { display: flex; flex-direction: column; gap: 10px; }
+.dn-results-right { position: sticky; top: 84px; }
+
+/* Per-mini-game result card */
+.dn-mini-rc {
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-left: 4px solid transparent;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.dn-mini-rc-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 2px;
+}
+.dn-mini-rc-title {
+  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary);
+  flex: 1;
+}
+.dn-mini-rc-badges { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.dn-mini-rc-score {
+  font-size: 14px; color: var(--text-secondary); line-height: 1.4;
+}
+.dn-mini-rc-score strong {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 17px; color: var(--text-primary);
+}
+.dn-mini-rc-rank { font-size: 13px; color: var(--text-muted); }
+.dn-mini-rc-rank strong { color: var(--text-primary); font-weight: 700; }
+
+/* Placement badges (1st / 2nd / 3rd) */
+.dn-place-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px; padding: 3px 9px; border-radius: 6px; white-space: nowrap;
+}
+.dn-place-gold   { background: rgba(240,192,64,0.15);   color: var(--dynasty-gold);  border: 1px solid rgba(240,192,64,0.4); }
+.dn-place-silver { background: rgba(192,192,192,0.12);  color: #c0c0c0;              border: 1px solid rgba(192,192,192,0.35); }
+.dn-place-bronze { background: rgba(205,127,50,0.12);   color: #cd7f32;              border: 1px solid rgba(205,127,50,0.35); }
+
+@media (max-width: 820px) {
+  .dn-results-grid { grid-template-columns: 1fr; }
+  .dn-results-right { position: static; }
+}
 `;

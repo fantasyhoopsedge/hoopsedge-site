@@ -14,6 +14,9 @@ export const paStyles = `
 .pa-game-tile--live { background: linear-gradient(135deg, rgba(240,192,64,0.13) 0%, var(--bg-card) 60%); border-color: var(--dynasty-gold); border-width: 2px; }
 .pa-game-tile--live:hover { transform: translateY(-3px); box-shadow: 0 8px 36px rgba(240,192,64,0.18); }
 .pa-game-tile--soon { opacity: 0.6; cursor: default; }
+.pa-game-tile--resolved { border-color: var(--border-main); }
+.pa-game-tile--resolved:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.12); }
+.pa-game-tile-cta--resolved { background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--border-main); letter-spacing: 0.08em; }
 
 .pa-game-tile-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 26px 30px; flex-wrap: wrap; }
 .pa-game-tile-body { flex: 1; min-width: 0; }
