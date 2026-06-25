@@ -440,7 +440,19 @@ export interface Database {
         };
         Relationships: [];
       };
-      // Aggregated per-game season averages (materialized view).
+      dn_mini_leaderboard: {
+        Row: {
+          mini_game_id: string;
+          mini_game_key: string;
+          game_id: string;
+          user_id: string;
+          score: number;
+          rank: number;
+          total_players: number;
+          tied_at_rank: number;
+        };
+        Relationships: [];
+      };
       nba_season_averages: {
         Row: {
           player_id: string;
@@ -507,6 +519,9 @@ export type DnPrediction = Database["public"]["Tables"]["dn_predictions"]["Row"]
 export type DnPredictionInsert = Database["public"]["Tables"]["dn_predictions"]["Insert"];
 export type DnResult = Database["public"]["Tables"]["dn_results"]["Row"];
 export type DnLeaderboardRow = Database["public"]["Views"]["dn_leaderboard"]["Row"];
+export type DnMiniLeaderboardRow = Database["public"]["Views"]["dn_mini_leaderboard"]["Row"] & {
+  mini_game_key: DnMiniGameKey;
+};
 
 // ── NBA data pipeline convenience aliases ───────────────────────────────────
 export type NbaTeam = Database["public"]["Tables"]["nba_teams"]["Row"];

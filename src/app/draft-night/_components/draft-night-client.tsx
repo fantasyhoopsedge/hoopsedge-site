@@ -9,6 +9,7 @@ import type {
   DnMiniGameKey,
   DnPrediction,
   DnLeaderboardRow,
+  DnMiniLeaderboardRow,
   DnResult,
 } from "@/types/database";
 import type {
@@ -289,6 +290,7 @@ export function DraftNightClient({
   const [activeKey, setActiveKey] = useState<DnMiniGameKey | null>(null);
   const [submitted, setSubmitted] = useState<Record<string, DnPrediction>>({});
   const [leaderboard, setLeaderboard] = useState<DnLeaderboardRow[]>([]);
+  const [miniLeaderboard, setMiniLeaderboard] = useState<DnMiniLeaderboardRow[]>([]);
   const [busyKey, setBusyKey] = useState<DnMiniGameKey | null>(null);
   const [panelError, setPanelError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
@@ -402,17 +404,26 @@ export function DraftNightClient({
     return () => { cancelled = true; };
   }, [supabase, user, minis, submitMini]);
 
-  // Leaderboard once resolved.
+  // Leaderboards once resolved.
   useEffect(() => {
     if (!supabase || !game || !isResolved) return;
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
-        .from("dn_leaderboard")
-        .select("*")
-        .eq("game_id", game.id)
-        .order("rank", { ascending: true });
-      if (!cancelled) setLeaderboard(data ?? []);
+      const [{ data: lb }, { data: mlb }] = await Promise.all([
+        supabase
+          .from("dn_leaderboard")
+          .select("*")
+          .eq("game_id", game.id)
+          .order("rank", { ascending: true }),
+        supabase
+          .from("dn_mini_leaderboard")
+          .select("*")
+          .eq("game_id", game.id),
+      ]);
+      if (!cancelled) {
+        setLeaderboard(lb ?? []);
+        setMiniLeaderboard((mlb ?? []) as DnMiniLeaderboardRow[]);
+      }
     })();
     return () => { cancelled = true; };
   }, [supabase, game, isResolved]);
@@ -480,6 +491,7 @@ export function DraftNightClient({
                 minis={minis}
                 predictions={submitted}
                 leaderboard={leaderboard}
+                miniLeaderboard={miniLeaderboard}
                 userId={user.id}
                 displayName={displayName}
               />
@@ -489,6 +501,7 @@ export function DraftNightClient({
               minis={minis}
               predictions={submitted}
               leaderboard={leaderboard}
+              miniLeaderboard={miniLeaderboard}
               userId={user.id}
               displayName={displayName}
               onViewResults={() => setShowResults(true)}

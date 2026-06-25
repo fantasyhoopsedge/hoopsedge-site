@@ -1,14 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import type { DnMiniGame, DnLeaderboardRow, DnPrediction } from "@/types/database";
+import type { DnMiniGame, DnLeaderboardRow, DnPrediction, DnMiniLeaderboardRow } from "@/types/database";
 import { combinedScore, calledItBonus } from "@/lib/draftNight/grader";
 import { MINI_META } from "./meta";
+
+function ordinal(n: number): string {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  switch (n % 10) {
+    case 1: return `${n}st`;
+    case 2: return `${n}nd`;
+    case 3: return `${n}rd`;
+    default: return `${n}th`;
+  }
+}
+
+function lbMedal(rank: number): string | number {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  return rank;
+}
 
 export function ResultsView({
   minis,
   predictions,
   leaderboard,
+  miniLeaderboard,
   userId,
   displayName,
 }: {
@@ -16,6 +34,7 @@ export function ResultsView({
   /** keyed by mini_game_id */
   predictions: Record<string, DnPrediction>;
   leaderboard: DnLeaderboardRow[];
+  miniLeaderboard: DnMiniLeaderboardRow[];
   userId: string | null;
   displayName: string;
 }) {
@@ -23,13 +42,26 @@ export function ResultsView({
 
   const miniScores = minis.map((m) => {
     const pred = predictions[m.id];
-    return { mini: m, score: pred?.score ?? null, calledIt: pred?.called_it === true };
+    const miniRank = miniLeaderboard.find(
+      (r) => r.mini_game_id === m.id && r.user_id === userId,
+    ) ?? null;
+    return {
+      mini: m,
+      score: pred?.score ?? null,
+      calledIt: pred?.called_it === true,
+      played: pred != null,
+      miniRank,
+    };
   });
   const calledItCards = miniScores.filter((s) => s.calledIt).length;
   const combined = combinedScore(miniScores.map((s) => s.score ?? 0), calledItCards);
 
   const me = leaderboard.find((r) => r.user_id === userId) ?? null;
   const pct = me ? Math.round(me.percentile * 100) : null;
+  const overallTied = me ? leaderboard.filter((r) => r.rank === me.rank).length > 1 : false;
+  const overallRankLabel = me
+    ? `${overallTied ? "Eq" : ""}${ordinal(me.rank)} of ${leaderboard.length}`
+    : null;
 
   const cardUrl = userId ? `/draft-night/card/${userId}` : null;
   const share = async () => {
@@ -60,7 +92,9 @@ export function ResultsView({
         <div className="dn-score-side">
           {me ? (
             <>
-              <span className="dn-score-rank">RANK #{me.rank}</span>
+              <span className="dn-score-rank">
+                {overallRankLabel ?? `RANK #${me.rank}`}
+              </span>
               {pct !== null ? <span className="dn-score-pct">Top {Math.max(1, 100 - pct)}%</span> : null}
             </>
           ) : (
@@ -111,15 +145,24 @@ export function ResultsView({
 
       <h2 className="dn-section-h">Per-game breakdown</h2>
       <div className="dn-breakdown">
-        {miniScores.map(({ mini, score, calledIt }) => {
+        {miniScores.map(({ mini, score, calledIt, played, miniRank }) => {
           const meta = MINI_META[mini.key];
-          const played = predictions[mini.id] != null;
+          const isTied = (miniRank?.tied_at_rank ?? 1) > 1;
+          const rankLabel = miniRank
+            ? `${isTied ? "Eq" : ""}${ordinal(miniRank.rank)} / ${miniRank.total_players}`
+            : null;
           return (
             <div className="dn-break-row" key={mini.id} style={{ borderLeft: `3px solid ${meta.accent}` }}>
               <span className="dn-break-icon" aria-hidden>{meta.icon}</span>
               <span className="dn-break-id">
                 <span className="dn-break-title">{meta.title}</span>
-                <span className="dn-break-sub">{played ? `ceiling ${meta.ceiling}` : "not played"}</span>
+                <span className="dn-break-sub">
+                  {played
+                    ? rankLabel
+                      ? `Ranked ${rankLabel} · ceiling ${meta.ceiling}`
+                      : `ceiling ${meta.ceiling}`
+                    : "not played"}
+                </span>
               </span>
               {calledIt && <span className="dn-called-it-badge">CALLED IT</span>}
               <span
@@ -150,7 +193,7 @@ export function ResultsView({
             className={`dn-lb-row${row.user_id === userId ? " dn-lb-me" : ""}`}
             key={row.user_id}
           >
-            <span className="dn-lb-rank">{row.rank}</span>
+            <span className="dn-lb-rank">{lbMedal(row.rank)}</span>
             <span className="dn-lb-name">{row.username ?? "Analyst"}</span>
             <span className="dn-lb-score">{row.score.toLocaleString()}</span>
           </li>

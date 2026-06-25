@@ -1,18 +1,35 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { SiteNav } from "@/components/site-nav";
 import { useAuth } from "@/context/AuthContext";
+import { createClient } from "@/utils/supabase/client";
 import { PredictionFeed } from "./_components/prediction-feed";
 import { EmailAuthForm } from "./_components/email-auth-form";
 import { paStyles } from "./_components/arena-styles";
 
 // ── Game card: Draft Night Challenge ─────────────────────────────────────────
-function DraftNightCard() {
+function DraftNightCard({ resolved }: { resolved: boolean }) {
+  if (resolved) {
+    return (
+      <a href="/draft-night" className="pa-game-tile pa-game-tile--resolved">
+        <div className="pa-game-tile-inner">
+          <div className="pa-game-tile-body">
+            <span className="pa-chip pa-chip--muted">
+              ✅ COMPLETED · DRAFT NIGHT 2026
+            </span>
+            <h2 className="pa-game-tile-title">The Draft Night Challenge</h2>
+            <p className="pa-game-tile-blurb">
+              The 2026 NBA Draft is graded. See how your picks stacked up and where you ranked.
+            </p>
+          </div>
+          <span className="pa-game-tile-cta pa-game-tile-cta--resolved">View results →</span>
+        </div>
+      </a>
+    );
+  }
   return (
-    <a
-      href="/draft-night"
-      className="pa-game-tile pa-game-tile--live"
-    >
+    <a href="/draft-night" className="pa-game-tile pa-game-tile--live">
       <div className="pa-game-tile-inner">
         <div className="pa-game-tile-body">
           <span className="pa-chip pa-chip--gold">
@@ -74,7 +91,7 @@ function ArenaSkeleton() {
 }
 
 // ── Signed-out landing state ─────────────────────────────────────────────────
-function ArenaLanding({ onSignIn }: { onSignIn: () => void }) {
+function ArenaLanding({ onSignIn, dnResolved }: { onSignIn: () => void; dnResolved: boolean }) {
   return (
     <div className="pa-wrap">
       <span className="pa-eyebrow">FHE PREDICTION ARENA</span>
@@ -87,7 +104,7 @@ function ArenaLanding({ onSignIn }: { onSignIn: () => void }) {
       </p>
 
       <div className="pa-game-stack">
-        <DraftNightCard />
+        <DraftNightCard resolved={dnResolved} />
         <SeasonLongCard />
       </div>
 
@@ -112,7 +129,7 @@ function ArenaLanding({ onSignIn }: { onSignIn: () => void }) {
 }
 
 // ── Signed-in dashboard state ────────────────────────────────────────────────
-function ArenaDashboard() {
+function ArenaDashboard({ dnResolved }: { dnResolved: boolean }) {
   const { user, profile, signOut } = useAuth();
   const displayName =
     profile?.username ?? user?.user_metadata?.full_name ?? "Analyst";
@@ -158,7 +175,7 @@ function ArenaDashboard() {
       </div>
 
       <div className="pa-game-stack">
-        <DraftNightCard />
+        <DraftNightCard resolved={dnResolved} />
         <SeasonLongCard />
       </div>
 
@@ -170,6 +187,19 @@ function ArenaDashboard() {
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function PredictionArenaPage() {
   const { user, loading, signInWithGoogle } = useAuth();
+  const [dnResolved, setDnResolved] = useState(false);
+
+  useEffect(() => {
+    const sb = createClient();
+    void sb
+      .from("dn_games")
+      .select("status")
+      .eq("slug", "draft-night-2026")
+      .single()
+      .then(({ data }) => {
+        if (data?.status === "resolved") setDnResolved(true);
+      });
+  }, []);
 
   return (
     <main style={{ minHeight: "100vh", background: "var(--bg-body)", color: "var(--text-primary)" }}>
@@ -177,9 +207,9 @@ export default function PredictionArenaPage() {
       {loading ? (
         <ArenaSkeleton />
       ) : user ? (
-        <ArenaDashboard />
+        <ArenaDashboard dnResolved={dnResolved} />
       ) : (
-        <ArenaLanding onSignIn={() => void signInWithGoogle()} />
+        <ArenaLanding onSignIn={() => void signInWithGoogle()} dnResolved={dnResolved} />
       )}
       <style>{paStyles}</style>
     </main>
