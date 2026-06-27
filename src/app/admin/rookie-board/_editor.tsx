@@ -38,7 +38,7 @@ function renumber(players: BoardPlayer[]): BoardPlayer[] {
 
 function blankPlayer(rank: number, tier: number): BoardPlayer {
   return {
-    rank, pick: pickFor(rank), name: "", school: "", pos: "G", tier, age: null, ht: "",
+    rank, pick: pickFor(rank), name: "", school: "", nbaTeam: "", contract: "", pos: "G", tier, age: null, ht: "",
     pts: "", reb: "", ast: "", stl: "", blk: "", fg: "", ft: "", tpm: "", to: "", verdict: "",
   };
 }
@@ -49,7 +49,7 @@ function blankPlayer(rank: number, tier: number): BoardPlayer {
 function prospectToPlayer(p: PoolProspect, rank: number, tier: number): BoardPlayer {
   const liveAge = ageFromBirthdate(p.birthdate) ?? p.age;
   return {
-    rank, pick: pickFor(rank), name: p.name, school: p.team, pos: p.pos, tier,
+    rank, pick: pickFor(rank), name: p.name, school: p.team, nbaTeam: "", contract: "", pos: p.pos, tier,
     age: liveAge != null ? Math.round(liveAge * 10) / 10 : null,
     birthdate: p.birthdate ?? undefined, ht: p.ht,
     pts: "", reb: "", ast: "", stl: "", blk: "", fg: "", ft: "", tpm: "", to: "",
@@ -566,7 +566,7 @@ export function RookieBoardEditor() {
                   <span className="rb-grip" title="Drag to reorder">⋮⋮</span>
                   <span className="rb-rank" style={{ color: t.color }}>{p.rank}</span>
                   <span className="rb-row-name">{p.name || <em className="rb-empty">— new player —</em>}</span>
-                  <span className="rb-row-meta">{p.pos} · {p.school || "—"}</span>
+                  <span className="rb-row-meta">{p.pos} · {p.nbaTeam || p.school || "—"}</span>
                   <button
                     className="rb-row-del"
                     title="Remove from board"
@@ -613,9 +613,19 @@ export function RookieBoardEditor() {
 
               <div className="rb-grid3">
                 <label className="rb-field">
-                  <span>School</span>
+                  <span>College</span>
                   <input className="rb-input" value={selected.school}
                     onChange={(e) => patchSelected({ school: e.target.value }, `school-${selected.rank}`)} />
+                </label>
+                <label className="rb-field">
+                  <span>NBA Team</span>
+                  <input className="rb-input" value={selected.nbaTeam ?? ""} placeholder="MEM"
+                    onChange={(e) => patchSelected({ nbaTeam: e.target.value }, `nbaTeam-${selected.rank}`)} />
+                </label>
+                <label className="rb-field">
+                  <span>Contract</span>
+                  <input className="rb-input" value={selected.contract ?? ""} placeholder="Rookie Scale"
+                    onChange={(e) => patchSelected({ contract: e.target.value }, `contract-${selected.rank}`)} />
                 </label>
                 <label className="rb-field">
                   <span>Position</span>

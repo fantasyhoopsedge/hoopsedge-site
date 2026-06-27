@@ -86,6 +86,8 @@ function sanitizePlayers(raw: unknown): { players: BoardPlayer[]; error?: string
       verdict: String(rec.verdict ?? "").trim(),
     };
     if (rec.birthdate) player.birthdate = String(rec.birthdate).slice(0, 10);
+    if (rec.nbaTeam) player.nbaTeam = String(rec.nbaTeam).trim();
+    if (rec.contract) player.contract = String(rec.contract).trim();
     return player;
   });
 

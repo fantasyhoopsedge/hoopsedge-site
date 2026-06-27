@@ -1,7 +1,7 @@
 {
-  "version": "1.1",
-  "label": "Pre-draft Board",
-  "updatedAt": "2026-06-21",
+  "version": "1.2",
+  "label": "Rookie Board 1.2",
+  "updatedAt": "2026-06-27",
   "tiers": [
     {
       "id": 1,
@@ -63,7 +63,9 @@
       "ft": "3★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "Safest dynasty pick in the 2026 class. Elite PTS, REB and FG% — An elite interior scorer and shooter whose strength and rebounding are the foundation of the profile. The youngest prospect in the draft with unbelievable dominance and feel. The clear #1 pick in rookie drafts and top 15 dynasty asset right off the bat."
+      "verdict": "Safest dynasty pick in the 2026 class. Elite PTS, REB and FG% â€” An elite interior scorer and shooter whose strength and rebounding are the foundation of the profile. The youngest prospect in the draft with unbelievable dominance and feel. The clear #1 pick in rookie drafts and top 15 dynasty asset right off the bat.",
+      "nbaTeam": "MEM",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 2,
@@ -83,7 +85,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "2★",
-      "verdict": "Elite PTS on high volume, elite 3PM and elite STL — One of the best perimeter defensive profiles in the class. Expected to develop into a Top 30 category league player."
+      "verdict": "Elite PTS on high volume, elite 3PM and elite STL â€” One of the best perimeter defensive profiles in the class. Expected to develop into a Top 30 category league player.",
+      "nbaTeam": "UTA",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 3,
@@ -103,7 +107,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "1★",
-      "verdict": "Led the nation in scoring as a freshman. First freshman since Trae Young in 2018 to lead the country in PPG. Elite PTS on high volume — a primary advantage creator whose scoring juice is the real thing. Draws fouls at high volume. Dynasty runway is enormous."
+      "verdict": "Led the nation in scoring as a freshman. First freshman since Trae Young in 2018 to lead the country in PPG. Elite PTS on high volume â€” a primary advantage creator whose scoring juice is the real thing. Draws fouls at high volume. Dynasty runway is enormous.",
+      "nbaTeam": "WAS",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 4,
@@ -123,7 +129,9 @@
       "ft": "2★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "Elite REB, elite STL and elite FG% on volume — One of the best defenders in the class, with the feel and instincts already NBA-ready. Draws fouls at the highest rate in the class — be patient with him in Year 1 and expect the scoring will come. Season ended early with a broken thumb — but he is now ready to go."
+      "verdict": "Elite REB, elite STL and elite FG% on volume â€” One of the best defenders in the class, with the feel and instincts already NBA-ready. Draws fouls at the highest rate in the class â€” be patient with him in Year 1 and expect the scoring will come. Season ended early with a broken thumb â€” but he is now ready to go.",
+      "nbaTeam": "CHI",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 5,
@@ -143,7 +151,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "4★",
-      "verdict": "One of my guys. The most elite playmaking guard in the 2026 class. Two-way impact built into the profile. A 2.91 AST/TO ratio puts him among the most efficient playmakers in the draft. The defensive potential on top of this makes him genuinely special."
+      "verdict": "One of my guys. The most elite playmaking guard in the 2026 class. Two-way impact built into the profile. A 2.91 AST/TO ratio puts him among the most efficient playmakers in the draft. The defensive potential on top of this makes him genuinely special.",
+      "nbaTeam": "ATL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 6,
@@ -163,7 +173,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "4★",
-      "verdict": "Came out of nowhere as a freshman at Illinois. An exceptional shooter and processor who thrives in movement. The dynasty case is built on shooting creation. Reminds me of Haliburton."
+      "verdict": "Came out of nowhere as a freshman at Illinois. An exceptional shooter and processor who thrives in movement. The dynasty case is built on shooting creation. Reminds me of Haliburton.",
+      "nbaTeam": "LAC",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 7,
@@ -183,7 +195,9 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "Was one of guys throughout the college season before he emerged in March Madness. The most elite shot-blocker in the entire 2026 class by a distance. A true needle-mover at center position for your dynasty team — the interior presence and rim protection profile is rare at this age. Very good passer for a big man."
+      "verdict": "Was one of guys throughout the college season before he emerged in March Madness. The most elite shot-blocker in the entire 2026 class by a distance. A true needle-mover at center position for your dynasty team â€” the interior presence and rim protection profile is rare at this age. Very good passer for a big man.",
+      "nbaTeam": "OKC",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 8,
@@ -203,7 +217,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "4★",
-      "verdict": "One of my guys. Elite PTS on high volume — gets to the basket more than any guard in the class. Absolutely electric with the best first step in the draft — pure scoring gravity that translates regardless of system. Draws fouls at high volume — the strongest indicator the scoring translates to NBA level."
+      "verdict": "One of my guys. Elite PTS on high volume â€” gets to the basket more than any guard in the class. Absolutely electric with the best first step in the draft â€” pure scoring gravity that translates regardless of system. Draws fouls at high volume â€” the strongest indicator the scoring translates to NBA level.",
+      "nbaTeam": "DET",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 9,
@@ -223,7 +239,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "1★",
-      "verdict": "A spectacular live-dribble passer and versatile creator with an improved burst and first step — dribble, pass, shoot at an elite level when healthy. Draws fouls at high volume. Lower back injury is the only reason he's not top 5. Predraft medicals are everything."
+      "verdict": "A spectacular live-dribble passer and versatile creator with an improved burst and first step â€” dribble, pass, shoot at an elite level when healthy. Draws fouls at high volume. Lower back injury is the only reason he's not top 5. Predraft medicals are everything.",
+      "nbaTeam": "BKN",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 10,
@@ -243,7 +261,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite PTS, elite AST and elite 3PM on high volume — three category pillars. A 2.97 AST/TO ratio — the most efficient high-volume playmaker in the class. One of the deepest multi-cat elite profiles in the class."
+      "verdict": "Elite PTS, elite AST and elite 3PM on high volume â€” three category pillars. A 2.97 AST/TO ratio â€” the most efficient high-volume playmaker in the class. One of the deepest multi-cat elite profiles in the class.",
+      "nbaTeam": "SAC",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 11,
@@ -263,7 +283,9 @@
       "ft": "3★",
       "tpm": "1★",
       "to": "2★",
-      "verdict": "Elite REB and elite FG% on volume — two genuine category anchors. Best rebounder in the class minute-for-minute. A strong, physical frontcourt presence who brings interior balance and positional strength that complements more rangy lineups."
+      "verdict": "Elite REB and elite FG% on volume â€” two genuine category anchors. Best rebounder in the class minute-for-minute. A strong, physical frontcourt presence who brings interior balance and positional strength that complements more rangy lineups.",
+      "nbaTeam": "CHA",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 12,
@@ -283,7 +305,9 @@
       "ft": "3★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite PTS on high volume and elite 3PM — one of the most underrated scoring profiles in the class. A shifty primary creator with elite rim pressure and trustworthy defensive upside — breaks down defences off the dribble as well as anyone in this class. The dynasty value is higher than the rank suggests."
+      "verdict": "Elite PTS on high volume and elite 3PM â€” one of the most underrated scoring profiles in the class. A shifty primary creator with elite rim pressure and trustworthy defensive upside â€” breaks down defences off the dribble as well as anyone in this class. The dynasty value is higher than the rank suggests.",
+      "nbaTeam": "PHI",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 13,
@@ -303,7 +327,9 @@
       "ft": "3★",
       "tpm": "4★",
       "to": "4★",
-      "verdict": "Elite STL — the most elite steal rate in the class. A chaos creator with phenomenal feel — exceptional on the offensive glass with the size and physicality to impact every possession. Historic multi-cat defensive production for a wing. SOS caveat: Santa Clara is not a P6 programme."
+      "verdict": "Elite STL â€” the most elite steal rate in the class. A chaos creator with phenomenal feel â€” exceptional on the offensive glass with the size and physicality to impact every possession. Historic multi-cat defensive production for a wing. SOS caveat: Santa Clara is not a P6 programme.",
+      "nbaTeam": "TOR",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 14,
@@ -323,7 +349,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite 3PM — a class-leading shooting volume profile. An athletic movement shooter who is also an exceptional shot-blocker for a wing — a rare combination of spacing and defensive versatility. NBA translation thesis is built on shooting and shot-blocking."
+      "verdict": "Elite 3PM â€” a class-leading shooting volume profile. An athletic movement shooter who is also an exceptional shot-blocker for a wing â€” a rare combination of spacing and defensive versatility. NBA translation thesis is built on shooting and shot-blocking.",
+      "nbaTeam": "LAL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 15,
@@ -343,7 +371,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "2★",
-      "verdict": "A gigantic wing with undeniable shotmaking off movement — the strength and physicality to impose himself have improved significantly. Draws fouls at high volume — the scoring has room to grow if the shot diet evolves at NBA level. A development play."
+      "verdict": "A gigantic wing with undeniable shotmaking off movement â€” the strength and physicality to impose himself have improved significantly. Draws fouls at high volume â€” the scoring has room to grow if the shot diet evolves at NBA level. A development play.",
+      "nbaTeam": "MIL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 16,
@@ -363,7 +393,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "4★",
-      "verdict": "Elite 3PM — a rare shooting profile for a forward of his size. A sizable wing who excels in transition with high-level shooting and passing — a genuine multi-tool forward. Age 23.7 is the dynasty runway concern — the production is real, the timeline is short."
+      "verdict": "Elite 3PM â€” a rare shooting profile for a forward of his size. A sizable wing who excels in transition with high-level shooting and passing â€” a genuine multi-tool forward. Age 23.7 is the dynasty runway concern â€” the production is real, the timeline is short.",
+      "nbaTeam": "GSW",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 17,
@@ -383,7 +415,9 @@
       "ft": "3★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "Elite FG% at 62.3% — a genuine category anchor. An explosive athlete with high-level rim protection and interior defence — one of the premier frontcourt defensive prospects in this range. Minutes-suppressed at Michigan. The buy-low case is real."
+      "verdict": "Elite FG% at 62.3% â€” a genuine category anchor. An explosive athlete with high-level rim protection and interior defence â€” one of the premier frontcourt defensive prospects in this range. Minutes-suppressed at Michigan. The buy-low case is real.",
+      "nbaTeam": "DAL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 18,
@@ -403,7 +437,9 @@
       "ft": "4★",
       "tpm": "3★",
       "to": "2★",
-      "verdict": "Elite STL — a class-leading defensive rate. A lengthy wing who brings essential creation against tough, athletic defences — the size and secondary playmaking are the dynasty calling cards. SEC Newcomer of the Year. At 20 years old the dynasty runway is real."
+      "verdict": "Elite STL â€” a class-leading defensive rate. A lengthy wing who brings essential creation against tough, athletic defences â€” the size and secondary playmaking are the dynasty calling cards. SEC Newcomer of the Year. At 20 years old the dynasty runway is real.",
+      "nbaTeam": "CHI",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 19,
@@ -423,7 +459,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "4★",
-      "verdict": "Elite STL and elite 3PM — two category pillars that punch above the consensus ranking. A reliable, dependable guard — the ideal third option who brings depth and ball-handling stability to any backcourt. Consistent multi-contributor floor."
+      "verdict": "Elite STL and elite 3PM â€” two category pillars that punch above the consensus ranking. A reliable, dependable guard â€” the ideal third option who brings depth and ball-handling stability to any backcourt. Consistent multi-contributor floor.",
+      "nbaTeam": "MIL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 20,
@@ -443,7 +481,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "A crafty creator with pull-up shooting and real scoring juice off the dribble — alleviates pressure from primary initiators in a way that doesn't always show in the stat line. Age 22 compresses the dynasty runway but the category floor is real."
+      "verdict": "A crafty creator with pull-up shooting and real scoring juice off the dribble â€” alleviates pressure from primary initiators in a way that doesn't always show in the stat line. Age 22 compresses the dynasty runway but the category floor is real.",
+      "nbaTeam": "OKC",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 21,
@@ -463,7 +503,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "1★",
-      "verdict": "Elite AST and elite 3PM — two category pillars. The most prolific assist creator in the class and arguably its best shooter — elite pull-up ability and pick-and-roll craft that few guards in this draft can match. Specialist profile."
+      "verdict": "Elite AST and elite 3PM â€” two category pillars. The most prolific assist creator in the class and arguably its best shooter â€” elite pull-up ability and pick-and-roll craft that few guards in this draft can match. Specialist profile.",
+      "nbaTeam": "CHA",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 22,
@@ -483,7 +525,9 @@
       "ft": "2★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "Elite BLK — a genuine category anchor. A versatile big who brings utility as a handler and passer — has shown constant improvement at every level. Draws fouls at high volume. Dynasty buy on the rim protection."
+      "verdict": "Elite BLK â€” a genuine category anchor. A versatile big who brings utility as a handler and passer â€” has shown constant improvement at every level. Draws fouls at high volume. Dynasty buy on the rim protection.",
+      "nbaTeam": "ATL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 23,
@@ -503,7 +547,9 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "Elite REB, elite BLK and elite FG% at 60.7% — three genuine category anchors. A traditional center who imposes a physical edge and brings size and strength that impacts every possession. NCAA Tournament East Region MOP: 19.5 PPG and 13.2 RPG over 6 games. Age 22.9 compresses the runway."
+      "verdict": "Elite REB, elite BLK and elite FG% at 60.7% â€” three genuine category anchors. A traditional center who imposes a physical edge and brings size and strength that impacts every possession. NCAA Tournament East Region MOP: 19.5 PPG and 13.2 RPG over 6 games. Age 22.9 compresses the runway.",
+      "nbaTeam": "SAS",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 24,
@@ -523,7 +569,9 @@
       "ft": "2★",
       "tpm": "3★",
       "to": "3★",
-      "verdict": "Elite AST and elite STL — a 6'8\", 246-pound point-forward with elite passing, a high basketball IQ and multi-positional defence. The only player in Big 12 history to post 450+ points, 250+ rebounds, 100+ assists, 70+ steals and 25+ blocks in a season. A Denzel Valentine-style stat-stuffer whose all-around production fills every column on the sheet. Few forwards in this class carry this many categories."
+      "verdict": "Elite AST and elite STL â€” a 6'8\", 246-pound point-forward with elite passing, a high basketball IQ and multi-positional defence. The only player in Big 12 history to post 450+ points, 250+ rebounds, 100+ assists, 70+ steals and 25+ blocks in a season. A Denzel Valentine-style stat-stuffer whose all-around production fills every column on the sheet. Few forwards in this class carry this many categories.",
+      "nbaTeam": "BKN",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 25,
@@ -543,7 +591,9 @@
       "ft": "1★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "Elite FG% at 60.8% — a 7'0\" stretch big who shot 43% from three on nearly 100 attempts and posted 13 double-doubles. A skilled, mobile center with a soft shooting touch from mid-range and beyond the arc — fits the inside-out template every roster is hunting for. The shooting at his size is the dynasty calling card."
+      "verdict": "Elite FG% at 60.8% â€” a 7'0\" stretch big who shot 43% from three on nearly 100 attempts and posted 13 double-doubles. A skilled, mobile center with a soft shooting touch from mid-range and beyond the arc â€” fits the inside-out template every roster is hunting for. The shooting at his size is the dynasty calling card.",
+      "nbaTeam": "ATL",
+      "contract": "Guaranteed Deal (TBD)"
     },
     {
       "rank": 26,
@@ -563,7 +613,9 @@
       "ft": "2★",
       "tpm": "2★",
       "to": "2★",
-      "verdict": "NBL Next Stars pathway — same programme that produced LaMelo Ball, Josh Giddey and Alex Sarr. A developmental wing with improved shooting and solid ball skills — the physical strength and athleticism for a versatile two-way role are already visible. 6'9\" with 7'1\" wingspan. Youngest wing in the class at 19.0. Pure ceiling bet."
+      "verdict": "NBL Next Stars pathway â€” same programme that produced LaMelo Ball, Josh Giddey and Alex Sarr. A developmental wing with improved shooting and solid ball skills â€” the physical strength and athleticism for a versatile two-way role are already visible. 6'9\" with 7'1\" wingspan. Youngest wing in the class at 19.0. Pure ceiling bet.",
+      "nbaTeam": "MEM",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 27,
@@ -583,7 +635,9 @@
       "ft": "1★",
       "tpm": "2★",
       "to": "3★",
-      "verdict": "Elite BLK — a genuine category anchor from scouting context. Special flashes throughout — a slasher, play finisher and secondary passer with massive defensive potential. Only 4 games played due to injury — ratings from scouting, not season stats. The upside is elite. The data isn't there yet."
+      "verdict": "Elite BLK â€” a genuine category anchor from scouting context. Special flashes throughout â€” a slasher, play finisher and secondary passer with massive defensive potential. Only 4 games played due to injury â€” ratings from scouting, not season stats. The upside is elite. The data isn't there yet.",
+      "nbaTeam": "SAS",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 28,
@@ -603,7 +657,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite STL and elite 3PM — two category pillars. A hyper-efficient role player with a relentless motor and high-percentage perimeter shooting that translates to any system. The defensive activity and shooting consistency are exactly what contending rosters need. Age 24.3 compresses the dynasty runway but the production is immediate."
+      "verdict": "Elite STL and elite 3PM â€” two category pillars. A hyper-efficient role player with a relentless motor and high-percentage perimeter shooting that translates to any system. The defensive activity and shooting consistency are exactly what contending rosters need. Age 24.3 compresses the dynasty runway but the production is immediate.",
+      "nbaTeam": "MEM",
+      "contract": "TBD"
     },
     {
       "rank": 29,
@@ -623,7 +679,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "4★",
-      "verdict": "Elite STL and elite 3PM — two category pillars. An excellent complementary player with a unique shotmaking touch — outstanding off-ball defence, movement skills and an innate ability to jump passing lanes. A low-noise, high-value profile."
+      "verdict": "Elite STL and elite 3PM â€” two category pillars. An excellent complementary player with a unique shotmaking touch â€” outstanding off-ball defence, movement skills and an innate ability to jump passing lanes. A low-noise, high-value profile.",
+      "nbaTeam": "CLE",
+      "contract": "TBD"
     },
     {
       "rank": 30,
@@ -643,7 +701,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "4★",
-      "verdict": "A tough, physical movement shooter whose grit and competitiveness stand out on tape — shoots more threes per minute than anyone in the class. The dynasty floor rises and falls with three-point shooting."
+      "verdict": "A tough, physical movement shooter whose grit and competitiveness stand out on tape â€” shoots more threes per minute than anyone in the class. The dynasty floor rises and falls with three-point shooting.",
+      "nbaTeam": "MIN",
+      "contract": "TBD"
     },
     {
       "rank": 31,
@@ -663,7 +723,9 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "3★",
-      "verdict": "A physical presence with real strength and rebounding — shows flashes of mid-range touch and the ability to impact games through interior physicality. A physicality-and-scoring development play."
+      "verdict": "A physical presence with real strength and rebounding â€” shows flashes of mid-range touch and the ability to impact games through interior physicality. A physicality-and-scoring development play.",
+      "nbaTeam": "PHO",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 32,
@@ -683,7 +745,9 @@
       "ft": "4★",
       "tpm": "3★",
       "to": "4★",
-      "verdict": "A steady, high-IQ guard with scoring punch and playmaking vision — the type of backcourt piece who keeps the stat sheet balanced across multiple categories. No single elite anchor but the consistency and floor are real. Age and shooting development will determine the dynasty ceiling."
+      "verdict": "A steady, high-IQ guard with scoring punch and playmaking vision â€” the type of backcourt piece who keeps the stat sheet balanced across multiple categories. No single elite anchor but the consistency and floor are real. Age and shooting development will determine the dynasty ceiling.",
+      "nbaTeam": "HOU",
+      "contract": "TBD"
     },
     {
       "rank": 33,
@@ -703,7 +767,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "One of the highest three-point volumes in the country at nearly 10 attempts per game, paired with a reliable 83% from the line. A pure movement shooter who lives at the rim and beyond the arc, almost never settling for long twos. The shooting gravity and free-throw efficiency are the dynasty anchors. A specialist whose one elite skill is the most portable in the modern game."
+      "verdict": "One of the highest three-point volumes in the country at nearly 10 attempts per game, paired with a reliable 83% from the line. A pure movement shooter who lives at the rim and beyond the arc, almost never settling for long twos. The shooting gravity and free-throw efficiency are the dynasty anchors. A specialist whose one elite skill is the most portable in the modern game.",
+      "nbaTeam": "MIA",
+      "contract": "TBD"
     },
     {
       "rank": 34,
@@ -723,7 +789,9 @@
       "ft": "5★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite FT% and elite 3PM — two category pillars built on shooting efficiency. A 6'8\" forward who stretches the floor from every spot and converts at the line at an elite rate. The shooting translates immediately. Age 23.2 compresses the dynasty runway — the production is ready-made, the timeline is short."
+      "verdict": "Elite FT% and elite 3PM â€” two category pillars built on shooting efficiency. A 6'8\" forward who stretches the floor from every spot and converts at the line at an elite rate. The shooting translates immediately. Age 23.2 compresses the dynasty runway â€” the production is ready-made, the timeline is short.",
+      "nbaTeam": "SAC",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 35,
@@ -743,7 +811,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "3★",
-      "verdict": "Elite STL and elite BLK — a rare dual-defensive anchor at 6'10\" with near-7'4\" wingspan and a 41\" max vertical. The athletic ceiling is massive and the defensive rebound rate confirms the motor is real. A growing divide exists on whether the ball skills can catch up to the raw physical gifts — the defensive production is not a projection. It's already there."
+      "verdict": "Elite STL and elite BLK â€” a rare dual-defensive anchor at 6'10\" with near-7'4\" wingspan and a 41\" max vertical. The athletic ceiling is massive and the defensive rebound rate confirms the motor is real. A growing divide exists on whether the ball skills can catch up to the raw physical gifts â€” the defensive production is not a projection. It's already there.",
+      "nbaTeam": "DEN",
+      "contract": "TBD"
     },
     {
       "rank": 36,
@@ -763,7 +833,9 @@
       "ft": "1★",
       "tpm": "3★",
       "to": "3★",
-      "verdict": "Led Houston in rebounding as a freshman, the first to do so since 2011-12, with a career-high 18-board NCAA Tournament game. A mobile 6'11\" big with a 7'4\" wingspan who finishes as a lob and roll threat and has flashed three-point range. The youngest player in this tier and the only true freshman — the rebounding floor and developing shooting touch give him the longest dynasty runway of the group."
+      "verdict": "Led Houston in rebounding as a freshman, the first to do so since 2011-12, with a career-high 18-board NCAA Tournament game. A mobile 6'11\" big with a 7'4\" wingspan who finishes as a lob and roll threat and has flashed three-point range. The youngest player in this tier and the only true freshman â€” the rebounding floor and developing shooting touch give him the longest dynasty runway of the group.",
+      "nbaTeam": "BOS",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 37,
@@ -783,7 +855,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "3★",
-      "verdict": "Elite AST — a playmaking guard who led Germany to a FIBA U19 silver medal with 6.6 APG and earned BBL Best Young Player honours at 20 years old against professionals nearly a decade his senior. The passing and ball skills are genuine. FG% and 3PM are the severe category drags — 40% from the field and 34% from deep need significant improvement at NBA level. A development play built on playmaking upside and age."
+      "verdict": "Elite AST â€” a playmaking guard who led Germany to a FIBA U19 silver medal with 6.6 APG and earned BBL Best Young Player honours at 20 years old against professionals nearly a decade his senior. The passing and ball skills are genuine. FG% and 3PM are the severe category drags â€” 40% from the field and 34% from deep need significant improvement at NBA level. A development play built on playmaking upside and age.",
+      "nbaTeam": "NYK",
+      "contract": "Overseas Stash"
     },
     {
       "rank": 38,
@@ -803,7 +877,9 @@
       "ft": "3★",
       "tpm": "3★",
       "to": "1★",
-      "verdict": "Elite AST — a creative, high-feel playmaker out of Valencia whose passing vision and court sense are the standout traits. The scoring and size are limited. A specialist point guard whose dynasty value lives and dies with assist volume and whether he earns NBA minutes."
+      "verdict": "Elite AST â€” a creative, high-feel playmaker out of Valencia whose passing vision and court sense are the standout traits. The scoring and size are limited. A specialist point guard whose dynasty value lives and dies with assist volume and whether he earns NBA minutes.",
+      "nbaTeam": "DAL",
+      "contract": "Rookie Scale"
     },
     {
       "rank": 39,
@@ -823,7 +899,9 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "2★",
-      "verdict": "Set Tennessee's single-season steals record (79) and became the first player in SEC history with 200 assists and 100 made threes in a season. A microwave lead guard with deep range and quick hands, the rare profile that anchors both the assist and steal columns while chipping in triples and free-throw percentage. Size is the NBA question; the category production is not."
+      "verdict": "Set Tennessee's single-season steals record (79) and became the first player in SEC history with 200 assists and 100 made threes in a season. A microwave lead guard with deep range and quick hands, the rare profile that anchors both the assist and steal columns while chipping in triples and free-throw percentage. Size is the NBA question; the category production is not.",
+      "nbaTeam": "SAS",
+      "contract": "TBD"
     },
     {
       "rank": 40,
@@ -843,7 +921,9 @@
       "ft": "2★",
       "tpm": "2★",
       "to": "2★",
-      "verdict": "A 6'10\" forward with a 7'1\" wingspan and a wing-like skill set in a big man's body — fluid ball-handling and elite recovery speed have scouts pushing him well into the first round. The physical tools and defensive versatility are rare at his size. The production hasn't matched the physical profile yet — a ceiling play built on the belief that ball skills catch up to the frame."
+      "verdict": "A 6'10\" forward with a 7'1\" wingspan and a wing-like skill set in a big man's body â€” fluid ball-handling and elite recovery speed have scouts pushing him well into the first round. The physical tools and defensive versatility are rare at his size. The production hasn't matched the physical profile yet â€” a ceiling play built on the belief that ball skills catch up to the frame.",
+      "nbaTeam": "LAC",
+      "contract": "TBD"
     },
     {
       "rank": 41,
@@ -863,7 +943,9 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "1★",
-      "verdict": "Elite REB and elite FG% — two genuine category anchors. A physical, imposing center who dominates the glass and finishes at an elite rate around the rim. A non-shooter — the 3PM is absent. The dynasty case is built entirely on rebounding and efficiency as a traditional interior big."
+      "verdict": "Elite REB and elite FG% â€” two genuine category anchors. A physical, imposing center who dominates the glass and finishes at an elite rate around the rim. A non-shooter â€” the 3PM is absent. The dynasty case is built entirely on rebounding and efficiency as a traditional interior big.",
+      "nbaTeam": "MIL",
+      "contract": "Two-Way"
     },
     {
       "rank": 42,
@@ -883,7 +965,9 @@
       "ft": "4★",
       "tpm": "5★",
       "to": "3★",
-      "verdict": "Elite AST, elite STL and elite 3PM — three category pillars from Purdue's floor general. One of the most complete point guard profiles in the class — anchors three columns while shooting efficiently from deep. The scoring and rebounding are limited by size but the playmaking, defensive activity and shooting translate at any level."
+      "verdict": "Elite AST, elite STL and elite 3PM â€” three category pillars from Purdue's floor general. One of the most complete point guard profiles in the class â€” anchors three columns while shooting efficiently from deep. The scoring and rebounding are limited by size but the playmaking, defensive activity and shooting translate at any level.",
+      "nbaTeam": "IND",
+      "contract": "Two-Way"
     },
     {
       "rank": 43,
@@ -903,8 +987,10 @@
       "ft": "3★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "22.8p / 4.4r / 2.5a / 1.8s / 0.1b / 1.4to · FG 41.3% · FT 89.1% · 3P 37.2% · A/TO 1.8 · 37 GP",
-      "birthdate": "2004-03-07"
+      "verdict": "Sacramento keeps finding guys who fit their rebuild culture and Sharp checks every one of those boxes. He is a 3-and-D wing who brings off-ball shooting and defensive effort that modern teams pay for. Everything hinges on whether his shooting efficiency translates to the NBA level, but if it does, this could quietly be one of the late-round steals of the class.",
+      "birthdate": "2004-03-07",
+      "nbaTeam": "SAC",
+      "contract": "TBD"
     },
     {
       "rank": 44,
@@ -924,7 +1010,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "3★",
-      "verdict": "A crafty, pass-first guard with active hands and defensive disruption — the playmaking instincts and steal creation are the dynasty calling cards. The shooting needs significant development before the full multi-category profile unlocks. A high-floor, moderate-ceiling prospect."
+      "verdict": "A crafty, pass-first guard with active hands and defensive disruption â€” the playmaking instincts and steal creation are the dynasty calling cards. The shooting needs significant development before the full multi-category profile unlocks. A high-floor, moderate-ceiling prospect.",
+      "nbaTeam": "TOR",
+      "contract": "TBD"
     },
     {
       "rank": 45,
@@ -944,8 +1032,9 @@
       "ft": "2★",
       "tpm": "4★",
       "to": "1★",
-      "verdict": "6.2p / 5.8r / 8.9a / 1.5s / 0.0b / 3.8to · FG 47.3% · FT 78.0% · 3P 36.2% · A/TO 2.32 · 41 GP",
-      "birthdate": "2004-10-20"
+      "verdict": "An elite international playmaker whose passing vision and defensive activity make him a compelling dynasty stash. He orchestrates offense with remarkable poise for his age and has the feel and IQ to run a team. The rebounding production for a guard is a notable bonus. No clear NBA roster path yet, but the talent is legitimate and worth monitoring as a long-range dynasty hold.",
+      "birthdate": "2004-10-20",
+      "contract": "Overseas Stash"
     },
     {
       "rank": 46,
@@ -965,8 +1054,10 @@
       "ft": "2★",
       "tpm": "1★",
       "to": "4★",
-      "verdict": "22.3p / 13.4r / 1.7a / 2.3s / 2.0b / 1.9to · FG 56.1% · FT 72.5% · 3P 13.0% · A/TO 0.89 · 34 GP",
-      "birthdate": "2003-10-01"
+      "verdict": "Orlando landing Nelson is a genuinely good fit. He is compact for a big man but compensates with terrific length, physicality, and an elite motor that never shuts off. His defensive instincts play well above his draft position, and the Magic have the patience to let his offensive game develop over time. A strong late-round flier in dynasty leagues.",
+      "birthdate": "2003-10-01",
+      "nbaTeam": "ORL",
+      "contract": "TBD"
     },
     {
       "rank": 47,
@@ -986,8 +1077,10 @@
       "ft": "5★",
       "tpm": "3★",
       "to": "3★",
-      "verdict": "24.9p / 7.9r / 1.5a / 0.7s / 0.5b / 1.8to · FG 51.8% · FT 87.3% · 3P 46.4% · A/TO 0.81 · 31 GP",
-      "birthdate": "2004-04-17"
+      "verdict": "Bilodeau is a scorer with an interesting offensive mix, able to shoot from deep, finish at the rim, and lean on some old-school post game. The athleticism and defensive limitations are real concerns that landed him on a two-way deal, but he gets runway to develop in Brooklyn. The scoring is worth keeping tabs on.",
+      "birthdate": "2004-04-17",
+      "nbaTeam": "BKN",
+      "contract": "Two-Way"
     },
     {
       "rank": 48,
@@ -1007,8 +1100,10 @@
       "ft": "3★",
       "tpm": "3★",
       "to": "2★",
-      "verdict": "21.8p / 6.8r / 3.8a / 3.4s / 0.6b / 2.9to · FG 43.8% · FT 78.6% · 3P 34.1% · A/TO 1.29 · 33 GP",
-      "birthdate": "2001-11-26"
+      "verdict": "Draft boards had Nkrumah pegged as a second-rounder but he slipped all the way through undrafted, a genuine surprise given the tools. At 6-6 with a 6-10 wingspan, excellent defensive instincts, and a well-rounded fantasy profile with positive shooting indicators, the upside is real. Denver gives him an Exhibit-10 shot to prove it. Worth a stash in deeper dynasty formats.",
+      "birthdate": "2001-11-26",
+      "nbaTeam": "DEN",
+      "contract": "Exhibit-10"
     },
     {
       "rank": 49,
@@ -1028,7 +1123,9 @@
       "ft": "2★",
       "tpm": "2★",
       "to": "4★",
-      "verdict": "Elite BLK — a true rim protector whose shot-blocking rate is among the best in the class. The defensive impact anchors the entire profile. Offensively limited — the scoring and shooting will not carry dynasty value. A defensive specialist who's lack of offensive capabilities are concerning."
+      "verdict": "Elite BLK â€” a true rim protector whose shot-blocking rate is among the best in the class. The defensive impact anchors the entire profile. Offensively limited â€” the scoring and shooting will not carry dynasty value. A defensive specialist who's lack of offensive capabilities are concerning.",
+      "nbaTeam": "DET",
+      "contract": "TBD"
     },
     {
       "rank": 50,
@@ -1048,8 +1145,10 @@
       "ft": "4★",
       "tpm": "2★",
       "to": "2★",
-      "verdict": "Pre-draft (Matt 6/16, per-70 poss): 26.4p / 4.8r / 5.4a / 1.3s / 0.1b / 2.2to · FG 48.0% · FT 83.0% · 3P 36.5% · A/TO 2.48 · 35 GP",
-      "birthdate": "2001-04-23"
+      "verdict": "Boyd is a sharp shotmaker with genuine ball-handling and playmaking ability, but his frame will be the persistent question at the NBA level. Golden State giving him an Exhibit-10 is a meaningful endorsement. Summer League will be his proving ground, and the offensive tools are legitimate. This is purely a defense-and-size bet at this stage.",
+      "birthdate": "2001-04-23",
+      "nbaTeam": "GSW",
+      "contract": "Exhibit-10"
     },
     {
       "rank": 51,
@@ -1069,7 +1168,9 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "4★",
-      "verdict": "Elite FG% — finishes everything at the rim and almost never settles for jumpers. A relentless motor on the glass and a surprisingly gifted connective passer for a forward, with an assist-to-turnover ratio that ranked top-15 nationally. The rebounding, steals and efficiency travel. A glue-guy profile that wins category weeks without needing the ball."
+      "verdict": "Elite FG% â€” finishes everything at the rim and almost never settles for jumpers. A relentless motor on the glass and a surprisingly gifted connective passer for a forward, with an assist-to-turnover ratio that ranked top-15 nationally. The rebounding, steals and efficiency travel. A glue-guy profile that wins category weeks without needing the ball.",
+      "nbaTeam": "BOS",
+      "contract": "TBD"
     },
     {
       "rank": 52,
@@ -1089,7 +1190,8 @@
       "ft": "4★",
       "tpm": "4★",
       "to": "3★",
-      "verdict": "A versatile, productive wing whose value comes from contributing across multiple categories without a glaring weakness — scoring, shooting and free-throw efficiency all register. No single elite anchor but the balanced profile plays in every format. A steady, low-variance contributor."
+      "verdict": "A versatile, productive wing whose value comes from contributing across multiple categories without a glaring weakness â€” scoring, shooting and free-throw efficiency all register. No single elite anchor but the balanced profile plays in every format. A steady, low-variance contributor.",
+      "contract": "TBD"
     },
     {
       "rank": 53,
@@ -1109,7 +1211,8 @@
       "ft": "4★",
       "tpm": "3★",
       "to": "3★",
-      "verdict": "A well-rounded international guard whose passing and defensive activity stand out — the profile contributes across multiple categories without a glaring weakness. No single elite anchor but the balanced production and versatility create a solid multi-category floor."
+      "verdict": "A well-rounded international guard whose passing and defensive activity stand out â€” the profile contributes across multiple categories without a glaring weakness. No single elite anchor but the balanced production and versatility create a solid multi-category floor.",
+      "contract": "TBD"
     },
     {
       "rank": 54,
@@ -1129,7 +1232,9 @@
       "ft": "3★",
       "tpm": "2★",
       "to": "4★",
-      "verdict": "A back-to-back Big Ten scoring champion who shot 42% from three — a left-handed forward with elite footwork, mismatch-hunting ability in the post and genuine physicality. The scoring touch and shooting efficiency are the dynasty calling cards. A major value grab at this range whose offensive skill set is more polished than most forwards ranked above him."
+      "verdict": "A back-to-back Big Ten scoring champion who shot 42% from three â€” a left-handed forward with elite footwork, mismatch-hunting ability in the post and genuine physicality. The scoring touch and shooting efficiency are the dynasty calling cards. A major value grab at this range whose offensive skill set is more polished than most forwards ranked above him.",
+      "nbaTeam": "LAC",
+      "contract": "TBD"
     },
     {
       "rank": 55,
@@ -1149,8 +1254,10 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "2★",
-      "verdict": "10.2p / 10.7r / 3.4a / 3.7s / 1.3b / 2.5to · FG 62.9% · FT 50.0% · 3P 16.7% · A/TO 1.37 · 38 GP",
-      "birthdate": "2003-11-16"
+      "verdict": "Brown is one of the purest defensive prospects in the class with elite motor, IQ, and intensity on that end of the floor. The problem is the offensive game is essentially nonexistent, which makes a sustainable NBA role hard to project. If any organization can find a way to use a player like this, it is San Antonio. Worth boarding as a deep dynasty flier in leagues that reward defensive counting stats.",
+      "birthdate": "2003-11-16",
+      "nbaTeam": "SAS",
+      "contract": "TBD"
     },
     {
       "rank": 56,
@@ -1170,8 +1277,10 @@
       "ft": "2★",
       "tpm": "3★",
       "to": "3★",
-      "verdict": "Pre-draft (Matt 6/16, per-70 poss): 22.7p / 9.3r / 3.4a / 1.2s / 2.5b / 3.0to · FG 46.5% · FT 73.2% · 3P 31.9% · A/TO 1.14 · 25 GP",
-      "birthdate": "2003-06-03"
+      "verdict": "Bittle going undrafted despite a 7-foot frame and 7-5 wingspan almost certainly signals medical concerns worth factoring into any investment. That said, the offensive tools for a big of his size are genuinely uncommon, and he scores with touch and moves reasonably well for the position. Toronto gives him an Exhibit-10 opportunity, and if the medicals prove manageable, he is an underrated upside swing.",
+      "birthdate": "2003-06-03",
+      "nbaTeam": "TOR",
+      "contract": "Exhibit-10"
     },
     {
       "rank": 57,
@@ -1191,8 +1300,10 @@
       "ft": "1★",
       "tpm": "1★",
       "to": "4★",
-      "verdict": "Elite rebounder.",
-      "birthdate": "2004-01-30"
+      "verdict": "Chicago under Bryson Graham wants players who compete, rebound, and bring energy every single night, and Awaka embodies exactly that. He is an explosive, physical presence who attacks the glass relentlessly and never takes a possession off. The limitation is real: at 6-8, he needs to live below the rim, and the offensive arsenal is thin. He will need to carve a niche as an elite energy and rebounding specialist, but the two-way deal is a legitimate foothold.",
+      "birthdate": "2004-01-30",
+      "nbaTeam": "CHI",
+      "contract": "Two-Way"
     },
     {
       "rank": 58,
@@ -1212,7 +1323,9 @@
       "ft": "3★",
       "tpm": "1★",
       "to": "1★",
-      "verdict": "Led the ACC in assists at 6.5 per game. Set a career high of 16 assists in one game. The passing, defensive activity and shooting combine in a way that makes him a stashable two-way option in deep leagues."
+      "verdict": "Led the ACC in assists at 6.5 per game. Set a career high of 16 assists in one game. The passing, defensive activity and shooting combine in a way that makes him a stashable two-way option in deep leagues.",
+      "nbaTeam": "HOU",
+      "contract": "Two-Way"
     }
   ]
 }

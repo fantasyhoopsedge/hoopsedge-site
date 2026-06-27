@@ -226,7 +226,7 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
                   fontFamily: "'Oswald', sans-serif", fontSize: 10.5,
                   letterSpacing: 1.5, textTransform: "uppercase",
                   color: "rgba(255,255,255,0.6)",
-                }}>{player.school}</span>
+                }}>{player.nbaTeam || player.school}</span>
                 {player.ht && (
                   <span style={{
                     fontFamily: "'JetBrains Mono', monospace",
@@ -413,7 +413,7 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
                   </div>
                   <div className="db-player-meta">
                     {positionBadge(p.pos)}
-                    <span className="dbp-school">{p.school}</span>
+                    <span className="dbp-school">{p.nbaTeam || p.school}</span>
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
