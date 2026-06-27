@@ -5,7 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SignUpModal } from "@/components/sign-up-modal";
 import { Footer } from "@/components/footer";
 
-const SITE_URL = "https://fantasyhoopsedge.com";
+const SITE_URL = "https://www.fantasyhoopsedge.com";
 const SITE_NAME = "Fantasy Hoops Edge";
 const DEFAULT_TITLE =
   "Fantasy Hoops Edge | Fantasy Basketball Analytics, Dynasty Rankings & NBA Stats";

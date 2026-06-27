@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getAllProspectSlugs } from '@/lib/prospects';
 
-const SITE_URL = 'https://fantasyhoopsedge.com';
+const SITE_URL = 'https://www.fantasyhoopsedge.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const slugs = getAllProspectSlugs();
@@ -22,6 +22,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/dynasty-rankings`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/seasonal-rankings`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,

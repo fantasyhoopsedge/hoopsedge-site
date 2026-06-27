@@ -4,7 +4,7 @@ import { generateRookieBoardSchema } from '@/lib/schemas';
 
 export default function DraftBoardLayout({ children }: { children: ReactNode }) {
   const prospects = getAllProspects();
-  const schema = generateRookieBoardSchema(prospects, 'https://fantasyhoopsedge.com');
+  const schema = generateRookieBoardSchema(prospects, 'https://www.fantasyhoopsedge.com');
   return (
     <>
       <script

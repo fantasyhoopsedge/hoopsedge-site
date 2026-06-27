@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     openGraph: {
       title: `${prospect.name} | FHE Dynasty Board #${prospect.pickNumber}`,
       description: prospect.dynastyVerdict.slice(0, 155),
-      url: `https://fantasyhoopsedge.com/prospects/${prospect.slug}`,
+      url: `https://www.fantasyhoopsedge.com/prospects/${prospect.slug}`,
       siteName: 'FantasyHoopsEdge',
       type: 'profile',
     },
     alternates: {
-      canonical: `https://fantasyhoopsedge.com/prospects/${prospect.slug}`,
+      canonical: `https://www.fantasyhoopsedge.com/prospects/${prospect.slug}`,
     },
   };
 }
@@ -67,7 +67,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
   const prospect = getProspectBySlug(slug);
   if (!prospect) notFound();
 
-  const schema = generateProspectSchema(prospect, 'https://fantasyhoopsedge.com');
+  const schema = generateProspectSchema(prospect, 'https://www.fantasyhoopsedge.com');
   const tierColor = pickTierColor(prospect.pickNumber);
 
   const categories = [

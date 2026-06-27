@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function DynastyRankingsLayout({ children }: { children: ReactNode }) {
-  const schema = generateConsensusRankingsSchema("https://fantasyhoopsedge.com");
+  const schema = generateConsensusRankingsSchema("https://www.fantasyhoopsedge.com");
   return (
     <>
       {/* Footer is rendered inside the shell; suppress the root layout one */}

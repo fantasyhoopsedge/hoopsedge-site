@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin/', '/api/'],
     },
-    sitemap: 'https://fantasyhoopsedge.com/sitemap.xml',
+    sitemap: 'https://www.fantasyhoopsedge.com/sitemap.xml',
   };
 }
