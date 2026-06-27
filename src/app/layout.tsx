@@ -5,9 +5,84 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SignUpModal } from "@/components/sign-up-modal";
 import { Footer } from "@/components/footer";
 
+const SITE_URL = "https://fantasyhoopsedge.com";
+const SITE_NAME = "Fantasy Hoops Edge";
+const DEFAULT_TITLE =
+  "Fantasy Hoops Edge | Fantasy Basketball Analytics, Dynasty Rankings & NBA Stats";
+const DEFAULT_DESCRIPTION =
+  "Fantasy Hoops Edge is a fantasy basketball analytics platform: 9-category dynasty rankings, NBA player projections, rookie draft boards, and statistical tools for deep category leagues.";
+const OG_IMAGE = `${SITE_URL}/icon-512.png`;
+
 export const metadata: Metadata = {
-  title: "Fantasy Hoops Edge — Dynasty Intelligence for Category Leagues",
-  description: "Dynasty rankings, rookie draft boards, and prospect analysis for serious dynasty managers. The only 9-cat dynasty tool built for deep leagues.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_DESCRIPTION,
+  keywords: [
+    "fantasy basketball",
+    "dynasty rankings",
+    "NBA stats",
+    "basketball analytics",
+    "9-category",
+    "fantasy basketball rankings",
+    "NBA player projections",
+    "dynasty fantasy basketball",
+    "rookie draft board",
+  ],
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_US",
+    images: [{ url: OG_IMAGE, width: 512, height: 512, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@FantasyHoopEdge",
+    creator: "@FantasyHoopEdge",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
+  other: {
+    category: "Sports",
+    classification: "Sports",
+    subject: "Fantasy Basketball Analytics",
+  },
+};
+
+const ROOT_SCHEMA = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: DEFAULT_DESCRIPTION,
+      inLanguage: "en_US",
+      about: { "@type": "Thing", name: "Basketball" },
+      keywords:
+        "fantasy basketball, dynasty rankings, NBA stats, basketball analytics, 9-category, NBA player projections",
+    },
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: OG_IMAGE,
+        width: 512,
+        height: 512,
+      },
+      sameAs: ["https://x.com/FantasyHoopEdge"],
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -17,6 +92,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ROOT_SCHEMA) }}
+        />
+      </head>
       <body>
         <Script
           id="fhe-theme-init"
