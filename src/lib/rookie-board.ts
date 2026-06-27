@@ -29,6 +29,8 @@ export interface BoardPlayer {
   pick: string;
   name: string;
   school: string;
+  nbaTeam?: string;
+  contract?: string;
   pos: string;
   tier: number;
   age: number | null;
