@@ -4,7 +4,7 @@
  *
  * Run: npx tsx scripts/audit-player-teams.ts
  */
-import { getServiceClient, loadEnv } from "./nba-data/client.ts";
+import { getServiceClient, loadEnv } from "./nba-data/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const DATASETS = [

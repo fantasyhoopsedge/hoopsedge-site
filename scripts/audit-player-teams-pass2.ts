@@ -9,7 +9,7 @@
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client.ts";
+import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
