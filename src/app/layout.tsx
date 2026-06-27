@@ -92,13 +92,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head>
+      <body>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ROOT_SCHEMA) }}
         />
-      </head>
-      <body>
         <Script
           id="fhe-theme-init"
           strategy="beforeInteractive"
