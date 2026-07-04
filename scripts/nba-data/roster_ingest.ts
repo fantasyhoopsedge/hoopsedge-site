@@ -323,10 +323,36 @@ async function main() {
   }
 
   const unmatched = out.filter((r) => !r.player_id);
+
+  // Existing DB rows for this season, so we can remove players who were on an
+  // ingested team's roster before but are no longer in the CSV (cut/replaced).
+  // The upsert alone never deletes, so stale rows would otherwise accumulate.
+  // SCOPED to the teams present in `out`: a `--team BOS` run only ever reconciles
+  // BOS, never touching other teams' players. A truncated/partial CSV therefore
+  // can't nuke the table — only the teams it actually contains.
+  const currentNorms = new Set(out.map((r) => r.norm_name));
+  const ingestedTeams = new Set(out.map((r) => r.team));
+  const existing: { norm_name: string; team: string; full_name: string }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from("nba_roster").select("norm_name,team,full_name").eq("season", season).range(from, from + 999);
+    if (error) throw new Error(`nba_roster read: ${error.message}`);
+    if (!data?.length) break;
+    existing.push(...(data as { norm_name: string; team: string; full_name: string }[]));
+    if (data.length < 1000) break;
+  }
+  const orphanRows = existing.filter(
+    (e) => ingestedTeams.has(e.team) && !currentNorms.has(e.norm_name),
+  );
+
   if (!dryRun) {
     for (const c of chunk(out, UPSERT_CHUNK)) {
       const { error } = await supabase.from("nba_roster").upsert(c, { onConflict: "season,norm_name" });
       if (error) throw new Error(`nba_roster upsert: ${error.message}`);
+    }
+    for (const c of chunk(orphanRows.map((e) => e.norm_name), 200)) {
+      const { error } = await supabase.from("nba_roster").delete().eq("season", season).in("norm_name", c);
+      if (error) throw new Error(`nba_roster reconcile-delete: ${error.message}`);
     }
   }
 
@@ -336,6 +362,13 @@ async function main() {
       `${out.length} players across ${teams.length} team(s) [${teams.join(", ")}] ` +
       `${dryRun ? "would be upserted" : "upserted"}, ${unmatched.length} unmatched to nba_players.`,
   );
+  if (orphanRows.length) {
+    console.log(
+      `\n${orphanRows.length} stale row(s) ${dryRun ? "would be removed" : "removed"} ` +
+        `(were on an ingested team, no longer in the CSV):`,
+    );
+    for (const e of orphanRows) console.log(`  - ${e.full_name} (${e.team})`);
+  }
   // Data-quality cross-check: the 2025-26 team should corroborate the draft/yos
   // tags. A returning sophomore played in the NBA last season (NBA prior_team);
   // an incoming rookie did not (college/overseas). Conflicts catch transcription
