@@ -1,0 +1,238 @@
+"use client";
+
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { useAuth } from "@/context/AuthContext";
+
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "ai-assistant";
+
+type NavItem = {
+  key: AppSidebarActiveKey;
+  label: string;
+  href: string | null;
+  icon: ReactNode;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    key: "cat-values",
+    label: "Player Cat Values",
+    href: "/seasonal-rankings",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h12" />
+      </svg>
+    ),
+  },
+  {
+    key: "dynasty",
+    label: "Dynasty Consensus",
+    href: "/dynasty-rankings",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 3v18h18" /><path d="M7 14l3-3 3 3 5-5" />
+      </svg>
+    ),
+  },
+  {
+    key: "rookie-board",
+    label: "Rookie board",
+    href: "/draft-board",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
+  {
+    key: "rosters",
+    label: "NBA Team Rosters",
+    href: "/team-rosters",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    key: "ai-assistant",
+    label: "Edge AI Assistant",
+    href: null, // coming soon — not wired up yet
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 3h5v5" /><path d="M21 3l-7 7" /><path d="M8 21H3v-5" /><path d="M3 21l7-7" />
+      </svg>
+    ),
+  },
+];
+
+export function AppSidebar({
+  active,
+  theme,
+  onToggleTheme,
+}: {
+  active: AppSidebarActiveKey;
+  theme: "light" | "dark";
+  onToggleTheme: (next: "light" | "dark") => void;
+}) {
+  const { user, profile } = useAuth();
+  const displayName = profile?.username ?? user?.email?.split("@")[0] ?? "Guest";
+  const avatarLetters = displayName.trim().slice(0, 2).toUpperCase();
+
+  return (
+    <aside
+      style={{
+        width: 236,
+        flex: "0 0 236px",
+        height: "100%",
+        borderRight: "1px solid var(--rt-hairline)",
+        padding: "20px 14px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+      }}
+    >
+      <div style={{ padding: "8px 10px 22px" }}>
+        <span
+          style={{
+            fontFamily: "var(--rt-font-sans)",
+            fontSize: 16,
+            fontWeight: 800,
+            letterSpacing: "0.04em",
+            textTransform: "uppercase",
+            color: "var(--rt-ink)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Fantasy Hoops <span style={{ color: "var(--rt-primary)" }}>Edge</span>
+        </span>
+      </div>
+
+      {NAV_ITEMS.map((item) => {
+        const isActive = item.key === active;
+        const row = (
+          <div
+            className={item.href ? "rt-hover-surface" : undefined}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: isActive ? "var(--rt-surface-strong)" : "transparent",
+              color: isActive ? "var(--rt-ink)" : "var(--rt-body)",
+              fontSize: 14,
+              fontWeight: isActive ? 600 : 500,
+              cursor: item.href ? "pointer" : "default",
+            }}
+          >
+            {item.icon}
+            <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
+          </div>
+        );
+        return item.href ? (
+          <Link key={item.key} href={item.href} style={{ textDecoration: "none" }}>
+            {row}
+          </Link>
+        ) : (
+          <div key={item.key}>{row}</div>
+        );
+      })}
+
+      <div style={{ marginTop: "auto", padding: "8px 6px 0" }}>
+        <div style={{ display: "flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+          <button
+            type="button"
+            onClick={() => onToggleTheme("light")}
+            style={{
+              flex: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              height: 32,
+              border: "none",
+              cursor: "pointer",
+              borderRadius: 999,
+              background: theme === "light" ? "var(--rt-raised)" : "transparent",
+              color: theme === "light" ? "var(--rt-ink)" : "var(--rt-muted)",
+              fontFamily: "var(--rt-font-sans)",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4" /><path d="M12 2v2" /><path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" /><path d="M20 12h2" /><path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            Light
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleTheme("dark")}
+            style={{
+              flex: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              height: 32,
+              border: "none",
+              cursor: "pointer",
+              borderRadius: 999,
+              background: theme === "dark" ? "var(--rt-raised)" : "transparent",
+              color: theme === "dark" ? "var(--rt-ink)" : "var(--rt-muted)",
+              fontFamily: "var(--rt-font-sans)",
+              fontSize: 12,
+              fontWeight: 600,
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+            Dark
+          </button>
+        </div>
+      </div>
+
+      <div
+        style={{
+          borderTop: "1px solid var(--rt-hairline-soft)",
+          marginTop: 12,
+          paddingTop: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingBottom: 6,
+        }}
+      >
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            background: "var(--rt-surface-strong)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--rt-ink)",
+          }}
+        >
+          {avatarLetters || "?"}
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {user ? displayName : "Sign in"}
+          </div>
+          <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>12-team league</div>
+        </div>
+      </div>
+    </aside>
+  );
+}

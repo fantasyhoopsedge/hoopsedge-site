@@ -54,3 +54,6 @@ data/nba-salaries/current_raw.csv
 
 # Rookie board editor: unpublished work-in-progress draft (local only)
 src/data/rookie-board.draft.json
+
+# Generated build artifacts (regeneratable from Supabase, not committed source data)
+/output/

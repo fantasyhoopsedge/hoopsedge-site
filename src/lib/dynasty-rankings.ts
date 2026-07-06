@@ -4,7 +4,7 @@ import nbaPlayerIds from "./nba-player-ids.json";
 type NbaPlayerEntry = { id: string; name: string; team: string | null; position: string | null };
 const NBA_PLAYER_IDS = nbaPlayerIds as Record<string, NbaPlayerEntry>;
 
-function normalizePlayerName(name: string): string {
+export function normalizePlayerName(name: string): string {
   return name
     .toLowerCase()
     .normalize("NFD")

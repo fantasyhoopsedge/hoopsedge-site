@@ -1,0 +1,141 @@
+/*
+ * Design tokens for the NBA Team Rosters shell, ported from the Claude
+ * Design system export (fantasy-hoops-edge-design-system). Scoped under
+ * .rt-shell so it never collides with the site's existing --bg- and --text-
+ * prefixed variables in globals.css. Theme is toggled via [data-rt-theme] on the
+ * shell root, independent of the rest of the site's [data-theme] on <html>
+ * but synced to the same "fhe-theme" localStorage key.
+ */
+
+.rt-shell {
+  --rt-primary: #fa4616;
+  --rt-primary-active: #d63a0c;
+
+  --rt-canvas: #ffffff;
+  --rt-surface-soft: #f7f7f5;
+  --rt-surface-strong: #edeeea;
+  --rt-surface-dark: #0c0d0e;
+  --rt-surface-dark-elevated: #17181b;
+
+  --rt-hairline: #e3e3dd;
+  --rt-hairline-soft: #edeeea;
+
+  --rt-ink: #0c0d0e;
+  --rt-body: #5c5f66;
+  --rt-body-strong: #0c0d0e;
+  --rt-muted: #7c8088;
+  --rt-muted-soft: #a9adb3;
+
+  --rt-on-primary: #ffffff;
+  --rt-on-dark: #ffffff;
+  --rt-on-dark-soft: #a9adb3;
+
+  --rt-up: #16a06a;
+  --rt-down: #db2b39;
+
+  --rt-raised: #ffffff;
+  --rt-scrim: rgba(252, 252, 250, 0.82);
+
+  /* Player detail "hero" card — a distinct surface from the rest of the
+     shell (dark in dark mode, light in light mode), not literally forced dark. */
+  --rt-hero-bg: var(--rt-canvas);
+  --rt-hero-ink: var(--rt-ink);
+  --rt-hero-ink-soft: var(--rt-muted);
+  --rt-hero-hairline: var(--rt-hairline);
+  --rt-hero-elevated: var(--rt-raised);
+  --rt-hero-elevated-border: var(--rt-hairline);
+
+  --rt-font-sans: "Geist", var(--font-geist-sans), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rt-font-mono: "Geist Mono", var(--font-geist-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--rt-canvas);
+  font-family: var(--rt-font-sans);
+  color: var(--rt-ink);
+}
+
+.rt-shell[data-rt-theme="dark"] {
+  --rt-raised: #2c2e32;
+  --rt-scrim: rgba(12, 13, 14, 0.8);
+  --rt-canvas: #111315;
+  --rt-surface-soft: #181a1d;
+  --rt-surface-strong: #212327;
+  --rt-surface-dark: #1b1d20;
+  --rt-surface-dark-elevated: #26282c;
+  --rt-hairline: rgba(255, 255, 255, 0.11);
+  --rt-hairline-soft: rgba(255, 255, 255, 0.06);
+  --rt-ink: #f2f2f0;
+  --rt-body: #b7bbc1;
+  --rt-body-strong: #f2f2f0;
+  --rt-muted: #888d95;
+  --rt-muted-soft: #666b72;
+
+  --rt-hero-bg: var(--rt-surface-dark);
+  --rt-hero-ink: var(--rt-on-dark);
+  --rt-hero-ink-soft: var(--rt-on-dark-soft);
+  --rt-hero-hairline: rgba(255, 255, 255, 0.08);
+  --rt-hero-elevated: var(--rt-surface-dark-elevated);
+  --rt-hero-elevated-border: rgba(255, 255, 255, 0.16);
+}
+
+.rt-shell * {
+  box-sizing: border-box;
+}
+
+.rt-shell ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.rt-shell ::-webkit-scrollbar-thumb {
+  background: var(--rt-hairline);
+  border-radius: 999px;
+  border: 3px solid var(--rt-canvas);
+}
+
+.rt-shell[data-rt-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--rt-canvas);
+}
+
+.rt-shell select {
+  -webkit-appearance: none;
+  appearance: none;
+  color-scheme: light;
+}
+
+.rt-shell[data-rt-theme="dark"] select {
+  color-scheme: dark;
+}
+
+.rt-shell[data-rt-theme="dark"] select option {
+  background: var(--rt-surface-strong);
+  color: var(--rt-ink);
+}
+
+.rt-logo-dark {
+  display: none;
+}
+
+.rt-shell[data-rt-theme="dark"] .rt-logo-light {
+  display: none;
+}
+
+.rt-shell[data-rt-theme="dark"] .rt-logo-dark {
+  display: inline;
+}
+
+.rt-hover-surface:hover {
+  background: var(--rt-surface-strong);
+}
+
+.rt-hover-shadow:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.rt-hover-primary:hover {
+  background: var(--rt-primary-active) !important;
+}

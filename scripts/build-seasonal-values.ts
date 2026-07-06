@@ -58,7 +58,7 @@ const REF_VALUES: Record<string, number> = {
 const REF_BASELINE_PTS_MU = 11.783;
 const VALUE_TOLERANCE = 0.03;
 
-type LogRow = {
+export type LogRow = {
   player_id: string;
   game_id: string | null;
   game_date: string | null;
@@ -81,7 +81,7 @@ type LogRow = {
 // so All-Star / Rising Stars exhibition rows — whose "team" label changes every
 // year (2024: EAST/WEST, 2025: CHK/SHQ/KEN/CAN, 2026: STARS/STRIPES/WORLD) and
 // which the feed mislabels season_type='regular' — are dropped generically.
-const NBA_TEAMS = new Set([
+export const NBA_TEAMS = new Set([
   "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GS",
   "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NO", "NY",
   "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SA", "TOR", "UTAH", "WSH",
@@ -100,7 +100,7 @@ const CONSENSUS_TEAM_MAP: Record<string, string> = {
  * game the two >82-game teams share inside the tournament-final window
  * (~Dec 6-20, neutral site). Returns game_ids to drop. Regular season only.
  */
-function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
+export function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
   const drop = new Set<string>();
   if (ds.type !== "regular") return drop;
   const byTeam = new Map<string, Set<string>>();
@@ -126,7 +126,7 @@ function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
 }
 
 /** Drop exhibition (non-NBA-team) rows + the Cup final from a season's logs. */
-function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
+export function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
   const nba = logs.filter((r) => r.team != null && NBA_TEAMS.has(r.team));
   const drop = cupFinalGameIds(nba, ds);
   const kept = drop.size > 0 ? nba.filter((r) => !(r.game_id && drop.has(r.game_id))) : nba;
@@ -560,7 +560,13 @@ async function main(): Promise<void> {
   console.log(`\n✓ done (${datasets.length} dataset${datasets.length === 1 ? "" : "s"})`);
 }
 
-main().catch((e) => {
-  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
-  process.exit(1);
-});
+// Guard against running main() as a side effect of importing filterRealGames/
+// NBA_TEAMS/etc. into another script (e.g. build-player-trends.ts) — only run
+// the build when this file is the actual entrypoint.
+const isEntrypoint = process.argv[1] != null && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isEntrypoint) {
+  main().catch((e) => {
+    console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  });
+}
