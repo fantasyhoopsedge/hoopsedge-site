@@ -17,6 +17,7 @@ import {
 import {
   caret,
   catValCur,
+  catValPrior,
   catZ,
   changeColor,
   clamp,
@@ -25,7 +26,6 @@ import {
   fvValue,
   heroName,
   initials,
-  lastSeasonVal,
   money,
   ordinal,
   posLabel,
@@ -262,23 +262,29 @@ export function RosterApp({
   const isPrior = modeNow === "prior";
   const projLocked = isProj && !PRO_UNLOCKED;
   const gamesLine = isProj ? "Model projection · per game 2026–27" : isPrior ? "Per game · 2024–25" : "Per game · 2025–26";
-  // Prior/Projection are jitter around the CURRENT per-game line (real season
-  // history/a projection model isn't wired in yet — see roster-helpers.ts), so
-  // they're meaningless for a player with no 2025–26 games (e.g. out all season
-  // hurt): jittering zero still nets zero, and z-scoring a literal 0% FG/FT
-  // against the league mean produces a nonsensical double-digit z. Current mode
-  // has the same failure mode when there's no real season_player_values row to
-  // fall back on either (catVals empty). Guard all three instead of rendering it.
+  // Prior is real 2024-25 season_player_stats/season_player_values (see
+  // roster-live-data.ts) — priorGp === 0 means the player has no prior-season
+  // row (rookies, or a player who missed that season entirely). Projection is
+  // still jitter around the CURRENT per-game line (a projection model isn't
+  // wired in yet — see roster-helpers.ts), so it's meaningless for a player
+  // with no 2025–26 games (e.g. out all season hurt): jittering zero still
+  // nets zero, and z-scoring a literal 0% FG/FT against the league mean
+  // produces a nonsensical double-digit z. Current mode has the same failure
+  // mode when there's no real season_player_values row to fall back on either
+  // (catVals empty). Guard all three instead of rendering garbage.
   const hasCurrentSample = sp.gp > 0;
   const noProfileData =
-    ((isPrior || isProj) && !hasCurrentSample) || (modeNow === "cur" && sp.catVals.length === 0 && !hasCurrentSample);
-  const valForStat = (c: (typeof CATS)[number]) => (isProj ? projSeasonVal(sp, c) : isPrior ? lastSeasonVal(sp, c) : sp.pg[c.key]);
+    (isPrior && sp.priorGp === 0) ||
+    (isProj && !hasCurrentSample) ||
+    (modeNow === "cur" && sp.catVals.length === 0 && !hasCurrentSample);
+  const noDataReason = isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet";
+  const valForStat = (c: (typeof CATS)[number]) => (isProj ? projSeasonVal(sp, c) : isPrior ? (sp.priorPg?.[c.key] ?? 0) : sp.pg[c.key]);
   const fmtStat = (c: (typeof CATS)[number]) => {
     const v = valForStat(c);
     if (c.key === "fgp" || c.key === "ftp") return (v * 100).toFixed(1) + "%";
     return v.toFixed(1);
   };
-  const zOf = (c: (typeof CATS)[number]) => (modeNow === "cur" ? catValCur(sp, c) : zFor(c, valForStat(c)));
+  const zOf = (c: (typeof CATS)[number]) => (modeNow === "cur" ? catValCur(sp, c) : isPrior ? catValPrior(sp, c) : zFor(c, valForStat(c)));
   const zBg = (c: (typeof CATS)[number]) => {
     const z = zOf(c);
     if (z >= 1.25) return "rgba(22,160,106,0.18)";
@@ -976,7 +982,7 @@ export function RosterApp({
 
             {noProfileData ? (
               <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                No 2025–26 games logged yet — {isProj ? "2026–27 projection" : isPrior ? "2024–25 estimate" : "profile"} unavailable.
+                {noDataReason} — {isProj ? "2026–27 projection" : isPrior ? "2024–25 profile" : "profile"} unavailable.
               </div>
             ) : (
               <div style={{ marginTop: 14 }}>
@@ -1024,7 +1030,7 @@ export function RosterApp({
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>{gamesLine}</div>
             {noProfileData ? (
               <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                No 2025–26 games logged yet — {isProj ? "2026–27 projection" : isPrior ? "2024–25 estimate" : "stat line"} unavailable.
+                {noDataReason} — {isProj ? "2026–27 projection" : isPrior ? "2024–25 stat line" : "stat line"} unavailable.
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>

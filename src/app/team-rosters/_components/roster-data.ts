@@ -57,6 +57,12 @@ export type Player = {
    * player has no 2025-26 season (rookies) → the UI falls back to a raw z-score.
    */
   catVals: number[];
+  /** Real 2024-25 per-game line from season_player_stats. null = no prior-season row (rookies, etc). */
+  priorPg: PerGameStats | null;
+  /** Real 2024-25 9-cat values (same CATS order as catVals). Empty when priorPg is null. */
+  priorCatVals: number[];
+  /** 2024-25 games played, 0 = no prior season on record. */
+  priorGp: number;
   nineCat: number; // precomputed 9-cat value (season_player_values.value)
   minus1: number; // precomputed Minus1V (season_player_values.minus1v)
   eightCat: number; // 8-cat, turnovers removed: (value*9 - v_to)/8

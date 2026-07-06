@@ -20,6 +20,7 @@ import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type Tone } fr
 export const ROSTER_TAG = "team-rosters";
 const ROSTER_SEASON = "2026-27";
 const STATS_SEASON = 2026; // hoopR: 2026 = the 2025-26 season (latest full)
+const PRIOR_STATS_SEASON = STATS_SEASON - 1; // 2025 = 2024-25, for the Prior tab
 const VALUE_LEAGUE_SIZE = 400; // matches /seasonal-rankings default 1:1
 const CACHE_OPTS = { revalidate: 900, tags: [ROSTER_TAG] };
 const TRENDS_SEASON_TYPE = "regular";
@@ -223,7 +224,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
 
   const ids = roster.map((r) => r.player_id).filter((v): v is string => v != null);
 
-  const [statsRes, valuesRes, poolRanks] = await Promise.all([
+  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, poolRanks] = await Promise.all([
     ids.length
       ? supabase
           .from("season_player_stats")
@@ -241,10 +242,29 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
           .eq("league_size", VALUE_LEAGUE_SIZE)
           .in("player_id", ids)
       : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("season_player_stats")
+          .select("player_id,g,mpg,pts,reb,ast,stl,blk,tov,fg3m,fg_pct,ft_pct")
+          .eq("season", PRIOR_STATS_SEASON)
+          .eq("season_type", "regular")
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("season_player_values")
+          .select("player_id,v_pts,v_reb,v_ast,v_stl,v_blk,v_fg3,v_fg,v_ft,v_to")
+          .eq("season", PRIOR_STATS_SEASON)
+          .eq("season_type", "regular")
+          .eq("league_size", VALUE_LEAGUE_SIZE)
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
     getPoolRanks(),
   ]);
 
   const statsById = new Map((statsRes.data ?? []).map((s) => [s.player_id, s]));
+  const priorStatsById = new Map((priorStatsRes.data ?? []).map((s) => [s.player_id, s]));
+  const priorValuesById = new Map((priorValuesRes.data ?? []).map((v) => [v.player_id, v]));
   const valuesById = new Map((valuesRes.data ?? []).map((v) => [v.player_id, v]));
 
   // Consensus rank + age are needed up front to derive each player's trend tone
@@ -257,6 +277,8 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   return roster.map((r, i): Player => {
     const st = r.player_id ? statsById.get(r.player_id) : undefined;
     const val = r.player_id ? valuesById.get(r.player_id) : undefined;
+    const priorSt = r.player_id ? priorStatsById.get(r.player_id) : undefined;
+    const priorVal = r.player_id ? priorValuesById.get(r.player_id) : undefined;
     const rank = r.player_id ? poolRanks[r.player_id] : undefined;
     const dyn = DYN_BY_NORM.get(r.norm_name);
     const tone = tones[i];
@@ -295,6 +317,27 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
         : null;
     const { years: salaryYears, estimated } = resolveSalaryYears(r);
 
+    // Real 2024-25 line for the Prior tab. null/empty when the player has no
+    // prior-season row (rookies, or a player who didn't play that season).
+    const priorPg: Player["priorPg"] = priorSt
+      ? {
+          pts: priorSt.pts ?? 0,
+          reb: priorSt.reb ?? 0,
+          ast: priorSt.ast ?? 0,
+          stl: priorSt.stl ?? 0,
+          blk: priorSt.blk ?? 0,
+          tpm: priorSt.fg3m ?? 0,
+          fgp: priorSt.fg_pct ?? 0,
+          ftp: priorSt.ft_pct ?? 0,
+          to: priorSt.tov ?? 0,
+        }
+      : null;
+    const priorCatVals: number[] = priorVal
+      ? [priorVal.v_pts, priorVal.v_reb, priorVal.v_ast, priorVal.v_stl, priorVal.v_blk, priorVal.v_fg3, priorVal.v_fg, priorVal.v_ft, priorVal.v_to].map(
+          (v) => v ?? 0,
+        )
+      : [];
+
     return {
       id: r.player_id ?? `n_${r.norm_name.replace(/\s+/g, "-")}`,
       name: r.full_name,
@@ -330,6 +373,9 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
         to: st?.tov ?? 0,
       },
       catVals,
+      priorPg,
+      priorCatVals,
+      priorGp: priorSt?.g ?? 0,
       nineCat,
       minus1,
       eightCat,

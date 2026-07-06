@@ -1,9 +1,9 @@
 /**
  * Pure derived-value helpers ported from the Claude Design prototype
- * (Thunder Roster.dc.html). "Prior" and "projection" stat lines are
- * deterministic jitter around the current per-game line (seeded off the
- * player id) — placeholder trend data until real season history / a
- * projection model is wired in.
+ * (Thunder Roster.dc.html). "Projection" stat lines are deterministic jitter
+ * around the current per-game line (seeded off the player id) — placeholder
+ * trend data until a real projection model is wired in. "Prior" (2024-25) is
+ * real season_player_stats/season_player_values data — see roster-live-data.ts.
  */
 import { CATS, TAG_THEME, type Cat, type FvMetric, type PerGameStats, type Player, type PlayerTag } from "./roster-data";
 
@@ -17,6 +17,11 @@ const CAT_IDX = Object.fromEntries(CATS.map((c, i) => [c.key, i])) as Record<key
  */
 export function catValCur(p: Player, cat: Cat): number {
   return p.catVals?.[CAT_IDX[cat.key]] ?? zFor(cat, p.pg[cat.key]);
+}
+
+/** Same as catValCur but for the real 2024-25 (prior) season line. */
+export function catValPrior(p: Player, cat: Cat): number {
+  return p.priorCatVals?.[CAT_IDX[cat.key]] ?? zFor(cat, p.priorPg?.[cat.key] ?? 0);
 }
 
 /** Fantasy value for a metric from the precomputed season_player_values. */
@@ -36,12 +41,6 @@ export function zFor(cat: Cat, v: number) {
 
 function seedOf(p: Player, salt: number) {
   return [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0) + salt;
-}
-
-export function lastSeasonVal(p: Player, cat: Cat) {
-  const seed = seedOf(p, cat.label.length * 7);
-  const j = Math.sin(seed * 1.3) * 0.12;
-  return p.pg[cat.key] * (1 + j);
 }
 
 export function projSeasonVal(p: Player, cat: Cat) {
