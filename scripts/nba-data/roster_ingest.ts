@@ -23,7 +23,7 @@
  *   npx tsx scripts/nba-data/roster_ingest.ts --season 2026-27
  *   npx tsx scripts/nba-data/roster_ingest.ts --team BOS      # one team
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
@@ -136,7 +136,6 @@ function deriveStatus(
   draftPick: number | null,
   yos: string,
   contractYears: number | null,
-  undrafted: boolean,
 ): string {
   if (special) return special; // Two-Way | Exhibit 10 | RFA | UFA
   if (contractYears == null) {
@@ -311,7 +310,7 @@ async function main() {
       prior_team: priorTeam,
       contract_raw: (r.contract ?? "").trim() || null,
       contract_years: contract.years, contract_total: contract.total,
-      contract_status: deriveStatus(contract.status, draftYearNum, draft.pick, yos, contract.years, draft.undrafted),
+      contract_status: deriveStatus(contract.status, draftYearNum, draft.pick, yos, contract.years),
       fa_year: fa.year, fa_option_years: fa.options,
       salary_yr1: yr[0], salary_yr2: yr[1], salary_yr3: yr[2], salary_yr4: yr[3],
       salary_estimated: usedEst, salary_estimated_years: estimatedYears.join(", ") || null, salary_source,

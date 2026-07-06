@@ -9,7 +9,15 @@ import type { Player } from "./roster-data";
 
 const STORAGE_KEY = "fhe-theme";
 
-export function TeamRostersShell({ team, players }: { team: string; players: Player[] }) {
+export function TeamRostersShell({
+  team,
+  players,
+  ageRank,
+}: {
+  team: string;
+  players: Player[];
+  ageRank: { rank: number; total: number } | null;
+}) {
   // Screenshots for this design were authored dark-first, matching the rest
   // of the site's default theme (see src/app/layout.tsx).
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -38,7 +46,7 @@ export function TeamRostersShell({ team, players }: { team: string; players: Pla
   return (
     <div className={`rt-shell ${GeistSans.variable} ${GeistMono.variable}`} data-rt-theme={theme}>
       <AppSidebar active="rosters" theme={theme} onToggleTheme={handleToggleTheme} />
-      <RosterApp theme={theme} team={team} players={players} />
+      <RosterApp theme={theme} team={team} players={players} ageRank={ageRank} />
     </div>
   );
 }

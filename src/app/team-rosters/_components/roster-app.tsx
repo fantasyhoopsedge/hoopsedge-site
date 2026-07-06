@@ -27,6 +27,7 @@ import {
   initials,
   lastSeasonVal,
   money,
+  ordinal,
   posLabel,
   projSeasonVal,
   shortName,
@@ -49,11 +50,23 @@ const TREND_METRIC: Record<FvMetric, TrendMetric> = { minus1: "minus1V", ninecat
 const PRO_UNLOCKED = false;
 // Highlight the top-5 dynasty-consensus players on the roster with the accent plate.
 const ACCENT_RANK = 5;
+// Projected 2026-27 luxury tax line, for the payroll summary card.
+const TAX_LINE = 200_400_000;
 
 const FV_HEADER: Record<FvMetric, string> = { minus1: "Minus1V", ninecat: "9CatV", eightcat: "8CatV" };
 const SEASON_LABEL: Record<SeasonMode, string> = { cur: "2025–26", prior: "2024–25", proj: "2026–27 proj." };
 
-export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; players: Player[]; team: string }) {
+export function RosterApp({
+  theme,
+  players,
+  team,
+  ageRank,
+}: {
+  theme: "light" | "dark";
+  players: Player[];
+  team: string;
+  ageRank: { rank: number; total: number } | null;
+}) {
   const dark = theme === "dark";
   const router = useRouter();
 
@@ -85,8 +98,22 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
   const fvHdr = fvUseProj ? "Proj M1V" : FV_HEADER[activeMetric];
 
   const qLower = q.toLowerCase();
-  const totalPayroll = players.reduce((a, p) => a + p.salary, 0);
-  const avgAge = players.reduce((a, p) => a + p.age, 0) / players.length;
+  // Undrafted/two-way players with no cap hit yet shouldn't drag down payroll or age averages.
+  const salariedPlayers = players.filter((p) => p.salary > 0);
+  const totalPayroll = salariedPlayers.reduce((a, p) => a + p.salary, 0);
+  const avgAge = salariedPlayers.length ? salariedPlayers.reduce((a, p) => a + p.age, 0) / salariedPlayers.length : 0;
+  const taxDiff = totalPayroll - TAX_LINE;
+  const taxCaption = `${money(Math.abs(taxDiff))} ${taxDiff >= 0 ? "over" : "under"} the $${(TAX_LINE / 1e6).toFixed(1)}M tax line`;
+  const ageCaption = (() => {
+    if (!ageRank || ageRank.total <= 1) return "vs. league average";
+    const { rank, total } = ageRank;
+    if (rank === 1) return "youngest core in the league";
+    if (rank === total) return "oldest core in the league";
+    if (rank <= 5) return `${ordinal(rank)}-youngest team in the league`;
+    const fromBottom = total - rank + 1;
+    if (fromBottom <= 5) return `${ordinal(fromBottom)}-oldest team in the league`;
+    return "middle of the pack, age-wise";
+  })();
 
   const posFilterDefs = [
     { id: "all", label: "All players" },
@@ -134,6 +161,9 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
   }
 
   const isTop = (p: Player) => p.consensus <= ACCENT_RANK;
+  // Sort dropdown parked on "Projections (Pro)": show the lock in place of every
+  // FV-derived cell instead of silently falling back to the real metric.
+  const sortProjLocked = sort === "proj" && !PRO_UNLOCKED;
 
   const cards = list.map((p) => {
     const sel = p.id === selectedId;
@@ -173,16 +203,16 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
       tag,
       tagShort: p.tag === "rookie" ? "R" : p.tag === "soph" ? "S" : "",
       salary: money(p.salary),
-      keyVal: sort === "dynasty" ? "#" + p.consensus : sort === "salary" ? money(p.salary) : fvRankStr,
-      keyLabel: sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr + " rank",
+      keyVal: sortProjLocked ? "🔒" : sort === "dynasty" ? "#" + p.consensus : sort === "salary" ? money(p.salary) : fvRankStr,
+      keyLabel: sortProjLocked ? "Unlock Pro" : sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr + " rank",
       dynRank: "#" + p.consensus,
       change: p.change,
       caret: caret(p.dir),
       changeColor: changeColor(p.dir),
-      fvRank: activeRankStr,
-      fvVerdict: verdict ?? "—",
-      fvToneColor: toneColor,
-      fvToneArrow: toneArrow,
+      fvRank: sortProjLocked ? "🔒" : activeRankStr,
+      fvVerdict: sortProjLocked ? "Unlock Pro" : verdict ?? "—",
+      fvToneColor: sortProjLocked ? "var(--rt-muted)" : toneColor,
+      fvToneArrow: sortProjLocked ? "" : toneArrow,
       plateBg: isTop(p) ? "var(--rt-primary)" : "var(--rt-surface-strong)",
       plateFg: isTop(p) ? "var(--rt-on-primary)" : "var(--rt-ink)",
       cardBorder: sel ? "var(--rt-primary)" : "var(--rt-hairline)",
@@ -248,13 +278,10 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
   }
 
   function onSortChange(v: SortKey) {
-    if (v === "proj" && !PRO_UNLOCKED) {
-      setPayOpen(true);
-      return;
-    }
     setColSort(null);
     setSort(v);
     if (v === "minus1" || v === "ninecat" || v === "eightcat") setFvMetric(v);
+    if (v === "proj" && !PRO_UNLOCKED) setPayOpen(true);
   }
 
   const listHeaderDefs: { key: string; label: string; align: "flex-start" | "center" }[] = [
@@ -396,25 +423,36 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
                         textAlign: "left",
                       }}
                     >
-                      <span
-                        style={{
-                          width: 30,
-                          height: 30,
-                          flex: "0 0 30px",
-                          borderRadius: 999,
-                          background: "var(--rt-surface-strong)",
-                          color: "var(--rt-ink)",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontFamily: "var(--rt-font-mono)",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          letterSpacing: "0.03em",
-                        }}
-                      >
-                        {t.abbr}
-                      </span>
+                      {TEAM_LOGO[t.abbr] ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+                        <img
+                          src={`/images/nba%20team%20images/${TEAM_LOGO[t.abbr]}`}
+                          alt=""
+                          width={30}
+                          height={30}
+                          style={{ width: 30, height: 30, flex: "0 0 30px", objectFit: "contain" }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            width: 30,
+                            height: 30,
+                            flex: "0 0 30px",
+                            borderRadius: 999,
+                            background: "var(--rt-surface-strong)",
+                            color: "var(--rt-ink)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontFamily: "var(--rt-font-mono)",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            letterSpacing: "0.03em",
+                          }}
+                        >
+                          {t.abbr}
+                        </span>
+                      )}
                       <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 500, color: "var(--rt-ink)", whiteSpace: "nowrap" }}>
                         {t.name}
                       </span>
@@ -480,23 +518,23 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
-                {players.length}
+                {salariedPlayers.length}
               </div>
               <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>players under contract</div>
             </div>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
-              <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Total payroll</div>
+              <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Total salaried</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {money(totalPayroll)}
               </div>
-              <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>across {players.length} contracts</div>
+              <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>{taxCaption}</div>
             </div>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Average age</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {avgAge.toFixed(1)}
               </div>
-              <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>youngest core in the league</div>
+              <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>{ageCaption}</div>
             </div>
             <div
               className="rt-hover-shadow"
@@ -618,7 +656,6 @@ export function RosterApp({ theme, players, team }: { theme: "light" | "dark"; p
                   <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--rt-hairline-soft)" }}>
                     <div style={{ textAlign: "left" }}>
                       <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{c.salary}</div>
-                      <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>cap hit</div>
                       {c.contractFull && (
                         <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10, color: "var(--rt-muted-soft)", marginTop: 3 }}>{c.contractFull}</div>
                       )}

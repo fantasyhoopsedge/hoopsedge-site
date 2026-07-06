@@ -154,6 +154,47 @@ const getPoolRanks = unstable_cache(
   CACHE_OPTS,
 );
 
+/** Average age (salaried players only) per team, ranked youngest-first. Cached, shared across teams. */
+const getLeagueAgeRanks = unstable_cache(
+  async (): Promise<Record<string, { rank: number; total: number }>> => {
+    const supabase = createReadClient();
+    const rows: { team: string; dob: string | null; age_at_ingest: number | null; salary_yr1: number | null }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("nba_roster")
+        .select("team,dob,age_at_ingest,salary_yr1")
+        .eq("season", ROSTER_SEASON)
+        .range(from, from + 999);
+      if (!data?.length) break;
+      rows.push(...(data as typeof rows));
+      if (data.length < 1000) break;
+    }
+    const agesByTeam = new Map<string, number[]>();
+    for (const r of rows) {
+      if (r.salary_yr1 == null) continue; // only salaried players count toward a team's average age
+      const age = ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? 0);
+      if (!age) continue;
+      if (!agesByTeam.has(r.team)) agesByTeam.set(r.team, []);
+      agesByTeam.get(r.team)!.push(age);
+    }
+    const avgs = [...agesByTeam.entries()]
+      .map(([team, ages]) => ({ team, avgAge: ages.reduce((a, b) => a + b, 0) / ages.length }))
+      .sort((a, b) => a.avgAge - b.avgAge); // youngest first
+    const total = avgs.length;
+    const out: Record<string, { rank: number; total: number }> = {};
+    avgs.forEach((t, i) => (out[t.team] = { rank: i + 1, total }));
+    return out;
+  },
+  ["team-roster-age-ranks"],
+  CACHE_OPTS,
+);
+
+/** This team's youngest-to-oldest rank among all 30 teams (salaried players only), or null if unavailable. */
+export async function getTeamAgeRank(team: string): Promise<{ rank: number; total: number } | null> {
+  const ranks = await getLeagueAgeRanks();
+  return ranks[team.toUpperCase()] ?? null;
+}
+
 /** Per-year cap hits (Year 1 = 2026-27), extrapolating 2029-30 for a mid-contract deal that runs that far. */
 function resolveSalaryYears(r: {
   salary_yr1: number | null; salary_yr2: number | null; salary_yr3: number | null; salary_yr4: number | null;
