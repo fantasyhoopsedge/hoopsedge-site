@@ -56,6 +56,43 @@ const TAX_LINE = 200_400_000;
 const FV_HEADER: Record<FvMetric, string> = { minus1: "Minus1V", ninecat: "9CatV", eightcat: "8CatV" };
 const SEASON_LABEL: Record<SeasonMode, string> = { cur: "2025–26", prior: "2024–25", proj: "2026–27 proj." };
 
+// The single Edge Pro CTA shown wherever locked projection data would otherwise
+// display — one shared paywall pitch, themed for the dark hero card or the
+// regular light canvas card.
+function EdgeProPromo({ tone, onMaybeLater }: { tone: "hero" | "card"; onMaybeLater: () => void }) {
+  const ink = tone === "hero" ? "var(--rt-hero-ink)" : "var(--rt-ink)";
+  const inkSoft = tone === "hero" ? "var(--rt-hero-ink-soft)" : "var(--rt-body)";
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        <span style={{ fontSize: 13, fontWeight: 600, color: ink }}>Edge Pro</span>
+      </div>
+      <div style={{ fontSize: 12, color: inkSoft, marginTop: 7, lineHeight: 1.5 }}>
+        Unlock 2026–27 projections, season comparisons, and trade scenarios across your league.
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13 }}>
+        <button
+          type="button"
+          className="rt-hover-primary"
+          style={{ height: 36, padding: "0 16px", border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}
+        >
+          Start Pro · $9/mo
+        </button>
+        <button
+          type="button"
+          onClick={onMaybeLater}
+          style={{ height: 36, padding: "0 14px", border: "none", cursor: "pointer", borderRadius: 999, background: "transparent", color: inkSoft, fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}
+        >
+          Maybe later
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function RosterApp({
   theme,
   players,
@@ -864,18 +901,24 @@ export function RosterApp({
               )}
             </div>
           </div>
-          <TrendHero
-            playerId={sp.id}
-            season={TRENDS_SEASON}
-            seasonType={TRENDS_SEASON_TYPE}
-            metric={trendMetric}
-            metricLabel={fvHdr}
-            rank={poolRankOf(sp, activeMetric)}
-            consensusRank={sp.consensus}
-            age={sp.age}
-            gamesPlayed={sp.gp}
-            mpg={sp.mpg}
-          />
+          {projLocked ? (
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
+              <EdgeProPromo tone="hero" onMaybeLater={() => setMode("cur")} />
+            </div>
+          ) : (
+            <TrendHero
+              playerId={sp.id}
+              season={TRENDS_SEASON}
+              seasonType={TRENDS_SEASON_TYPE}
+              metric={trendMetric}
+              metricLabel={fvHdr}
+              rank={poolRankOf(sp, activeMetric)}
+              consensusRank={sp.consensus}
+              age={sp.age}
+              gamesPlayed={sp.gp}
+              mpg={sp.mpg}
+            />
+          )}
         </div>
 
         <div style={{ padding: "18px 18px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
@@ -915,24 +958,26 @@ export function RosterApp({
           {/* 9-category profile: ranked z-score, driven by the shared toggle above */}
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>Ranked high to low · z-score vs league</div>
+            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>
+              {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
+            </div>
 
-            <div style={{ position: "relative", marginTop: 14 }}>
-              <div style={{ filter: projLocked ? "blur(5px)" : "none" }}>
-                {rankedProfile.map((row, i) => (
-                  <div
-                    key={row.key}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 11,
-                      padding: "8px 0",
-                      borderBottom: i < rankedProfile.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
-                    }}
-                  >
-                    <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
-                    <span style={{ position: "relative", flex: 1, height: 14 }}>
-                      <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
+            <div style={{ marginTop: 14 }}>
+              {rankedProfile.map((row, i) => (
+                <div
+                  key={row.key}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 11,
+                    padding: "8px 0",
+                    borderBottom: i < rankedProfile.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
+                  }}
+                >
+                  <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
+                  <span style={{ position: "relative", flex: 1, height: 14 }}>
+                    <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
+                    {!projLocked && (
                       <span
                         style={{
                           position: "absolute",
@@ -945,31 +990,13 @@ export function RosterApp({
                           borderRadius: 999,
                         }}
                       />
-                    </span>
-                    <span style={{ width: 46, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: row.color }}>
-                      {(row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              {projLocked && (
-                <div style={{ position: "absolute", inset: -8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 11, background: "var(--rt-scrim)", borderRadius: 12 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    2026–27 projections · Edge Pro
-                  </div>
-                  <button
-                    type="button"
-                    className="rt-hover-primary"
-                    onClick={() => setPayOpen(true)}
-                    style={{ height: 34, padding: "0 16px", border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}
-                  >
-                    Unlock Pro
-                  </button>
+                    )}
+                  </span>
+                  <span style={{ width: 46, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
+                    {projLocked ? "—" : (row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
+                  </span>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 
@@ -977,64 +1004,24 @@ export function RosterApp({
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Season stats</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>{gamesLine}</div>
-            <div style={{ position: "relative", marginTop: 18 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", filter: projLocked ? "blur(5px)" : "none" }}>
-                {statRows.map((row) => (
-                  <div key={row.label}>
-                    <div style={{ lineHeight: 1 }}>
-                      <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-                        {row.value}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>
+              {statRows.map((row) => (
+                <div key={row.label}>
+                  <div style={{ lineHeight: 1 }}>
+                    <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: projLocked ? "var(--rt-muted-soft)" : "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+                      {projLocked ? "—" : row.value}
+                    </span>
                   </div>
-                ))}
-              </div>
-              {projLocked && (
-                <div style={{ position: "absolute", inset: -8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 11, background: "var(--rt-scrim)", borderRadius: 12 }}>
-                  <div style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                    2026–27 projections · Edge Pro
-                  </div>
-                  <button
-                    type="button"
-                    className="rt-hover-primary"
-                    onClick={() => setPayOpen(true)}
-                    style={{ height: 34, padding: "0 16px", border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}
-                  >
-                    Unlock Pro
-                  </button>
+                  <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 
-          {/* Edge Pro upsell — shown after any "Unlock Pro" CTA on this page */}
+          {/* Edge Pro upsell — shown after picking "Projections (Pro)" from the Sort dropdown */}
           {payOpen && (
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)" }}>Edge Pro</span>
-              </div>
-              <div style={{ fontSize: 12, color: "var(--rt-body)", marginTop: 7, lineHeight: 1.5 }}>
-                Unlock 2026–27 projections, season comparisons, and trade scenarios across your league.
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13 }}>
-                <button type="button" className="rt-hover-primary" style={{ height: 36, padding: "0 16px", border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}>
-                  Start Pro · $9/mo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPayOpen(false)}
-                  style={{ height: 36, padding: "0 14px", border: "none", cursor: "pointer", borderRadius: 999, background: "transparent", color: "var(--rt-body)", fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600 }}
-                >
-                  Maybe later
-                </button>
-              </div>
+              <EdgeProPromo tone="card" onMaybeLater={() => setPayOpen(false)} />
             </div>
           )}
 
