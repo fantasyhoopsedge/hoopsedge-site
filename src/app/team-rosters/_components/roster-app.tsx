@@ -320,14 +320,9 @@ export function RosterApp({
   };
   // 9-cat profile: ranked highest z-score to lowest, colored via the same
   // green/amber/red tiers used for the stat-set chips elsewhere on this page.
-  // priorBar (current mode only) is last year's real z-score: a thick, neutral
-  // grey-outlined "track" showing where the player used to sit, with this
-  // year's thin tier-colored bar drawn on top of it — whether the thin bar
-  // reaches past or falls short of the outline reads as improved/declined.
   const rankedProfile = CATS.map((c) => {
     const z = zOf(c);
-    const priorBar = showPriorCompare ? mkBar(catValPrior(sp, c)) : null;
-    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z), priorBar };
+    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
   }).sort((a, b) => b.z - a.z);
 
   const contract = contractFor(sp);
@@ -999,11 +994,7 @@ export function RosterApp({
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>
-              {projLocked
-                ? "2026–27 model projection · Edge Pro"
-                : showPriorCompare && !noProfileData
-                  ? "Ranked high to low · z-score vs league · fill = 2024–25, outline = 2025–26"
-                  : "Ranked high to low · z-score vs league"}
+              {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
             {noProfileData ? (
@@ -1024,33 +1015,15 @@ export function RosterApp({
                     }}
                   >
                     <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
-                    <span style={{ position: "relative", flex: 1, height: 16 }}>
+                    <span style={{ position: "relative", flex: 1, height: 14 }}>
                       <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
-                      {row.priorBar && !projLocked && (
-                        <span
-                          title="2024–25"
-                          style={{
-                            position: "absolute",
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            height: 16,
-                            left: row.priorBar.left,
-                            width: row.priorBar.width,
-                            background: "transparent",
-                            border: "1.5px solid var(--rt-muted)",
-                            borderRadius: 999,
-                            boxSizing: "border-box",
-                          }}
-                        />
-                      )}
                       {!projLocked && (
                         <span
-                          title={row.priorBar ? "2025–26" : undefined}
                           style={{
                             position: "absolute",
                             top: "50%",
                             transform: "translateY(-50%)",
-                            height: 6,
+                            height: 8,
                             left: row.bar.left,
                             width: row.bar.width,
                             background: row.color,
