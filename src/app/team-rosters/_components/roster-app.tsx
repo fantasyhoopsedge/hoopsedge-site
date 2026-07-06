@@ -278,6 +278,9 @@ export function RosterApp({
     (isProj && !hasCurrentSample) ||
     (modeNow === "cur" && sp.catVals.length === 0 && !hasCurrentSample);
   const noDataReason = isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet";
+  // Current mode only: show movement vs. the real 2024-25 line, so a look at
+  // "now" also reads as "up/down from last year" without switching tabs.
+  const showPriorCompare = modeNow === "cur" && sp.priorGp > 0;
   const valForStat = (c: (typeof CATS)[number]) => (isProj ? projSeasonVal(sp, c) : isPrior ? (sp.priorPg?.[c.key] ?? 0) : sp.pg[c.key]);
   const fmtStat = (c: (typeof CATS)[number]) => {
     const v = valForStat(c);
@@ -293,7 +296,21 @@ export function RosterApp({
     if (z <= -0.5) return "rgba(219,43,57,0.08)";
     return "transparent";
   };
-  const statRows = CATS.map((c) => ({ label: c.label, value: fmtStat(c), bg: projLocked ? "transparent" : zBg(c) }));
+  // vs. 2024-25 delta for the season-stats grid, e.g. "▲2.6%" / "▼0.5". Sign
+  // of "improved" flips for TO (lower is better) so the color reads correctly.
+  const deltaFor = (c: (typeof CATS)[number]): { text: string; color: string } | null => {
+    if (!showPriorCompare) return null;
+    const isPct = c.key === "fgp" || c.key === "ftp";
+    const diff = valForStat(c) - (sp.priorPg![c.key] ?? 0);
+    const shown = isPct ? diff * 100 : diff;
+    if (Math.abs(shown) < 0.05) return null; // negligible float noise, not a real move
+    const improved = c.invert ? diff < 0 : diff > 0;
+    return {
+      text: `${diff >= 0 ? "▲" : "▼"}${Math.abs(shown).toFixed(1)}${isPct ? "%" : ""}`,
+      color: improved ? "var(--rt-up)" : "var(--rt-down)",
+    };
+  };
+  const statRows = CATS.map((c) => ({ label: c.label, value: fmtStat(c), bg: projLocked ? "transparent" : zBg(c), delta: deltaFor(c) }));
 
   const mkBar = (z: number) => {
     const zc = clamp(z, -3, 3);
@@ -303,9 +320,12 @@ export function RosterApp({
   };
   // 9-cat profile: ranked highest z-score to lowest, colored via the same
   // green/amber/red tiers used for the stat-set chips elsewhere on this page.
+  // priorBar (current mode only) is a dashed outline at last year's z-score,
+  // rendered behind the solid bar so the gap between them reads as movement.
   const rankedProfile = CATS.map((c) => {
     const z = zOf(c);
-    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
+    const priorBar = showPriorCompare ? mkBar(catValPrior(sp, c)) : null;
+    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z), priorBar };
   }).sort((a, b) => b.z - a.z);
 
   const contract = contractFor(sp);
@@ -977,7 +997,11 @@ export function RosterApp({
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>
-              {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
+              {projLocked
+                ? "2026–27 model projection · Edge Pro"
+                : showPriorCompare && !noProfileData
+                  ? "Ranked high to low · z-score vs league · dashed = 2024–25"
+                  : "Ranked high to low · z-score vs league"}
             </div>
 
             {noProfileData ? (
@@ -1000,6 +1024,22 @@ export function RosterApp({
                     <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
                     <span style={{ position: "relative", flex: 1, height: 14 }}>
                       <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
+                      {row.priorBar && !projLocked && (
+                        <span
+                          title="2024–25"
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            height: 10,
+                            left: row.priorBar.left,
+                            width: row.priorBar.width,
+                            border: "1.5px dashed var(--rt-muted)",
+                            borderRadius: 999,
+                            boxSizing: "border-box",
+                          }}
+                        />
+                      )}
                       {!projLocked && (
                         <span
                           style={{
@@ -1036,10 +1076,18 @@ export function RosterApp({
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>
                 {statRows.map((row) => (
                   <div key={row.label}>
-                    <div style={{ lineHeight: 1 }}>
+                    <div style={{ lineHeight: 1, display: "flex", alignItems: "baseline", gap: 5, flexWrap: "wrap" }}>
                       <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: projLocked ? "var(--rt-muted-soft)" : "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
                         {projLocked ? "—" : row.value}
                       </span>
+                      {row.delta && !projLocked && (
+                        <span
+                          title="vs. 2024–25"
+                          style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, fontWeight: 700, color: row.delta.color, fontVariantNumeric: "tabular-nums" }}
+                        >
+                          {row.delta.text}
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
                   </div>
