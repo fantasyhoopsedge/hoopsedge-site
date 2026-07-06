@@ -112,7 +112,6 @@ export function RosterApp({
   const [mode, setMode] = useState<SeasonMode | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("dynasty");
-  const [payOpen, setPayOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [colSort, setColSort] = useState<string | null>(null);
   const [colDir, setColDir] = useState<"asc" | "desc">("desc");
@@ -240,14 +239,14 @@ export function RosterApp({
       tag,
       tagShort: p.tag === "rookie" ? "R" : p.tag === "soph" ? "S" : "",
       salary: money(p.salary),
-      keyVal: sortProjLocked ? "🔒" : sort === "dynasty" ? "#" + p.consensus : sort === "salary" ? money(p.salary) : fvRankStr,
-      keyLabel: sortProjLocked ? "Unlock Pro" : sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr + " rank",
+      keyVal: sortProjLocked ? "—" : sort === "dynasty" ? "#" + p.consensus : sort === "salary" ? money(p.salary) : fvRankStr,
+      keyLabel: sortProjLocked ? "" : sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr + " rank",
       dynRank: "#" + p.consensus,
       change: p.change,
       caret: caret(p.dir),
       changeColor: changeColor(p.dir),
-      fvRank: sortProjLocked ? "🔒" : activeRankStr,
-      fvVerdict: sortProjLocked ? "Unlock Pro" : verdict ?? "—",
+      fvRank: sortProjLocked ? "—" : activeRankStr,
+      fvVerdict: sortProjLocked ? "" : (verdict ?? "—"),
       fvToneColor: sortProjLocked ? "var(--rt-muted)" : toneColor,
       fvToneArrow: sortProjLocked ? "" : toneArrow,
       plateBg: isTop(p) ? "var(--rt-primary)" : "var(--rt-surface-strong)",
@@ -318,8 +317,10 @@ export function RosterApp({
     setColSort(null);
     setSort(v);
     if (v === "minus1" || v === "ninecat" || v === "eightcat") setFvMetric(v);
-    if (v === "proj" && !PRO_UNLOCKED) setPayOpen(true);
   }
+
+  // "Maybe later" on the Projections paywall modal: snap back to the last real FV metric sort.
+  const dismissProjSort = () => setSort(fvMetric);
 
   const listHeaderDefs: { key: string; label: string; align: "flex-start" | "center" }[] = [
     { key: "name", label: "Player", align: "flex-start" },
@@ -334,6 +335,7 @@ export function RosterApp({
   const listGridCols = "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr) minmax(262px,1.7fr)";
 
   return (
+    <>
     <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
       {/* ================= MAIN COLUMN ================= */}
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -1018,12 +1020,6 @@ export function RosterApp({
             </div>
           </div>
 
-          {/* Edge Pro upsell — shown after picking "Projections (Pro)" from the Sort dropdown */}
-          {payOpen && (
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 16 }}>
-              <EdgeProPromo tone="card" onMaybeLater={() => setPayOpen(false)} />
-            </div>
-          )}
 
           {/* Salary & contract */}
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
@@ -1104,5 +1100,19 @@ export function RosterApp({
         </div>
       </aside>
     </div>
+    {sortProjLocked && (
+      <div
+        onClick={dismissProjSort}
+        style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)" }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{ width: 360, maxWidth: "calc(100vw - 32px)", background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 20, padding: 24, boxShadow: "0 24px 60px rgba(0,0,0,0.35)" }}
+        >
+          <EdgeProPromo tone="card" onMaybeLater={dismissProjSort} />
+        </div>
+      </div>
+    )}
+    </>
   );
 }
