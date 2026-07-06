@@ -320,12 +320,20 @@ export function RosterApp({
   };
   // 9-cat profile: ranked highest z-score to lowest, colored via the same
   // green/amber/red tiers used for the stat-set chips elsewhere on this page.
-  // priorBar (current mode only) is a dashed outline at last year's z-score,
-  // rendered behind the solid bar so the gap between them reads as movement.
+  // priorBar (current mode only) is last year's real z-score, drawn as a solid
+  // tier-colored fill BEHIND an outlined (transparent) bar for the current
+  // value, so last year reads as the bold reference and this year as the
+  // overlay showing movement off of it.
   const rankedProfile = CATS.map((c) => {
     const z = zOf(c);
-    const priorBar = showPriorCompare ? mkBar(catValPrior(sp, c)) : null;
-    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z), priorBar };
+    let priorBar: { left: string; width: string } | null = null;
+    let priorColor: string | null = null;
+    if (showPriorCompare) {
+      const priorZ = catValPrior(sp, c);
+      priorBar = mkBar(priorZ);
+      priorColor = STATSET_COLORS[starTier(priorZ)];
+    }
+    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z), priorBar, priorColor };
   }).sort((a, b) => b.z - a.z);
 
   const contract = contractFor(sp);
@@ -1000,7 +1008,7 @@ export function RosterApp({
               {projLocked
                 ? "2026–27 model projection · Edge Pro"
                 : showPriorCompare && !noProfileData
-                  ? "Ranked high to low · z-score vs league · dashed = 2024–25"
+                  ? "Ranked high to low · z-score vs league · fill = 2024–25, outline = 2025–26"
                   : "Ranked high to low · z-score vs league"}
             </div>
 
@@ -1031,26 +1039,28 @@ export function RosterApp({
                             position: "absolute",
                             top: "50%",
                             transform: "translateY(-50%)",
-                            height: 10,
+                            height: 8,
                             left: row.priorBar.left,
                             width: row.priorBar.width,
-                            border: "1.5px dashed var(--rt-muted)",
+                            background: row.priorColor ?? "var(--rt-muted)",
                             borderRadius: 999,
-                            boxSizing: "border-box",
                           }}
                         />
                       )}
                       {!projLocked && (
                         <span
+                          title={row.priorBar ? "2025–26" : undefined}
                           style={{
                             position: "absolute",
                             top: "50%",
                             transform: "translateY(-50%)",
-                            height: 8,
+                            height: row.priorBar ? 12 : 8,
                             left: row.bar.left,
                             width: row.bar.width,
-                            background: row.color,
+                            background: row.priorBar ? "transparent" : row.color,
+                            border: row.priorBar ? `2px solid ${row.color}` : "none",
                             borderRadius: 999,
+                            boxSizing: "border-box",
                           }}
                         />
                       )}
