@@ -262,6 +262,16 @@ export function RosterApp({
   const isPrior = modeNow === "prior";
   const projLocked = isProj && !PRO_UNLOCKED;
   const gamesLine = isProj ? "Model projection · per game 2026–27" : isPrior ? "Per game · 2024–25" : "Per game · 2025–26";
+  // Prior/Projection are jitter around the CURRENT per-game line (real season
+  // history/a projection model isn't wired in yet — see roster-helpers.ts), so
+  // they're meaningless for a player with no 2025–26 games (e.g. out all season
+  // hurt): jittering zero still nets zero, and z-scoring a literal 0% FG/FT
+  // against the league mean produces a nonsensical double-digit z. Current mode
+  // has the same failure mode when there's no real season_player_values row to
+  // fall back on either (catVals empty). Guard all three instead of rendering it.
+  const hasCurrentSample = sp.gp > 0;
+  const noProfileData =
+    ((isPrior || isProj) && !hasCurrentSample) || (modeNow === "cur" && sp.catVals.length === 0 && !hasCurrentSample);
   const valForStat = (c: (typeof CATS)[number]) => (isProj ? projSeasonVal(sp, c) : isPrior ? lastSeasonVal(sp, c) : sp.pg[c.key]);
   const fmtStat = (c: (typeof CATS)[number]) => {
     const v = valForStat(c);
@@ -964,60 +974,72 @@ export function RosterApp({
               {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
-            <div style={{ marginTop: 14 }}>
-              {rankedProfile.map((row, i) => (
-                <div
-                  key={row.key}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 11,
-                    padding: "8px 0",
-                    borderBottom: i < rankedProfile.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
-                  }}
-                >
-                  <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
-                  <span style={{ position: "relative", flex: 1, height: 14 }}>
-                    <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
-                    {!projLocked && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: "50%",
-                          transform: "translateY(-50%)",
-                          height: 8,
-                          left: row.bar.left,
-                          width: row.bar.width,
-                          background: row.color,
-                          borderRadius: 999,
-                        }}
-                      />
-                    )}
-                  </span>
-                  <span style={{ width: 46, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
-                    {projLocked ? "—" : (row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {noProfileData ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                No 2025–26 games logged yet — {isProj ? "2026–27 projection" : isPrior ? "2024–25 estimate" : "profile"} unavailable.
+              </div>
+            ) : (
+              <div style={{ marginTop: 14 }}>
+                {rankedProfile.map((row, i) => (
+                  <div
+                    key={row.key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 11,
+                      padding: "8px 0",
+                      borderBottom: i < rankedProfile.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
+                    }}
+                  >
+                    <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
+                    <span style={{ position: "relative", flex: 1, height: 14 }}>
+                      <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
+                      {!projLocked && (
+                        <span
+                          style={{
+                            position: "absolute",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            height: 8,
+                            left: row.bar.left,
+                            width: row.bar.width,
+                            background: row.color,
+                            borderRadius: 999,
+                          }}
+                        />
+                      )}
+                    </span>
+                    <span style={{ width: 46, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
+                      {projLocked ? "—" : (row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Season stats — driven by the shared toggle above */}
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Season stats</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>{gamesLine}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>
-              {statRows.map((row) => (
-                <div key={row.label}>
-                  <div style={{ lineHeight: 1 }}>
-                    <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: projLocked ? "var(--rt-muted-soft)" : "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-                      {projLocked ? "—" : row.value}
-                    </span>
+            {noProfileData ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                No 2025–26 games logged yet — {isProj ? "2026–27 projection" : isPrior ? "2024–25 estimate" : "stat line"} unavailable.
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>
+                {statRows.map((row) => (
+                  <div key={row.label}>
+                    <div style={{ lineHeight: 1 }}>
+                      <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: projLocked ? "var(--rt-muted-soft)" : "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+                        {projLocked ? "—" : row.value}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
 
