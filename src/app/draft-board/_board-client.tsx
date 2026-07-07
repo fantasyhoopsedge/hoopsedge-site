@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import {
   CATS, CAT_LABELS, tierInfo, normalizeName,
   type BoardPlayer, type BoardTier, type RookieBoard, type MovementInfo, type MovementMap,
@@ -351,7 +351,7 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
 
   return (
     <div className="draft-board-shell">
-      <SiteNav active="draft" />
+      <PlatformSidebarNav active="rookie-board" />
 
       <div className="db-board-wrap" style={{ padding: "80px 60px 100px", maxWidth: "1280px", width: "100%", margin: "0 auto" }}>
       {/* Published-version header — the live board's name + version */}

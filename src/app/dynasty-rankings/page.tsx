@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DYNASTY_RANKINGS, activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { ControlsBar, type RankRangeKey } from "./_components/controls-bar";
 import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
@@ -234,7 +234,7 @@ export default function DynastyRankingsPage() {
 
   return (
     <div className="dr-rankings-shell">
-      <SiteNav active="rankings" />
+      <PlatformSidebarNav active="dynasty" />
 
       <div className="dr-rankings-measured-top">
         <div className="dr-sticky-controls">

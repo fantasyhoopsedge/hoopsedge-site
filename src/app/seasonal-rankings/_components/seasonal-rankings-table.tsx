@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 
 type SeasonOption = { key: string; label: string };
@@ -374,7 +374,7 @@ export function SeasonalRankingsTable(props: {
 
   return (
     <div className="sr-shell">
-      <SiteNav active="rankings" />
+      <PlatformSidebarNav active="cat-values" />
 
       <div className="sr-controls" ref={controlsRef}>
         <div className="sr-controls-inner">
@@ -722,11 +722,12 @@ export function SeasonalRankingsTable(props: {
       <Footer />
 
       <style>{`
-        /* The global <nav> is position:fixed and does not consume layout flow,
-           so the shell offsets its height (64px desktop / 52px mobile). */
-        .sr-shell { min-height: 100vh; display: flex; flex-direction: column; padding-top: 64px; }
+        /* Desktop: left rail sidebar (position:fixed, 236px) offsets via
+           padding-left. Mobile falls back to the old fixed top <nav>
+           (52px) — see PlatformSidebarNav and the media query below. */
+        .sr-shell { min-height: 100vh; display: flex; flex-direction: column; padding-left: 236px; }
         .sr-controls {
-          position: sticky; top: 64px; z-index: 50;
+          position: sticky; top: 0; z-index: 50;
           background: var(--bg-surface); border-bottom: 1px solid var(--border-main);
         }
         .sr-controls-inner {
@@ -853,7 +854,7 @@ export function SeasonalRankingsTable(props: {
         }
 
         @media (max-width: 767px) {
-          .sr-shell { padding-top: 52px; }
+          .sr-shell { padding-left: 0; padding-top: 52px; }
           .sr-controls { top: 52px; }
           .sr-controls-inner { gap: 10px; padding: 10px 12px; }
           .sr-th-shot, .sr-td-shot { display: none; }
