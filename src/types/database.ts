@@ -484,6 +484,30 @@ export interface Database {
           },
         ];
       };
+      // Per-player block-level value trends (migration 20260707000000_nba_player_trends).
+      // Written by scripts/build-player-trends.ts (service role); payload is the full
+      // PlayerTrendOut object — the exact shape /api/player-trends serves.
+      nba_player_trends: {
+        Row: {
+          season: number;
+          season_type: string;
+          player_id: string;
+          player_name: string;
+          generated_at: string;
+          payload: Json;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "nba_player_trends_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "nba_players";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -610,6 +634,7 @@ export type NbaPlayer = Database["public"]["Tables"]["nba_players"]["Row"];
 export type NbaPlayerGameLog = Database["public"]["Tables"]["nba_player_game_logs"]["Row"];
 export type NbaContract = Database["public"]["Tables"]["nba_contracts"]["Row"];
 export type NbaRoster = Database["public"]["Tables"]["nba_roster"]["Row"];
+export type NbaPlayerTrends = Database["public"]["Tables"]["nba_player_trends"]["Row"];
 export type NbaSeasonAverage = Database["public"]["Views"]["nba_season_averages"]["Row"];
 export type NbaFreeAgent = Database["public"]["Views"]["nba_free_agents"]["Row"];
 export type NbaContractSeasons = Database["public"]["Views"]["nba_contract_seasons"]["Row"];

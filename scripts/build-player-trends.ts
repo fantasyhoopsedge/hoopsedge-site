@@ -1,9 +1,10 @@
 /**
  * Build per-player, per-2-week-block value trends (9CatV / Minus1V / 8CatV).
  *
- *   npm run trends:build                     # ALL datasets, write JSON
+ *   npm run trends:build                     # ALL datasets, push to Supabase
  *   npm run trends:build -- --only 2026:regular
- *   npm run trends:build -- --dry-run        # compute + log, NO file write
+ *   npm run trends:build -- --dry-run        # compute + log, NO write
+ *   npm run trends:build -- --file           # ALSO write output/player-trends JSON (local debug)
  *
  * Pipeline (per dataset):
  *   1. Load the FROZEN 400-player baseline pool from the already-built
@@ -29,7 +30,10 @@
  *      so trend-insight.ts can tell a genuine multi-season decline (e.g. an aging
  *      star whose minutes/production have fallen every year) apart from a
  *      single-season injury dip that just needs the block-level data above.
- *   7. Write output/player-trends/{season}-{type}.json.
+ *   7. Upsert one row per player into nba_player_trends (payload = the full
+ *      per-player object), then prune rows for players that fell out of the
+ *      build. api/player-trends/route.ts and roster-live-data.ts read this
+ *      table — trends update in prod without a redeploy.
  */
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -44,6 +48,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 // ── args ──────────────────────────────────────────────────────────────────────
 const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run");
+const WRITE_FILE = argv.includes("--file"); // debug: also write the legacy local JSON
 const onlyArgIdx = argv.indexOf("--only");
 const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
 
@@ -559,6 +564,55 @@ function writeOutput(ds: Dataset, players: PlayerTrendOut[]): void {
   console.log(`  wrote ${path} (${players.length} players)`);
 }
 
+/**
+ * Upsert one nba_player_trends row per player (payload = the full per-player
+ * object — the exact shape /api/player-trends serves), then prune rows for
+ * players no longer in the build (e.g. dropped below the display filter after
+ * a stats correction). Chunked: payloads run ~10-20KB each.
+ */
+async function pushOutput(ds: Dataset, players: PlayerTrendOut[]): Promise<void> {
+  const supabase = getServiceClient();
+  const generatedAt = new Date().toISOString();
+  const rows = players.map((p) => ({
+    season: ds.season,
+    season_type: ds.type,
+    player_id: p.playerId,
+    player_name: p.player,
+    generated_at: generatedAt,
+    payload: p,
+    updated_at: generatedAt,
+  }));
+
+  const CHUNK = 100;
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const { error } = await supabase.from("nba_player_trends").upsert(rows.slice(i, i + CHUNK));
+    if (error) throw new Error(`trends upsert failed (rows ${i}..${i + CHUNK}): ${error.message}`);
+  }
+
+  const keep = new Set(players.map((p) => p.playerId));
+  const { data: existing, error: exErr } = await supabase
+    .from("nba_player_trends")
+    .select("player_id")
+    .eq("season", ds.season)
+    .eq("season_type", ds.type);
+  if (exErr) throw new Error(`trends prune select failed: ${exErr.message}`);
+  const stale = (existing ?? []).map((r) => r.player_id as string).filter((id) => !keep.has(id));
+  for (let i = 0; i < stale.length; i += 200) {
+    const { error } = await supabase
+      .from("nba_player_trends")
+      .delete()
+      .eq("season", ds.season)
+      .eq("season_type", ds.type)
+      .in("player_id", stale.slice(i, i + 200));
+    if (error) throw new Error(`trends prune delete failed: ${error.message}`);
+  }
+
+  console.log(
+    `  pushed ${rows.length} players to nba_player_trends (${ds.season}/${ds.type})` +
+      (stale.length ? `, pruned ${stale.length} stale row${stale.length === 1 ? "" : "s"}` : ""),
+  );
+}
+
 async function buildTrendsForDataset(ds: Dataset): Promise<void> {
   console.log(`\n== ${ds.label} (season ${ds.season}/${ds.type}) ==`);
 
@@ -607,7 +661,8 @@ async function buildTrendsForDataset(ds: Dataset): Promise<void> {
     return;
   }
 
-  writeOutput(ds, players);
+  await pushOutput(ds, players);
+  if (WRITE_FILE) writeOutput(ds, players);
 }
 
 async function main(): Promise<void> {

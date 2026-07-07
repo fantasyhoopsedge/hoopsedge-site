@@ -1,44 +1,40 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { unstable_cache } from "next/cache";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 import { SEASON_DATASETS } from "@/lib/value/seasons";
 
-// Serves ONE player's block-level value trend from the JSON build artifact
-// written by `npm run trends:build` (output/player-trends/{season}-{type}.json).
-// Reads the file server-side and returns only the requested player's object —
-// the client never receives the full-league payload.
-export const runtime = "nodejs"; // fs access requires Node, not edge
+// Serves ONE player's block-level value trend from the nba_player_trends table
+// (written by `npm run trends:build`). Each row's payload is byte-identical to
+// one element of the old output/player-trends JSON artifact's `players` array,
+// so the response shape is unchanged — but trends now update without a redeploy.
 export const dynamic = "force-dynamic";
 
-const REVALIDATE_MS = 900_000;
+// World-readable data via a cookieless anon client (mirrors seasonal-data.ts).
+// Per-player payloads are ~10-20KB — safely under Next's 2MB data-cache limit
+// that ruled out caching the old whole-league file.
+const getPlayerTrend = unstable_cache(
+  async (playerId: string, season: number, type: string) => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !anonKey) return null; // secret-less preview deploys still boot
 
-type TrendsFile = {
-  season: number;
-  seasonType: string;
-  generatedAt: string;
-  players: Array<{ playerId: string; [key: string]: unknown }>;
-};
-
-// Plain in-memory cache, not unstable_cache: the per-block cumRank fields push
-// this file past Next's 2MB-per-entry data-cache limit (unstable_cache would
-// throw "items over 2MB can not be cached" and break every request).
-const fileCache = new Map<string, { data: TrendsFile | null; expiresAt: number }>();
-
-async function readTrendsFile(season: number, type: string): Promise<TrendsFile | null> {
-  const key = `${season}:${type}`;
-  const cached = fileCache.get(key);
-  if (cached && cached.expiresAt > Date.now()) return cached.data;
-
-  const path = resolve(process.cwd(), "output/player-trends", `${season}-${type}.json`);
-  let data: TrendsFile | null;
-  try {
-    const raw = await readFile(path, "utf8");
-    data = JSON.parse(raw) as TrendsFile;
-  } catch {
-    data = null; // not built yet for this dataset
-  }
-  fileCache.set(key, { data, expiresAt: Date.now() + REVALIDATE_MS });
-  return data;
-}
+    const supabase = createClient<Database>(url, anonKey, { auth: { persistSession: false } });
+    const { data, error } = await supabase
+      .from("nba_player_trends")
+      .select("payload")
+      .eq("season", season)
+      .eq("season_type", type)
+      .eq("player_id", playerId)
+      .maybeSingle();
+    // Throw on query errors so unstable_cache does NOT cache them — otherwise a
+    // transient failure would pin a false "not found" for the full revalidate
+    // window. A genuine missing row (data null, no error) is fine to cache.
+    if (error) throw new Error(`nba_player_trends read failed: ${error.message}`);
+    return data?.payload ?? null;
+  },
+  ["player-trends"],
+  { revalidate: 900 },
+);
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -51,14 +47,14 @@ export async function GET(request: Request) {
     return Response.json({ error: "invalid player_id or dataset" }, { status: 400 });
   }
 
-  const file = await readTrendsFile(season, type);
-  if (!file) {
-    return Response.json({ error: "trends not built for this dataset" }, { status: 404 });
+  let player: unknown;
+  try {
+    player = await getPlayerTrend(playerId, season, type);
+  } catch {
+    return Response.json({ error: "trends temporarily unavailable" }, { status: 503 });
   }
-
-  const player = file.players.find((p) => p.playerId === playerId);
   if (!player) {
-    return Response.json({ error: "player not found or not display-eligible" }, { status: 404 });
+    return Response.json({ error: "player not found or trends not built" }, { status: 404 });
   }
 
   return Response.json(player);

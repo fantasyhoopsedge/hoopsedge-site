@@ -55,9 +55,7 @@ data/nba-salaries/current_raw.csv
 # Rookie board editor: unpublished work-in-progress draft (local only)
 src/data/rookie-board.draft.json
 
-# Generated build artifacts (regeneratable from Supabase, not committed source data),
-# EXCEPT player-trends: read from local disk at runtime by roster-live-data.ts /
-# api/player-trends/route.ts, so it must ship with the deploy until that data
-# moves into Supabase (see team-rosters-page memory / TODO).
-/output/*
-!/output/player-trends/
+# Generated build artifacts (regeneratable from Supabase, not committed source data).
+# player-trends now lives in the nba_player_trends table (trends:build pushes it);
+# the local JSON is a --file debug artifact only.
+/output/

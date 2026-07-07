@@ -1,6 +1,4 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { unstable_cache } from "next/cache";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
@@ -13,6 +11,7 @@ import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type Tone } fr
 //   - nba_roster            → bio, position, contract, salary, draft, tags
 //   - season_player_stats   → 2025-26 (season 2026) per-game 9-cat line
 //   - season_player_values  → real 9-cat values (league_size 400, matches /seasonal-rankings)
+//   - nba_player_trends     → block-level trend payloads → per-metric tones
 //   - dynasty-rankings.json → consensus rank/tier/trend + master-source position
 //   - rookie-board.json     → projected 9-cat star profile for incoming rookies
 // PUBLIC + read-only → cookieless anon client cached 15 min (mirrors seasonal-data.ts).
@@ -24,45 +23,18 @@ const PRIOR_STATS_SEASON = STATS_SEASON - 1; // 2025 = 2024-25, for the Prior ta
 const VALUE_LEAGUE_SIZE = 400; // matches /seasonal-rankings default 1:1
 const CACHE_OPTS = { revalidate: 900, tags: [ROSTER_TAG] };
 const TRENDS_SEASON_TYPE = "regular";
-const TRENDS_REVALIDATE_MS = 900_000;
 
-type TrendsFile = {
-  season: number;
-  seasonType: string;
-  generatedAt: string;
-  players: Array<{ playerId: string; blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] }>;
-};
-
-// Plain in-memory cache, NOT unstable_cache: the full trends file is several MB
-// (per-block cumRank across ~440 players), past Next's 2MB-per-entry data-cache
-// limit — see the same fix in src/app/api/player-trends/route.ts.
-let trendsFileCache: { data: TrendsFile | null; expiresAt: number } | null = null;
-
-async function readTrendsFile(): Promise<TrendsFile | null> {
-  if (trendsFileCache && trendsFileCache.expiresAt > Date.now()) return trendsFileCache.data;
-  const path = resolve(process.cwd(), "output/player-trends", `${STATS_SEASON}-${TRENDS_SEASON_TYPE}.json`);
-  let data: TrendsFile | null;
-  try {
-    data = JSON.parse(await readFile(path, "utf8")) as TrendsFile;
-  } catch {
-    data = null; // not built yet — tones just come back null, nothing else breaks
-  }
-  trendsFileCache = { data, expiresAt: Date.now() + TRENDS_REVALIDATE_MS };
-  return data;
-}
+/** The slice of an nba_player_trends payload the tone derivation needs. */
+type TrendPayload = { blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] };
 
 /** Blended consensus-vs-real-value tone per metric for one player, or all-null if there's no trend/consensus data. */
-async function getTones(playerId: string | null, consensusRank: number, age: number | null): Promise<{ nine: Tone | null; m1: Tone | null; eight: Tone | null }> {
-  const none = { nine: null, m1: null, eight: null };
-  if (!playerId) return none;
-  const file = await readTrendsFile();
-  const trendPlayer = file?.players.find((p) => p.playerId === playerId);
-  if (!trendPlayer) return none;
-  const history = trendPlayer.seasonHistory ?? [];
+function tonesFrom(trend: TrendPayload | undefined, consensusRank: number, age: number | null): { nine: Tone | null; m1: Tone | null; eight: Tone | null } {
+  if (!trend) return { nine: null, m1: null, eight: null };
+  const history = trend.seasonHistory ?? [];
   return {
-    nine: deriveFinalTake(trendPlayer.blocks, history, age, "nineCatV", consensusRank)?.tone ?? null,
-    m1: deriveFinalTake(trendPlayer.blocks, history, age, "minus1V", consensusRank)?.tone ?? null,
-    eight: deriveFinalTake(trendPlayer.blocks, history, age, "eightCatV", consensusRank)?.tone ?? null,
+    nine: deriveFinalTake(trend.blocks, history, age, "nineCatV", consensusRank)?.tone ?? null,
+    m1: deriveFinalTake(trend.blocks, history, age, "minus1V", consensusRank)?.tone ?? null,
+    eight: deriveFinalTake(trend.blocks, history, age, "eightCatV", consensusRank)?.tone ?? null,
   };
 }
 
@@ -224,7 +196,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
 
   const ids = roster.map((r) => r.player_id).filter((v): v is string => v != null);
 
-  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, poolRanks] = await Promise.all([
+  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, trendsRes, poolRanks] = await Promise.all([
     ids.length
       ? supabase
           .from("season_player_stats")
@@ -259,6 +231,14 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
           .eq("league_size", VALUE_LEAGUE_SIZE)
           .in("player_id", ids)
       : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("nba_player_trends")
+          .select("player_id,payload")
+          .eq("season", STATS_SEASON)
+          .eq("season_type", TRENDS_SEASON_TYPE)
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
     getPoolRanks(),
   ]);
 
@@ -266,13 +246,13 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   const priorStatsById = new Map((priorStatsRes.data ?? []).map((s) => [s.player_id, s]));
   const priorValuesById = new Map((priorValuesRes.data ?? []).map((v) => [v.player_id, v]));
   const valuesById = new Map((valuesRes.data ?? []).map((v) => [v.player_id, v]));
+  const trendsById = new Map((trendsRes.data ?? []).map((t) => [t.player_id, t.payload as unknown as TrendPayload]));
 
-  // Consensus rank + age are needed up front to derive each player's trend tone
-  // (age gates the aging-decline read — see trend-insight.ts), so resolve them
-  // once per row before the (async, file-backed) tone lookups.
+  // Consensus rank + age gate the tone derivation (age drives the aging-decline
+  // read — see trend-insight.ts), so resolve them once per row first.
   const consensusByRow = roster.map((r) => DYN_BY_NORM.get(r.norm_name)?.consensusRank ?? 999);
   const ageByRow = roster.map((r) => ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? DYN_BY_NORM.get(r.norm_name)?.age ?? 0));
-  const tones = await Promise.all(roster.map((r, i) => getTones(r.player_id, consensusByRow[i], ageByRow[i])));
+  const tones = roster.map((r, i) => tonesFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i]));
 
   return roster.map((r, i): Player => {
     const st = r.player_id ? statsById.get(r.player_id) : undefined;

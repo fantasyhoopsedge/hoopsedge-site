@@ -72,7 +72,7 @@ export type Player = {
   rankEightCat: number | null;
   /**
    * Blended consensus-vs-real-value trend tone per metric (see trend-insight.ts),
-   * precomputed server-side from output/player-trends/{season}-{type}.json.
+   * precomputed server-side from the nba_player_trends table.
    * null when there's no trend history yet (rookies) or no consensus rank.
    */
   toneNineCat: Tone | null;
