@@ -83,16 +83,22 @@
 
 /* LIGHT THEME */
 [data-theme="light"] {
-  --bg-body: #EEF2FF;
-  --bg-surface: #E0E7FF;
-  --bg-card: #F5F8FF;
-  --bg-card-hover: #EEF2FF;
-  --dr-row: #F5F8FF;
-  --dr-row-alt: #EEF2FF;
+  /* Neutral surfaces (rt- palette — see fhe-brand-rt-design-system memory):
+     the shared light theme was still blueprint-blue-tinted (#EEF2FF etc.),
+     mismatching the sidebar's neutral off-white canvas. Detinted to match
+     team-rosters' own light-mode rt-canvas/rt-surface-soft/rt-hairline
+     values exactly. Brand-accent tokens (hero gradient, tags, modal, footer)
+     are untouched — out of scope here, not yet visually reviewed. */
+  --bg-body: #ffffff;
+  --bg-surface: #f7f7f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f7f7f5;
+  --dr-row: #ffffff;
+  --dr-row-alt: #f7f7f5;
   --bg-nav: rgba(10, 18, 48, 0.96);
   --bg-ticker: #E0E7FF;
-  --border-main: rgba(37, 99, 235, 0.2);
-  --border-light: rgba(37, 99, 235, 0.15);
+  --border-main: #e3e3dd;
+  --border-light: #edeeea;
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
@@ -139,8 +145,8 @@
   --modal-google-text: #0f172a;
   --modal-google-border: rgba(37, 99, 235, 0.2);
   --modal-divider: rgba(37, 99, 235, 0.15);
-  --shadow-card: 0 12px 40px rgba(37, 99, 235, 0.08);
-  --shadow-board: 0 20px 60px rgba(37, 99, 235, 0.12);
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-board: 0 20px 60px rgba(0, 0, 0, 0.12);
 }
 
 /* ===== "rt-" DESIGN TOKENS (Team Rosters shell) — sitewide copy =====
@@ -178,8 +184,8 @@
   --rt-hero-hairline: rgba(255, 255, 255, 0.08);
   --rt-hero-elevated: var(--rt-surface-dark-elevated);
   --rt-hero-elevated-border: rgba(255, 255, 255, 0.16);
-  --rt-font-sans: "Geist", var(--font-geist-sans), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --rt-font-mono: "Geist Mono", var(--font-geist-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --rt-font-sans: "Geist", var(--font-geist-sans, "Geist"), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
 [data-theme="light"] {
@@ -210,8 +216,8 @@
   --rt-hero-hairline: var(--rt-hairline);
   --rt-hero-elevated: var(--rt-raised);
   --rt-hero-elevated-border: var(--rt-hairline);
-  --rt-font-sans: "Geist", var(--font-geist-sans), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --rt-font-mono: "Geist Mono", var(--font-geist-mono), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --rt-font-sans: "Geist", var(--font-geist-sans, "Geist"), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
 /* Sidebar-as-platform-nav: fixed left rail on desktop, hidden on mobile
@@ -1213,7 +1219,7 @@ body:has(.dr-rankings-shell) {
 
   .draft-board-shell .nav-links > li.nav-mobile-opposite-link a,
   .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link a {
-    font-family: "Oswald", sans-serif;
+    font-family: var(--rt-font-sans);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.05em;
@@ -1619,7 +1625,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-filter-label {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -1638,7 +1644,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-pill {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   letter-spacing: 1px;
   font-weight: 600;
@@ -1653,14 +1659,14 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-pill:hover {
-  border-color: var(--blueprint-glow);
+  border-color: var(--rt-primary);
   color: var(--text-primary);
 }
 
 .dr-pill-active {
-  border-color: var(--blueprint-glow);
-  background: rgba(37, 99, 235, 0.15);
-  color: var(--hero-badge-text);
+  border-color: var(--rt-primary);
+  background: rgba(250, 70, 22, 0.15);
+  color: var(--rt-primary);
 }
 
 .dr-pill-active-rookies {
@@ -1676,7 +1682,7 @@ body:has(.dr-rankings-shell) {
   border: 1px solid var(--border-main);
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
   color: var(--text-primary);
   cursor: pointer;
@@ -1689,13 +1695,13 @@ body:has(.dr-rankings-shell) {
   border: 1px solid var(--border-main);
   background: var(--bg-card);
   color: var(--text-primary);
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
 }
 
 .dr-input:focus {
   outline: none;
-  border-color: var(--blueprint);
+  border-color: var(--rt-primary);
 }
 
 .dr-view-toggle {
@@ -1716,7 +1722,7 @@ body:has(.dr-rankings-shell) {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -1725,8 +1731,8 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-icon-toggle-on {
-  background: rgba(37, 99, 235, 0.2);
-  color: var(--blueprint-glow);
+  background: rgba(250, 70, 22, 0.2);
+  color: var(--rt-primary);
 }
 
 .dr-checkbox {
@@ -1833,7 +1839,7 @@ body:has(.dr-rankings-shell) {
 .dr-th {
   padding: 6px 8px;
   border-bottom: 1px solid var(--border-main);
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1956,11 +1962,11 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-highlight .dr-th-btn {
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-th-active-sort {
-  border-bottom: 2px solid #2563eb;
+  border-bottom: 2px solid var(--rt-primary);
   box-shadow: none;
 }
 
@@ -1969,12 +1975,12 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-highlight.dr-th-expert {
-  box-shadow: inset 0 -3px 0 var(--blueprint);
-  background: rgba(37, 99, 235, 0.08);
+  box-shadow: inset 0 -3px 0 var(--rt-primary);
+  background: rgba(250, 70, 22, 0.08);
 }
 
 [data-theme="light"] .dr-th-highlight.dr-th-expert {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(250, 70, 22, 0.12);
 }
 
 .dr-rank-head-wrap {
@@ -1987,7 +1993,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-rank-view-label {
-  font-family: "Source Sans 3", sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1999,15 +2005,15 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-rank-consensus.dr-th-highlight-consensus .dr-th-btn {
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-th-rank-consensus.dr-th-highlight-consensus {
-  box-shadow: inset 0 -3px 0 var(--blueprint);
+  box-shadow: inset 0 -3px 0 var(--rt-primary);
 }
 
 .dr-vs-cons-cell {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 12px;
   white-space: nowrap;
@@ -2097,7 +2103,7 @@ body:has(.dr-rankings-shell) {
 
 .dr-sort-icon-active {
   opacity: 1;
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-table tbody tr {
@@ -2134,11 +2140,11 @@ body:has(.dr-rankings-shell) {
 }
 
 [data-theme="light"] .dr-tr:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(250, 70, 22, 0.06);
 }
 
 .dr-rank-num {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 16px;
   display: inline-flex;
@@ -2170,7 +2176,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-rank-nr {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 13px;
   color: #9a9aaa;
@@ -2178,7 +2184,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 13px;
 }
@@ -2219,7 +2225,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-player-name {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 400;
   font-size: 14px;
   letter-spacing: 0.01em;
@@ -2258,7 +2264,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-player-name-line {
-  font-family: "Source Sans 3", sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
   font-weight: 500;
   color: #ffffff;
@@ -2283,7 +2289,7 @@ body:has(.dr-rankings-shell) {
   color: #9a9aaa;
 }
 
-.dr-table .dr-player-meta-line .dr-team-pill:not(.dr-team-pill-rookie) {
+.dr-table .dr-player-meta-line .dr-team-pill {
   color: #9a9aaa;
 }
 
@@ -2309,7 +2315,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-team-pill {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -2324,14 +2330,36 @@ body:has(.dr-rankings-shell) {
   padding: 2px 6px;
 }
 
-.dr-team-pill-rookie {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
-  border: none;
+/* Team logo replacing the plain team-code pill (see TeamCell) — "FA" (no
+   current NBA team, including undrafted 2026 rookies) keeps the text pill above. */
+.dr-team-logo { width: 32px; height: 32px; object-fit: contain; display: block; }
+
+/* Center the logo under the TEAM header (table view only — text-align:center on
+   the td doesn't affect a display:block img; tier-view's meta row is a flex
+   container where auto-margins would eat the row's gap instead). */
+.dr-table tbody td.dr-col-team .dr-team-logo { margin: 0 auto; }
+
+/* Rookie ("R") badge — matches the class-tag circle on /team-rosters (roster-app.tsx
+   tagShort), rendered next to the player name instead of tied to the team cell. */
+.dr-rookie-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 192, 64, 0.55);
+  background: rgba(240, 192, 64, 0.12);
+  color: var(--dynasty-gold);
+  font-family: var(--rt-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: 6px;
 }
 
 .dr-pos {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -2345,24 +2373,19 @@ body:has(.dr-rankings-shell) {
   padding: 2px 5px;
 }
 
-.dr-pos-g {
-  background: var(--blueprint);
-  color: #ffffff;
-}
-
-.dr-pos-f {
-  background: var(--edge-orange);
-  color: #ffffff;
-}
-
+/* One accent family (rt-primary), not the old blue/orange/gold rainbow —
+   tier colors (TIER_COLORS in rankings-table.tsx, gold/green/blue/etc.)
+   are semantic and untouched. */
+.dr-pos-g,
+.dr-pos-f,
 .dr-pos-c-single {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
+  background: var(--rt-primary);
+  color: var(--rt-on-primary);
 }
 
 .dr-pos-split {
   display: inline-flex;
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -2386,28 +2409,20 @@ body:has(.dr-rankings-shell) {
   padding: 2px 5px;
 }
 
-.dr-pos-split-gf .dr-pos-split-l {
-  background: var(--blueprint);
-  color: #ffffff;
-}
-
-.dr-pos-split-gf .dr-pos-split-r {
-  background: var(--edge-orange);
-  color: #ffffff;
-}
-
+.dr-pos-split-gf .dr-pos-split-l,
 .dr-pos-split-fc .dr-pos-split-l {
-  background: var(--edge-orange);
-  color: #ffffff;
+  background: var(--rt-primary);
+  color: var(--rt-on-primary);
 }
 
+.dr-pos-split-gf .dr-pos-split-r,
 .dr-pos-split-fc .dr-pos-split-r {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
+  background: var(--rt-primary-active);
+  color: var(--rt-on-primary);
 }
 
 .dr-tier {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 8px;
@@ -2439,7 +2454,7 @@ body:has(.dr-rankings-shell) {
 .dr-tier-t8 { background: rgba(100, 116, 139, 0.15); color: #64748b; }
 
 .dr-trend-up {
-  color: var(--edge-orange);
+  color: var(--rt-primary);
   font-weight: 700;
   font-size: 15px;
 }
@@ -2481,7 +2496,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-show-more {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 12px;
   letter-spacing: 2px;
   font-weight: 700;
@@ -2496,8 +2511,8 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-show-more:hover {
-  border-color: var(--blueprint-glow);
-  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--rt-primary);
+  background: rgba(250, 70, 22, 0.1);
 }
 
 .dr-input-icon-wrap {
@@ -2567,7 +2582,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-tier-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 1px;
@@ -2609,14 +2624,14 @@ body:has(.dr-rankings-shell) {
 
 .dr-tier-card:hover {
   transform: scale(1.015);
-  border-color: rgba(37, 99, 235, 0.65);
+  border-color: rgba(250, 70, 22, 0.65);
   box-shadow:
-    0 0 0 1px rgba(37, 99, 235, 0.35),
-    0 10px 28px rgba(37, 99, 235, 0.12);
+    0 0 0 1px rgba(250, 70, 22, 0.35),
+    0 10px 28px rgba(250, 70, 22, 0.12);
 }
 
 .dr-tier-card-rank {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 800;
   font-size: 26px;
   color: var(--blueprint-glow);
@@ -2626,7 +2641,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-tier-card-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.02em;
@@ -2771,7 +2786,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-name {
-  font-family: "Oswald", sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 600;
   font-size: 17px;
   text-transform: none;
@@ -2793,6 +2808,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-meta-text {
+  font-family: var(--rt-font-sans);
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -2808,7 +2824,7 @@ body:has(.dr-rankings-shell) {
 /* Rank-movement chip (▲n / ▼n / NEW / – no change) — fixed width so every
    row carries a chip and the player names stay vertically aligned. */
 .db-mv {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
@@ -2857,7 +2873,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-pick {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
@@ -2896,6 +2912,26 @@ body:has(.dr-rankings-shell) {
   margin-bottom: 0;
 }
 
+/* Light mode only: rt-primary orange border marks each row/banner as a card
+   (dark mode already contrasts fine against its near-black canvas and is
+   left alone). No grey fill on rows/banner — outlined cards on plain white,
+   per explicit user direction (the grey read as too heavy against the sidebar).
+   .db-row's fill is set inline (_board-client.tsx) so it needs !important to
+   win here; .db-expanded-panel/.db-version-banner have no inline background,
+   so a plain override is enough for those. */
+[data-theme="light"] .db-row,
+[data-theme="light"] .db-expanded-panel,
+[data-theme="light"] .db-version-banner {
+  border-color: var(--rt-primary);
+}
+[data-theme="light"] .db-row {
+  background-color: transparent !important;
+}
+[data-theme="light"] .db-expanded-panel,
+[data-theme="light"] .db-version-banner {
+  background: var(--bg-card);
+}
+
 .db-expanded-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -2910,17 +2946,14 @@ body:has(.dr-rankings-shell) {
 }
 
 @media (min-width: 768px) {
-  .draft-board-shell .db-pos-badge-g {
-    background: #2563EB;
-  }
-
-  .draft-board-shell .db-pos-badge-f {
-    background: #FF6B2B;
-  }
-
+  /* Position badges: one accent family (rt-primary + its darker shade),
+     not the old blue/orange/gold rainbow — tier colors (gold/green/blue,
+     used for rank + the "// TIER_NAME" divider) are semantic and untouched. */
+  .draft-board-shell .db-pos-badge-g,
+  .draft-board-shell .db-pos-badge-f,
   .draft-board-shell .db-pos-badge-c {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge-split-l,
@@ -2932,23 +2965,16 @@ body:has(.dr-rankings-shell) {
     justify-content: center;
   }
 
-  .draft-board-shell .db-pos-badge-split-l {
-    background: #2563EB;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .db-pos-badge-split-r {
-    background: #FF6B2B;
-    color: #ffffff;
-  }
-
+  .draft-board-shell .db-pos-badge-split-l,
   .draft-board-shell .db-pos-badge-split-l-orange {
-    background: #FF6B2B;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
+  .draft-board-shell .db-pos-badge-split-r,
   .draft-board-shell .db-pos-badge-split-r-gold {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary-active);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge {
@@ -3108,17 +3134,14 @@ body:has(.dr-rankings-shell) {
     line-height: 1;
   }
 
-  .draft-board-shell .db-pos-badge-g {
-    background: #2563EB;
-  }
-
-  .draft-board-shell .db-pos-badge-f {
-    background: #FF6B2B;
-  }
-
+  /* Position badges: one accent family (rt-primary + its darker shade),
+     not the old blue/orange/gold rainbow — tier colors (gold/green/blue,
+     used for rank + the "// TIER_NAME" divider) are semantic and untouched. */
+  .draft-board-shell .db-pos-badge-g,
+  .draft-board-shell .db-pos-badge-f,
   .draft-board-shell .db-pos-badge-c {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge-split-l,
@@ -3130,23 +3153,16 @@ body:has(.dr-rankings-shell) {
     justify-content: center;
   }
 
-  .draft-board-shell .db-pos-badge-split-l {
-    background: #2563EB;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .db-pos-badge-split-r {
-    background: #FF6B2B;
-    color: #ffffff;
-  }
-
+  .draft-board-shell .db-pos-badge-split-l,
   .draft-board-shell .db-pos-badge-split-l-orange {
-    background: #FF6B2B;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
+  .draft-board-shell .db-pos-badge-split-r,
   .draft-board-shell .db-pos-badge-split-r-gold {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary-active);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pick-tier {
@@ -3284,22 +3300,23 @@ body:has(.dr-rankings-shell) {
   color: #ffffff;
 }
 
-/* Player avatar: blue-tinted in light mode */
+/* Player avatar: was blue-tinted in light mode, now orange to match brand */
 [data-theme="light"] .dr-player-avatar {
-  background: rgba(37, 99, 235, 0.14);
-  color: #1d4ed8;
+  background: rgba(250, 70, 22, 0.14);
+  color: var(--rt-primary-active);
 }
 
-/* Team pill: blue-tinted on light bg */
+/* Team pill (only rendered now for "FA" — see TeamCell):
+   was blue-tinted on light bg, now orange to match brand */
 [data-theme="light"] .dr-team-pill {
-  background: rgba(37, 99, 235, 0.1);
+  background: rgba(250, 70, 22, 0.1);
 }
 
 /* Player meta text: use themed colours instead of hardcoded dark-mode values */
 [data-theme="light"] .dr-player-meta-line {
   color: var(--text-secondary);
 }
-[data-theme="light"] .dr-table .dr-player-meta-line .dr-team-pill:not(.dr-team-pill-rookie) {
+[data-theme="light"] .dr-table .dr-player-meta-line .dr-team-pill {
   color: var(--text-secondary);
 }
 [data-theme="light"] .dr-rank-nr {

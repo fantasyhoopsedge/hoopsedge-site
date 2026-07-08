@@ -3,10 +3,33 @@
 import { useMemo, useState } from "react";
 import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
-function teamPillClass(team: string) {
-  if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
-  return "dr-team-pill";
+// Same alias/exception set as rankings-table.tsx's TeamCell — see its comment
+// for the verified list of code mismatches ("NOR"/"PHO") and non-team values.
+const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+const NON_TEAM_VALUES = new Set(["FA"]);
+
+function TeamCell({ team }: { team: string }) {
+  const [ok, setOk] = useState(true);
+  if (NON_TEAM_VALUES.has(team)) {
+    return <span className="dr-team-pill">{team}</span>;
+  }
+  const abbr = DYNASTY_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (!file || !ok) return <span className="dr-team-pill">{team}</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+    <img
+      src={`/images/nba%20team%20images/${file}`}
+      alt={team}
+      width={32}
+      height={32}
+      loading="lazy"
+      onError={() => setOk(false)}
+      className="dr-team-logo"
+    />
+  );
 }
 
 const TIER_META: Record<number, { colorClass: string; name: string }> = {
@@ -122,9 +145,16 @@ export function TierView(props: {
                     <HeadshotImg player={p} />
                     <div className="dr-tier-card-rank">{p.consensusRank}</div>
                     <div className="dr-tier-card-body">
-                      <div className="dr-tier-card-name">{p.player}</div>
+                      <div className="dr-tier-card-name">
+                        {p.player}
+                        {p.isRookie ? (
+                          <span className="dr-rookie-badge" title="2026 Rookie">
+                            R
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="dr-player-meta">
-                        <span className={teamPillClass(p.team)}>{p.team}</span>
+                        <TeamCell team={p.team} />
                         <PositionBadge position={p.position} />
                       </div>
                       <div className="dr-tier-card-age">

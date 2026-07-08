@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNod
 import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 import { Footer } from "@/components/footer";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
   { key: "dizzle", label: "DIZZLE" },
@@ -27,9 +28,33 @@ export type SortKey =
   | "expert:hashtag"
   | "expert:dynatyze";
 
-function teamPillClass(team: string) {
-  if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
-  return "dr-team-pill";
+// dynasty-rankings.json uses standard codes matching TEAM_LOGO's keys, except
+// New Orleans ("NOR" here vs. "NOP") and Phoenix ("PHO" vs. "PHX") — verified
+// empirically against the live data. "FA" (free agent, including undrafted
+// 2026 rookies with no NBA team yet) isn't a real team, so it stays as text.
+const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+const NON_TEAM_VALUES = new Set(["FA"]);
+
+function TeamCell({ team }: { team: string }) {
+  const [ok, setOk] = useState(true);
+  if (NON_TEAM_VALUES.has(team)) {
+    return <span className="dr-team-pill">{team}</span>;
+  }
+  const abbr = DYNASTY_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (!file || !ok) return <span className="dr-team-pill">{team}</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+    <img
+      src={`/images/nba%20team%20images/${file}`}
+      alt={team}
+      width={32}
+      height={32}
+      loading="lazy"
+      onError={() => setOk(false)}
+      className="dr-team-logo"
+    />
+  );
 }
 
 const TIER_COLORS: Record<number, string> = {
@@ -76,20 +101,15 @@ function mobilePlayerName(fullName: string): string {
   return shortened;
 }
 
+// One accent family (rt-primary + its darker shade), not the old blue/orange/
+// gold rainbow — tier colors (TIER_COLORS above) are semantic and untouched.
 function mobilePositionBadgeStyle(position: string): CSSProperties {
   const normalized = position.toUpperCase();
-  let background = "#2563EB";
-  let color = "#ffffff";
+  let background = "var(--rt-primary)";
+  const color = "var(--rt-on-primary)";
 
-  if (normalized === "F") {
-    background = "#FF6B2B";
-  } else if (normalized === "C") {
-    background = "#F0C040";
-    color = "#1f2937";
-  } else if (normalized === "G/F") {
-    background = "linear-gradient(135deg, #2563EB 0 50%, #FF6B2B 50% 100%)";
-  } else if (normalized === "F/C") {
-    background = "linear-gradient(135deg, #FF6B2B 0 50%, #F0C040 50% 100%)";
+  if (normalized === "G/F" || normalized === "F/C") {
+    background = "linear-gradient(135deg, var(--rt-primary) 0 50%, var(--rt-primary-active) 50% 100%)";
   }
 
   return {
@@ -458,14 +478,21 @@ export function RankingsTable(props: {
                             <>
                               <span style={mobilePositionBadgeStyle(p.position)}>{p.position}</span>
                               {mobilePlayerName(p.player)}
-                              {p.team === "2026 Rookie" ? (
+                              {p.isRookie ? (
                                 <span style={{ color: "#F0C040", fontSize: 11, marginLeft: 5 }}>Rookie</span>
                               ) : (
                                 <span style={{ color: "#9a9aaa", fontSize: 11, marginLeft: 5 }}>({p.team})</span>
                               )}
                             </>
                           ) : (
-                            p.player
+                            <>
+                              {p.player}
+                              {p.isRookie ? (
+                                <span className="dr-rookie-badge" title="2026 Rookie">
+                                  R
+                                </span>
+                              ) : null}
+                            </>
                           )}
                         </div>
                       </div>
@@ -473,7 +500,7 @@ export function RankingsTable(props: {
                   </td>
                   {showTeamColumn ? (
                     <td className="dr-td dr-col-team dr-desktop-only">
-                      <span className={teamPillClass(p.team)}>{p.team}</span>
+                      <TeamCell team={p.team} />
                     </td>
                   ) : null}
                   {showPosColumn ? (

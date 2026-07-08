@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, Fragment } from "react";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import {
   CATS, CAT_LABELS, tierInfo, normalizeName,
   type BoardPlayer, type BoardTier, type RookieBoard, type MovementInfo, type MovementMap,
@@ -80,6 +81,31 @@ function ProspectHeadshot({ name, size = 48 }: { name: string; size?: number }) 
         position: "absolute", top: 0, left: 0,
       }}>{initials}</div>
     </div>
+  );
+}
+
+// This board's nbaTeam field uses standard codes matching TEAM_LOGO's keys,
+// except Phoenix ("PHO" here vs. "PHX" in TEAM_LOGO) — verified empirically
+// against the live rookie-board.json data (28 distinct codes, 27 match).
+const ROOKIE_TEAM_ALIAS: Record<string, string> = { PHO: "PHX" };
+
+function RowTeamLogo({ team }: { team: string | null | undefined }) {
+  const [ok, setOk] = useState(true);
+  if (!team) return null;
+  const abbr = ROOKIE_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (!file || !ok) return <span className="db-team-logo-fallback">{team}</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+    <img
+      src={`/images/nba%20team%20images/${file}`}
+      alt={team}
+      width={24}
+      height={24}
+      loading="lazy"
+      onError={() => setOk(false)}
+      className="db-team-logo"
+    />
   );
 }
 
@@ -398,7 +424,7 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
                   }
                 }}
                 className="db-row db-row-collapsed"
-                style={{ background: "var(--bg-card)", cursor: "pointer" }}
+                style={{ backgroundColor: "var(--rt-surface-strong)", cursor: "pointer" }}
               >
                 <div style={{
                   fontFamily: "'Oswald', sans-serif", fontWeight: 700,
@@ -413,7 +439,7 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
                   </div>
                   <div className="db-player-meta">
                     {positionBadge(p.pos)}
-                    <span className="dbp-school">{p.nbaTeam}</span>
+                    <RowTeamLogo team={p.nbaTeam} />
                     {p.ht && <span className="db-player-meta-text db-player-meta-height">· {p.ht}</span>}
                   </div>
                 </div>
@@ -470,22 +496,25 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           border-radius: 14px; padding: 16px 22px; margin-bottom: 28px;
         }
         .db-vb-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        /* Weight/family matches the sidebar's active-item highlight (app-sidebar.tsx). */
         .db-vb-eyebrow {
-          font-family: 'JetBrains Mono', monospace; font-size: 10px;
-          letter-spacing: 2.5px; text-transform: uppercase; color: var(--edge-orange);
+          font-family: var(--rt-font-sans); font-weight: 600; font-size: 10px;
+          letter-spacing: 2.5px; text-transform: uppercase; color: var(--rt-primary);
         }
+        /* Was hardcoded white (fine on the old always-dark-card banner) — now
+           theme-aware so it stays legible once the light-mode grey fill is gone. */
         .db-vb-title {
-          font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 23px;
-          text-transform: uppercase; letter-spacing: 0.5px; color: #fff; line-height: 1.1;
+          font-family: var(--rt-font-sans); font-weight: 700; font-size: 23px;
+          text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-primary); line-height: 1.1;
         }
         .db-vb-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
         .db-vb-chip {
-          font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 14px;
-          letter-spacing: 1px; color: #04222e; background: var(--dynasty-gold);
+          font-family: var(--rt-font-sans); font-weight: 700; font-size: 14px;
+          letter-spacing: 1px; color: var(--rt-on-primary); background: var(--rt-primary);
           padding: 5px 12px; border-radius: 8px; white-space: nowrap;
         }
         .db-vb-date {
-          font-family: 'JetBrains Mono', monospace; font-size: 11px;
+          font-family: var(--rt-font-sans); font-size: 11px;
           color: var(--text-muted); white-space: nowrap;
         }
         @media (max-width: 767px) {
@@ -548,15 +577,16 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           }
         }
         .db-ms-cell { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .db-ms-label { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-transform: uppercase; color: var(--text-secondary); }
-        .db-ms-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; }
+        .db-ms-label { font-family: var(--rt-font-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.2px; text-transform: uppercase; color: var(--text-secondary); }
+        .db-ms-val { font-family: var(--rt-font-mono); font-size: 16px; }
         .db-ms-verdict {
           font-size: 12px; line-height: 1.55; color: var(--text-secondary);
           margin: 0; padding-top: 4px;
           border-top: 1px solid var(--border-main);
         }
 
-        /* Live age badge */
+        /* Live age badge — gold in dark mode (unchanged); light mode uses the
+           rt-primary orange instead (see [data-theme="light"] override below). */
         .db-age {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           min-width: 52px; flex-shrink: 0; margin-left: 8px;
@@ -564,18 +594,26 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           background: rgba(240, 192, 64, 0.10); border: 1px solid rgba(240, 192, 64, 0.22);
         }
         .db-age-num {
-          font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 22px; line-height: 1;
+          font-family: var(--rt-font-mono); font-weight: 800; font-size: 22px; line-height: 1;
           color: var(--dynasty-gold); font-variant-numeric: tabular-nums;
         }
         .db-age-cap {
-          font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 9px;
+          font-family: var(--rt-font-sans); font-weight: 600; font-size: 9px;
           letter-spacing: 2px; color: var(--text-muted); margin-top: 3px;
         }
+        [data-theme="light"] .db-age {
+          background: rgba(250, 70, 22, 0.10); border-color: rgba(250, 70, 22, 0.22);
+        }
+        [data-theme="light"] .db-age-num { color: var(--rt-primary); }
         @media (max-width: 767px) {
           .db-age { min-width: 44px; padding: 3px 6px; margin-left: 6px; }
           .db-age-num { font-size: 18px; }
           .db-age-cap { font-size: 8px; letter-spacing: 1.5px; }
         }
+
+        /* Team logo replacing the plain nbaTeam-code text (see RowTeamLogo). */
+        .db-team-logo { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
+        .db-team-logo-fallback { font-family: var(--rt-font-sans); font-size: 12px; color: var(--text-secondary); }
       `}</style>
     </div>
   );

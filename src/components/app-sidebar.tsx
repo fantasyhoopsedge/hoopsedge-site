@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "ai-assistant";
@@ -49,7 +49,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "NBA Team Rosters",
     href: "/team-rosters",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--rt-primary)" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </svg>
@@ -67,6 +67,50 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+function SidebarAvatar({ src, name, size = 32 }: { src: string | null; name: string; size?: number }) {
+  const [imgOk, setImgOk] = useState(true);
+  const letters = name.trim().slice(0, 2).toUpperCase();
+
+  if (src && imgOk) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- small avatar, no next/image config needed here
+      <img
+        src={src}
+        alt=""
+        onError={() => setImgOk(false)}
+        style={{
+          width: size,
+          height: size,
+          minWidth: size,
+          borderRadius: "50%",
+          objectFit: "cover",
+          flexShrink: 0,
+        }}
+      />
+    );
+  }
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        minWidth: size,
+        borderRadius: 999,
+        background: "var(--rt-surface-strong)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: Math.round(size * 0.38),
+        fontWeight: 600,
+        color: "var(--rt-ink)",
+        flexShrink: 0,
+      }}
+    >
+      {letters || "?"}
+    </span>
+  );
+}
+
 export function AppSidebar({
   active,
   theme,
@@ -76,9 +120,8 @@ export function AppSidebar({
   theme: "light" | "dark";
   onToggleTheme: (next: "light" | "dark") => void;
 }) {
-  const { user, profile } = useAuth();
+  const { user, profile, openSignUp } = useAuth();
   const displayName = profile?.username ?? user?.email?.split("@")[0] ?? "Guest";
-  const avatarLetters = displayName.trim().slice(0, 2).toUpperCase();
 
   return (
     <aside
@@ -121,7 +164,7 @@ export function AppSidebar({
               padding: "10px 12px",
               borderRadius: 10,
               background: isActive ? "var(--rt-surface-strong)" : "transparent",
-              color: isActive ? "var(--rt-ink)" : "var(--rt-body)",
+              color: isActive ? "var(--rt-primary)" : "var(--rt-body)",
               fontSize: 14,
               fontWeight: isActive ? 600 : 500,
               cursor: item.href ? "pointer" : "default",
@@ -129,6 +172,24 @@ export function AppSidebar({
           >
             {item.icon}
             <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
+            {!item.href ? (
+              <span
+                style={{
+                  marginLeft: "auto",
+                  padding: "2px 7px",
+                  borderRadius: 999,
+                  background: "var(--rt-surface-strong)",
+                  color: "var(--rt-muted)",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Soon
+              </span>
+            ) : null}
           </div>
         );
         return item.href ? (
@@ -141,6 +202,27 @@ export function AppSidebar({
       })}
 
       <div style={{ marginTop: "auto", padding: "8px 6px 0" }}>
+        <a
+          href="https://x.com/FantasyHoopEdge"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rt-hover-surface"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 12px",
+            marginBottom: 6,
+            borderRadius: 10,
+            color: "var(--rt-body)",
+            fontSize: 14,
+            fontWeight: 500,
+            textDecoration: "none",
+          }}
+        >
+          <span style={{ fontSize: 15, width: 18, textAlign: "center", lineHeight: 1 }} aria-hidden>𝕏</span>
+          <span style={{ whiteSpace: "nowrap" }}>Follow on X</span>
+        </a>
         <div style={{ display: "flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
           <button
             type="button"
@@ -202,36 +284,56 @@ export function AppSidebar({
           borderTop: "1px solid var(--rt-hairline-soft)",
           marginTop: 12,
           paddingTop: 10,
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          paddingLeft: 12,
-          paddingRight: 12,
+          paddingLeft: 6,
+          paddingRight: 6,
           paddingBottom: 6,
         }}
       >
-        <span
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 999,
-            background: "var(--rt-surface-strong)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            fontWeight: 600,
-            color: "var(--rt-ink)",
-          }}
-        >
-          {avatarLetters || "?"}
-        </span>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {user ? displayName : "Sign in"}
-          </div>
-          <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>12-team league</div>
-        </div>
+        {user ? (
+          <Link
+            href="/profile"
+            className="rt-hover-surface"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "6px 6px",
+              borderRadius: 10,
+              textDecoration: "none",
+            }}
+          >
+            <SidebarAvatar src={profile?.avatar_url ?? null} name={displayName} size={32} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {displayName}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>View profile</div>
+            </div>
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => openSignUp()}
+            style={{
+              width: "100%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              height: 38,
+              border: "none",
+              cursor: "pointer",
+              borderRadius: 10,
+              background: "var(--rt-primary)",
+              color: "var(--rt-on-primary)",
+              fontFamily: "var(--rt-font-sans)",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            Sign up / Log in
+          </button>
+        )}
       </div>
     </aside>
   );

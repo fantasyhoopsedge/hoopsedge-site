@@ -50,8 +50,8 @@ export function prospectHeadshotUrl(playerName: string): string {
  *  - 2026 Rookies → local /images/prospects/{slug}.jpg
  *  - Otherwise → cdn.nba.com headshot if id is mapped, else null
  */
-export function playerHeadshotUrl(player: { player: string; team: string }): string | null {
-  if (player.team === "2026 Rookie") return prospectHeadshotUrl(player.player);
+export function playerHeadshotUrl(player: { player: string; isRookie: boolean }): string | null {
+  if (player.isRookie) return prospectHeadshotUrl(player.player);
   return nbaHeadshotUrl(player.player);
 }
 
@@ -61,6 +61,7 @@ export interface DynastyPlayer {
   consensusRank: number;
   player: string;
   team: string;
+  isRookie: boolean;
   position: DynastyPosition;
   age: number | null;
   expertRanks: {

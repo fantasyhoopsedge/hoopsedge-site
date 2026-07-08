@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
 type SeasonOption = { key: string; label: string };
 
@@ -137,20 +138,53 @@ function Headshot({ id, name }: { id: string | null; name: string }) {
   );
 }
 
+// season_player_stats.team uses hoopR's short codes for these 6 teams, which
+// diverge from the standard 3-letter codes TEAM_LOGO (team-rosters) keys by —
+// verified empirically against the live table (30 distinct codes, 24 already
+// match). Everything else passes through unchanged.
+const HOOPR_TEAM_ALIAS: Record<string, string> = {
+  GS: "GSW", NO: "NOP", NY: "NYK", SA: "SAS", UTAH: "UTA", WSH: "WAS",
+};
+
+function TeamLogo({ team }: { team: string | null }) {
+  const [ok, setOk] = useState(true);
+  if (!team) return <span className="sr-td-team-text">—</span>;
+  const abbr = HOOPR_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (file && ok) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+      <img
+        src={`/images/nba%20team%20images/${file}`}
+        alt={team}
+        width={28}
+        height={28}
+        loading="lazy"
+        onError={() => setOk(false)}
+        className="sr-team-logo"
+      />
+    );
+  }
+  // Unknown/unmapped code — show the raw text rather than nothing.
+  return <span className="sr-td-team-text">{team}</span>;
+}
+
 // Sortable numeric header cell.
 function SortTh({
-  label, sortKey, sort, onSort, strong,
+  label, sortKey, sort, onSort, strong, wide,
 }: {
   label: string;
   sortKey: SortKey;
   sort: { key: SortKey; dir: SortDir };
   onSort: (k: SortKey) => void;
   strong?: boolean;
+  /** MINUS1V is a touch wider than the other headers in Geist — see .sr-num-h-wide. */
+  wide?: boolean;
 }) {
   const active = sort.key === sortKey;
   return (
     <th
-      className={`sr-th sr-num-h sr-th-sortable ${active ? "sr-th-active" : ""} ${strong ? "sr-th-strong" : ""}`}
+      className={`sr-th sr-num-h sr-th-sortable ${wide ? "sr-num-h-wide" : ""} ${active ? "sr-th-active" : ""} ${strong ? "sr-th-strong" : ""}`}
       onClick={() => onSort(sortKey)}
       aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
     >
@@ -601,7 +635,7 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
                   <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
-                  <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} />
+                  <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
                   <SortTh label="3PM" sortKey="fg3m" sort={sort} onSort={onSort} />
                   <SortTh label="REB" sortKey="reb" sort={sort} onSort={onSort} />
@@ -656,7 +690,9 @@ export function SeasonalRankingsTable(props: {
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
                       <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
-                      <td className={`sr-td sr-td-team sr-w`}>{s.team ?? "—"}</td>
+                      <td className="sr-td sr-td-team sr-w">
+                        <TeamLogo team={s.team} />
+                      </td>
                       <td className="sr-td sr-w">{s.position ?? "—"}</td>
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
@@ -664,7 +700,7 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
                         {fVal(catValue(av))}
                       </td>
-                      <td className={`sr-td sr-num${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
+                      <td className={`sr-td sr-num sr-num-wide${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
                         {fVal(av?.minus1v)}
                       </td>
                       <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
@@ -737,14 +773,14 @@ export function SeasonalRankingsTable(props: {
         .sr-group { display: flex; flex-direction: column; gap: 6px; }
         .sr-group-search { flex: 1 1 160px; min-width: 140px; }
         .sr-label {
-          font-family: 'VT323', monospace; font-size: 10px; font-weight: 600;
+          font-family: var(--rt-font-sans); font-size: 10px; font-weight: 600;
           letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
         }
         .sr-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
         /* All filter buttons: same font/size, uppercase, and the same 34px height
            as the dropdowns for a consistent control row. */
         .sr-pill {
-          font-family: 'VT323', monospace; font-size: 13px; font-weight: 500;
+          font-family: var(--rt-font-sans); font-size: 13px; font-weight: 500;
           letter-spacing: 0.5px; text-transform: uppercase;
           height: 34px; padding: 0 12px; border-radius: 7px; cursor: pointer;
           display: inline-flex; align-items: center;
@@ -752,31 +788,31 @@ export function SeasonalRankingsTable(props: {
           border: 1px solid var(--border-main); transition: all 0.15s; white-space: nowrap;
         }
         .sr-pill:disabled { opacity: 0.4; cursor: not-allowed; }
-        .sr-pill:hover { color: var(--text-primary); border-color: var(--blueprint); }
+        .sr-pill:hover { color: var(--text-primary); border-color: var(--rt-primary); }
         .sr-pill-on {
-          background: var(--blueprint); color: #fff; border-color: var(--blueprint);
+          background: var(--rt-primary); color: #fff; border-color: var(--rt-primary);
         }
         /* Form controls only — NOT the table's numeric cells (which reuse the
            .sr-num class); keep these selectors off .sr-num to avoid painting a
            --bg-card background onto RANK/AGE/GP/MIN. */
         .sr-select, .sr-search {
-          font-family: 'VT323', monospace; font-size: 13px;
+          font-family: var(--rt-font-sans); font-size: 13px;
           padding: 7px 10px; border-radius: 7px;
           background: var(--bg-card, #1a1a1a); color: var(--text-primary);
           border: 1px solid var(--border-main); height: 34px;
         }
         .sr-select:focus, .sr-search:focus {
-          outline: none; border-color: var(--blueprint);
+          outline: none; border-color: var(--rt-primary);
         }
         .sr-search { width: 100%; }
 
         .sr-main { flex: 1; }
         .sr-empty {
           text-align: center; color: var(--text-secondary); padding: 60px 20px;
-          font-family: 'VT323', monospace;
+          font-family: var(--rt-font-sans);
         }
         .sr-empty code {
-          font-family: 'VT323', monospace; font-size: 12px;
+          font-family: var(--rt-font-mono); font-size: 12px;
           background: var(--bg-card, #1a1a1a); padding: 2px 6px; border-radius: 4px;
         }
         /* Inner scroll box → both the thead (top:0) and the player column (left:0)
@@ -791,22 +827,25 @@ export function SeasonalRankingsTable(props: {
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-body);
-          font-family: 'VT323', monospace; font-size: 15px; font-weight: 400;
+          font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400;
           letter-spacing: 0; color: var(--text-secondary); text-transform: uppercase;
           padding: 7px 4px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
         }
-        /* Number/value columns AND team/pos share one fixed width (header + cells),
-           sized so the widest header (MINUS1V) shows in full. */
+        /* Number/value columns AND team/pos share one fixed width (header + cells). */
         .sr-num-h, .sr-num, .sr-w { width: 56px; min-width: 56px; max-width: 56px; }
+        /* MINUS1V renders a touch wider than the other headers in Geist Sans (was
+           fine at 56px in the old VT323 font) — widen just this column, header
+           and data cell together, rather than the shared width above. */
+        .sr-num-h-wide, .sr-num-wide { width: 74px; min-width: 74px; max-width: 74px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
-        .sr-th-active { color: var(--edge-orange); font-weight: 700; }
+        .sr-th-active { color: var(--rt-primary); font-weight: 700; }
         .sr-sort-arrow { margin-left: 2px; font-size: 10px; }
         /* leading tick-box column — fixed + aligned far left, before RANK */
         .sr-th-pick, .sr-td-pick { width: 30px; min-width: 30px; max-width: 30px; padding: 0 0 0 10px; }
-        .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; display: block; margin: 0 auto; }
+        .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--rt-primary); cursor: pointer; display: block; margin: 0 auto; }
         .sr-th-shot { width: 40px; }
         /* PLAYER wide enough to keep every name on one line */
         .sr-th-player { width: 175px; min-width: 175px; max-width: 175px; }
@@ -817,7 +856,7 @@ export function SeasonalRankingsTable(props: {
         .sr-td {
           padding: 5px 5px; font-size: 15px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
-          font-family: 'VT323', monospace; text-align: center; line-height: 1.05;
+          font-family: var(--rt-font-mono); text-align: center; line-height: 1.05;
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
@@ -830,8 +869,9 @@ export function SeasonalRankingsTable(props: {
         .sr-dim { opacity: 0.16; transition: opacity 0.15s; }
         /* Minus1V: a very thin blue outline marks each player's dropped category. */
         .sr-outline { box-shadow: inset 0 0 0 1px var(--blueprint); border-radius: 4px; }
-        .sr-td-player { font-weight: 400; text-transform: uppercase; }
-        .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
+        .sr-td-player { font-weight: 400; text-transform: uppercase; font-family: var(--rt-font-sans); }
+        .sr-td-team-text { color: var(--text-secondary); }
+        .sr-team-logo { width: 28px; height: 28px; object-fit: contain; display: block; margin: 0 auto; }
 
         /* sticky player column — same base background as the data cells (which
            show the page body), so no column has a different shade in either theme */
@@ -850,7 +890,7 @@ export function SeasonalRankingsTable(props: {
         }
         .sr-count {
           text-align: center; font-size: 11px; color: var(--text-muted);
-          padding: 10px 0 24px; font-family: 'VT323', monospace;
+          padding: 10px 0 24px; font-family: var(--rt-font-sans);
         }
 
         @media (max-width: 767px) {

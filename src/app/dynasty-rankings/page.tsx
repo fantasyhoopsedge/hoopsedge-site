@@ -66,7 +66,7 @@ function normalizeSearch(s: string) {
 }
 
 function isProspect(p: DynastyPlayer) {
-  return p.team === "2026 Rookie";
+  return p.isRookie;
 }
 
 function rankInRange(p: DynastyPlayer, range: RankRangeKey, expertKey: string): boolean {
@@ -158,7 +158,7 @@ export default function DynastyRankingsPage() {
     const q = normalizeSearch(search);
 
     if (rankRange === "rookies2026") {
-      rows = rows.filter((p) => p.team === "2026 Rookie");
+      rows = rows.filter((p) => p.isRookie);
     } else {
       rows = rows.filter((p) => rankInRange(p, rankRange, expertSortKey));
     }
