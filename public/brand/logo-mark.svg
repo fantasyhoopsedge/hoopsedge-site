@@ -1,0 +1,8 @@
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fantasy Hoops Edge mark">
+  <circle cx="22" cy="22" r="22" fill="#fa4616"></circle>
+  <g fill="#ffffff" transform="translate(3.2,0) skewX(-9)">
+    <rect x="15.4" y="11" width="7.4" height="22.6" rx="2.8"></rect>
+    <rect x="15.4" y="11" width="15.2" height="7" rx="2.8"></rect>
+    <rect x="15.4" y="19.4" width="11.2" height="6.4" rx="2.8"></rect>
+  </g>
+</svg>

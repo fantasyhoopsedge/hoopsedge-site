@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-const POSITION_OPTIONS = ["G", "F", "C", "G/F", "F/C"] as const;
+const POSITION_OPTIONS = ["G", "F", "C"] as const;
 
 export type RankRangeKey =
   | "top100"

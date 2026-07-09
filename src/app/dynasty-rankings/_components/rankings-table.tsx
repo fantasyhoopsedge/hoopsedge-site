@@ -5,6 +5,7 @@ import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/
 import { PositionBadge } from "./position-badge";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
+import { shortenPlayerName } from "@/lib/shorten-name";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
   { key: "dizzle", label: "DIZZLE" },
@@ -35,7 +36,7 @@ export type SortKey =
 const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
 const NON_TEAM_VALUES = new Set(["FA"]);
 
-function TeamCell({ team }: { team: string }) {
+function TeamCell({ team, size = 32 }: { team: string; size?: number }) {
   const [ok, setOk] = useState(true);
   if (NON_TEAM_VALUES.has(team)) {
     return <span className="dr-team-pill">{team}</span>;
@@ -48,11 +49,12 @@ function TeamCell({ team }: { team: string }) {
     <img
       src={`/images/nba%20team%20images/${file}`}
       alt={team}
-      width={32}
-      height={32}
+      width={size}
+      height={size}
       loading="lazy"
       onError={() => setOk(false)}
       className="dr-team-logo"
+      style={size !== 32 ? { width: size, height: size } : undefined}
     />
   );
 }
@@ -83,23 +85,6 @@ function playerInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-const SUFFIXES = ["Jr.", "Sr.", "II", "III"];
-
-function mobilePlayerName(fullName: string): string {
-  const parts = fullName.trim().split(" ");
-  const suffix = SUFFIXES.includes(parts[parts.length - 1]) ? parts[parts.length - 1] : "";
-  const nameParts = suffix ? parts.slice(0, -1) : parts;
-
-  const nameWithoutSuffix = nameParts.join(" ");
-  if (nameWithoutSuffix.length <= 13) {
-    return suffix ? `${nameWithoutSuffix} ${suffix}` : nameWithoutSuffix;
-  }
-
-  const initial = nameParts[0][0] + ".";
-  const surname = nameParts.slice(1).join(" ");
-  const shortened = [initial, surname, suffix].filter(Boolean).join(" ");
-  return shortened;
-}
 
 // One accent family (rt-primary + its darker shade), not the old blue/orange/
 // gold rainbow — tier colors (TIER_COLORS above) are semantic and untouched.
@@ -477,12 +462,11 @@ export function RankingsTable(props: {
                           {isMobile ? (
                             <>
                               <span style={mobilePositionBadgeStyle(p.position)}>{p.position}</span>
-                              {mobilePlayerName(p.player)}
-                              {p.isRookie ? (
-                                <span style={{ color: "#F0C040", fontSize: 11, marginLeft: 5 }}>Rookie</span>
-                              ) : (
-                                <span style={{ color: "#9a9aaa", fontSize: 11, marginLeft: 5 }}>({p.team})</span>
-                              )}
+                              <span title={p.player}>{shortenPlayerName(p.player)}</span>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: 5 }}>
+                                <TeamCell team={p.team} size={16} />
+                                {p.isRookie ? <span style={{ color: "#F0C040", fontSize: 11 }}>Rookie</span> : null}
+                              </span>
                             </>
                           ) : (
                             <>

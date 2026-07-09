@@ -164,7 +164,9 @@ export default function DynastyRankingsPage() {
     }
 
     if (selectedPositions.size > 0) {
-      rows = rows.filter((p) => selectedPositions.has(p.position));
+      // Substring match — selecting "G" also surfaces "G/F" players, matching
+      // the same convention as seasonal-rankings' position filter.
+      rows = rows.filter((p) => [...selectedPositions].some((pos) => p.position.includes(pos)));
     }
     if (tierFilter > 0) {
       rows = rows.filter((p) => p.tier === tierFilter);

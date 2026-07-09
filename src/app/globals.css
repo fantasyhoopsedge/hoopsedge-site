@@ -278,11 +278,12 @@ nav {
   display: none;
 }
 .nav-cta {
-  background: var(--blueprint) !important; color: white !important;
-  padding: 8px 20px !important; border-radius: 8px; font-size: 12px !important;
-  transition: all 0.3s !important;
+  background: var(--rt-primary) !important; color: var(--rt-on-primary, #fff) !important;
+  padding: 9px 20px !important; border-radius: 100px; font-family: var(--rt-font-sans);
+  font-size: 13px !important; font-weight: 600; letter-spacing: 0; text-transform: none;
+  transition: all 0.2s !important; display: inline-flex; align-items: center; gap: 6px;
 }
-.nav-cta:hover { background: var(--blueprint-dark) !important; }
+.nav-cta:hover { background: var(--rt-primary-active, var(--rt-primary)) !important; }
 
 .theme-toggle {
   background: none; border: 1px solid var(--border-main);
@@ -631,56 +632,9 @@ nav {
   margin-top: 14px; position: relative;
 }
 
-/* ===== FOOTER ===== */
-footer {
-  border-top: 1px solid var(--border-main); padding: 36px 60px 24px;
-  display: flex; flex-direction: column; gap: 20px;
-  background: var(--footer-bg); transition: background 0.4s, border-color 0.4s;
-}
-.footer-top {
-  display: flex; justify-content: space-between; align-items: center;
-}
-.footer-brand {
-  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px;
-  letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
-}
-.footer-brand .accent { color: var(--edge-orange); }
-.footer-links { display: flex; gap: 24px; }
-.footer-links a {
-  color: var(--text-muted); text-decoration: none; font-size: 13px;
-  font-weight: 500; transition: color 0.3s;
-}
-.footer-links a:hover { color: var(--text-primary); }
-.footer-social a {
-  width: 36px; height: 36px; border: 1px solid var(--border-main);
-  border-radius: 8px; display: inline-flex; align-items: center;
-  justify-content: center; color: var(--text-muted); text-decoration: none;
-  font-size: 14px; font-weight: 700; transition: all 0.3s;
-}
-.footer-social a:hover { border-color: var(--blueprint); color: var(--blueprint-glow); }
-.footer-bottom {
-  display: flex; justify-content: space-between; align-items: center;
-  border-top: 1px solid var(--border-main); padding-top: 20px;
-}
-.footer-copy {
-  font-size: 14px; color: var(--text-secondary);
-}
-.footer-legal { display: flex; gap: 24px; }
-.footer-legal a {
-  color: var(--text-secondary); text-decoration: none; font-size: 14px;
-  transition: color 0.3s;
-}
-.footer-legal a:hover { color: var(--text-primary); }
-
-@media (max-width: 768px) {
-  footer { padding: 32px 24px 24px; gap: 20px; }
-  .footer-top { flex-direction: column; align-items: center; gap: 18px; text-align: center; }
-  .footer-links { flex-wrap: wrap; gap: 10px 20px; justify-content: center; }
-  .footer-social { display: flex; justify-content: center; }
-  .footer-bottom { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-  .footer-legal { flex-wrap: wrap; gap: 10px 20px; justify-content: center; }
-  .footer-copy { text-align: center; }
-}
+/* ===== FOOTER =====
+ * Component (footer.tsx) is styled inline on rt- tokens now; see the
+ * .site-footer-grid rule near EOF for its one responsive breakpoint. */
 
 /* ===== LEGAL PAGES ===== */
 .legal-page {
@@ -1249,10 +1203,13 @@ body:has(.dr-rankings-shell) {
     display: inline;
   }
 
-  /* Controls: max 80px total, row1 horizontal scroll, row2 expert + search */
+  /* Controls: max 116px total — row1 is now Range + Position stacked as two
+     independent rows (each scrolls horizontally on its own if it overflows,
+     rather than one long strip you have to scroll through to reach
+     Position) — row2 is expert + search. */
   .dr-rankings-shell .dr-sticky-controls {
     padding: 4px 0;
-    max-height: 80px;
+    max-height: 116px;
     box-sizing: border-box;
     overflow: hidden;
   }
@@ -1272,19 +1229,16 @@ body:has(.dr-rankings-shell) {
     min-height: 0;
   }
 
+  /* Range and Position stack as two separate rows instead of one long
+     horizontally-scrolling strip — so reaching Position never requires
+     scrolling past Range first. */
   .dr-rankings-shell .dr-pills-desktop-layout {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
     max-width: 100%;
-    min-height: 28px;
-    max-height: 28px;
     box-sizing: border-box;
   }
 
@@ -1299,12 +1253,19 @@ body:has(.dr-rankings-shell) {
     align-items: center;
     gap: 0;
     min-width: 0;
+    width: 100%;
   }
 
+  /* Each group's own pill row scrolls independently if it overflows — Range
+     (6 options) may still need this; Position (4, after the G/F·F/C
+     reduction) fits without scrolling on most phones. */
   .dr-rankings-shell .dr-pills-desktop-layout .dr-pill-row {
     flex-wrap: nowrap;
     display: inline-flex;
     align-items: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
     gap: 6px;
     white-space: nowrap;
   }
@@ -3353,4 +3314,66 @@ body:has(.dr-rankings-shell) {
 [data-theme="light"] .draft-board-shell .dbp-tier.tier-six {
   background: rgba(100, 116, 139, 0.14);
   color: #475569;
+}
+
+/* ===== Homepage (rt- marketing landing) — layout-only rules =====
+ * Everything else on this page is styled with inline `style={{}}` (matching
+ * app-sidebar.tsx / site-nav.tsx convention) since Tailwind utility classes
+ * lose cascade fights against this file's un-layered legacy rules. Only the
+ * bits that need a media query live here. Placed at EOF so plain-selector
+ * source-order also favors it. */
+.home-hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px 96px;
+}
+.home-hero-visual { display: block; }
+.home-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+.home-rankings-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 56px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 96px 24px;
+}
+.home-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.home-nav-links { display: flex; }
+.home-nav-signin { display: inline-block; }
+
+@media (max-width: 1023px) {
+  .home-nav-links { display: none; }
+}
+@media (max-width: 767px) {
+  .home-hero-grid { grid-template-columns: 1fr; padding: 40px 20px 64px; }
+  .home-hero-visual { display: none; }
+  .home-features-grid { grid-template-columns: 1fr; }
+  .home-rankings-grid { grid-template-columns: 1fr; padding: 64px 20px; gap: 32px; }
+  .home-pricing-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 479px) {
+  .home-nav-signin { display: none; }
+}
+
+/* Sitewide footer (rebuilt on rt- tokens, forced light like the marketing
+ * chrome above — see footer.tsx) grid: brand column + link columns. */
+.site-footer-grid { grid-template-columns: 1.4fr repeat(2, 1fr); }
+@media (max-width: 640px) {
+  .site-footer-grid { grid-template-columns: 1fr; }
 }

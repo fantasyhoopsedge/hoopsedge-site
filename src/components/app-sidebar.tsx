@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 
 export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "ai-assistant";
 
@@ -137,19 +138,14 @@ export function AppSidebar({
       }}
     >
       <div style={{ padding: "8px 10px 22px" }}>
-        <span
-          style={{
-            fontFamily: "var(--rt-font-sans)",
-            fontSize: 16,
-            fontWeight: 800,
-            letterSpacing: "0.04em",
-            textTransform: "uppercase",
-            color: "var(--rt-ink)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Fantasy Hoops <span style={{ color: "var(--rt-primary)" }}>Edge</span>
-        </span>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
+          <img
+            src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+            alt="Fantasy Hoops Edge"
+            style={{ height: BRAND_LOGO_HEIGHT, width: "auto" }}
+          />
+        </Link>
       </div>
 
       {NAV_ITEMS.map((item) => {

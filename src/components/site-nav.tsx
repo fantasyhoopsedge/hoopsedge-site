@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 
 const STORAGE_KEY = "fhe-theme";
 
@@ -149,6 +150,17 @@ export function SiteNav(props: {
   const { active, joinFree, infoStrip, navClassName } = props;
   const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) setMobileMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [mobileMenuOpen]);
 
   // Show the rookie-board editor link to admins (and always on localhost).
   const [isBoardAdmin, setIsBoardAdmin] = useState(false);
@@ -199,7 +211,7 @@ export function SiteNav(props: {
           openSignUp("/prediction-arena");
         }}
       >
-        Join Free
+        Join Free →
       </a>
     ));
 
@@ -214,10 +226,20 @@ export function SiteNav(props: {
     <nav className={navClassName}>
       <a href="/" style={{ textDecoration: "none" }}>
         <div className="nav-brand">
-          <span className="nav-brand-full">
-            Fantasy Hoops <span className="accent">Edge</span>
-          </span>
-          <span className="nav-brand-mobile">FH<span className="accent">E</span></span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
+          <img
+            className="nav-brand-full"
+            src="/brand/logo-wordmark-on-dark.svg"
+            alt="Fantasy Hoops Edge"
+            style={{ height: BRAND_LOGO_HEIGHT, width: "auto" }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
+          <img
+            className="nav-brand-mobile"
+            src="/brand/logo-mark.svg"
+            alt="Fantasy Hoops Edge"
+            style={{ height: BRAND_LOGO_HEIGHT, width: BRAND_LOGO_HEIGHT }}
+          />
         </div>
       </a>
       <ul className="nav-links">
@@ -280,6 +302,52 @@ export function SiteNav(props: {
           </li>
         ) : null}
         <li className="nav-join">{join}</li>
+        <li className="nav-hamburger" ref={mobileMenuRef}>
+          <button
+            type="button"
+            className="nav-hamburger-btn"
+            aria-haspopup="true"
+            aria-expanded={mobileMenuOpen}
+            aria-label="Menu"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+          {mobileMenuOpen && (
+            <div className="nav-mobile-panel" role="menu">
+              <a href="/seasonal-rankings" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
+                Player Category Values
+              </a>
+              <a href="/dynasty-rankings" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
+                Dynasty Consensus
+              </a>
+              <a href="/draft-board" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
+                2026 Rookie Draft
+              </a>
+              <a href="/prediction-arena" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
+                Arena
+              </a>
+              {showBoardEditor && (
+                <a href="/admin/rookie-board" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
+                  ✎ Board Editor
+                </a>
+              )}
+              <div className="nav-mobile-panel-divider" />
+              <button
+                type="button"
+                className="nav-mobile-panel-item nav-mobile-panel-theme"
+                onClick={() => {
+                  toggleTheme();
+                  setMobileMenuOpen(false);
+                }}
+              >
+                {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              </button>
+            </div>
+          )}
+        </li>
       </ul>
       <style>{`
         /* ── Rankings dropdown ───────────────────────────────────────────── */
@@ -376,15 +444,44 @@ export function SiteNav(props: {
         .nav-admin-dev a:hover { color: var(--edge-orange); opacity: 0.8; }
         .usermenu-item--signout:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 
+        /* ── Hamburger + mobile dropdown panel (mobile only) ────────────────
+           Modernized mobile header: logo, one CTA pill, and a single ☰ that
+           collapses Rankings/Arena/Board-Editor/Theme into one panel, instead
+           of cramming those in as separate inline nav items. */
+        .nav-hamburger { position: relative; display: none; }
+        .nav-hamburger-btn {
+          display: flex; align-items: center; justify-content: center;
+          width: 36px; height: 36px; border-radius: 100px;
+          background: none; border: 1px solid var(--border-main);
+          color: var(--text-primary); cursor: pointer; transition: border-color 0.2s;
+        }
+        .nav-hamburger-btn:hover { border-color: var(--rt-primary); }
+        .nav-mobile-panel {
+          position: absolute; top: calc(100% + 12px); right: 0; min-width: 220px;
+          background: var(--bg-surface); border: 1px solid var(--border-main);
+          border-radius: 14px; box-shadow: var(--shadow-card);
+          padding: 8px; display: flex; flex-direction: column; gap: 2px; z-index: 250;
+        }
+        .nav-mobile-panel-item {
+          display: block; width: 100%; text-align: left;
+          padding: 11px 14px; border-radius: 8px;
+          font-family: var(--rt-font-sans); font-weight: 500; font-size: 14px;
+          color: var(--text-secondary); text-decoration: none;
+          background: none; border: none; cursor: pointer;
+          transition: background 0.15s, color 0.15s;
+        }
+        .nav-mobile-panel-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
+        .nav-mobile-panel-divider { height: 1px; background: var(--border-main); margin: 4px 0; }
+        .nav-mobile-panel-theme { color: var(--rt-primary); }
+
         /* ── Mobile ──────────────────────────────────────────────────────── */
         @media (max-width: 767px) {
           .nav-links > li.nav-theme,
-          .nav-links > li.nav-mobile-opposite-link { display: none !important; }
+          .nav-links > li.nav-mobile-opposite-link,
           .nav-links > li.nav-rankings,
-          .nav-links > li.nav-arena { display: list-item !important; }
+          .nav-links > li.nav-arena { display: none !important; }
+          .nav-hamburger { display: list-item; }
           .nav-links { gap: 10px; }
-          .nav-dropdown-trigger, .nav-arena a { font-size: 11px; letter-spacing: 0.5px; }
-          .nav-dropdown-menu { min-width: 180px; }
           /* On mobile, just show avatar circle, hide name text */
           .usermenu-name, .usermenu-caret { display: none; }
           .usermenu-trigger { padding: 3px 3px; border-color: transparent; }

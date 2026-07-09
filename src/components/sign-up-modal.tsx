@@ -93,6 +93,22 @@ export function SignUpModal() {
           </button>
         </form>
 
+        <button
+          type="button"
+          onClick={closeSignUp}
+          style={{
+            display: "block",
+            margin: "12px auto 0",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 13,
+            color: "var(--text-muted)",
+          }}
+        >
+          Maybe later
+        </button>
+
         {authError ? (
           <p style={{ color: "var(--red-severe)", fontSize: 13, marginTop: 12, textAlign: "center" }}>{authError}</p>
         ) : null}

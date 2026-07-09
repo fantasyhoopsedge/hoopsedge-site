@@ -158,7 +158,7 @@ export function PredictionCard({
         </span>
         <span
           className="pa-deadline"
-          style={{ color: locallyExpired ? "var(--red-severe)" : "var(--text-muted)" }}
+          style={{ color: locallyExpired ? "var(--rt-down)" : "var(--rt-muted)" }}
           title={new Date(game.deadline).toLocaleString()}
         >
           {locallyExpired ? "🔒 Locked" : `⏱ Locks in ${formatRemaining(remaining)}`}
@@ -170,7 +170,7 @@ export function PredictionCard({
 
       {submitted ? (
         <div className="pa-submitted" role="status">
-          <span className="pa-chip" style={{ background: "var(--tag-live-bg)", color: "var(--tag-live-text)" }}>
+          <span className="pa-chip" style={{ background: "var(--rt-surface-strong)", color: "var(--rt-up)" }}>
             ✓ CALL LOCKED IN
           </span>
           <p className="pa-submitted-echo">{describeSelection(existing.prediction_selection)}</p>

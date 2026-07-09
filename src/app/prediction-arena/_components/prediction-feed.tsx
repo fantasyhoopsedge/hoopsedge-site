@@ -12,9 +12,9 @@ const TIER_ORDER: Record<PredictionGame["tier"], number> = {
 };
 
 const TIER_META: Record<PredictionGame["tier"], { label: string; color: string; bg: string }> = {
-  nightly: { label: "TIER 1 · NIGHTLY", color: "var(--blueprint-glow)", bg: "rgba(37, 99, 235, 0.12)" },
-  monthly: { label: "TIER 2 · MONTHLY", color: "var(--edge-orange)", bg: "rgba(255, 107, 43, 0.12)" },
-  seasonal: { label: "TIER 3 · SEASONAL", color: "var(--dynasty-gold)", bg: "rgba(240, 192, 64, 0.12)" },
+  nightly: { label: "TIER 1 · NIGHTLY", color: "var(--rt-primary)", bg: "var(--rt-surface-strong)" },
+  monthly: { label: "TIER 2 · MONTHLY", color: "#b5790a", bg: "rgba(240, 165, 0, 0.14)" },
+  seasonal: { label: "TIER 3 · SEASONAL", color: "var(--rt-muted)", bg: "var(--rt-surface-strong)" },
 };
 
 /**

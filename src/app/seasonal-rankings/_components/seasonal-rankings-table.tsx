@@ -6,6 +6,7 @@ import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
+import { shortenPlayerName } from "@/lib/shorten-name";
 
 type SeasonOption = { key: string; label: string };
 
@@ -626,7 +627,7 @@ export function SeasonalRankingsTable(props: {
               <thead>
                 <tr>
                   <th className="sr-th sr-th-pick" aria-label="Tick" />
-                  <th className="sr-th sr-num-h">RANK</th>
+                  <th className="sr-th sr-num-h sr-th-rank">RANK</th>
                   <th className="sr-th sr-th-shot" aria-label="Headshot" />
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
                   <th className="sr-th sr-w">TEAM</th>
@@ -685,11 +686,13 @@ export function SeasonalRankingsTable(props: {
                           aria-label={`Tick ${s.name}`}
                         />
                       </td>
-                      <td className="sr-td sr-num">{rank}</td>
+                      <td className="sr-td sr-num sr-td-rank">{rank}</td>
                       <td className="sr-td sr-td-shot">
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
-                      <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
+                      <td className="sr-td sr-td-player sr-sticky-col" title={s.name}>
+                        {shortenPlayerName(s.name)}
+                      </td>
                       <td className="sr-td sr-td-team sr-w">
                         <TeamLogo team={s.team} />
                       </td>
@@ -843,14 +846,26 @@ export function SeasonalRankingsTable(props: {
         .sr-th-strong { color: var(--text-primary); }
         .sr-th-active { color: var(--rt-primary); font-weight: 700; }
         .sr-sort-arrow { margin-left: 2px; font-size: 10px; }
-        /* leading tick-box column — fixed + aligned far left, before RANK */
+        /* leading tick-box column — fixed + aligned far left, before RANK.
+           This, RANK, and the headshot all stay pinned as the table scrolls
+           right through the stat columns, same as the PLAYER column. */
         .sr-th-pick, .sr-td-pick { width: 30px; min-width: 30px; max-width: 30px; padding: 0 0 0 10px; }
         .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--rt-primary); cursor: pointer; display: block; margin: 0 auto; }
         .sr-th-shot { width: 40px; }
-        /* PLAYER wide enough to keep every name on one line */
-        .sr-th-player { width: 175px; min-width: 175px; max-width: 175px; }
+        /* Shortened names ("F. SURNAME") fit in a much tighter column than full
+           names did; ellipsis is a safety net for the rare long single-word
+           surname (title attribute carries the full name). */
+        .sr-th-player { width: 108px; min-width: 108px; max-width: 108px; }
+        .sr-td-player { overflow: hidden; text-overflow: ellipsis; }
+
+        .sr-th-pick, .sr-th-rank, .sr-th-shot { position: sticky; z-index: 20; background: var(--bg-body); }
+        .sr-td-pick, .sr-td-rank, .sr-td-shot { position: sticky; z-index: 5; background: var(--bg-body); }
+        .sr-th-pick, .sr-td-pick { left: 0; }
+        .sr-th-rank, .sr-td-rank { left: 30px; }
+        .sr-th-shot, .sr-td-shot { left: 86px; } /* 30 (pick) + 56 (rank) */
+        .sr-tr:hover .sr-td-pick, .sr-tr:hover .sr-td-rank, .sr-tr:hover .sr-td-shot { background: var(--bg-card-hover, #1c1c1c); }
         /* the frozen corner cell (PLAYER header) needs to win on both axes */
-        .sr-th.sr-sticky-col { left: 0; z-index: 20; background: var(--bg-body); }
+        .sr-th.sr-sticky-col { left: 126px; z-index: 20; background: var(--bg-body); } /* 30 + 56 + 40 (shot) */
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
@@ -875,7 +890,7 @@ export function SeasonalRankingsTable(props: {
 
         /* sticky player column — same base background as the data cells (which
            show the page body), so no column has a different shade in either theme */
-        .sr-sticky-col { position: sticky; left: 0; z-index: 5; background: var(--bg-body); }
+        .sr-sticky-col { position: sticky; left: 126px; z-index: 5; background: var(--bg-body); }
         .sr-tr:hover .sr-sticky-col { background: var(--bg-card-hover, #1c1c1c); }
 
         .sr-headshot-img {
@@ -898,6 +913,9 @@ export function SeasonalRankingsTable(props: {
           .sr-controls { top: 52px; }
           .sr-controls-inner { gap: 10px; padding: 10px 12px; }
           .sr-th-shot, .sr-td-shot { display: none; }
+          /* headshot column is gone, so the frozen PLAYER column shifts left
+             to sit right after RANK (30 + 56) instead of after the headshot */
+          .sr-th.sr-sticky-col, .sr-sticky-col { left: 86px; }
         }
       `}</style>
     </div>
