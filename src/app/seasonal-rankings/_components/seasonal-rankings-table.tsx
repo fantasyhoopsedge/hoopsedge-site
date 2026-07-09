@@ -855,7 +855,7 @@ export function SeasonalRankingsTable(props: {
         /* Shortened names ("F. SURNAME") fit in a much tighter column than full
            names did; ellipsis is a safety net for the rare long single-word
            surname (title attribute carries the full name). */
-        .sr-th-player { width: 108px; min-width: 108px; max-width: 108px; }
+        .sr-th-player, .sr-td-player { width: 134px; min-width: 134px; max-width: 134px; }
         .sr-td-player { overflow: hidden; text-overflow: ellipsis; }
 
         .sr-th-pick, .sr-th-rank, .sr-th-shot { position: sticky; z-index: 20; background: var(--bg-body); }
@@ -916,6 +916,9 @@ export function SeasonalRankingsTable(props: {
           /* headshot column is gone, so the frozen PLAYER column shifts left
              to sit right after RANK (30 + 56) instead of after the headshot */
           .sr-th.sr-sticky-col, .sr-sticky-col { left: 86px; }
+          /* Slightly smaller than desktop so more stat columns fit before
+             the table needs horizontal scrolling. */
+          .sr-th, .sr-td, .sr-num { font-size: 13px; }
         }
       `}</style>
     </div>

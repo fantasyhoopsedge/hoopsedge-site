@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "ai-assistant";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "arena" | "ai-assistant";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -53,6 +53,16 @@ const NAV_ITEMS: NavItem[] = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
         <path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    key: "arena",
+    label: "Prediction Arena",
+    href: "/prediction-arena",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" />
       </svg>
     ),
   },

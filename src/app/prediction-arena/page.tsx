@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { useAuth } from "@/context/AuthContext";
 import { createClient } from "@/utils/supabase/client";
 import { PredictionFeed } from "./_components/prediction-feed";
@@ -202,8 +202,8 @@ export default function PredictionArenaPage() {
   }, []);
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--rt-canvas)", color: "var(--rt-ink)" }}>
-      <SiteNav />
+    <main className="pa-shell" style={{ minHeight: "100vh", background: "var(--rt-canvas)", color: "var(--rt-ink)" }}>
+      <PlatformSidebarNav active="arena" />
       {loading ? (
         <ArenaSkeleton />
       ) : user ? (

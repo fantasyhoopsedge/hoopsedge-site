@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
@@ -151,16 +152,29 @@ export function SiteNav(props: {
   const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileRankingsOpen, setMobileRankingsOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLLIElement>(null);
 
+  // Full-screen takeover: lock background scroll while it's open, and let
+  // Escape close it (outside-click doesn't apply once it covers the viewport).
   useEffect(() => {
     if (!mobileMenuOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) setMobileMenuOpen(false);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileMenuOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("keydown", handler);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", handler);
+    };
   }, [mobileMenuOpen]);
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setMobileRankingsOpen(false);
+  };
 
   // Show the rookie-board editor link to admins (and always on localhost).
   const [isBoardAdmin, setIsBoardAdmin] = useState(false);
@@ -316,35 +330,99 @@ export function SiteNav(props: {
             </svg>
           </button>
           {mobileMenuOpen && (
-            <div className="nav-mobile-panel" role="menu">
-              <a href="/seasonal-rankings" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
-                Player Category Values
-              </a>
-              <a href="/dynasty-rankings" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
-                Dynasty Consensus
-              </a>
-              <a href="/draft-board" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
-                2026 Rookie Draft
-              </a>
-              <a href="/prediction-arena" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
-                Arena
-              </a>
-              {showBoardEditor && (
-                <a href="/admin/rookie-board" className="nav-mobile-panel-item" onClick={() => setMobileMenuOpen(false)}>
-                  ✎ Board Editor
+            <div className="nav-mobile-panel" role="dialog" aria-modal="true" aria-label="Menu">
+              <div className="nav-mobile-panel-header">
+                {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
+                <img
+                  src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+                  alt="Fantasy Hoops Edge"
+                  style={{ height: 24, width: "auto" }}
+                />
+                <button
+                  type="button"
+                  className="nav-mobile-panel-close"
+                  aria-label="Close menu"
+                  onClick={closeMobileMenu}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="nav-mobile-panel-body">
+                <Link href="/" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                  Home
+                </Link>
+
+                <button
+                  type="button"
+                  className="nav-mobile-panel-row"
+                  aria-expanded={mobileRankingsOpen}
+                  onClick={() => setMobileRankingsOpen((v) => !v)}
+                >
+                  Rankings
+                  <span className={`nav-mobile-panel-chevron${mobileRankingsOpen ? " nav-mobile-panel-chevron--open" : ""}`} aria-hidden>
+                    ▾
+                  </span>
+                </button>
+                {mobileRankingsOpen && (
+                  <div className="nav-mobile-panel-sub">
+                    <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player Category Values</a>
+                    <a href="/dynasty-rankings" onClick={closeMobileMenu}>Dynasty Consensus</a>
+                    <a href="/draft-board" onClick={closeMobileMenu}>Rookie Board</a>
+                  </div>
+                )}
+
+                <Link href="/team-rosters" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                  NBA Team Rosters
+                </Link>
+                <a href="/prediction-arena" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                  Arena
                 </a>
+                {showBoardEditor && (
+                  <a href="/admin/rookie-board" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                    Board Editor
+                  </a>
+                )}
+                <button type="button" className="nav-mobile-panel-row" onClick={toggleTheme}>
+                  {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                </button>
+
+                {user && (
+                  <>
+                    <a href="/profile" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                      Profile &amp; Account
+                    </a>
+                    <button
+                      type="button"
+                      className="nav-mobile-panel-row nav-mobile-panel-row--signout"
+                      onClick={() => { closeMobileMenu(); void signOut(); }}
+                    >
+                      Sign Out
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {!user && (
+                <div className="nav-mobile-panel-footer">
+                  <button
+                    type="button"
+                    className="nav-mobile-panel-signin"
+                    onClick={() => { closeMobileMenu(); openSignUp(); }}
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    type="button"
+                    className="nav-mobile-panel-join"
+                    onClick={() => { closeMobileMenu(); openSignUp("/prediction-arena"); }}
+                  >
+                    Join Free →
+                  </button>
+                </div>
               )}
-              <div className="nav-mobile-panel-divider" />
-              <button
-                type="button"
-                className="nav-mobile-panel-item nav-mobile-panel-theme"
-                onClick={() => {
-                  toggleTheme();
-                  setMobileMenuOpen(false);
-                }}
-              >
-                {theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              </button>
             </div>
           )}
         </li>
@@ -444,10 +522,11 @@ export function SiteNav(props: {
         .nav-admin-dev a:hover { color: var(--edge-orange); opacity: 0.8; }
         .usermenu-item--signout:hover { background: rgba(239,68,68,0.08); color: #ef4444; }
 
-        /* ── Hamburger + mobile dropdown panel (mobile only) ────────────────
-           Modernized mobile header: logo, one CTA pill, and a single ☰ that
-           collapses Rankings/Arena/Board-Editor/Theme into one panel, instead
-           of cramming those in as separate inline nav items. */
+        /* ── Hamburger + full-screen mobile menu (mobile only) ──────────────
+           Modernized mobile header: logo + a single ☰ that opens a full-
+           screen takeover (modeled on a Dynatyze reference the user shared)
+           with big tap-target rows, a collapsible Rankings accordion, and
+           Sign in / Join moved out of the top bar and into the panel. */
         .nav-hamburger { position: relative; display: none; }
         .nav-hamburger-btn {
           display: flex; align-items: center; justify-content: center;
@@ -457,35 +536,75 @@ export function SiteNav(props: {
         }
         .nav-hamburger-btn:hover { border-color: var(--rt-primary); }
         .nav-mobile-panel {
-          position: absolute; top: calc(100% + 12px); right: 0; min-width: 220px;
-          background: var(--bg-surface); border: 1px solid var(--border-main);
-          border-radius: 14px; box-shadow: var(--shadow-card);
-          padding: 8px; display: flex; flex-direction: column; gap: 2px; z-index: 250;
+          position: fixed; inset: 0; z-index: 300;
+          background: var(--bg-body);
+          display: flex; flex-direction: column;
+          overflow-y: auto;
         }
-        .nav-mobile-panel-item {
-          display: block; width: 100%; text-align: left;
-          padding: 11px 14px; border-radius: 8px;
-          font-family: var(--rt-font-sans); font-weight: 500; font-size: 14px;
+        .nav-mobile-panel-header {
+          flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+          padding: 18px 20px;
+        }
+        .nav-mobile-panel-close {
+          display: flex; align-items: center; justify-content: center;
+          width: 38px; height: 38px; border-radius: 50%;
+          background: none; border: 1px solid var(--border-main);
+          color: var(--text-primary); cursor: pointer;
+        }
+        .nav-mobile-panel-body {
+          flex: 1 1 auto; display: flex; flex-direction: column;
+          padding: 4px 20px 24px;
+        }
+        /* Stacked 3 classes deep (.nav-mobile-panel .nav-mobile-panel-body
+           .nav-mobile-panel-row) so this reliably beats two sitewide rules
+           that would otherwise hijack these <a>/<Link> rows: the base
+           ".nav-links a" (1 class + 1 type) AND, in light theme specifically,
+           '[data-theme="light"] .nav-links a' (2 classes + 1 type) which sets
+           near-white text — invisible on this panel's white light-theme
+           background if it wins. */
+        .nav-mobile-panel .nav-mobile-panel-body .nav-mobile-panel-row {
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          width: 100%; padding: 18px 0; border: none; border-bottom: 1px solid var(--border-main);
+          background: none; text-align: left; cursor: pointer;
+          font-family: var(--rt-font-sans); font-weight: 700; font-size: 19px;
+          letter-spacing: normal; text-transform: none;
+          color: var(--text-primary); text-decoration: none;
+        }
+        .nav-mobile-panel .nav-mobile-panel-body .nav-mobile-panel-row--signout { color: #ef4444; }
+        .nav-mobile-panel-chevron { font-size: 14px; color: var(--text-muted); transition: transform 0.15s ease; }
+        .nav-mobile-panel-chevron--open { transform: rotate(180deg); }
+        .nav-mobile-panel-sub {
+          display: flex; flex-direction: column;
+          padding: 2px 0 14px; border-bottom: 1px solid var(--border-main);
+        }
+        .nav-mobile-panel .nav-mobile-panel-body .nav-mobile-panel-sub a {
+          padding: 12px 0 12px 12px;
+          font-family: var(--rt-font-sans); font-weight: 500; font-size: 16px;
+          letter-spacing: normal; text-transform: none;
           color: var(--text-secondary); text-decoration: none;
-          background: none; border: none; cursor: pointer;
-          transition: background 0.15s, color 0.15s;
         }
-        .nav-mobile-panel-item:hover { background: var(--bg-card-hover); color: var(--text-primary); }
-        .nav-mobile-panel-divider { height: 1px; background: var(--border-main); margin: 4px 0; }
-        .nav-mobile-panel-theme { color: var(--rt-primary); }
+        .nav-mobile-panel-footer {
+          flex: 0 0 auto; display: flex; gap: 12px;
+          padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+          border-top: 1px solid var(--border-main);
+        }
+        .nav-mobile-panel-signin, .nav-mobile-panel-join {
+          flex: 1; height: 50px; border-radius: 100px;
+          font-family: var(--rt-font-sans); font-weight: 700; font-size: 15px;
+          cursor: pointer;
+        }
+        .nav-mobile-panel-signin { background: none; border: 1px solid var(--border-main); color: var(--text-primary); }
+        .nav-mobile-panel-join { background: var(--rt-primary); border: none; color: #ffffff; }
 
         /* ── Mobile ──────────────────────────────────────────────────────── */
         @media (max-width: 767px) {
           .nav-links > li.nav-theme,
           .nav-links > li.nav-mobile-opposite-link,
           .nav-links > li.nav-rankings,
-          .nav-links > li.nav-arena { display: none !important; }
+          .nav-links > li.nav-arena,
+          .nav-links > li.nav-join { display: none !important; }
           .nav-hamburger { display: list-item; }
           .nav-links { gap: 10px; }
-          /* On mobile, just show avatar circle, hide name text */
-          .usermenu-name, .usermenu-caret { display: none; }
-          .usermenu-trigger { padding: 3px 3px; border-color: transparent; }
-          .usermenu-dropdown { right: 0; min-width: 200px; }
         }
       `}</style>
     </nav>

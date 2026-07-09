@@ -3,6 +3,12 @@
 // globals.css (Geist font, single Edge Orange accent, pill/24px shape
 // language) so this page matches the rest of the rebranded site.
 export const paStyles = `
+/* Offset for the fixed-left AppSidebar rail on desktop (PlatformSidebarNav);
+   mobile falls back to the top SiteNav, which needs no offset. Same simple
+   pattern as .draft-board-shell. */
+.pa-shell { padding-left: 236px; }
+@media (max-width: 767px) { .pa-shell { padding-left: 0; } }
+
 .pa-wrap { max-width: 1100px; margin: 0 auto; padding: 56px 24px 96px; text-align: center; font-family: var(--rt-font-sans); }
 .pa-eyebrow { display: inline-block; font-family: var(--rt-font-sans); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--rt-primary); background: var(--rt-surface-strong); border-radius: 999px; padding: 5px 14px; margin-bottom: 18px; }
 .pa-h1 { font-family: var(--rt-font-sans); font-weight: 400; letter-spacing: -1px; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin: 0 0 16px; color: var(--rt-ink); }

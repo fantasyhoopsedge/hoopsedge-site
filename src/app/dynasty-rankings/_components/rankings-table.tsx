@@ -465,7 +465,11 @@ export function RankingsTable(props: {
                               <span title={p.player}>{shortenPlayerName(p.player)}</span>
                               <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: 5 }}>
                                 <TeamCell team={p.team} size={16} />
-                                {p.isRookie ? <span style={{ color: "#F0C040", fontSize: 11 }}>Rookie</span> : null}
+                                {p.isRookie ? (
+                                  <span className="dr-rookie-badge" title="2026 Rookie">
+                                    R
+                                  </span>
+                                ) : null}
                               </span>
                             </>
                           ) : (
