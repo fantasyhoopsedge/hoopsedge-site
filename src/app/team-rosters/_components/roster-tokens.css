@@ -139,3 +139,56 @@
 .rt-hover-primary:hover {
   background: var(--rt-primary-active) !important;
 }
+
+/* ── Mobile shell (<=767px, matching the sitewide breakpoint) ──────────────
+   Desktop keeps the fixed-left AppSidebar rail; mobile swaps it for a
+   compact top bar + hamburger that opens AppSidebar as a slide-over drawer,
+   reusing the same component/theme state instead of a separate mobile nav. */
+.rt-sidebar-desktop {
+  flex: 0 0 236px;
+  height: 100%;
+}
+.rt-mobile-topbar {
+  display: none;
+}
+.rt-mobile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 100px;
+  background: none;
+  border: 1px solid var(--rt-hairline);
+  color: var(--rt-ink);
+  cursor: pointer;
+}
+.rt-mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: var(--rt-scrim);
+  display: flex;
+}
+.rt-mobile-drawer {
+  height: 100%;
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 767px) {
+  .rt-shell {
+    flex-direction: column;
+  }
+  .rt-sidebar-desktop {
+    display: none;
+  }
+  .rt-mobile-topbar {
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--rt-hairline);
+    background: var(--rt-canvas);
+  }
+}

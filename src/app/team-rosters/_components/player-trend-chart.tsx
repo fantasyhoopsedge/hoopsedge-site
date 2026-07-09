@@ -210,7 +210,10 @@ export function TrendHero({
             #{hoverRank}
           </div>
         )}
-        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: "block", overflow: "visible" }}>
+        {/* No preserveAspectRatio="none" — the box keeps the viewBox's own
+            aspect ratio via CSS instead of stretching to a fixed 84px height,
+            which visibly squashed the line on narrow (mobile) containers. */}
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block", overflow: "visible", aspectRatio: `${W} / ${H}` }}>
           {line && <polyline points={line} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />}
           {pts?.map(
             (p, i) =>

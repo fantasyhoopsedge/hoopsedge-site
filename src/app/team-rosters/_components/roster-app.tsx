@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CATS,
@@ -117,6 +117,24 @@ export function RosterApp({
   const [colDir, setColDir] = useState<"asc" | "desc">("desc");
   const [fvMetric, setFvMetric] = useState<FvMetric>("minus1");
   const [teamMenuOpen, setTeamMenuOpen] = useState(false);
+  // Mobile has no room for the list+detail split — the detail panel becomes
+  // a full-screen view you navigate into (see the aside render below) rather
+  // than a persistent 392px rail, so track whether it's currently showing.
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const selectPlayer = (id: string) => {
+    setSelectedId(id);
+    if (isMobile) setMobileDetailOpen(true);
+  };
 
   const modeNow: SeasonMode = mode ?? "cur";
   const fvUseProj = sort === "proj" && PRO_UNLOCKED;
@@ -371,17 +389,18 @@ export function RosterApp({
     <>
     <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
       {/* ================= MAIN COLUMN ================= */}
+      {(!isMobile || !mobileDetailOpen) && (
       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
-            height: 68,
-            flex: "0 0 68px",
+            flex: isMobile ? "0 0 auto" : "0 0 68px",
             borderBottom: "1px solid var(--rt-hairline)",
             display: "flex",
             alignItems: "center",
-            gap: 16,
-            padding: "0 28px",
+            flexWrap: isMobile ? "wrap" : "nowrap",
+            gap: isMobile ? 10 : 16,
+            padding: isMobile ? "10px 16px" : "0 28px",
           }}
         >
           <div style={{ position: "relative" }}>
@@ -408,7 +427,7 @@ export function RosterApp({
                   alt=""
                   width={48}
                   height={48}
-                  style={{ width: 48, height: 48, flex: "0 0 48px", objectFit: "contain" }}
+                  style={{ width: isMobile ? 36 : 48, height: isMobile ? 36 : 48, flex: isMobile ? "0 0 36px" : "0 0 48px", objectFit: "contain" }}
                 />
               ) : (
                 <span
@@ -433,7 +452,7 @@ export function RosterApp({
               )}
               <div style={{ textAlign: "left" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                  <span style={{ fontSize: 19, fontWeight: 600, color: "var(--rt-ink)", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: isMobile ? 16 : 19, fontWeight: 600, color: "var(--rt-ink)", letterSpacing: "-0.3px", whiteSpace: "nowrap" }}>
                     {curTeam.name}
                   </span>
                   <svg
@@ -450,7 +469,7 @@ export function RosterApp({
                     <path d="m6 9 6 6 6-6" />
                   </svg>
                 </div>
-                <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster · 2026–27 season</div>
+                {!isMobile && <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster · 2026–27 season</div>}
               </div>
             </button>
             {teamMenuOpen && (
@@ -539,7 +558,7 @@ export function RosterApp({
               </>
             )}
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ marginLeft: isMobile ? 0 : "auto", width: isMobile ? "100%" : "auto", display: "flex", alignItems: "center", gap: 12 }}>
             <div
               style={{
                 display: "inline-flex",
@@ -549,20 +568,22 @@ export function RosterApp({
                 padding: "0 18px",
                 background: "var(--rt-surface-strong)",
                 borderRadius: 999,
-                width: 230,
+                width: isMobile ? "auto" : 230,
+                flex: isMobile ? 1 : undefined,
+                minWidth: 0,
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--rt-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--rt-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
               </svg>
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search roster"
-                style={{ border: "none", outline: "none", background: "transparent", fontFamily: "var(--rt-font-sans)", fontSize: 14, color: "var(--rt-ink)", width: "100%" }}
+                style={{ border: "none", outline: "none", background: "transparent", fontFamily: "var(--rt-font-sans)", fontSize: 14, color: "var(--rt-ink)", width: "100%", minWidth: 0 }}
               />
             </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 42, padding: "0 6px 0 16px", background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 42, padding: "0 6px 0 16px", background: "var(--rt-surface-strong)", borderRadius: 999, flexShrink: 0 }}>
               <span style={{ fontSize: 13, color: "var(--rt-body)", fontWeight: 500 }}>Sort</span>
               <select
                 value={sort}
@@ -584,108 +605,121 @@ export function RosterApp({
         </div>
 
         {/* Scroll area */}
-        <div style={{ flex: 1, overflow: "auto", padding: "24px 28px 36px", display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px 16px 28px" : "24px 28px 36px", display: "flex", flexDirection: "column", gap: isMobile ? 16 : 22 }}>
           {/* Summary cards */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr) 1.25fr", gap: 16 }}>
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
+            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster</div>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {salariedPlayers.length}
               </div>
               <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>players under contract</div>
             </div>
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
+            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Total salaried</div>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {money(totalPayroll)}
               </div>
               <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>{taxCaption}</div>
             </div>
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "20px 22px" }}>
+            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Average age</div>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {avgAge.toFixed(1)}
               </div>
               <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>{ageCaption}</div>
             </div>
             <div
               className="rt-hover-shadow"
-              style={{ display: "flex", alignItems: "center", gap: 16, background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: "16px 20px", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: isMobile ? 10 : 16, background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "16px 20px", cursor: "pointer" }}
             >
-              <span style={{ width: 48, height: 48, flex: "0 0 48px", borderRadius: 999, background: "var(--rt-primary)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <span style={{ width: isMobile ? 36 : 48, height: isMobile ? 36 : 48, flex: isMobile ? "0 0 36px" : "0 0 48px", borderRadius: 999, background: "var(--rt-primary)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width={isMobile ? 17 : 22} height={isMobile ? 17 : 22} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 3h5v5" /><path d="M21 3l-7 7" /><path d="M8 21H3v-5" /><path d="M3 21l7-7" />
                 </svg>
               </span>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)" }}>Build a trade</div>
-                <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Compare assets &amp; dynasty value</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 600, color: "var(--rt-ink)" }}>Build a trade</div>
+                {!isMobile && <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Compare assets &amp; dynasty value</div>}
               </div>
             </div>
           </div>
 
           {/* Position filters */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {posFilterDefs.map((pf) => {
-              const on = pos === pf.id;
-              return (
-                <button
-                  key={pf.id}
-                  type="button"
-                  onClick={() => setPos(pf.id)}
-                  style={{
-                    padding: "9px 18px",
-                    border: "none",
-                    cursor: "pointer",
-                    borderRadius: 999,
-                    fontFamily: "var(--rt-font-sans)",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    background: on ? "var(--rt-ink)" : "var(--rt-surface-strong)",
-                    color: on ? "var(--rt-canvas)" : "var(--rt-body)",
-                  }}
-                >
-                  {pf.label}
-                </button>
-              );
-            })}
-            <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--rt-muted)" }}>
-              {cards.length} of {players.length} players
-            </span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              <button
-                type="button"
-                aria-label="Grid view"
-                onClick={() => setViewMode("grid")}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 28, border: "none", cursor: "pointer", borderRadius: 999, background: viewMode !== "list" ? "var(--rt-canvas)" : "transparent" }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={viewMode !== "list" ? "var(--rt-ink)" : "var(--rt-muted)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                aria-label="List view"
-                onClick={() => setViewMode("list")}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 28, border: "none", cursor: "pointer", borderRadius: 999, background: viewMode === "list" ? "var(--rt-canvas)" : "transparent" }}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={viewMode === "list" ? "var(--rt-ink)" : "var(--rt-muted)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-              </button>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, overflowX: isMobile ? "auto" : "visible" }}>
+              {posFilterDefs.map((pf) => {
+                const on = pos === pf.id;
+                return (
+                  <button
+                    key={pf.id}
+                    type="button"
+                    onClick={() => setPos(pf.id)}
+                    style={{
+                      flexShrink: 0,
+                      padding: "9px 18px",
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: 999,
+                      fontFamily: "var(--rt-font-sans)",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      background: on ? "var(--rt-ink)" : "var(--rt-surface-strong)",
+                      color: on ? "var(--rt-canvas)" : "var(--rt-body)",
+                    }}
+                  >
+                    {pf.label}
+                  </button>
+                );
+              })}
+              {!isMobile && (
+                <span style={{ marginLeft: "auto", fontSize: 13, color: "var(--rt-muted)" }}>
+                  {cards.length} of {players.length} players
+                </span>
+              )}
+              {!isMobile && (
+                <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+                  <button
+                    type="button"
+                    aria-label="Grid view"
+                    onClick={() => setViewMode("grid")}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 28, border: "none", cursor: "pointer", borderRadius: 999, background: viewMode !== "list" ? "var(--rt-canvas)" : "transparent" }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={viewMode !== "list" ? "var(--rt-ink)" : "var(--rt-muted)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="List view"
+                    onClick={() => setViewMode("list")}
+                    style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 28, border: "none", cursor: "pointer", borderRadius: 999, background: viewMode === "list" ? "var(--rt-canvas)" : "transparent" }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={viewMode === "list" ? "var(--rt-ink)" : "var(--rt-muted)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
+                      <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
+            {isMobile && (
+              <span style={{ fontSize: 13, color: "var(--rt-muted)" }}>
+                {cards.length} of {players.length} players
+              </span>
+            )}
           </div>
 
           {/* Player grid */}
-          {viewMode === "grid" && (
+          {!isMobile && viewMode === "grid" && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
                   className="rt-hover-shadow"
-                  onClick={() => setSelectedId(c.id)}
+                  onClick={() => selectPlayer(c.id)}
                   style={{
                     position: "relative",
                     cursor: "pointer",
@@ -750,7 +784,7 @@ export function RosterApp({
           )}
 
           {/* Player list */}
-          {viewMode === "list" && (
+          {!isMobile && viewMode === "list" && (
             <div>
               <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflowX: "auto" }}>
                 <div
@@ -800,7 +834,7 @@ export function RosterApp({
                   <div
                     key={c.id}
                     className="rt-hover-surface"
-                    onClick={() => setSelectedId(c.id)}
+                    onClick={() => selectPlayer(c.id)}
                     style={{
                       display: "grid",
                       gridTemplateColumns: listGridCols,
@@ -872,6 +906,71 @@ export function RosterApp({
             </div>
           )}
 
+          {/* Mobile: one compact row layout regardless of the desktop grid/list
+             toggle — the full list-view columns need ~800px minimum, and grid
+             cards don't fit 2-3 up on a 375px screen. Tapping a row opens the
+             full-screen detail view (see selectPlayer / the aside below). */}
+          {isMobile && (
+            <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflow: "hidden" }}>
+              {cards.map((c) => (
+                <div
+                  key={c.id}
+                  className="rt-hover-surface"
+                  onClick={() => selectPlayer(c.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "12px 14px",
+                    cursor: "pointer",
+                    borderBottom: "1px solid var(--rt-hairline-soft)",
+                    background: c.rowBg,
+                  }}
+                >
+                  <PlayerHeadshot name={c.name} size={40} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={14} rookie={c.isRookie} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {c.listName}
+                      </span>
+                      {c.tag && (
+                        <span
+                          style={{
+                            flex: "0 0 auto",
+                            width: 16,
+                            height: 16,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: 999,
+                            border: `1px solid ${c.tag.border}`,
+                            background: c.tag.bg,
+                            color: c.tag.color,
+                            fontFamily: "var(--rt-font-mono)",
+                            fontSize: 9,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {c.tagShort}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {c.pos} · Age {c.age} · {c.salary}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right", flex: "0 0 auto" }}>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 14, fontWeight: 600, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{c.fvRank}</div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: c.fvToneColor }}>
+                      <span style={{ fontSize: 7 }}>{c.fvToneArrow}</span>
+                      {c.fvVerdict}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {noResults && (
             <div style={{ padding: 48, textAlign: "center", color: "var(--rt-muted)", fontSize: 15 }}>
               No players match your filter. Clear the search to see the full roster.
@@ -879,9 +978,32 @@ export function RosterApp({
           )}
         </div>
       </div>
+      )}
 
       {/* ================= DETAIL PANEL ================= */}
-      <aside style={{ width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }}>
+      {(!isMobile || mobileDetailOpen) && (
+      <aside
+        style={
+          isMobile
+            ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto" }
+            : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
+        }
+      >
+        {isMobile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--rt-hairline)", background: "var(--rt-canvas)", position: "sticky", top: 0, zIndex: 1 }}>
+            <button
+              type="button"
+              onClick={() => setMobileDetailOpen(false)}
+              aria-label="Back to roster"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, border: "1px solid var(--rt-hairline)", borderRadius: 100, background: "none", color: "var(--rt-ink)", cursor: "pointer" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600, color: "var(--rt-ink)" }}>Player detail</span>
+          </div>
+        )}
         {/* Court hero — dark in dark mode, light in light mode, never forced dark */}
         <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: "26px 24px 24px" }}>
           {TEAM_LOGO[sp.team] && (
@@ -1152,6 +1274,7 @@ export function RosterApp({
           </div>
         </div>
       </aside>
+      )}
     </div>
     {sortProjLocked && (
       <div
