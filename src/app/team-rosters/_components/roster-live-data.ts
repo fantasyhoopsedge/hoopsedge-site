@@ -5,7 +5,7 @@ import type { Database } from "@/types/database";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
 import rookieBoard from "@/data/rookie-board.json";
 import type { Player } from "./roster-data";
-import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type Tone } from "./trend-insight";
+import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "./trend-insight";
 
 // Live per-team roster for /team-rosters, joining sources into the UI's Player shape:
 //   - nba_roster            → bio, position, contract, salary, draft, tags
@@ -27,14 +27,14 @@ const TRENDS_SEASON_TYPE = "regular";
 /** The slice of an nba_player_trends payload the tone derivation needs. */
 type TrendPayload = { blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] };
 
-/** Blended consensus-vs-real-value tone per metric for one player, or all-null if there's no trend/consensus data. */
-function tonesFrom(trend: TrendPayload | undefined, consensusRank: number, age: number | null): { nine: Tone | null; m1: Tone | null; eight: Tone | null } {
+/** Blended consensus-vs-real-value trend tag per metric for one player, or all-null if there's no trend/consensus data. */
+function tagsFrom(trend: TrendPayload | undefined, consensusRank: number, age: number | null): { nine: TrendTag | null; m1: TrendTag | null; eight: TrendTag | null } {
   if (!trend) return { nine: null, m1: null, eight: null };
   const history = trend.seasonHistory ?? [];
   return {
-    nine: deriveFinalTake(trend.blocks, history, age, "nineCatV", consensusRank)?.tone ?? null,
-    m1: deriveFinalTake(trend.blocks, history, age, "minus1V", consensusRank)?.tone ?? null,
-    eight: deriveFinalTake(trend.blocks, history, age, "eightCatV", consensusRank)?.tone ?? null,
+    nine: deriveFinalTake(trend.blocks, history, age, "nineCatV", consensusRank)?.tag ?? null,
+    m1: deriveFinalTake(trend.blocks, history, age, "minus1V", consensusRank)?.tag ?? null,
+    eight: deriveFinalTake(trend.blocks, history, age, "eightCatV", consensusRank)?.tag ?? null,
   };
 }
 
@@ -252,7 +252,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   // read — see trend-insight.ts), so resolve them once per row first.
   const consensusByRow = roster.map((r) => DYN_BY_NORM.get(r.norm_name)?.consensusRank ?? 999);
   const ageByRow = roster.map((r) => ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? DYN_BY_NORM.get(r.norm_name)?.age ?? 0));
-  const tones = roster.map((r, i) => tonesFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i]));
+  const tags = roster.map((r, i) => tagsFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i]));
 
   return roster.map((r, i): Player => {
     const st = r.player_id ? statsById.get(r.player_id) : undefined;
@@ -261,7 +261,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     const priorVal = r.player_id ? priorValuesById.get(r.player_id) : undefined;
     const rank = r.player_id ? poolRanks[r.player_id] : undefined;
     const dyn = DYN_BY_NORM.get(r.norm_name);
-    const tone = tones[i];
+    const trendTags = tags[i];
     const rookie = r.is_incoming_rookie ? ROOKIE_BY_NORM.get(r.norm_name) : undefined;
 
     // Position from the master source: dynasty consensus (veterans) → rookie board
@@ -362,9 +362,9 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       rankNineCat: rank?.nine ?? null,
       rankMinus1: rank?.m1 ?? null,
       rankEightCat: rank?.eight ?? null,
-      toneNineCat: tone.nine,
-      toneMinus1: tone.m1,
-      toneEightCat: tone.eight,
+      tagNineCat: trendTags.nine,
+      tagMinus1: trendTags.m1,
+      tagEightCat: trendTags.eight,
       projected,
     };
   });

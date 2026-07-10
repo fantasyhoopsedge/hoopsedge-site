@@ -41,7 +41,7 @@ export const paStyles = `
 
 /* ── Mobile ── */
 @media (max-width: 680px) {
-  .pa-wrap { padding: 44px 16px 64px; }
+  .pa-wrap { padding: 56px 16px 64px; }
   .pa-h1 { font-size: clamp(1.7rem, 8vw, 2.4rem); }
   .pa-lede { font-size: 0.98rem; margin-bottom: 32px; }
   .pa-game-stack { gap: 12px; margin-bottom: 36px; }

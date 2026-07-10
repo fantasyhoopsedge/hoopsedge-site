@@ -427,6 +427,10 @@ export function SiteNav(props: {
           )}
         </li>
       </ul>
+      {/* Balances the hamburger's width on mobile so the centered logo is
+          actually centered, not just left-flush after the hamburger —
+          same trick team-rosters' topbar uses. */}
+      <span className="nav-mobile-spacer" aria-hidden />
       <style>{`
         /* ── Rankings dropdown ───────────────────────────────────────────── */
         .nav-dropdown { position: relative; }

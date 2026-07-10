@@ -4,7 +4,7 @@
  * the team switcher is cosmetic until this is wired to the live nba_players /
  * nba_contracts tables for all 30 teams (see src/app/api/nba/rosters/route.ts).
  */
-import type { Tone } from "./trend-insight";
+import type { TrendTag } from "./trend-insight";
 
 export type PerGameStats = {
   pts: number;
@@ -71,13 +71,13 @@ export type Player = {
   rankMinus1: number | null;
   rankEightCat: number | null;
   /**
-   * Blended consensus-vs-real-value trend tone per metric (see trend-insight.ts),
-   * precomputed server-side from the nba_player_trends table.
+   * Blended consensus-vs-real-value 8-tag trend read per metric (see
+   * trend-insight.ts), precomputed server-side from the nba_player_trends table.
    * null when there's no trend history yet (rookies) or no consensus rank.
    */
-  toneNineCat: Tone | null;
-  toneMinus1: Tone | null;
-  toneEightCat: Tone | null;
+  tagNineCat: TrendTag | null;
+  tagMinus1: TrendTag | null;
+  tagEightCat: TrendTag | null;
   /** True when catVals/pg are the rookie-board projection, not real 2025-26 stats. */
   projected: boolean;
 };

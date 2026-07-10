@@ -277,6 +277,9 @@ nav {
 .nav-mobile-opposite-link {
   display: none;
 }
+.nav-mobile-spacer {
+  display: none;
+}
 .nav-cta {
   background: var(--rt-primary) !important; color: var(--rt-on-primary, #fff) !important;
   padding: 9px 20px !important; border-radius: 100px; font-family: var(--rt-font-sans);
@@ -736,20 +739,34 @@ nav {
 @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) {
   nav { padding: 0 14px; height: 52px; }
-  /* Show short brand mark on all pages; shell-specific rules override for special pages */
-  .nav-brand-full { display: none; }
-  .nav-brand-mobile { display: inline-flex; align-items: center; font-size: 17px; letter-spacing: 4px; }
+  /* Hamburger-left, centered full wordmark — matches team-rosters'
+     .rt-mobile-topbar exactly. nav-links (now just the hamburger li on
+     mobile — every other li is display:none below) moves to the front;
+     the brand link centers in the remaining space; nav-mobile-spacer
+     balances the hamburger's width on the other side. */
+  .nav-brand-full { display: inline-flex; }
+  .nav-brand-mobile { display: none; }
   .nav-brand { font-size: 17px; letter-spacing: 4px; white-space: nowrap; }
   .nav-cta { padding: 7px 12px !important; font-size: 11px !important; white-space: nowrap; letter-spacing: 1px !important; }
+  nav > a {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
   .nav-links {
+    order: -1;
     gap: 8px;
     flex-wrap: nowrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
   .nav-links a,
   .nav-links button.theme-toggle {
     font-size: 11px;
     letter-spacing: 0.5px;
+  }
+  .nav-mobile-spacer {
+    display: block;
+    flex: 0 0 36px;
   }
   .hero { padding: 100px 24px 60px; }
   .hero h1 { font-size: 44px; }
@@ -1101,86 +1118,18 @@ body:has(.dr-rankings-shell) {
   }
 
   .dr-rankings-shell {
-    --dr-nav-h: 44px;
+    /* :root sets --dr-nav-h: 64px for desktop; the mobile nav is 52px
+       sitewide (globals.css:741) — override for this shell to match. */
+    --dr-nav-h: 52px;
   }
 
   .dr-rankings-measured-top {
     /* Offset the fixed global nav (nav does not consume layout flow) */
-    padding-top: var(--dr-nav-h, 44px);
+    padding-top: var(--dr-nav-h);
   }
 
   .dr-sticky-controls {
-    top: var(--dr-nav-h, 44px);
-  }
-
-  .draft-board-shell > nav,
-  .dr-rankings-shell > nav {
-    height: 44px;
-    min-height: 44px;
-    max-height: 44px;
-    padding: 0 12px;
-    box-sizing: border-box;
-    align-items: center;
-  }
-
-  .draft-board-shell .nav-brand,
-  .dr-rankings-shell .nav-brand {
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    white-space: nowrap;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .nav-brand-full,
-  .dr-rankings-shell .nav-brand-full {
-    display: none;
-  }
-
-  .draft-board-shell .nav-brand-mobile,
-  .dr-rankings-shell .nav-brand-mobile {
-    display: inline-flex;
-    align-items: center;
-    font-size: 16px;
-    letter-spacing: 4px;
-  }
-
-  .draft-board-shell .nav-brand .accent,
-  .dr-rankings-shell .nav-brand .accent {
-    color: #ff6b2b;
-  }
-
-  .draft-board-shell .nav-links,
-  .dr-rankings-shell .nav-links {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-  }
-
-  .draft-board-shell .nav-links > li,
-  .dr-rankings-shell .nav-links > li {
-    display: none;
-  }
-
-  .draft-board-shell .nav-links > li.nav-mobile-opposite-link,
-  .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link,
-  .draft-board-shell .nav-links > li:last-child,
-  .dr-rankings-shell .nav-links > li:last-child {
-    display: list-item;
-  }
-
-  .draft-board-shell .nav-links > li.nav-mobile-opposite-link a,
-  .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link a {
-    font-family: var(--rt-font-sans);
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #ffffff;
-    text-decoration: none;
-    white-space: nowrap;
+    top: var(--dr-nav-h);
   }
 
   .draft-board-shell .nav-info-strip-wrap,
@@ -3357,11 +3306,22 @@ body:has(.dr-rankings-shell) {
 .home-nav-links { display: flex; }
 .home-nav-signin { display: inline-block; }
 
+/* Mobile swaps the homepage's own sticky header for the same SiteNav
+   hamburger + full-screen menu every other content page uses (see
+   home-nav.tsx) — SiteNav's <nav> is position:fixed (an overlay, unlike
+   the sticky header it replaces), so home-hero-grid gets matching top
+   padding on mobile to avoid sitting under the bar. */
+.home-nav-mobile { display: none; }
+@media (max-width: 767px) {
+  .home-nav-desktop { display: none; }
+  .home-nav-mobile { display: block; }
+}
+
 @media (max-width: 1023px) {
   .home-nav-links { display: none; }
 }
 @media (max-width: 767px) {
-  .home-hero-grid { grid-template-columns: 1fr; padding: 40px 20px 64px; }
+  .home-hero-grid { grid-template-columns: 1fr; padding: 92px 20px 64px; }
   .home-hero-visual { display: none; }
   .home-features-grid { grid-template-columns: 1fr; }
   .home-rankings-grid { grid-template-columns: 1fr; padding: 64px 20px; gap: 32px; }

@@ -15,12 +15,12 @@ import {
   type SortKey,
 } from "./roster-data";
 import {
+  buildRankedProfile,
   caret,
   catValCur,
   catValPrior,
   catZ,
   changeColor,
-  clamp,
   contractFor,
   fvOf,
   fvValue,
@@ -38,7 +38,8 @@ import {
 } from "./roster-helpers";
 import { PlayerHeadshot } from "./roster-headshot";
 import { TrendHero, type TrendMetric } from "./player-trend-chart";
-import { TONE_COLOR, verdictFromTone, type Tone } from "./trend-insight";
+import { TAG_META, type TrendTag } from "./trend-insight";
+import { CompareModal } from "./compare-modal";
 
 // hoopR stat season for the trend chart (2026 = the 2025-26 season) — matches
 // roster-live-data.ts's STATS_SEASON; this page has no season switcher yet.
@@ -52,6 +53,10 @@ const PRO_UNLOCKED = false;
 const ACCENT_RANK = 5;
 // Projected 2026-27 luxury tax line, for the payroll summary card.
 const TAX_LINE = 200_400_000;
+
+// Compare modal: up to 4 players, persisted across page navigation.
+const MAX_COMPARE = 4;
+const COMPARE_STORAGE_KEY = "fhe-compare-players";
 
 const FV_HEADER: Record<FvMetric, string> = { minus1: "Minus1V", ninecat: "9CatV", eightcat: "8CatV" };
 const SEASON_LABEL: Record<SeasonMode, string> = { cur: "2025–26", prior: "2024–25", proj: "2026–27 proj." };
@@ -108,7 +113,21 @@ export function RosterApp({
   const router = useRouter();
 
   const [selectedId, setSelectedId] = useState(players[0]?.id ?? "");
-  const [pos, setPos] = useState("all");
+  // Position/status filter pills are multi-select (toggle on/off, OR'd
+  // together) rather than single-select — "all" is a special value that
+  // means "no specific filter," auto-restored whenever the last specific
+  // filter is deselected, and cleared the moment any specific filter is picked.
+  const [posFilters, setPosFilters] = useState<Set<string>>(new Set(["all"]));
+  function togglePosFilter(id: string) {
+    setPosFilters((prev) => {
+      if (id === "all") return new Set(["all"]);
+      const next = new Set(prev);
+      next.delete("all");
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next.size === 0 ? new Set(["all"]) : next;
+    });
+  }
   const [mode, setMode] = useState<SeasonMode | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("dynasty");
@@ -131,6 +150,40 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
+  // Compare modal: up to 4 players, persisted in sessionStorage (mirrors the
+  // theme localStorage pattern in team-rosters-shell.tsx) so the list
+  // survives a full page navigation (e.g. switching teams), not just
+  // opening/closing the modal.
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareList, setCompareList] = useState<Player[]>([]);
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(COMPARE_STORAGE_KEY);
+      if (stored) setCompareList(JSON.parse(stored));
+    } catch {
+      // sessionStorage unavailable or corrupt — start empty
+    }
+  }, []);
+  const updateCompareList = (next: Player[]) => {
+    setCompareList(next);
+    try {
+      sessionStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore — compare list just won't persist across navigation
+    }
+  };
+  const openCompare = (prefill?: Player) => {
+    setCompareOpen(true);
+    if (prefill && compareList.length < MAX_COMPARE && !compareList.some((p) => p.id === prefill.id)) {
+      updateCompareList([...compareList, prefill]);
+    }
+  };
+  const addToCompare = (player: Player) => {
+    if (compareList.length >= MAX_COMPARE || compareList.some((p) => p.id === player.id)) return;
+    updateCompareList([...compareList, player]);
+  };
+  const removeFromCompare = (id: string) => updateCompareList(compareList.filter((p) => p.id !== id));
+
   const selectPlayer = (id: string) => {
     setSelectedId(id);
     if (isMobile) setMobileDetailOpen(true);
@@ -142,13 +195,19 @@ export function RosterApp({
   // Real precomputed season_player_values for the current season; proj is
   // Pro-locked jitter (unchanged).
   const fvMetricOf = (p: Player, m: FvMetric) => (fvUseProj ? fvValue(m, catZ(CATS, p, true)) : fvOf(p, m));
-  const fvOfPlayer = (p: Player) => fvMetricOf(p, activeMetric);
   // Pool-wide rank (across ALL players at the league size), per FV metric.
   const poolRankOf = (p: Player, m: FvMetric): number | null =>
     m === "ninecat" ? p.rankNineCat : m === "eightcat" ? p.rankEightCat : p.rankMinus1;
+  // Sort key for a fantasy-value metric: null (unranked — no real season data,
+  // e.g. an unseeded 2-way/undrafted rookie) rather than the metric's raw
+  // z-score, whose "no data" default is 0 — which lands in the MIDDLE of a
+  // sorted list of real z-scores (mean ~0 by construction) instead of the
+  // bottom. Comparators using this must sink `null` to the end regardless of
+  // sort direction — see sortByFvMissingLast().
+  const fvSortValue = (p: Player, m: FvMetric): number | null => (poolRankOf(p, m) == null ? null : fvMetricOf(p, m));
   // Blended consensus-vs-real-value tone (server-precomputed, see trend-insight.ts), per FV metric.
-  const toneOf = (p: Player, m: FvMetric): Tone | null =>
-    m === "ninecat" ? p.toneNineCat : m === "eightcat" ? p.toneEightCat : p.toneMinus1;
+  const tagOf = (p: Player, m: FvMetric): TrendTag | null =>
+    m === "ninecat" ? p.tagNineCat : m === "eightcat" ? p.tagEightCat : p.tagMinus1;
   const fvHdr = fvUseProj ? "Proj M1V" : FV_HEADER[activeMetric];
 
   const qLower = q.toLowerCase();
@@ -157,7 +216,8 @@ export function RosterApp({
   const totalPayroll = salariedPlayers.reduce((a, p) => a + p.salary, 0);
   const avgAge = salariedPlayers.length ? salariedPlayers.reduce((a, p) => a + p.age, 0) / salariedPlayers.length : 0;
   const taxDiff = totalPayroll - TAX_LINE;
-  const taxCaption = `${money(Math.abs(taxDiff))} ${taxDiff >= 0 ? "over" : "under"} the $${(TAX_LINE / 1e6).toFixed(1)}M tax line`;
+  const taxCaption = `${money(Math.abs(taxDiff))}`;
+  const taxLineCaption = `tax line ($${(TAX_LINE / 1e6).toFixed(1)}M)`;
   const ageCaption = (() => {
     if (!ageRank || ageRank.total <= 1) return "vs. league average";
     const { rank, total } = ageRank;
@@ -180,7 +240,8 @@ export function RosterApp({
 
   let list = players.filter((p) => {
     const posOk =
-      pos === "all" ? true : pos === "rook" ? p.tag === "rookie" : pos === "soph" ? p.tag === "soph" : p.group === pos;
+      posFilters.has("all") ||
+      Array.from(posFilters).some((id) => (id === "rook" ? p.tag === "rookie" : id === "soph" ? p.tag === "soph" : p.group === id));
     const qOk = !qLower || p.name.toLowerCase().includes(qLower);
     return posOk && qOk;
   });
@@ -188,19 +249,25 @@ export function RosterApp({
   if (colSort) {
     const dir = colDir === "asc" ? 1 : -1;
     const catObj = CATS.find((c) => c.key === colSort);
-    const valOf = (p: Player): string | number => {
+    // fanv can be null (unranked — see fvSortValue) and must sink to the
+    // bottom regardless of sort direction; every other column always has a
+    // real value to compare.
+    const valOf = (p: Player): string | number | null => {
       if (colSort === "name") return p.name;
       if (colSort === "pos") return p.pos;
       if (colSort === "age") return p.age;
       if (colSort === "salary") return p.salary;
       if (colSort === "dyn") return p.consensus;
-      if (colSort === "fanv") return fvOfPlayer(p);
+      if (colSort === "fanv") return fvSortValue(p, activeMetric);
       if (catObj) return catValCur(p, catObj);
       return p.dynasty;
     };
     list = [...list].sort((a, b) => {
       const va = valOf(a);
       const vb = valOf(b);
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
       if (typeof va === "string" && typeof vb === "string") return va.localeCompare(vb) * dir;
       return ((va as number) - (vb as number)) * dir;
     });
@@ -209,7 +276,17 @@ export function RosterApp({
     const sortMetric: FvMetric | null = sort === "proj" ? activeMetric : fvKeys.includes(sort) ? (sort as FvMetric) : null;
     list = [...list].sort((a, b) => {
       if (sort === "salary") return b.salary - a.salary;
-      if (sortMetric) return fvMetricOf(b, sortMetric) - fvMetricOf(a, sortMetric);
+      if (sortMetric) {
+        // Unranked (no real season data) always sinks to the bottom — its
+        // raw metric value defaults to 0, which is the MIDDLE of a sorted
+        // z-score pool (mean ~0), not the bottom.
+        const va = fvSortValue(a, sortMetric);
+        const vb = fvSortValue(b, sortMetric);
+        if (va == null && vb == null) return 0;
+        if (va == null) return 1;
+        if (vb == null) return -1;
+        return vb - va;
+      }
       return b.dynasty - a.dynasty;
     });
   }
@@ -225,10 +302,11 @@ export function RosterApp({
     // real-value read — see trend-insight.ts), independent of what the roster is sorted by.
     const activeRank = poolRankOf(p, activeMetric);
     const activeRankStr = activeRank != null ? "#" + activeRank : p.projected ? "proj" : "—";
-    const activeTone = toneOf(p, activeMetric);
-    const verdict = activeTone ? verdictFromTone(activeTone) : null;
-    const toneColor = activeTone ? TONE_COLOR[activeTone] : "var(--rt-muted)";
-    const toneArrow = activeTone === "positive" ? "▲" : activeTone === "negative" || activeTone === "caution" ? "▼" : "–";
+    const activeTag = tagOf(p, activeMetric);
+    const activeTagMeta = activeTag ? TAG_META[activeTag] : null;
+    const verdict = activeTagMeta?.label ?? null;
+    const toneColor = activeTagMeta?.color ?? "var(--rt-muted)";
+    const toneArrow = activeTagMeta?.emoji ?? "–";
     const statSet = STATSET_DEFS.map((d) => {
       const cat = CATS.find((c) => c.key === d.key)!;
       const tier = starTier(catValCur(p, cat));
@@ -330,18 +408,10 @@ export function RosterApp({
   };
   const statRows = CATS.map((c) => ({ label: c.label, value: fmtStat(c), bg: projLocked ? "transparent" : zBg(c), delta: deltaFor(c) }));
 
-  const mkBar = (z: number) => {
-    const zc = clamp(z, -3, 3);
-    const isPos = zc >= 0;
-    const mag = (Math.abs(zc) / 3) * 50;
-    return { left: (isPos ? 50 : 50 - mag) + "%", width: mag + "%" };
-  };
-  // 9-cat profile: ranked highest z-score to lowest, colored via the same
-  // green/amber/red tiers used for the stat-set chips elsewhere on this page.
-  const rankedProfile = CATS.map((c) => {
-    const z = zOf(c);
-    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
-  }).sort((a, b) => b.z - a.z);
+  // 9-cat profile math (row order anchored to Current mode, z/color/bar per
+  // row) lives in buildRankedProfile() so the single-player panel here and
+  // every card in the compare modal share one implementation.
+  const profile = buildRankedProfile(sp, modeNow);
 
   const contract = contractFor(sp);
   const dTag = sp.tag ? tagBadge(sp.tag, true) : null;
@@ -387,10 +457,10 @@ export function RosterApp({
 
   return (
     <>
-    <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
+    <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>
       {/* ================= MAIN COLUMN ================= */}
       {(!isMobile || !mobileDetailOpen) && (
-      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
@@ -607,7 +677,7 @@ export function RosterApp({
         {/* Scroll area */}
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px 16px 28px" : "24px 28px 36px", display: "flex", flexDirection: "column", gap: isMobile ? 16 : 22 }}>
           {/* Summary cards */}
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
+          <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
@@ -620,7 +690,11 @@ export function RosterApp({
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
                 {money(totalPayroll)}
               </div>
-              <div style={{ fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>{taxCaption}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--rt-muted-soft)", marginTop: 2 }}>
+                {taxCaption}
+                <span style={{ fontSize: 10, color: taxDiff >= 0 ? "var(--rt-down)" : "var(--rt-up)" }}>{taxDiff >= 0 ? "▲" : "▼"}</span>
+                {taxLineCaption}
+              </div>
             </div>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Average age</div>
@@ -631,6 +705,7 @@ export function RosterApp({
             </div>
             <div
               className="rt-hover-shadow"
+              onClick={() => openCompare()}
               style={{ display: "flex", alignItems: "center", gap: isMobile ? 10 : 16, background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "16px 20px", cursor: "pointer" }}
             >
               <span style={{ width: isMobile ? 36 : 48, height: isMobile ? 36 : 48, flex: isMobile ? "0 0 36px" : "0 0 48px", borderRadius: 999, background: "var(--rt-primary)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
@@ -646,15 +721,15 @@ export function RosterApp({
           </div>
 
           {/* Position filters */}
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, overflowX: isMobile ? "auto" : "visible" }}>
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
               {posFilterDefs.map((pf) => {
-                const on = pos === pf.id;
+                const on = posFilters.has(pf.id);
                 return (
                   <button
                     key={pf.id}
                     type="button"
-                    onClick={() => setPos(pf.id)}
+                    onClick={() => togglePosFilter(pf.id)}
                     style={{
                       flexShrink: 0,
                       padding: "9px 18px",
@@ -714,7 +789,7 @@ export function RosterApp({
 
           {/* Player grid */}
           {!isMobile && viewMode === "grid" && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
@@ -785,7 +860,7 @@ export function RosterApp({
 
           {/* Player list */}
           {!isMobile && viewMode === "list" && (
-            <div>
+            <div style={{ flexShrink: 0 }}>
               <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflowX: "auto" }}>
                 <div
                   style={{
@@ -911,7 +986,7 @@ export function RosterApp({
              cards don't fit 2-3 up on a 375px screen. Tapping a row opens the
              full-screen detail view (see selectPlayer / the aside below). */}
           {isMobile && (
-            <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflow: "hidden" }}>
+            <div style={{ flexShrink: 0, border: "1px solid var(--rt-hairline)", borderRadius: 16, overflow: "hidden" }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
@@ -959,8 +1034,17 @@ export function RosterApp({
                       {c.pos} · Age {c.age} · {c.salary}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right", flex: "0 0 auto" }}>
-                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 14, fontWeight: 600, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{c.fvRank}</div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flex: "0 0 auto" }}>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 8, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Dynasty</div>
+                        <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{c.dynRank}</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 8, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{fvHdr}</div>
+                        <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{c.fvRank}</div>
+                      </div>
+                    </div>
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 3, fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: c.fvToneColor }}>
                       <span style={{ fontSize: 7 }}>{c.fvToneArrow}</span>
                       {c.fvVerdict}
@@ -972,7 +1056,7 @@ export function RosterApp({
           )}
 
           {noResults && (
-            <div style={{ padding: 48, textAlign: "center", color: "var(--rt-muted)", fontSize: 15 }}>
+            <div style={{ flexShrink: 0, padding: 48, textAlign: "center", color: "var(--rt-muted)", fontSize: 15 }}>
               No players match your filter. Clear the search to see the full roster.
             </div>
           )}
@@ -1071,6 +1155,7 @@ export function RosterApp({
               metricLabel={fvHdr}
               rank={poolRankOf(sp, activeMetric)}
               consensusRank={sp.consensus}
+              consensusDir={sp.dir}
               age={sp.age}
               gamesPlayed={sp.gp}
               mpg={sp.mpg}
@@ -1119,13 +1204,13 @@ export function RosterApp({
               {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
-            {noProfileData ? (
+            {profile.noData ? (
               <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
                 {noDataReason} — {isProj ? "2026–27 projection" : isPrior ? "2024–25 profile" : "profile"} unavailable.
               </div>
             ) : (
               <div style={{ marginTop: 14 }}>
-                {rankedProfile.map((row, i) => (
+                {profile.rows.map((row, i) => (
                   <div
                     key={row.key}
                     style={{
@@ -1133,7 +1218,7 @@ export function RosterApp({
                       alignItems: "center",
                       gap: 11,
                       padding: "8px 0",
-                      borderBottom: i < rankedProfile.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
+                      borderBottom: i < profile.rows.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
                     }}
                   >
                     <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
@@ -1261,13 +1346,8 @@ export function RosterApp({
             <button
               type="button"
               className="rt-hover-primary"
+              onClick={() => openCompare(sp)}
               style={{ flex: 1, height: 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
-            >
-              Add to watchlist
-            </button>
-            <button
-              type="button"
-              style={{ height: 44, padding: "0 20px", border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-surface-strong)", color: "var(--rt-ink)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
             >
               Compare
             </button>
@@ -1288,6 +1368,17 @@ export function RosterApp({
           <EdgeProPromo tone="card" onMaybeLater={dismissProjSort} />
         </div>
       </div>
+    )}
+    {compareOpen && (
+      <CompareModal
+        currentTeam={team}
+        currentTeamPlayers={players}
+        players={compareList}
+        onAdd={addToCompare}
+        onRemove={removeFromCompare}
+        onClose={() => setCompareOpen(false)}
+        isMobile={isMobile}
+      />
     )}
     </>
   );

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { deriveFinalTake, LOOKBACK_BLOCKS, TONE_COLOR, type TrendMetric, type TrendPlayer } from "./trend-insight";
+import { deriveFinalTake, LOOKBACK_BLOCKS, TAG_META, type TrendMetric, type TrendPlayer } from "./trend-insight";
+import { caret, changeColor } from "./roster-helpers";
 
 export type { TrendMetric } from "./trend-insight";
 
@@ -75,9 +76,21 @@ function buildRankLine(ranks: (number | null)[]): ({ x: number; y: number } | nu
   });
 }
 
-const mutedRow = (label: string) => (
-  <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
-    <div style={{ fontSize: 12, color: "var(--rt-hero-ink-soft)" }}>{label}</div>
+// Dynasty rank shows here too (not just the main trend-hero layout below) so
+// it's visible for every player, including ones with no trend history yet
+// (brand-new rookies, 0 games played).
+const mutedRow = (label: string, consensusRank: number | null, consensusDir: "up" | "down" | "flat", compact: boolean) => (
+  <div style={{ marginTop: compact ? 10 : 16, paddingTop: compact ? 10 : 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: compact ? 15 : 20, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+          {consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>{caret(consensusDir)}</span>
+      </div>
+      <div style={{ fontSize: compact ? 9 : 10, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Dynasty rank</div>
+    </div>
+    <div style={{ fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", marginTop: compact ? 8 : 12 }}>{label}</div>
   </div>
 );
 
@@ -113,9 +126,11 @@ export function TrendHero({
   metricLabel,
   rank,
   consensusRank,
+  consensusDir,
   age,
   gamesPlayed,
   mpg,
+  compact = false,
 }: {
   playerId: string;
   season: number;
@@ -124,16 +139,25 @@ export function TrendHero({
   metricLabel: string;
   rank: number | null;
   consensusRank: number | null;
+  /** Dynasty consensus movement (currently near-always "flat" until consensus
+   * rank v1.1 is published with real period-over-period deltas — see
+   * dynasty-rankings.json's `trend` field, the same source roster-app.tsx's
+   * list/grid views already use for this). */
+  consensusDir: "up" | "down" | "flat";
   age: number | null;
   gamesPlayed: number;
   mpg: number;
+  /** Shrinks the stat-row fonts/gaps and the insight callout for narrow
+   * contexts (the compare modal's ~220px-wide cards) — the sparkline itself
+   * is already responsive and needs no changes. */
+  compact?: boolean;
 }) {
   const { data, notFound, loading, isSynthetic } = usePlayerTrend(playerId, season, seasonType);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  if (isSynthetic) return mutedRow("No trend history yet");
-  if (loading) return mutedRow("Loading trend…");
-  if (notFound || !data) return mutedRow(noTrendMessage(gamesPlayed, mpg));
+  if (isSynthetic) return mutedRow("No trend history yet", consensusRank, consensusDir, compact);
+  if (loading) return mutedRow("Loading trend…", consensusRank, consensusDir, compact);
+  if (notFound || !data) return mutedRow(noTrendMessage(gamesPlayed, mpg), consensusRank, consensusDir, compact);
 
   const recent = data.blocks.slice(-LOOKBACK_BLOCKS);
   const ranks = recent.map((b) => b[metric].cumRank);
@@ -144,7 +168,7 @@ export function TrendHero({
   const rankDelta = firstIdx != null && lastIdx != null ? ranks[firstIdx]! - ranks[lastIdx]! : null; // positive = improved
 
   const insight = deriveFinalTake(data.blocks, data.seasonHistory, age, metric, consensusRank);
-  const color = insight ? TONE_COLOR[insight.tone] : "var(--rt-hero-ink-soft)";
+  const color = insight ? TAG_META[insight.tag].color : "var(--rt-hero-ink-soft)";
   const line = pts
     ?.filter((p): p is { x: number; y: number } => p != null)
     .map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`)
@@ -152,17 +176,20 @@ export function TrendHero({
   const hoverPt = hoverIdx != null ? (pts?.[hoverIdx] ?? null) : null;
   const hoverRank = hoverIdx != null ? ranks[hoverIdx] : null;
 
+  const numSize = compact ? 15 : 20;
+  const labelSize = compact ? 9 : 10;
+
   return (
-    <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
+    <div style={{ marginTop: compact ? 10 : 16, paddingTop: compact ? 10 : 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", gap: 26 }}>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: compact ? 14 : 26 }}>
           <div>
-            <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{data.gamesPlayed}</div>
-            <div style={{ fontSize: 10, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Games played</div>
+            <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{data.gamesPlayed}</div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Games played</div>
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
-              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 26, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
                 {rank != null ? "#" + rank : "—"}
               </span>
               {rankDelta != null && rankDelta !== 0 && (
@@ -172,18 +199,27 @@ export function TrendHero({
                 </span>
               )}
             </div>
-            <div style={{ fontSize: 10, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{metricLabel} rank · 20wk</div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{metricLabel} rank · 20wk</div>
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+                {consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
+              </span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>{caret(consensusDir)}</span>
+            </div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Dynasty rank</div>
           </div>
         </div>
       </div>
 
       {insight && (
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: compact ? 8 : 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ width: 7, height: 7, flex: "0 0 7px", borderRadius: 999, background: color }} />
-            <span style={{ fontSize: 13, fontWeight: 700, color }}>{insight.title}</span>
+            <span style={{ fontSize: compact ? 12 : 13, fontWeight: 700, color }}>{TAG_META[insight.tag].emoji} {insight.title}</span>
           </div>
-          <div style={{ fontSize: 11, color: "var(--rt-hero-ink-soft)", marginTop: 3, lineHeight: 1.4 }}>{insight.detail}</div>
+          {!compact && <div style={{ fontSize: 11, color: "var(--rt-hero-ink-soft)", marginTop: 3, lineHeight: 1.4 }}>{insight.detail}</div>}
         </div>
       )}
 

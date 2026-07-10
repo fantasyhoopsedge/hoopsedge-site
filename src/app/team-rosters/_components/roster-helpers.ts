@@ -5,7 +5,7 @@
  * trend data until a real projection model is wired in. "Prior" (2024-25) is
  * real season_player_stats/season_player_values data — see roster-live-data.ts.
  */
-import { CATS, TAG_THEME, type Cat, type FvMetric, type PerGameStats, type Player, type PlayerTag } from "./roster-data";
+import { CATS, STATSET_COLORS, TAG_THEME, type Cat, type FvMetric, type PerGameStats, type Player, type PlayerTag, type SeasonMode } from "./roster-data";
 
 // Category key → its index in Player.catVals (which is in CATS order).
 const CAT_IDX = Object.fromEntries(CATS.map((c, i) => [c.key, i])) as Record<keyof PerGameStats, number>;
@@ -235,4 +235,45 @@ export function contractFor(p: Player) {
   const n = p.contractYears ?? rows.length;
   const total = p.contractTotal ?? rowTotal;
   return { n, total, avg: n ? total / n : 0, rows };
+}
+
+export type RankedProfileRow = { key: string; label: string; z: number; color: string; bar: { left: string; width: string } };
+export type RankedProfile = { noData: true; reason: string } | { noData: false; rows: RankedProfileRow[] };
+
+/**
+ * The 9-category profile's full math for one player at one season mode —
+ * shared by the single-player detail panel and every card in the compare
+ * modal, so both stay in lockstep instead of drifting apart. A season this
+ * shallow can't tell you anything reliable (see roster-app.tsx's original
+ * comment this was extracted from) — noData + a reason string covers that.
+ *
+ * Row order is always anchored to the CURRENT mode's ranking (highest z-score
+ * to lowest), even when Prior/Projection is requested, so toggling between
+ * modes shows each category's z-score shift in place instead of re-sorting
+ * into that mode's own order.
+ */
+export function buildRankedProfile(p: Player, mode: SeasonMode): RankedProfile {
+  const isProj = mode === "proj";
+  const isPrior = mode === "prior";
+  const hasCurrentSample = p.gp > 0;
+  const noProfileData =
+    (isPrior && p.priorGp === 0) || (isProj && !hasCurrentSample) || (mode === "cur" && p.catVals.length === 0 && !hasCurrentSample);
+  if (noProfileData) {
+    return { noData: true, reason: isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet" };
+  }
+
+  const valForStat = (c: Cat) => (isProj ? projSeasonVal(p, c) : isPrior ? (p.priorPg?.[c.key] ?? 0) : p.pg[c.key]);
+  const zOf = (c: Cat) => (mode === "cur" ? catValCur(p, c) : isPrior ? catValPrior(p, c) : zFor(c, valForStat(c)));
+  const mkBar = (z: number) => {
+    const zc = clamp(z, -3, 3);
+    const isPos = zc >= 0;
+    const mag = (Math.abs(zc) / 3) * 50;
+    return { left: (isPos ? 50 : 50 - mag) + "%", width: mag + "%" };
+  };
+  const catOrder = [...CATS].sort((a, b) => catValCur(p, b) - catValCur(p, a));
+  const rows = catOrder.map((c) => {
+    const z = zOf(c);
+    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
+  });
+  return { noData: false, rows };
 }

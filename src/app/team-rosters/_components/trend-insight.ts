@@ -45,22 +45,44 @@ export type TrendPlayer = {
 
 export type TrendMetric = "nineCatV" | "minus1V" | "eightCatV";
 
-export type Tone = "positive" | "negative" | "caution" | "flat";
-export const TONE_COLOR: Record<Tone, string> = {
-  positive: "var(--rt-up)",
-  negative: "var(--rt-down)",
-  caution: "#dd7a2b",
-  flat: "var(--rt-muted)",
+/**
+ * Position-vs-consensus × velocity-direction/magnitude trend tag. The 8 core
+ * tags come from a decision tree over `gapNow` (real rank minus consensus
+ * rank — positive = below/worse than consensus) and `velocity` (this
+ * window's dominant move, positive = improving) — see deriveInsight() below.
+ * "injury-limited"/"aging-decline" are separate gates in deriveFinalTake()
+ * that override the tag entirely when the trend data can't be trusted at
+ * face value (see classifyAvailability/classifyAgingDecline).
+ */
+export type TrendTag =
+  | "breaking-out"
+  | "surging"
+  | "climbing"
+  | "stable"
+  | "regressing"
+  | "plunging"
+  | "fading"
+  | "cratering"
+  | "injury-limited"
+  | "aging-decline";
+
+/** Reuses the site's existing 5-tier diverging scale (STATSET_COLORS in
+ * roster-data.ts) instead of inventing new colors — color communicates
+ * "how good/bad," the label + emoji communicate the specific story. */
+export const TAG_META: Record<TrendTag, { label: string; emoji: string; color: string }> = {
+  "breaking-out": { label: "BREAKING OUT", emoji: "🚀", color: "#12a150" },
+  surging: { label: "SURGING", emoji: "📈", color: "#62a046" },
+  climbing: { label: "CLIMBING", emoji: "↗️", color: "#62a046" },
+  stable: { label: "STABLE", emoji: "➡️", color: "var(--rt-muted)" },
+  regressing: { label: "REGRESSING", emoji: "↘️", color: "#dd7a2b" },
+  fading: { label: "FADING", emoji: "📉", color: "#cf2230" },
+  plunging: { label: "PLUNGING", emoji: "⚰️", color: "#cf2230" },
+  cratering: { label: "CRATERING", emoji: "⚠️", color: "#cf2230" },
+  "injury-limited": { label: "INJURY-LIMITED", emoji: "🏥", color: "var(--rt-muted)" },
+  "aging-decline": { label: "AGE DECLINE", emoji: "⏳", color: "#cf2230" },
 };
 
-/** Compact buy/sell/hold read of a tone, for list/card badges. */
-export function verdictFromTone(tone: Tone): "BUY" | "SELL" | "HOLD" {
-  if (tone === "positive") return "BUY";
-  if (tone === "negative") return "SELL";
-  return "HOLD"; // caution + flat both read as "no urgent action" at a glance
-}
-
-export type Insight = { title: string; detail: string; tone: Tone };
+export type Insight = { title: string; detail: string; tag: TrendTag };
 
 // Blocks are ~2-week chunks; a 20-week lookback is the trailing 10 blocks.
 export const LOOKBACK_BLOCKS = 10;
@@ -101,59 +123,91 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
   // cast as "closing the gap"/"cooling off" even though their CURRENT gap was already
   // small — noisy. 20 filters that out while still catching the swings we validated
   // (Chet Holmgren's 21-point recovery, Ty Jerome's sustained ~140-spot outperformance
-  // reads as "Breaking out" instead of a marginal "Cooling off"). Verdict split at 20/20
-  // across the pool: 149 BUY / 73 SELL / 139 HOLD — stable relative to neighboring values
-  // (18↔20 only flips 4 players; 20↔25 flips 8 — real inflection, not a random cliff).
+  // reads as "Breaking out" instead of a marginal "Cooling off").
   const MOVE_THRESHOLD = 20; // a swing at least this big is the headline, wherever he sits now
   const SMALL_GAP = 20; // otherwise, a gap smaller than this just reads as "matching consensus"
+  // Re-validated for the 8-tag split against the same 361-player pool
+  // (2026-07-09): HEAVY_THRESHOLD=40 / FAR_GAP=60 give a 6.4%-24.4% spread
+  // across all 8 tags with no empty/dominant bucket, and are stable under
+  // ±5/±10 perturbation — no cliff-edge sensitivity.
+  const HEAVY_THRESHOLD = 40; // a swing big enough to read as "rapid"/"heavy"
+  const FAR_GAP = 60; // a gap big enough to read as "far" below consensus
 
-  if (Math.max(improvedFromWorst, worsenedFromBest) >= MOVE_THRESHOLD) {
-    if (improvedFromWorst > worsenedFromBest) {
-      // Recovering from a trough somewhere in the window.
-      return gapNow > 0
-        ? {
-            title: "Closing the gap",
-            detail: `Still trading below his #${consensusRank} consensus rank, but has climbed back from a #${consensusRank + worstGap} low to #${nowRank} over the last ~20 weeks.`,
-            tone: "positive",
-          }
-        : {
-            title: "Breaking out",
-            detail: `Outproducing his #${consensusRank} consensus rank at #${nowRank}, after a slower stretch earlier this window.`,
-            tone: "positive",
-          };
-    }
-    // Declining from a peak somewhere in the window.
-    return gapNow > 0
-      ? {
-          title: "Falling behind consensus",
-          detail: `Consensus has him at #${consensusRank}; production has slipped to #${nowRank} after being well ahead of that earlier this window.`,
-          tone: "negative",
-        }
-      : {
-          title: "Cooling off, still ahead",
-          detail: `Still outproducing his #${consensusRank} consensus rank at #${nowRank}, but less than earlier this window.`,
-          tone: "caution",
-        };
-  }
+  // Signed dominant move for this window: positive = improving (recovering
+  // from a trough), negative = declining (falling from a peak).
+  const velocity = improvedFromWorst >= worsenedFromBest ? improvedFromWorst : -worsenedFromBest;
+  const velStr = Math.abs(velocity).toFixed(0);
 
   if (Math.abs(gapNow) <= SMALL_GAP) {
+    // Near/crossing consensus. gapNow's sign still matters for the copy —
+    // "near" only means the GAP is small, not that he's already crossed to
+    // the good side of it, so the wording must say which side he's actually
+    // on rather than assuming a heavy positive move already means he's
+    // outproducing (a player can be near-but-still-below consensus and
+    // rising fast without having overtaken it yet — see gapNow > 0 branch).
+    if (velocity >= HEAVY_THRESHOLD) {
+      return {
+        title: "Breaking out",
+        detail:
+          gapNow <= 0
+            ? `Outproducing his #${consensusRank} consensus rank at #${nowRank}, after a ~${velStr}-spot move — crossing straight into elite territory.`
+            : `Still trading just below his #${consensusRank} consensus rank at #${nowRank}, but rising fast — up ~${velStr} spots and closing in.`,
+        tag: "breaking-out",
+      };
+    }
+    if (velocity <= -HEAVY_THRESHOLD) {
+      return {
+        title: "Plunging",
+        detail:
+          gapNow >= 0
+            ? `Consensus has him at #${consensusRank}; production has crashed to #${nowRank}, a fast ~${velStr}-spot decline that's crossed right through his floor.`
+            : `Still narrowly outproducing his #${consensusRank} consensus rank at #${nowRank}, but fading fast — down ~${velStr} spots and closing in from above.`,
+        tag: "plunging",
+      };
+    }
     return {
-      title: "Playing to his billing",
+      title: "Stable",
       detail: `Real production is tracking his #${consensusRank} consensus rank.`,
-      tone: "flat",
+      tag: "stable",
     };
   }
-  return gapNow > 0
-    ? {
-        title: "Falling behind consensus",
-        detail: `Consensus has him at #${consensusRank}; production has held at #${nowRank} all window.`,
-        tone: "negative",
-      }
-    : {
-        title: "Breaking out",
-        detail: `Outproducing his #${consensusRank} consensus rank at #${nowRank}, and holding it.`,
-        tone: "positive",
+
+  if (gapNow < -SMALL_GAP) {
+    // Clearly above (better than) consensus.
+    if (velocity < -MOVE_THRESHOLD) {
+      return {
+        title: "Regressing",
+        detail: `Still outproducing his #${consensusRank} consensus rank at #${nowRank}, but sliding back toward it — down ~${velStr} spots over the lookback window.`,
+        tag: "regressing",
       };
+    }
+    return {
+      title: "Surging",
+      detail: `Outproducing his #${consensusRank} consensus rank at #${nowRank}, and still pulling further ahead.`,
+      tag: "surging",
+    };
+  }
+
+  // Clearly below (worse than) consensus.
+  if (velocity > MOVE_THRESHOLD) {
+    return {
+      title: "Climbing",
+      detail: `Still trading below his #${consensusRank} consensus rank at #${nowRank}, but closing the gap — up ~${velStr} spots over the lookback window.`,
+      tag: "climbing",
+    };
+  }
+  if (gapNow >= FAR_GAP && velocity <= -HEAVY_THRESHOLD) {
+    return {
+      title: "Cratering",
+      detail: `Consensus has him at #${consensusRank}; production has collapsed to #${nowRank} — an extreme, high-velocity decline well past his floor.`,
+      tag: "cratering",
+    };
+  }
+  return {
+    title: "Fading",
+    detail: `Consensus has him at #${consensusRank}; production has held below that at #${nowRank}, drifting further behind.`,
+    tag: "fading",
+  };
 }
 
 // A season this shallow can't tell you anything reliable about decline vs. injury —
@@ -165,6 +219,17 @@ const INJURY_STALE_SHARE = 0.35;
 // Below this age, a 2-3 season dip is more often role/opportunity/breakout-regression
 // than actual aging decline — don't apply the aging read to younger players at all.
 const AGING_DECLINE_MIN_AGE = 30;
+// A sub-5 MPG drop across the window is normal year-to-year noise (load
+// management, rotation tweaks) — not worth calling out on its own. Only
+// mention minutes when the total drop (first healthy season to last) clears this.
+const MPG_DECLINE_MIN = 5.0;
+// A player ranked this well or better is still a top-tier asset, full stop —
+// "aging decline" would read as alarmist noise for someone still clearly
+// producing at a starter/stud level. Leave those to the normal tag system
+// (deriveInsight() below), which already has a tag for "great but slipping":
+// Regressing. The special aging-decline override is reserved for players
+// who've actually fallen out of that tier because of it.
+const ELITE_RANK_THRESHOLD = 25;
 
 function seasonLabel(hoopRSeason: number): string {
   return `${hoopRSeason - 1}-${String(hoopRSeason).slice(2)}`;
@@ -195,17 +260,23 @@ function classifyAgingDecline(seasonHistory: SeasonHistoryEntry[], age: number |
   if (healthy.length < 2) return { declining: false, detail: "" };
 
   let valueDeclining = true;
-  let mpgDeclining = true;
+  let mpgNeverIncreased = true;
   for (let i = 1; i < healthy.length; i++) {
     if (healthy[i][metric] >= healthy[i - 1][metric]) valueDeclining = false;
-    if (healthy[i].mpg > healthy[i - 1].mpg) mpgDeclining = false;
+    if (healthy[i].mpg > healthy[i - 1].mpg) mpgNeverIncreased = false;
   }
   if (!valueDeclining) return { declining: false, detail: "" };
+
+  // Never-increased alone isn't enough to call minutes out by name — a
+  // 35.2 -> 34.2 MPG slide is noise, not a signal. Only the two together
+  // (monotonic AND a material total drop) earn the "minutes falling too" line.
+  const mpgTotalDrop = healthy[0].mpg - healthy[healthy.length - 1].mpg;
+  const mpgMaterial = mpgNeverIncreased && mpgTotalDrop >= MPG_DECLINE_MIN;
 
   const trail = healthy.map((s) => `${seasonLabel(s.season)}: ${s.mpg.toFixed(1)} MPG`).join(" → ");
   return {
     declining: true,
-    detail: `Real production has declined every healthy season since ${seasonLabel(healthy[0].season)}${mpgDeclining ? ", with minutes falling every year too" : ""} (${trail}) — this reads as age-related, not a blip.`,
+    detail: `Real production has declined every healthy season since ${seasonLabel(healthy[0].season)}${mpgMaterial ? ", with minutes falling every year too" : ""} (${trail}) — this reads as age-related, not a blip.`,
   };
 }
 
@@ -228,13 +299,14 @@ export function deriveFinalTake(
     return {
       title: "Injury-limited",
       detail: `Missed significant time this season (${avail.staleCount} of ${avail.totalCount} blocks) — cumulative rank reflects games missed, not a production decline.`,
-      tone: "flat",
+      tag: "injury-limited",
     };
   }
 
+  const isElite = consensusRank <= ELITE_RANK_THRESHOLD;
   const aging = classifyAgingDecline(seasonHistory, age, metric);
-  if (aging.declining) {
-    return { title: "Age-related decline", detail: aging.detail, tone: "negative" };
+  if (aging.declining && !isElite) {
+    return { title: "Age-related decline", detail: aging.detail, tag: "aging-decline" };
   }
 
   return deriveInsight(blocks, metric, consensusRank);

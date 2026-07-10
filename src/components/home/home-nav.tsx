@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
+import { SiteNav } from "@/components/site-nav";
 import { Button } from "./button";
 
 const LINKS = [
@@ -17,7 +18,19 @@ export function HomeNav() {
   const { openSignUp } = useAuth();
 
   return (
+    <>
+    {/* Desktop: this page's own custom header. Mobile (<=767px) swaps to
+        the same SiteNav hamburger + full-screen menu every other content
+        page uses, instead of the old behavior of the nav links just
+        vanishing with no mobile menu at all. data-theme="dark" locally
+        overrides the homepage's forced-light marketing wrapper (see
+        page.tsx) so this menu renders dark like every other page's,
+        instead of inheriting the homepage's always-light styling. */}
+    <div className="home-nav-mobile" data-theme="dark">
+      <SiteNav />
+    </div>
     <header
+      className="home-nav-desktop"
       style={{
         position: "sticky",
         top: 0,
@@ -87,5 +100,6 @@ export function HomeNav() {
         </div>
       </div>
     </header>
+    </>
   );
 }

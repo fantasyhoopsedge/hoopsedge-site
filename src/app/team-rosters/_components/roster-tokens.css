@@ -163,16 +163,113 @@
   color: var(--rt-ink);
   cursor: pointer;
 }
-.rt-mobile-drawer-backdrop {
+/* Full-screen mobile menu takeover — same content and styling as SiteNav's
+   .nav-mobile-panel on every other platform page (see site-nav.tsx), ported
+   to the rt- token set so it matches exactly instead of showing the
+   desktop-oriented AppSidebar (icons, avatar footer) in mobile. */
+.rt-mobile-panel {
   position: fixed;
   inset: 0;
   z-index: 400;
-  background: var(--rt-scrim);
+  background: var(--rt-canvas);
   display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
-.rt-mobile-drawer {
-  height: 100%;
-  box-shadow: 0 0 32px rgba(0, 0, 0, 0.3);
+.rt-mobile-panel-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+.rt-mobile-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: none;
+  border: 1px solid var(--rt-hairline);
+  color: var(--rt-ink);
+  cursor: pointer;
+}
+.rt-mobile-panel-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 20px 24px;
+}
+.rt-mobile-panel-body .rt-mobile-panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 0;
+  border: none;
+  border-bottom: 1px solid var(--rt-hairline);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: var(--rt-font-sans);
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--rt-ink);
+}
+.rt-mobile-panel-body .rt-mobile-panel-row--signout {
+  color: #ef4444;
+}
+.rt-mobile-panel-chevron {
+  font-size: 14px;
+  color: var(--rt-muted);
+  transition: transform 0.15s ease;
+}
+.rt-mobile-panel-chevron--open {
+  transform: rotate(180deg);
+}
+.rt-mobile-panel-sub {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 14px;
+  border-bottom: 1px solid var(--rt-hairline);
+}
+.rt-mobile-panel-body .rt-mobile-panel-sub a {
+  padding: 12px 0 12px 12px;
+  font-family: var(--rt-font-sans);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--rt-body);
+  text-decoration: none;
+}
+.rt-mobile-panel-footer {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--rt-hairline);
+}
+.rt-mobile-panel-signin,
+.rt-mobile-panel-join {
+  flex: 1;
+  height: 50px;
+  border-radius: 100px;
+  font-family: var(--rt-font-sans);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.rt-mobile-panel-signin {
+  background: none;
+  border: 1px solid var(--rt-hairline);
+  color: var(--rt-ink);
+}
+.rt-mobile-panel-join {
+  background: var(--rt-primary);
+  border: none;
+  color: var(--rt-on-primary);
 }
 
 @media (max-width: 767px) {
