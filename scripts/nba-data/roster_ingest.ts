@@ -95,9 +95,19 @@ function parseFaYear(v: string): { year: number | null; options: number } {
   if (!m) return { year: null, options: 0 };
   return { year: Number(m[1]), options: m[2] ? Number(m[2]) : 0 };
 }
+// D1 (trend-tag audit): the sheet's DOB column is MM/DD/YY (2-digit year) for every
+// row — the old 4-digit-only regex never matched, so `dob` silently landed NULL for
+// all 579 players and every age on the site was driven off the much coarser
+// `age_at_ingest` column instead (that's what produced Stephon Castle's wrong age:
+// dob parsed to null, so his card fell back to age_at_ingest=25.67). Century pivot:
+// every player in this file was born 1985-2010ish (YY 85-10), so YY>=50 -> 19YY,
+// else -> 20YY; re-check this pivot if the file ever needs a birth year before 1950.
 function parseDob(v: string): string | null {
-  const m = (v ?? "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  return m ? `${m[3]}-${m[1]}-${m[2]}` : null;
+  const m = (v ?? "").trim().match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})$/);
+  if (!m) return null;
+  const [, mm, dd, yy] = m;
+  const year = yy.length === 4 ? yy : (Number(yy) >= 50 ? `19${yy}` : `20${yy}`);
+  return `${year}-${mm}-${dd}`;
 }
 /** '2026-27' -> 2026 */
 function seasonStart(season: string): number {

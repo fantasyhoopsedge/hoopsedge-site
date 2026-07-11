@@ -1585,6 +1585,12 @@ body:has(.dr-rankings-shell) {
   color: #f0c040;
 }
 
+.dr-pill-active-sophomores {
+  border-color: #9aa6ef;
+  background: rgba(154, 166, 239, 0.18);
+  color: #9aa6ef;
+}
+
 .dr-select {
   min-width: 140px;
   appearance: auto;
@@ -2037,6 +2043,10 @@ body:has(.dr-rankings-shell) {
   background: #141418;
 }
 
+.dr-tr {
+  cursor: pointer;
+}
+
 .dr-tr:hover {
   background: #1e1e28;
 }
@@ -2262,6 +2272,25 @@ body:has(.dr-rankings-shell) {
   border: 1px solid rgba(240, 192, 64, 0.55);
   background: rgba(240, 192, 64, 0.12);
   color: var(--dynasty-gold);
+  font-family: var(--rt-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* Sophomore ("S") badge — same shape as .dr-rookie-badge, periwinkle instead
+   of gold to match the TAG_THEME.soph class color used on /team-rosters. */
+.dr-soph-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 166, 239, 0.52);
+  background: rgba(154, 166, 239, 0.1);
+  color: #9aa6ef;
   font-family: var(--rt-font-mono, monospace);
   font-size: 9px;
   font-weight: 700;
@@ -2526,6 +2555,7 @@ body:has(.dr-rankings-shell) {
   border-radius: 10px;
   border: 1px solid var(--border-main);
   background: var(--bg-body);
+  cursor: pointer;
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -3161,8 +3191,12 @@ body:has(.dr-rankings-shell) {
     order: 1;
   }
 
-  .dr-controls-row-1 .dr-range-wrap {
+  .dr-controls-row-1 .dr-class-wrap {
     order: 2;
+  }
+
+  .dr-controls-row-1 .dr-range-wrap {
+    order: 3;
   }
 
   .dr-controls-row-2 {

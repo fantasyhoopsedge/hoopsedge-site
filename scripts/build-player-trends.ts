@@ -56,6 +56,14 @@ const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
 const POOL_LEAGUE_SIZE = 400;
 const MIN_GAMES_DISPLAY = 10;
 const MIN_MPG_DISPLAY = 10;
+// D2 (trend-tag audit): the regular-season display floor (g>10) is too high for
+// playoff series, which are often 4-7 games — it silently dropped every 6-9-game
+// postseason run from nba_player_trends, so deriveFinalTake()'s playoff rider
+// (POSTSEASON_MIN_GAMES=6 in trend-insight.ts) never got data to act on for those
+// players. Postseason eligibility uses its own, lower games floor and skips the
+// minutes floor entirely (playoff rotations shrink; a 6-game run at low minutes is
+// still a real form signal worth surfacing, per Ash's call to key this on games only).
+const MIN_GAMES_DISPLAY_POSTSEASON = 5; // g > 5 == 6+ games
 const BLOCK_COUNT = 12;
 const BLOCK_DAYS = 14;
 const LAST_BLOCK_START_DAY = (BLOCK_COUNT - 1) * BLOCK_DAYS; // 154
@@ -166,20 +174,22 @@ async function loadPool(season: number, seasonType: SeasonType): Promise<PlayerS
   return stats;
 }
 
-/** Season-long display filter (independent of pool membership). */
+/** Season-long display filter (independent of pool membership). Postseason uses its
+ * own lower games floor and no minutes floor — see MIN_GAMES_DISPLAY_POSTSEASON. */
 async function loadDisplayEligibleStats(season: number, seasonType: SeasonType): Promise<DisplayRow[]> {
   const supabase = getServiceClient();
   const out: DisplayRow[] = [];
   const PAGE = 1000;
+  const isPostseason = seasonType === "postseason";
   for (let from = 0; ; from += PAGE) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("season_player_stats")
       .select("player_id,name,team,position,consensus_rank,g,mpg")
       .eq("season", season)
       .eq("season_type", seasonType)
-      .gt("g", MIN_GAMES_DISPLAY)
-      .gt("mpg", MIN_MPG_DISPLAY)
-      .range(from, from + PAGE - 1);
+      .gt("g", isPostseason ? MIN_GAMES_DISPLAY_POSTSEASON : MIN_GAMES_DISPLAY);
+    if (!isPostseason) query = query.gt("mpg", MIN_MPG_DISPLAY);
+    const { data, error } = await query.range(from, from + PAGE - 1);
     if (error) throw new Error(`display-eligible fetch failed: ${error.message}`);
     const rows = (data ?? []) as DisplayRow[];
     out.push(...rows);
@@ -620,7 +630,8 @@ async function buildTrendsForDataset(ds: Dataset): Promise<void> {
   console.log(`  pool: ${pool.length} players (league_size ${POOL_LEAGUE_SIZE})`);
 
   const displayRows = await loadDisplayEligibleStats(ds.season, ds.type);
-  console.log(`  display-eligible: ${displayRows.length} players (g>${MIN_GAMES_DISPLAY} & mpg>${MIN_MPG_DISPLAY})`);
+  const filterDesc = ds.type === "postseason" ? `g>${MIN_GAMES_DISPLAY_POSTSEASON}` : `g>${MIN_GAMES_DISPLAY} & mpg>${MIN_MPG_DISPLAY}`;
+  console.log(`  display-eligible: ${displayRows.length} players (${filterDesc})`);
   if (displayRows.length === 0) {
     console.log("  (no display-eligible players -- skipping)");
     return;

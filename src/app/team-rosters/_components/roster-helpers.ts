@@ -240,6 +240,13 @@ export function contractFor(p: Player) {
 export type RankedProfileRow = { key: string; label: string; z: number; color: string; bar: { left: string; width: string } };
 export type RankedProfile = { noData: true; reason: string } | { noData: false; rows: RankedProfileRow[] };
 
+/** A player's categories ranked highest z-score (current mode) to lowest —
+ * the row order buildRankedProfile falls back to, and what the compare modal
+ * uses as the shared anchor order for every card (see catOrder param below). */
+export function catOrderFor(p: Player): Cat[] {
+  return [...CATS].sort((a, b) => catValCur(p, b) - catValCur(p, a));
+}
+
 /**
  * The 9-category profile's full math for one player at one season mode —
  * shared by the single-player detail panel and every card in the compare
@@ -247,12 +254,14 @@ export type RankedProfile = { noData: true; reason: string } | { noData: false; 
  * shallow can't tell you anything reliable (see roster-app.tsx's original
  * comment this was extracted from) — noData + a reason string covers that.
  *
- * Row order is always anchored to the CURRENT mode's ranking (highest z-score
- * to lowest), even when Prior/Projection is requested, so toggling between
- * modes shows each category's z-score shift in place instead of re-sorting
- * into that mode's own order.
+ * Row order defaults to this player's own CURRENT mode ranking (highest
+ * z-score to lowest), even when Prior/Projection is requested, so toggling
+ * between modes shows each category's z-score shift in place instead of
+ * re-sorting into that mode's own order. Pass `catOrder` to override this —
+ * the compare modal anchors every card to the first player's order instead,
+ * so categories line up row-for-row across players.
  */
-export function buildRankedProfile(p: Player, mode: SeasonMode): RankedProfile {
+export function buildRankedProfile(p: Player, mode: SeasonMode, catOrder: Cat[] = catOrderFor(p)): RankedProfile {
   const isProj = mode === "proj";
   const isPrior = mode === "prior";
   const hasCurrentSample = p.gp > 0;
@@ -270,7 +279,6 @@ export function buildRankedProfile(p: Player, mode: SeasonMode): RankedProfile {
     const mag = (Math.abs(zc) / 3) * 50;
     return { left: (isPos ? 50 : 50 - mag) + "%", width: mag + "%" };
   };
-  const catOrder = [...CATS].sort((a, b) => catValCur(p, b) - catValCur(p, a));
   const rows = catOrder.map((c) => {
     const z = zOf(c);
     return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };

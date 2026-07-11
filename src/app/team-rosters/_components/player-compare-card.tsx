@@ -3,7 +3,7 @@
 import { PlayerHeadshot } from "./roster-headshot";
 import { TrendHero } from "./player-trend-chart";
 import { buildRankedProfile, contractFor, heroName, initials, money, posLabel } from "./roster-helpers";
-import type { Player, SeasonMode } from "./roster-data";
+import type { Cat, Player, SeasonMode } from "./roster-data";
 
 // Mirrors roster-app.tsx's TRENDS_SEASON/TRENDS_SEASON_TYPE — hoopR: 2026 =
 // the 2025-26 season. Compare cards always read Minus1V specifically (the
@@ -18,8 +18,18 @@ const TRENDS_SEASON_TYPE = "regular";
  * (all via TrendHero, compact), and the 9-category profile for the shared
  * Current/Prior/Projection `mode` the modal controls.
  */
-export function PlayerCompareCard({ player, mode, onRemove }: { player: Player; mode: SeasonMode; onRemove: () => void }) {
-  const profile = buildRankedProfile(player, mode);
+export function PlayerCompareCard({
+  player,
+  mode,
+  catOrder,
+  onRemove,
+}: {
+  player: Player;
+  mode: SeasonMode;
+  catOrder?: Cat[];
+  onRemove: () => void;
+}) {
+  const profile = catOrder ? buildRankedProfile(player, mode, catOrder) : buildRankedProfile(player, mode);
   const contract = contractFor(player);
 
   return (
@@ -94,6 +104,7 @@ export function PlayerCompareCard({ player, mode, onRemove }: { player: Player; 
         age={player.age}
         gamesPlayed={player.gp}
         mpg={player.mpg}
+        isRookie={player.tag === "soph"}
         compact
       />
 

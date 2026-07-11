@@ -27,14 +27,15 @@ const TRENDS_SEASON_TYPE = "regular";
 /** The slice of an nba_player_trends payload the tone derivation needs. */
 type TrendPayload = { blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] };
 
-/** Blended consensus-vs-real-value trend tag per metric for one player, or all-null if there's no trend/consensus data. */
-function tagsFrom(trend: TrendPayload | undefined, consensusRank: number, age: number | null): { nine: TrendTag | null; m1: TrendTag | null; eight: TrendTag | null } {
+/** Blended consensus-vs-real-value trend tag per metric for one player, or all-null if there's no trend/consensus data.
+ * `isRookie` = first-year player in the charted (completed) season — the roster's is_sophomore flag (R6/R15). */
+function tagsFrom(trend: TrendPayload | undefined, consensusRank: number, age: number | null, isRookie: boolean): { nine: TrendTag | null; m1: TrendTag | null; eight: TrendTag | null } {
   if (!trend) return { nine: null, m1: null, eight: null };
   const history = trend.seasonHistory ?? [];
   return {
-    nine: deriveFinalTake(trend.blocks, history, age, "nineCatV", consensusRank)?.tag ?? null,
-    m1: deriveFinalTake(trend.blocks, history, age, "minus1V", consensusRank)?.tag ?? null,
-    eight: deriveFinalTake(trend.blocks, history, age, "eightCatV", consensusRank)?.tag ?? null,
+    nine: deriveFinalTake(trend.blocks, history, age, "nineCatV", consensusRank, null, isRookie)?.tag ?? null,
+    m1: deriveFinalTake(trend.blocks, history, age, "minus1V", consensusRank, null, isRookie)?.tag ?? null,
+    eight: deriveFinalTake(trend.blocks, history, age, "eightCatV", consensusRank, null, isRookie)?.tag ?? null,
   };
 }
 
@@ -48,6 +49,21 @@ function createReadClient() {
 
 // Dynasty rows (veterans) indexed by the pipeline's normalized name.
 const DYN_BY_NORM = new Map(DYNASTY_RANKINGS.map((d) => [normalizePlayerName(d.player), d]));
+
+// R2 (trend-tag audit): the roster CSV and the dynasty list occasionally use
+// different name forms for the same player; a missed join silently demotes a
+// ranked player to the 999 fallback. Alias key (roster norm) → canonical key
+// (dynasty norm). Found by fuzzy-diffing the two name sets — re-run that check
+// when either source is refreshed.
+const DYN_NORM_ALIASES: Record<string, string> = {
+  "cam johnson": "cameron johnson",
+  "ron holland": "ronald holland",
+  "herb jones": "herbert jones",
+};
+for (const [alias, canonical] of Object.entries(DYN_NORM_ALIASES)) {
+  const row = DYN_BY_NORM.get(canonical);
+  if (row && !DYN_BY_NORM.has(alias)) DYN_BY_NORM.set(alias, row);
+}
 
 // Rookie board projected star profile → per-category z (CATS order), indexed by name.
 // starTier() reproduces the star from these z's: 5★→1.3, 4★→0.65, 3★→0, 2★→-0.65, 1★→-1.3.
@@ -168,6 +184,47 @@ export async function getTeamAgeRank(team: string): Promise<{ rank: number; tota
   return ranks[team.toUpperCase()] ?? null;
 }
 
+/** Every current sophomore's normalized name, league-wide. Cached, shared across pages —
+ * used to tag "SOPHOMORE" on /dynasty-rankings, which has no DB access of its own
+ * (dynasty-rankings.json is a build-time bundle; see CLAUDE.md's data-provenance note). */
+export const getSophomoreNames = unstable_cache(
+  async (): Promise<string[]> => {
+    const supabase = createReadClient();
+    const { data } = await supabase
+      .from("nba_roster")
+      .select("norm_name")
+      .eq("season", ROSTER_SEASON)
+      .eq("is_sophomore", true);
+    return (data ?? []).map((r) => r.norm_name);
+  },
+  ["team-roster-sophomore-names"],
+  CACHE_OPTS,
+);
+
+/** Every current roster player's draft year, keyed by normalized name. Draft year is a
+ * fixed historical fact (unlike is_sophomore, which only describes TODAY's status), so
+ * this lets a caller derive "was this player a rookie/sophomore in season N" for ANY
+ * season N — used by /seasonal-rankings, which shows historical per-season stat rows
+ * (hoopR season N covers the (N-1)/N year; a player is a rookie in season draftYear+1,
+ * a sophomore in season draftYear+2). Only covers players still on a 2026-27 roster. */
+export const getDraftYears = unstable_cache(
+  async (): Promise<Record<string, number>> => {
+    const supabase = createReadClient();
+    const { data } = await supabase
+      .from("nba_roster")
+      .select("norm_name,draft_year")
+      .eq("season", ROSTER_SEASON)
+      .not("draft_year", "is", null);
+    const out: Record<string, number> = {};
+    for (const r of data ?? []) {
+      if (r.draft_year != null) out[r.norm_name] = r.draft_year;
+    }
+    return out;
+  },
+  ["team-roster-draft-years"],
+  CACHE_OPTS,
+);
+
 /** Per-year cap hits (Year 1 = 2026-27), extrapolating 2029-30 for a mid-contract deal that runs that far. */
 function resolveSalaryYears(r: {
   salary_yr1: number | null; salary_yr2: number | null; salary_yr3: number | null; salary_yr4: number | null;
@@ -252,7 +309,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   // read — see trend-insight.ts), so resolve them once per row first.
   const consensusByRow = roster.map((r) => DYN_BY_NORM.get(r.norm_name)?.consensusRank ?? 999);
   const ageByRow = roster.map((r) => ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? DYN_BY_NORM.get(r.norm_name)?.age ?? 0));
-  const tags = roster.map((r, i) => tagsFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i]));
+  const tags = roster.map((r, i) => tagsFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i], r.is_sophomore === true));
 
   return roster.map((r, i): Player => {
     const st = r.player_id ? statsById.get(r.player_id) : undefined;

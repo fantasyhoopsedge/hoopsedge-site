@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CATS,
@@ -136,6 +136,14 @@ export function RosterApp({
   const [colDir, setColDir] = useState<"asc" | "desc">("desc");
   const [fvMetric, setFvMetric] = useState<FvMetric>("minus1");
   const [teamMenuOpen, setTeamMenuOpen] = useState(false);
+  const selectedTeamBtnRef = useRef<HTMLButtonElement | null>(null);
+  // Scroll the current team into view (centered) when the switcher opens,
+  // instead of always resetting to Atlanta at the top of the alphabetical list.
+  useEffect(() => {
+    if (teamMenuOpen) {
+      selectedTeamBtnRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
+    }
+  }, [teamMenuOpen]);
   // Mobile has no room for the list+detail split — the detail panel becomes
   // a full-screen view you navigate into (see the aside render below) rather
   // than a persistent 392px rail, so track whether it's currently showing.
@@ -564,6 +572,7 @@ export function RosterApp({
                   {TEAMS.map((t) => (
                     <button
                       key={t.abbr}
+                      ref={t.abbr === curTeam.abbr ? selectedTeamBtnRef : undefined}
                       type="button"
                       className="rt-hover-surface"
                       onClick={() => {
@@ -805,34 +814,33 @@ export function RosterApp({
                     transition: "box-shadow 140ms ease, border-color 140ms ease",
                   }}
                 >
-                  {c.tag && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 14,
-                        right: 14,
-                        padding: "4px 11px",
-                        borderRadius: 999,
-                        border: `1px solid ${c.tag.border}`,
-                        background: c.tag.bg,
-                        color: c.tag.color,
-                        fontFamily: "var(--rt-font-sans)",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {c.tag.label}
-                    </span>
-                  )}
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                     <PlayerHeadshot name={c.name} size={52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                       <div style={{ fontSize: 13, color: "var(--rt-muted)", marginTop: 2 }}>{c.meta}</div>
                     </div>
+                  </div>
+                  <div style={{ height: 24, marginTop: 10 }}>
+                    {c.tag && (
+                      <span
+                        style={{
+                          padding: "4px 11px",
+                          borderRadius: 999,
+                          border: `1px solid ${c.tag.border}`,
+                          background: c.tag.bg,
+                          color: c.tag.color,
+                          fontFamily: "var(--rt-font-sans)",
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {c.tag.label}
+                      </span>
+                    )}
                   </div>
                   <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--rt-hairline-soft)" }}>
                     <div style={{ textAlign: "left" }}>
@@ -1159,6 +1167,7 @@ export function RosterApp({
               age={sp.age}
               gamesPlayed={sp.gp}
               mpg={sp.mpg}
+              isRookie={sp.tag === "soph"}
             />
           )}
         </div>

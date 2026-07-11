@@ -7,6 +7,7 @@ import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import { shortenPlayerName } from "@/lib/shorten-name";
+import { normalizePlayerName } from "@/lib/dynasty-rankings";
 
 type SeasonOption = { key: string; label: string };
 
@@ -203,8 +204,9 @@ export function SeasonalRankingsTable(props: {
   seasons: SeasonOption[];
   activeSeason: string;
   ageByRank: Record<number, number>;
+  draftYearByName: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank, draftYearByName } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
@@ -215,6 +217,20 @@ export function SeasonalRankingsTable(props: {
     const base = ageByRank[s.consensus_rank];
     if (base == null) return null;
     return base - (2026 - seasonNum);
+  };
+
+  // Rookie/sophomore status is SEASON-relative here (unlike /dynasty-rankings and
+  // /team-rosters, which tag a player's status TODAY) — this table shows historical
+  // per-season stat rows, so a 2025 draftee reads ROOKIE on the 2025-26 dataset and
+  // SOPHOMORE on 2026-27, not "sophomore" on every season he's ever played. Draft
+  // year is a fixed fact, so it works against any season in the picker (hoopR season
+  // N = the draftYear+1/draftYear+2 year for a player's rookie/sophomore season).
+  const classOf = (s: SeasonPlayerStats): "rookie" | "soph" | null => {
+    const draftYear = draftYearByName[normalizePlayerName(s.name)];
+    if (draftYear == null) return null;
+    if (seasonNum === draftYear + 1) return "rookie";
+    if (seasonNum === draftYear + 2) return "soph";
+    return null;
   };
 
   // Season switch is a soft navigation (server refetch); a pending flag dims the
@@ -271,6 +287,17 @@ export function SeasonalRankingsTable(props: {
   }, [leagueSize, activeSeason, loadedValues]);
   const [teamFilter, setTeamFilter] = useState<Set<string>>(new Set());
   const [posFilter, setPosFilter] = useState<Set<string>>(new Set());
+  // Multi-select, same union pattern as posFilter: empty = no filter, and
+  // "vet" (neither rookie nor sophomore this season) can combine with the
+  // other two so a manager can e.g. hide rookies+sophomores at once, or
+  // show rookies and sophomores together while excluding veterans.
+  const [classFilter, setClassFilter] = useState<Set<"rookie" | "soph" | "vet">>(new Set());
+  const toggleClass = (c: "rookie" | "soph" | "vet") => {
+    const next = new Set(classFilter);
+    if (next.has(c)) next.delete(c);
+    else next.add(c);
+    setClassFilter(next);
+  };
   const [perGame, setPerGame] = useState(true);
   const [minGames, setMinGames] = useState(0); // 0 = any; else strictly greater than
   const [minMins, setMinMins] = useState(0);
@@ -387,12 +414,17 @@ export function SeasonalRankingsTable(props: {
       if (tickedOnly && !checked.has(s.player_id)) return false;
       if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
       if (posFilter.size > 0 && !(s.position && [...posFilter].some((p) => s.position!.includes(p)))) return false;
+      if (classFilter.size > 0) {
+        const cls = classOf(s) ?? "vet";
+        if (!classFilter.has(cls)) return false;
+      }
       if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
       if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
       if (q && !s.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, minGames, minMins, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, classFilter, minGames, minMins, search]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -481,6 +513,43 @@ export function SeasonalRankingsTable(props: {
                   {p}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Rookie/sophomore class — season-relative to the active dataset, see classOf().
+              Multi-select like Position: Rookies + Sophomores together shows either,
+              Veterans excludes both, and any combination unions/excludes accordingly. */}
+          <div className="sr-group">
+            <span className="sr-label">Class</span>
+            <div className="sr-pill-row">
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.size === 0 ? "sr-pill-on" : ""}`}
+                onClick={() => setClassFilter(new Set())}
+              >
+                ALL
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("rookie") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("rookie")}
+              >
+                Rookies
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("soph") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("soph")}
+              >
+                Sophomores
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("vet") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("vet")}
+              >
+                Veterans
+              </button>
             </div>
           </div>
 
@@ -630,6 +699,7 @@ export function SeasonalRankingsTable(props: {
                   <th className="sr-th sr-num-h sr-th-rank">RANK</th>
                   <th className="sr-th sr-th-shot" aria-label="Headshot" />
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
+                  <th className="sr-th sr-w-tag" aria-label="Rookie/Sophomore" />
                   <th className="sr-th sr-w">TEAM</th>
                   <th className="sr-th sr-w">POS</th>
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
@@ -675,6 +745,7 @@ export function SeasonalRankingsTable(props: {
                   const toDim = catMode === "8cat" ? " sr-dim" : "";
                   // Bold the actively-sorted column's cells (and only that column).
                   const bold = (key: SortKey) => (sort.key === key ? " sr-sorted" : "");
+                  const cls = classOf(s);
 
                   return (
                     <tr key={s.player_id} className="sr-tr">
@@ -692,6 +763,13 @@ export function SeasonalRankingsTable(props: {
                       </td>
                       <td className="sr-td sr-td-player sr-sticky-col" title={s.name}>
                         {shortenPlayerName(s.name)}
+                      </td>
+                      <td className="sr-td sr-td-tag">
+                        {cls === "rookie" ? (
+                          <span className="dr-rookie-badge" title="Rookie this season">R</span>
+                        ) : cls === "soph" ? (
+                          <span className="dr-soph-badge" title="Sophomore this season">S</span>
+                        ) : null}
                       </td>
                       <td className="sr-td sr-td-team sr-w">
                         <TeamLogo team={s.team} />
@@ -857,6 +935,10 @@ export function SeasonalRankingsTable(props: {
            surname (title attribute carries the full name). */
         .sr-th-player, .sr-td-player { width: 134px; min-width: 134px; max-width: 134px; }
         .sr-td-player { overflow: hidden; text-overflow: ellipsis; }
+        /* Rookie/sophomore badge gets its own narrow column (not squeezed inline
+           after the name) so it can never collide with or truncate the player name. */
+        .sr-w-tag, .sr-td-tag { width: 28px; min-width: 28px; max-width: 28px; padding: 5px 2px; }
+        .sr-td-tag .dr-rookie-badge, .sr-td-tag .dr-soph-badge { margin-left: 0; }
 
         .sr-th-pick, .sr-th-rank, .sr-th-shot { position: sticky; z-index: 20; background: var(--bg-body); }
         .sr-td-pick, .sr-td-rank, .sr-td-shot { position: sticky; z-index: 5; background: var(--bg-body); }

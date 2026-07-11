@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DYNASTY_RANKINGS, activeRankForView, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { DYNASTY_RANKINGS, activeRankForView, normalizePlayerName, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
-import { ControlsBar, type RankRangeKey } from "./_components/controls-bar";
+import { ControlsBar, type ClassFilterKey, type RankRangeKey } from "./_components/controls-bar";
 import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
+import { PlayerQuickViewModal } from "@/app/team-rosters/_components/player-quickview-modal";
+import type { Player } from "@/app/team-rosters/_components/roster-data";
+
+// Same alias/exception set as rankings-table.tsx's/tier-view.tsx's TeamCell —
+// dynasty-rankings.json's team codes don't all match /api/team-rosters/[team]'s
+// TEAMS abbreviations ("NOR"/"PHO" vs "NOP"/"PHX"), and "FA" isn't a real team.
+const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+const NON_TEAM_VALUES = new Set(["FA"]);
 
 // ── Version registry ─────────────────────────────────────────────────────────
 // To add a new version:
@@ -65,12 +73,8 @@ function normalizeSearch(s: string) {
   return s.trim().toLowerCase();
 }
 
-function isProspect(p: DynastyPlayer) {
-  return p.isRookie;
-}
-
 function rankInRange(p: DynastyPlayer, range: RankRangeKey, expertKey: string): boolean {
-  if (range === "all" || range === "rookies2026") return true;
+  if (range === "all") return true;
   const r = expertKey ? activeRankForView(p, expertKey) : p.consensusRank;
   if (r === null) return false;
   if (range === "top100") return r >= 1 && r <= 100;
@@ -85,6 +89,7 @@ export default function DynastyRankingsPage() {
   const [versionSnapshot, setVersionSnapshot] = useState<VersionSnapshot | null>(null);
 
   const [selectedPositions, setSelectedPositions] = useState<Set<string>>(new Set());
+  const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [teamFilter, setTeamFilter] = useState("");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "tiers">("table");
@@ -95,6 +100,51 @@ export default function DynastyRankingsPage() {
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [tierCollapsed, setTierCollapsed] = useState<Record<number, boolean>>({});
   const [isMobileNav, setIsMobileNav] = useState(false);
+  const [sophomoreNames, setSophomoreNames] = useState<Set<string>>(new Set());
+  const [quickView, setQuickView] = useState<{ open: boolean; loading: boolean; error: string | null; player: Player | null }>({
+    open: false,
+    loading: false,
+    error: null,
+    player: null,
+  });
+
+  // Sophomore status lives in nba_roster (runtime DB), not this page's build-time
+  // dynasty-rankings.json bundle — see CLAUDE.md's data-provenance note. Fetched
+  // once and matched client-side by normalized name.
+  useEffect(() => {
+    fetch("/api/nba/sophomores")
+      .then((r) => r.json())
+      .then((data: { names: string[] }) => setSophomoreNames(new Set(data.names)))
+      .catch(() => {});
+  }, []);
+
+  const classOf = (p: DynastyPlayer): ClassFilterKey =>
+    p.isRookie ? "rookie" : sophomoreNames.has(normalizePlayerName(p.player)) ? "soph" : "vet";
+
+  const openPlayerQuickView = async (p: DynastyPlayer) => {
+    if (NON_TEAM_VALUES.has(p.team)) {
+      setQuickView({ open: true, loading: false, error: "No current NBA team on record for this player.", player: null });
+      return;
+    }
+    const team = DYNASTY_TEAM_ALIAS[p.team] ?? p.team;
+    setQuickView({ open: true, loading: true, error: null, player: null });
+    try {
+      const res = await fetch(`/api/team-rosters/${team}`);
+      if (!res.ok) throw new Error("failed");
+      const roster: Player[] = await res.json();
+      const target = normalizePlayerName(p.player);
+      const match = roster.find((r) => normalizePlayerName(r.name) === target);
+      if (!match) {
+        setQuickView({ open: true, loading: false, error: "Couldn't find this player's team-rosters data.", player: null });
+        return;
+      }
+      setQuickView({ open: true, loading: false, error: null, player: match });
+    } catch {
+      setQuickView({ open: true, loading: false, error: "Couldn't load this player right now.", player: null });
+    }
+  };
+
+  const closeQuickView = () => setQuickView({ open: false, loading: false, error: null, player: null });
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -157,16 +207,17 @@ export default function DynastyRankingsPage() {
     let rows: DynastyPlayer[] = displayData;
     const q = normalizeSearch(search);
 
-    if (rankRange === "rookies2026") {
-      rows = rows.filter((p) => p.isRookie);
-    } else {
-      rows = rows.filter((p) => rankInRange(p, rankRange, expertSortKey));
-    }
+    rows = rows.filter((p) => rankInRange(p, rankRange, expertSortKey));
 
     if (selectedPositions.size > 0) {
       // Substring match — selecting "G" also surfaces "G/F" players, matching
       // the same convention as seasonal-rankings' position filter.
       rows = rows.filter((p) => [...selectedPositions].some((pos) => p.position.includes(pos)));
+    }
+    if (classFilter.size > 0) {
+      // Multi-select union, same pattern as Position: ROOKIES + SOPHOMORES
+      // together shows either, VETERANS excludes both.
+      rows = rows.filter((p) => classFilter.has(classOf(p)));
     }
     if (tierFilter > 0) {
       rows = rows.filter((p) => p.tier === tierFilter);
@@ -178,7 +229,8 @@ export default function DynastyRankingsPage() {
       rows = rows.filter((p) => p.player.toLowerCase().includes(q));
     }
     return rows;
-  }, [displayData, selectedPositions, teamFilter, search, rankRange, tierFilter, expertSortKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- classOf closes over sophomoreNames, already listed
+  }, [displayData, selectedPositions, classFilter, teamFilter, search, rankRange, tierFilter, expertSortKey, sophomoreNames]);
 
   const onSort = (key: SortKey) => {
     if (key === "avgRank" || key === "consensusRank") {
@@ -247,6 +299,8 @@ export default function DynastyRankingsPage() {
               setRankRange={setRankRange}
               selectedPositions={selectedPositions}
               setSelectedPositions={setSelectedPositions}
+              classFilter={classFilter}
+              setClassFilter={setClassFilter}
               tierFilter={tierFilter}
               setTierFilter={setTierFilter}
               expertSortKey={expertSortKey}
@@ -284,6 +338,8 @@ export default function DynastyRankingsPage() {
                 activeExpertKey={expertSortKey}
                 rankedByExpertLabel={rankedByExpertLabel}
                 versionLabel={versionLabel}
+                sophomoreNames={sophomoreNames}
+                onPlayerClick={openPlayerQuickView}
               />
             ) : (
               <div className="dr-tier-view-scroll">
@@ -292,12 +348,24 @@ export default function DynastyRankingsPage() {
                   collapsed={tierCollapsed}
                   toggleTier={toggleTier}
                   activeExpertKey={expertSortKey}
+                  sophomoreNames={sophomoreNames}
+                  onPlayerClick={openPlayerQuickView}
                 />
               </div>
             )}
           </div>
         )}
       </div>
+
+      {quickView.open ? (
+        <PlayerQuickViewModal
+          player={quickView.player}
+          loading={quickView.loading}
+          error={quickView.error}
+          onClose={closeQuickView}
+          isMobile={isMobileNav}
+        />
+      ) : null}
     </div>
   );
 }

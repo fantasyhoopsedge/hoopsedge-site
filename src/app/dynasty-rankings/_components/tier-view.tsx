@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { activeRankForView, normalizePlayerName, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
@@ -85,8 +85,10 @@ export function TierView(props: {
   collapsed: Record<number, boolean>;
   toggleTier: (tier: number) => void;
   activeExpertKey: string;
+  sophomoreNames: Set<string>;
+  onPlayerClick: (p: DynastyPlayer) => void;
 }) {
-  const { rows, collapsed, toggleTier, activeExpertKey } = props;
+  const { rows, collapsed, toggleTier, activeExpertKey, sophomoreNames, onPlayerClick } = props;
 
   const byTier = useMemo(() => {
     const map = new Map<number, DynastyPlayer[]>();
@@ -141,7 +143,11 @@ export function TierView(props: {
             {!isCollapsed && (
               <div className="dr-tier-grid">
                 {tierPlayers.map((p) => (
-                  <article key={`${p.consensusRank}-${p.player}`} className="dr-tier-card">
+                  <article
+                    key={`${p.consensusRank}-${p.player}`}
+                    className="dr-tier-card"
+                    onClick={() => onPlayerClick(p)}
+                  >
                     <HeadshotImg player={p} />
                     <div className="dr-tier-card-rank">{p.consensusRank}</div>
                     <div className="dr-tier-card-body">
@@ -150,6 +156,10 @@ export function TierView(props: {
                         {p.isRookie ? (
                           <span className="dr-rookie-badge" title="2026 Rookie">
                             R
+                          </span>
+                        ) : sophomoreNames.has(normalizePlayerName(p.player)) ? (
+                          <span className="dr-soph-badge" title="Sophomore">
+                            S
                           </span>
                         ) : null}
                       </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { TEAMS, type Player, type SeasonMode } from "./roster-data";
 import { PlayerCompareCard } from "./player-compare-card";
+import { catOrderFor } from "./roster-helpers";
 
 const MAX_COMPARE = 4;
 const MODE_DEFS: { id: SeasonMode; label: string }[] = [
@@ -34,8 +35,13 @@ function AddPlayerSlot({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [search, setSearch] = useState("");
+  // Guards against out-of-order fetch responses: if the team is switched
+  // again before an in-flight request resolves, that stale response must
+  // not clobber the roster with the wrong team's players.
+  const requestId = useRef(0);
 
   const loadTeam = async (team: string) => {
+    const thisRequest = ++requestId.current;
     setPickerTeam(team);
     setSearch("");
     if (team === currentTeam) {
@@ -50,11 +56,13 @@ function AddPlayerSlot({
       const res = await fetch(`/api/team-rosters/${team}`);
       if (!res.ok) throw new Error("failed");
       const data: Player[] = await res.json();
+      if (thisRequest !== requestId.current) return;
       setRoster(data);
     } catch {
+      if (thisRequest !== requestId.current) return;
       setError(true);
     } finally {
-      setLoading(false);
+      if (thisRequest === requestId.current) setLoading(false);
     }
   };
 
@@ -171,6 +179,10 @@ export function CompareModal({
   const [mode, setMode] = useState<SeasonMode>("cur");
   const excludeIds = new Set(players.map((p) => p.id));
   const emptySlots = Math.max(0, MAX_COMPARE - players.length);
+  // Anchor every card's 9-category row order to the first player added, so
+  // categories line up across columns for an easy eyeball comparison. If
+  // that player is removed, the next one in line becomes the new anchor.
+  const anchorOrder = players.length > 0 ? catOrderFor(players[0]) : undefined;
 
   return (
     <div
@@ -230,10 +242,14 @@ export function CompareModal({
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(220px, 1fr))", gap: 14, marginTop: 18, overflowX: isMobile ? "visible" : "auto" }}>
           {players.map((p) => (
-            <PlayerCompareCard key={p.id} player={p} mode={mode} onRemove={() => onRemove(p.id)} />
+            <PlayerCompareCard key={p.id} player={p} mode={mode} catOrder={anchorOrder} onRemove={() => onRemove(p.id)} />
           ))}
           {Array.from({ length: emptySlots }).map((_, i) => (
-            <AddPlayerSlot key={i} currentTeam={currentTeam} currentTeamPlayers={currentTeamPlayers} excludeIds={excludeIds} onAdd={onAdd} />
+            // Keyed off players.length + i (not just i) so every slot remounts
+            // fresh — with the picker reset to currentTeam — whenever a player
+            // is added or removed, instead of a lower-indexed slot's stale
+            // open/pickerTeam/roster state bleeding into the "next" slot.
+            <AddPlayerSlot key={`${players.length}-${i}`} currentTeam={currentTeam} currentTeamPlayers={currentTeamPlayers} excludeIds={excludeIds} onAdd={onAdd} />
           ))}
         </div>
       </div>

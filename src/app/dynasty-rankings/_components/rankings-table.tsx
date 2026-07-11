@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { activeRankForView, normalizePlayerName, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
@@ -190,8 +190,10 @@ export function RankingsTable(props: {
   activeExpertKey: string;
   rankedByExpertLabel: string | null;
   versionLabel: string;
+  sophomoreNames: Set<string>;
+  onPlayerClick: (p: DynastyPlayer) => void;
 }) {
-  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, versionLabel } = props;
+  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, versionLabel, sophomoreNames, onPlayerClick } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingTimeoutRef = useRef<number | null>(null);
@@ -394,9 +396,10 @@ export function RankingsTable(props: {
             {shown.map((p, i) => {
               const activeRank = activeRankForView(p, activeExpertKey);
               const rankStyle = { color: rankColorForTier(p.tier) };
+              const isSophomore = !p.isRookie && sophomoreNames.has(normalizePlayerName(p.player));
 
               return (
-                <tr key={`${p.consensusRank}-${p.player}-${i}`} className="dr-tr">
+                <tr key={`${p.consensusRank}-${p.player}-${i}`} className="dr-tr" onClick={() => onPlayerClick(p)}>
                   <td className="dr-td dr-col-rank">
                     {activeRank !== null ? (
                       <span className="dr-rank-num" style={rankStyle}>
@@ -469,6 +472,10 @@ export function RankingsTable(props: {
                                   <span className="dr-rookie-badge" title="2026 Rookie">
                                     R
                                   </span>
+                                ) : isSophomore ? (
+                                  <span className="dr-soph-badge" title="Sophomore">
+                                    S
+                                  </span>
                                 ) : null}
                               </span>
                             </>
@@ -478,6 +485,10 @@ export function RankingsTable(props: {
                               {p.isRookie ? (
                                 <span className="dr-rookie-badge" title="2026 Rookie">
                                   R
+                                </span>
+                              ) : isSophomore ? (
+                                <span className="dr-soph-badge" title="Sophomore">
+                                  S
                                 </span>
                               ) : null}
                             </>

@@ -9,8 +9,9 @@ export type RankRangeKey =
   | "101-200"
   | "201-300"
   | "301-450"
-  | "all"
-  | "rookies2026";
+  | "all";
+
+export type ClassFilterKey = "rookie" | "soph" | "vet";
 
 type ViewMode = "table" | "tiers";
 
@@ -39,6 +40,8 @@ export function ControlsBar(props: {
   setRankRange: (v: RankRangeKey) => void;
   selectedPositions: Set<string>;
   setSelectedPositions: (next: Set<string>) => void;
+  classFilter: Set<ClassFilterKey>;
+  setClassFilter: (next: Set<ClassFilterKey>) => void;
   tierFilter: number;
   setTierFilter: (v: number) => void;
   expertSortKey: string;
@@ -59,6 +62,8 @@ export function ControlsBar(props: {
     setRankRange,
     selectedPositions,
     setSelectedPositions,
+    classFilter,
+    setClassFilter,
     tierFilter,
     setTierFilter,
     expertSortKey,
@@ -85,6 +90,13 @@ export function ControlsBar(props: {
 
   const clearPositions = () => setSelectedPositions(new Set());
 
+  const toggleClass = (c: ClassFilterKey) => {
+    const next = new Set(classFilter);
+    if (next.has(c)) next.delete(c);
+    else next.add(c);
+    setClassFilter(next);
+  };
+
   return (
     <div className="dr-controls-inner">
       <div className="dr-controls-row dr-controls-row-1">
@@ -102,13 +114,6 @@ export function ControlsBar(props: {
                 {label}
               </button>
             ))}
-            <button
-              type="button"
-              className={`dr-pill ${rankRange === "rookies2026" ? "dr-pill-active dr-pill-active-rookies" : ""}`}
-              onClick={() => setRankRange("rookies2026")}
-            >
-              2026 ROOKIES
-            </button>
           </div>
         </div>
 
@@ -132,6 +137,42 @@ export function ControlsBar(props: {
                 {pos}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Rookie/sophomore class — multi-select like Position: ROOKIES + SOPHOMORES
+            together shows either, VETERANS excludes both, any combination unions. */}
+        <div className="dr-filter-group dr-class-wrap">
+          <span className="dr-filter-label">Class</span>
+          <div className="dr-pill-row">
+            <button
+              type="button"
+              className={`dr-pill ${classFilter.size === 0 ? "dr-pill-active" : ""}`}
+              onClick={() => setClassFilter(new Set())}
+            >
+              ALL
+            </button>
+            <button
+              type="button"
+              className={`dr-pill ${classFilter.has("rookie") ? "dr-pill-active dr-pill-active-rookies" : ""}`}
+              onClick={() => toggleClass("rookie")}
+            >
+              ROOKIES
+            </button>
+            <button
+              type="button"
+              className={`dr-pill ${classFilter.has("soph") ? "dr-pill-active dr-pill-active-sophomores" : ""}`}
+              onClick={() => toggleClass("soph")}
+            >
+              SOPHOMORES
+            </button>
+            <button
+              type="button"
+              className={`dr-pill ${classFilter.has("vet") ? "dr-pill-active" : ""}`}
+              onClick={() => toggleClass("vet")}
+            >
+              VETERANS
+            </button>
           </div>
         </div>
         </div>

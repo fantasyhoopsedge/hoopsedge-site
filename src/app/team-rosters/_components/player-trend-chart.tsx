@@ -6,8 +6,10 @@ import { caret, changeColor } from "./roster-helpers";
 
 export type { TrendMetric } from "./trend-insight";
 
-/** Fetches one player's block-level value trend from /api/player-trends (built by `npm run trends:build`). */
-function usePlayerTrend(playerId: string, season: number, seasonType: string) {
+/** Fetches one player's block-level value trend from /api/player-trends (built by `npm run trends:build`).
+ * `skip` short-circuits entirely (used for the postseason side-fetch below when the
+ * primary metric being shown is already the postseason, to avoid a circular re-fetch). */
+function usePlayerTrend(playerId: string, season: number, seasonType: string, skip = false) {
   const [data, setData] = useState<TrendPlayer | null>(null);
   const [notFound, setNotFound] = useState(false);
   // Key of the request the current data/notFound state reflects, so `loading`
@@ -15,7 +17,7 @@ function usePlayerTrend(playerId: string, season: number, seasonType: string) {
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
 
   // Synthetic "n_..." ids (roster-live-data.ts:205) mean no real season row (rookies) — nothing to fetch.
-  const isSynthetic = playerId.startsWith("n_");
+  const isSynthetic = skip || playerId.startsWith("n_");
   const requestKey = `${playerId}:${season}:${seasonType}`;
   const loading = !isSynthetic && loadedKey !== requestKey;
 
@@ -130,6 +132,7 @@ export function TrendHero({
   age,
   gamesPlayed,
   mpg,
+  isRookie = false,
   compact = false,
 }: {
   playerId: string;
@@ -147,12 +150,19 @@ export function TrendHero({
   age: number | null;
   gamesPlayed: number;
   mpg: number;
+  /** First-year player in the charted season (Player.tag === "soph" for the
+   * completed 2025-26 season) — drives the rookie-aware DEVELOPING read (R15). */
+  isRookie?: boolean;
   /** Shrinks the stat-row fonts/gaps and the insight callout for narrow
    * contexts (the compare modal's ~220px-wide cards) — the sparkline itself
    * is already responsive and needs no changes. */
   compact?: boolean;
 }) {
   const { data, notFound, loading, isSynthetic } = usePlayerTrend(playerId, season, seasonType);
+  // Same season's playoff form, when the player's team made it — feeds
+  // deriveFinalTake()'s postseason-review step below. Skipped entirely (no
+  // fetch) when this card is already showing the postseason itself.
+  const postseason = usePlayerTrend(playerId, season, "postseason", seasonType !== "regular");
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   if (isSynthetic) return mutedRow("No trend history yet", consensusRank, consensusDir, compact);
@@ -162,13 +172,21 @@ export function TrendHero({
   const recent = data.blocks.slice(-LOOKBACK_BLOCKS);
   const ranks = recent.map((b) => b[metric].cumRank);
   const pts = buildRankLine(ranks);
-  const rankedIdx = ranks.map((r, i) => (r != null ? i : -1)).filter((i) => i >= 0);
-  const firstIdx = rankedIdx[0];
-  const lastIdx = rankedIdx[rankedIdx.length - 1];
-  const rankDelta = firstIdx != null && lastIdx != null ? ranks[firstIdx]! - ranks[lastIdx]! : null; // positive = improved
+  // The header shows the CUMULATIVE rank over the charted window (the chart's last
+  // point), NOT the season-ending rank prop — they differ (e.g. Josh Hart 104 vs
+  // 108) because the season rank is a full-season pool rank while this is the
+  // trend-window cumulative rank the chart, arrow, and callout are all built on.
+  const nowCumRank = [...ranks].reverse().find((r): r is number => r != null) ?? null;
 
-  const insight = deriveFinalTake(data.blocks, data.seasonHistory, age, metric, consensusRank);
+  const postseasonArg = postseason.data ? { blocks: postseason.data.blocks, gamesPlayed: postseason.data.gamesPlayed } : null;
+  const insight = deriveFinalTake(data.blocks, data.seasonHistory, age, metric, consensusRank, postseasonArg, isRookie);
   const color = insight ? TAG_META[insight.tag].color : "var(--rt-hero-ink-soft)";
+  // Header arrow is driven by the insight's own headline move (the exact first-to-last
+  // number the callout cites — start cumRank → now cumRank), NOT an independent delta —
+  // so a green ▲ can never sit next to "Regressing", nor a red ▼ next to "Climbing".
+  // Override tags (injury/aging) and sub-floor noise carry headlineMove 0 → no arrow.
+  const headlineMove = insight ? Math.round(insight.headlineMove) : 0;
+  const rankDelta = Math.abs(headlineMove) >= 5 ? headlineMove : null; // positive = improved
   const line = pts
     ?.filter((p): p is { x: number; y: number } => p != null)
     .map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`)
@@ -190,7 +208,7 @@ export function TrendHero({
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
               <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
-                {rank != null ? "#" + rank : "—"}
+                {nowCumRank != null ? "#" + nowCumRank : rank != null ? "#" + rank : "—"}
               </span>
               {rankDelta != null && rankDelta !== 0 && (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700, color: rankDelta >= 0 ? "var(--rt-up)" : "var(--rt-down)" }}>
