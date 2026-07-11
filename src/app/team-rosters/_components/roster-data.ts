@@ -53,7 +53,20 @@ export type Player = {
   consensus: number;
   /** Dynasty consensus tier (1 = best), from dynasty-rankings.json. null when unranked. */
   tier: number | null;
-  draft: { year: number; pick: number; tier: number } | null;
+  /** 2026 draft class info, present for incoming rookies only (never sophomores+). null = not a 2026 rookie. */
+  draft: {
+    year: number;
+    /** Overall NBA draft pick. null = went undrafted. */
+    pick: number | null;
+    /** Rookie board rank (1 = best prospect). null = not on the rookie board. */
+    boardRank: number | null;
+    /** Rookie board tier id (1 = best). null = not on the rookie board. */
+    boardTier: number | null;
+    /** Humanized tier name, e.g. "The Untouchables". null = not on the rookie board. */
+    boardTierLabel: string | null;
+    /** Tier's theme color from rookie-board.json (CSS color or var()). null = not on the rookie board. */
+    boardTierColor: string | null;
+  } | null;
   pg: PerGameStats;
   /**
    * Real 9-cat values from season_player_values (baseline-pool z-scores), in

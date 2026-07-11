@@ -77,19 +77,19 @@ export type TrendTag =
  * roster-data.ts) instead of inventing new colors — color communicates
  * "how good/bad," the label + emoji communicate the specific story. */
 export const TAG_META: Record<TrendTag, { label: string; emoji: string; color: string }> = {
-  "breaking-out": { label: "BREAKING OUT", emoji: "🚀", color: "#12a150" },
+  "breaking-out": { label: "POPPING", emoji: "🚀", color: "#12a150" },
   surging: { label: "SURGING", emoji: "📈", color: "#62a046" },
-  outproducing: { label: "OUTPRODUCING", emoji: "💪", color: "#62a046" },
+  outproducing: { label: "ACING", emoji: "💪", color: "#62a046" },
   climbing: { label: "CLIMBING", emoji: "↗️", color: "#62a046" },
-  developing: { label: "DEVELOPING", emoji: "🌱", color: "var(--rt-muted)" },
+  developing: { label: "GROWING", emoji: "🌱", color: "var(--rt-muted)" },
   stable: { label: "STABLE", emoji: "➡️", color: "var(--rt-muted)" },
-  regressing: { label: "REGRESSING", emoji: "↘️", color: "#dd7a2b" },
+  regressing: { label: "SINKING", emoji: "↘️", color: "#dd7a2b" },
   fading: { label: "FADING", emoji: "📉", color: "#cf2230" },
   plunging: { label: "PLUNGING", emoji: "⚰️", color: "#cf2230" },
-  cratering: { label: "CRATERING", emoji: "⚠️", color: "#cf2230" },
-  "games-limited": { label: "GAMES-LIMITED", emoji: "🏥", color: "var(--rt-muted)" },
+  cratering: { label: "TANKING", emoji: "⚠️", color: "#cf2230" },
+  "games-limited": { label: "LIMITED", emoji: "🏥", color: "var(--rt-muted)" },
   "small-sample": { label: "SMALL SAMPLE", emoji: "🔬", color: "var(--rt-muted)" },
-  "aging-decline": { label: "AGE DECLINE", emoji: "⏳", color: "#cf2230" },
+  "aging-decline": { label: "AGEING", emoji: "⏳", color: "#cf2230" },
   washed: { label: "WASHED", emoji: "🧼", color: "#cf2230" },
 };
 
@@ -209,7 +209,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
       // approaching consensus, so don't imply he is.
       const near = -gapNow <= 50; // gapNow is negative here; -gapNow = spots above consensus
       return {
-        title: "Regressing",
+        title: "Sinking",
         detail: `Still outproducing his #${consensusRank} consensus rank at #${nowRank}, but ${near ? "sliding back toward it" : "trending down"} — off ~${abs(trend)} spots over the trend window.`,
         tag: "regressing",
         headlineMove: trend,
@@ -226,7 +226,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
     // R14: flat-above-consensus is its own story — the market rank looks stale,
     // but nothing is "surging".
     return {
-      title: "Outproducing",
+      title: "Acing",
       detail: `Outproducing his #${consensusRank} consensus rank at #${nowRank}, holding well above where the market has him.`,
       tag: "outproducing",
       headlineMove: 0,
@@ -256,7 +256,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
         };
       }
       return {
-        title: "Developing",
+        title: "Growing",
         detail: `His #${consensusRank} consensus prices the long-term upside; rookie production sits at #${nowRank}${trend <= -FLOOR ? `, off ~${abs(trend)} spots over the trend window` : ""} — a normal development gap, not a decline.`,
         tag: "developing",
         headlineMove: arrowDown,
@@ -264,7 +264,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
     }
     if (gapNow >= FAR_GAP && trend <= -HEAVY) {
       return {
-        title: "Cratering",
+        title: "Tanking",
         detail: `Consensus has him at #${consensusRank}; production has collapsed to #${nowRank} — a steep ~${abs(trend)}-spot slide over the trend window, well below his floor.`,
         tag: "cratering",
         headlineMove: trend,
@@ -284,7 +284,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
   // ── NEAR consensus ────────────────────────────────────────────────────────────
   if (trend >= HEAVY) {
     return {
-      title: "Breaking out",
+      title: "Popping",
       detail: `Production has surged to #${nowRank}, up ~${abs(trend)} spots over the trend window — pulling clear of his #${consensusRank} consensus rank.`,
       tag: "breaking-out",
       headlineMove: trend,
@@ -296,7 +296,7 @@ export function deriveInsight(blocks: BlockOut[], metric: TrendMetric, consensus
     // consensus). Landing at or above the market's rank is normalization.
     if (gapNow <= FLOOR) {
       return {
-        title: "Regressing",
+        title: "Sinking",
         detail: `A hot start has normalized — down ~${abs(trend)} spots over the trend window to #${nowRank}, still ${gapNow <= 0 ? "ahead of" : "right at"} his #${consensusRank} consensus rank.`,
         tag: "regressing",
         headlineMove: trend,
@@ -598,7 +598,7 @@ export function deriveFinalTake(
     }
     if (avail.limited) {
       return withPostseasonNote({
-        title: "Games-limited",
+        title: "Limited",
         detail: availabilityDetail(avail, nowRank, consensusRank),
         tag: "games-limited",
         headlineMove: 0, // absence, not a directional move — header shows no arrow
@@ -606,7 +606,7 @@ export function deriveFinalTake(
     }
     // R4 trailing-absence: played most of the year, then went idle over the run-in.
     return withPostseasonNote({
-      title: "Games-limited",
+      title: "Limited",
       detail: `Barely played over the closing stretch (${avail.trailingStale} of the final ${TRAILING_WINDOW} blocks missed${avail.lastFreshEnd ? `; last regular run ended ${avail.lastFreshEnd}` : ""}) — the trend window ends on absence, not form.`,
       tag: "games-limited",
       headlineMove: 0,
@@ -633,7 +633,7 @@ export function deriveFinalTake(
         headlineMove: 0,
       });
     }
-    return withPostseasonNote({ title: "Age-related decline", detail: `${aging.detail}${rider}`, tag: "aging-decline", headlineMove: 0 });
+    return withPostseasonNote({ title: "Ageing", detail: `${aging.detail}${rider}`, tag: "aging-decline", headlineMove: 0 });
   }
 
   if (!hasConsensus) return null; // R1: no gap-based tags without a real consensus

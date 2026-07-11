@@ -309,6 +309,18 @@ export function SeasonalRankingsTable(props: {
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [tickedOnly, setTickedOnly] = useState(false);
+  // Mobile only: filters render as an overlay above the table (not pushed above
+  // it in normal flow) so the player list always starts right under the nav —
+  // see .sr-controls-inner / .sr-mobile-filter-toggle in the mobile media query.
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const activeFilterCount =
+    (teamFilter.size > 0 ? 1 : 0) +
+    (posFilter.size > 0 ? 1 : 0) +
+    (classFilter.size > 0 ? 1 : 0) +
+    (minGames > 0 ? 1 : 0) +
+    (minMins > 0 ? 1 : 0) +
+    (tickedOnly ? 1 : 0) +
+    (search.trim() ? 1 : 0);
 
   const toggleCheck = (id: string) =>
     setChecked((prev) => {
@@ -444,7 +456,33 @@ export function SeasonalRankingsTable(props: {
       <PlatformSidebarNav active="cat-values" />
 
       <div className="sr-controls" ref={controlsRef}>
-        <div className="sr-controls-inner">
+        {/* Mobile only: compact toggle that opens the filters as an overlay
+            above the table, instead of the full control stack pushing the
+            table down the page (desktop is unaffected — hidden via CSS). */}
+        <button
+          type="button"
+          className="sr-mobile-filter-toggle"
+          onClick={() => setMobileFiltersOpen((v) => !v)}
+          aria-expanded={mobileFiltersOpen}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6" /><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+            <line x1="4" y1="12" x2="20" y2="12" /><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+            <line x1="4" y1="18" x2="20" y2="18" /><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && <span className="sr-mobile-filter-count">{activeFilterCount}</span>}
+          <span className="sr-mobile-filter-caret">{mobileFiltersOpen ? "▲" : "▼"}</span>
+        </button>
+        {mobileFiltersOpen && <div className="sr-mobile-backdrop" onClick={() => setMobileFiltersOpen(false)} />}
+
+        <div className={`sr-controls-inner ${mobileFiltersOpen ? "sr-controls-inner-open" : ""}`}>
+          <div className="sr-mobile-panel-header">
+            <span>Filters</span>
+            <button type="button" className="sr-mobile-panel-done" onClick={() => setMobileFiltersOpen(false)}>
+              Done
+            </button>
+          </div>
           {/* Season — reloads the page with a different dataset */}
           <div className="sr-group">
             <label className="sr-label" htmlFor="sr-season">Season</label>
@@ -851,6 +889,9 @@ export function SeasonalRankingsTable(props: {
           display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
           padding: 12px 20px; max-width: 1400px; margin: 0 auto;
         }
+        /* Mobile-only overlay pieces — invisible on desktop, unhidden inside
+           the max-width:767px block below. */
+        .sr-mobile-filter-toggle, .sr-mobile-backdrop, .sr-mobile-panel-header { display: none; }
         .sr-group { display: flex; flex-direction: column; gap: 6px; }
         .sr-group-search { flex: 1 1 160px; min-width: 140px; }
         .sr-label {
@@ -931,10 +972,15 @@ export function SeasonalRankingsTable(props: {
         .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--rt-primary); cursor: pointer; display: block; margin: 0 auto; }
         .sr-th-shot { width: 40px; }
         /* Shortened names ("F. SURNAME") fit in a much tighter column than full
-           names did; ellipsis is a safety net for the rare long single-word
-           surname (title attribute carries the full name). */
-        .sr-th-player, .sr-td-player { width: 134px; min-width: 134px; max-width: 134px; }
-        .sr-td-player { overflow: hidden; text-overflow: ellipsis; }
+           names did. A rare long single-word surname (Antetokounmpo,
+           Mamukelashvili, Niederhauser…) that shortenPlayerName can't compress
+           any further wraps to a second line instead of getting cut off —
+           title attribute still carries the full name for a hover tooltip. */
+        .sr-th-player, .sr-td-player { width: 148px; min-width: 148px; max-width: 148px; }
+        /* Compound selector (not just .sr-td-player) so this reliably beats
+           the later .sr-td { white-space: nowrap } rule regardless of source
+           order/specificity ties. */
+        .sr-td.sr-td-player { white-space: normal; word-break: break-word; line-height: 1.15; }
         /* Rookie/sophomore badge gets its own narrow column (not squeezed inline
            after the name) so it can never collide with or truncate the player name. */
         .sr-w-tag, .sr-td-tag { width: 28px; min-width: 28px; max-width: 28px; padding: 5px 2px; }
@@ -993,14 +1039,89 @@ export function SeasonalRankingsTable(props: {
         @media (max-width: 767px) {
           .sr-shell { padding-left: 0; padding-top: 52px; }
           .sr-controls { top: 52px; }
-          .sr-controls-inner { gap: 10px; padding: 10px 12px; }
+
+          /* Filters no longer sit in normal flow pushing the table down — the
+             compact toggle bar is all that occupies real height; the full
+             control stack becomes a fixed overlay above the table, opened on
+             demand. This is what keeps the player list at the top of the
+             screen on mobile (see .sr-controls-inner below). */
+          .sr-mobile-filter-toggle {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; height: 40px; padding: 0 14px; margin: 0;
+            background: var(--bg-card, #1a1a1a); border: none; cursor: pointer;
+            color: var(--text-primary); font-family: var(--rt-font-sans);
+            font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+          }
+          .sr-mobile-filter-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+            background: var(--rt-primary); color: #fff; font-size: 10px; font-weight: 700;
+          }
+          .sr-mobile-filter-caret { margin-left: auto; font-size: 9px; color: var(--text-muted); }
+
+          .sr-mobile-backdrop {
+            display: block; position: fixed; inset: 92px 0 0 0; z-index: 80;
+            background: rgba(0,0,0,0.6);
+          }
+
+          .sr-controls-inner {
+            display: none; /* hidden until opened — see .sr-controls-inner-open */
+            position: fixed; top: 92px; left: 0; right: 0; bottom: 0; z-index: 90;
+            flex-direction: column; align-items: stretch; gap: 14px;
+            background: var(--bg-surface); overflow-y: auto;
+            padding: 4px 14px 28px; max-width: none; margin: 0;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+          }
+          .sr-controls-inner.sr-controls-inner-open { display: flex; }
+          .sr-mobile-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 1;
+            margin: 0 -14px; padding: 12px 14px; background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-main);
+            font-family: var(--rt-font-sans); font-size: 12px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary);
+          }
+          .sr-mobile-panel-done {
+            height: 30px; padding: 0 14px; border-radius: 7px; cursor: pointer;
+            background: var(--rt-primary); color: #fff; border: none;
+            font-family: var(--rt-font-sans); font-size: 12px; font-weight: 700; text-transform: uppercase;
+          }
+
           .sr-th-shot, .sr-td-shot { display: none; }
           /* headshot column is gone, so the frozen PLAYER column shifts left
-             to sit right after RANK (30 + 56) instead of after the headshot */
-          .sr-th.sr-sticky-col, .sr-sticky-col { left: 86px; }
-          /* Slightly smaller than desktop so more stat columns fit before
-             the table needs horizontal scrolling. */
-          .sr-th, .sr-td, .sr-num { font-size: 13px; }
+             to sit right after RANK — 30 (pick) + 42 (rank, shrunk below). */
+          .sr-th.sr-sticky-col, .sr-sticky-col { left: 72px; }
+          /* Smaller + narrower than desktop, so a phone in landscape shows
+             several more of the 9-cat columns before horizontal scroll kicks in. */
+          .sr-th, .sr-td, .sr-num { font-size: 11px; }
+          .sr-th { padding: 6px 3px; }
+          .sr-td { padding: 4px 3px; }
+          .sr-num-h, .sr-num, .sr-w { width: 40px; min-width: 40px; max-width: 40px; }
+          .sr-num-h-wide, .sr-num-wide { width: 52px; min-width: 52px; max-width: 52px; }
+          .sr-th-player, .sr-td-player { width: 104px; min-width: 104px; max-width: 104px; }
+          .sr-th-rank, .sr-td-rank { left: 30px; }
+          .sr-team-logo { width: 20px; height: 20px; }
+          .sr-headshot-img, .sr-headshot-fallback { width: 26px; height: 26px; }
+          .sr-count { font-size: 10px; padding: 8px 0 18px; }
+        }
+
+        /* Phone in landscape: most modern phones are wider than the 767px
+           sitewide mobile breakpoint once rotated (e.g. ~844px), so they'd
+           otherwise fall back to the full desktop sidebar/table sizing here.
+           Keyed on height + orientation instead of width so it reliably
+           catches landscape phones regardless of exact width — tightens the
+           table further so more of the 9-cat columns fit before horizontal
+           scroll is needed. Table-only: doesn't touch the sidebar/filter-panel
+           layout, which still follows the sitewide width breakpoint. */
+        @media (max-height: 480px) and (orientation: landscape) {
+          .sr-th, .sr-td, .sr-num { font-size: 10px; }
+          .sr-th { padding: 5px 2px; }
+          .sr-td { padding: 3px 2px; }
+          .sr-num-h, .sr-num, .sr-w { width: 36px; min-width: 36px; max-width: 36px; }
+          .sr-num-h-wide, .sr-num-wide { width: 46px; min-width: 46px; max-width: 46px; }
+          .sr-th-player, .sr-td-player { width: 92px; min-width: 92px; max-width: 92px; }
+          .sr-team-logo { width: 18px; height: 18px; }
+          .sr-headshot-img, .sr-headshot-fallback { width: 22px; height: 22px; }
         }
       `}</style>
     </div>

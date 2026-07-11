@@ -279,7 +279,6 @@ export function RankingsTable(props: {
   const mobileExpertMode = isMobile && expertMode;
 
   const showAvatarColumn = !isMobile;
-  const showTeamColumn = !isMobile;
   const showPosColumn = !isMobile;
   const showAgeColumn = !isMobile;
   const showTierColumn = !isMobile;
@@ -318,7 +317,7 @@ export function RankingsTable(props: {
             <col className="dr-col-cg-rank" style={{ width: 50 }} />
             {showAvatarColumn ? <col className="dr-col-cg-avatar" style={{ width: 44 }} /> : null}
             <col className="dr-col-cg-player" style={{ width: 180 }} />
-            {showTeamColumn ? <col className="dr-col-cg-team" style={{ width: 110 }} /> : null}
+            <col className="dr-col-cg-team" style={{ width: isMobile ? 30 : 110 }} />
             {showPosColumn ? <col className="dr-col-cg-pos" style={{ width: 55 }} /> : null}
             {showAgeColumn ? <col className="dr-col-cg-age" style={{ width: 60 }} /> : null}
             <col className="dr-col-cg-avg" style={{ width: 90 }} />
@@ -332,16 +331,19 @@ export function RankingsTable(props: {
             <tr>
               <th scope="col" className="dr-th dr-th-sort dr-col-rank dr-th-rank-consensus">
                 <button type="button" className="dr-th-btn" onClick={() => onSort("consensusRank")}>
-                  <span>RANK</span>
+                  <span className="dr-th-rank-long">RANK</span>
+                  <span className="dr-th-rank-short">#</span>
                 </button>
               </th>
               {showAvatarColumn ? <th scope="col" className="dr-th dr-col-avatar dr-desktop-only" aria-label="Avatar" /> : null}
               <th scope="col" className="dr-th dr-th-sort dr-player-col">{sortHeaderBtn("player", "PLAYER")}</th>
-              {showTeamColumn ? (
-                <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric dr-desktop-only">
-                  {sortHeaderBtn("team", "TEAM")}
-                </th>
-              ) : null}
+              <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric">
+                <button type="button" className="dr-th-btn" onClick={() => onSort("team")}>
+                  <span className="dr-th-team-long">TEAM</span>
+                  <span className="dr-th-team-short">TM</span>
+                  <SortArrow active={sortKey === "team"} dir={arrowDir} />
+                </button>
+              </th>
               {showPosColumn ? (
                 <th scope="col" className="dr-th dr-th-sort dr-col-pos dr-th-numeric">
                   {sortHeaderBtn("position", "POS")}
@@ -466,18 +468,15 @@ export function RankingsTable(props: {
                             <>
                               <span style={mobilePositionBadgeStyle(p.position)}>{p.position}</span>
                               <span title={p.player}>{shortenPlayerName(p.player)}</span>
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, marginLeft: 5 }}>
-                                <TeamCell team={p.team} size={16} />
-                                {p.isRookie ? (
-                                  <span className="dr-rookie-badge" title="2026 Rookie">
-                                    R
-                                  </span>
-                                ) : isSophomore ? (
-                                  <span className="dr-soph-badge" title="Sophomore">
-                                    S
-                                  </span>
-                                ) : null}
-                              </span>
+                              {p.isRookie ? (
+                                <span className="dr-rookie-badge" title="2026 Rookie">
+                                  R
+                                </span>
+                              ) : isSophomore ? (
+                                <span className="dr-soph-badge" title="Sophomore">
+                                  S
+                                </span>
+                              ) : null}
                             </>
                           ) : (
                             <>
@@ -497,11 +496,9 @@ export function RankingsTable(props: {
                       </div>
                     </div>
                   </td>
-                  {showTeamColumn ? (
-                    <td className="dr-td dr-col-team dr-desktop-only">
-                      <TeamCell team={p.team} />
-                    </td>
-                  ) : null}
+                  <td className="dr-td dr-col-team">
+                    <TeamCell team={p.team} size={isMobile ? 20 : 32} />
+                  </td>
                   {showPosColumn ? (
                     <td className="dr-td dr-col-pos">{isMobile ? p.position : <PositionBadge position={p.position} />}</td>
                   ) : null}

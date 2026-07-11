@@ -100,6 +100,10 @@ export default function DynastyRankingsPage() {
   const [sortDir, setSortDir] = useState<1 | -1>(1);
   const [tierCollapsed, setTierCollapsed] = useState<Record<number, boolean>>({});
   const [isMobileNav, setIsMobileNav] = useState(false);
+  // Mobile only: filters render as an overlay above the table (not pushed
+  // above it in normal flow) so the player list always starts right under
+  // the nav — same pattern as /seasonal-rankings' SeasonalRankingsTable.
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sophomoreNames, setSophomoreNames] = useState<Set<string>>(new Set());
   const [quickView, setQuickView] = useState<{ open: boolean; loading: boolean; error: string | null; player: Player | null }>({
     open: false,
@@ -285,6 +289,14 @@ export default function DynastyRankingsPage() {
     : null;
 
   const versionLabel = `${selectedVersion.label} · ${selectedVersion.date}`;
+  const activeFilterCount =
+    (rankRange !== "all" ? 1 : 0) +
+    (selectedPositions.size > 0 ? 1 : 0) +
+    (classFilter.size > 0 ? 1 : 0) +
+    (tierFilter > 0 ? 1 : 0) +
+    (expertSortKey ? 1 : 0) +
+    (teamFilter ? 1 : 0) +
+    (search.trim() ? 1 : 0);
 
   return (
     <div className="dr-rankings-shell">
@@ -293,28 +305,57 @@ export default function DynastyRankingsPage() {
       <div className="dr-rankings-measured-top">
         <div className="dr-sticky-controls">
           <div className="dr-page-gutter">
-            <ControlsBar
-              teams={teams}
-              rankRange={rankRange}
-              setRankRange={setRankRange}
-              selectedPositions={selectedPositions}
-              setSelectedPositions={setSelectedPositions}
-              classFilter={classFilter}
-              setClassFilter={setClassFilter}
-              tierFilter={tierFilter}
-              setTierFilter={setTierFilter}
-              expertSortKey={expertSortKey}
-              setExpertSortKey={syncExpertSortKeyFromControls}
-              teamFilter={teamFilter}
-              setTeamFilter={setTeamFilter}
-              search={search}
-              setSearch={setSearch}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              versions={VERSIONS}
-              selectedVersionId={selectedVersionId}
-              setSelectedVersionId={setSelectedVersionId}
-            />
+            {/* Mobile only: compact toggle that opens the filters as an
+                overlay above the table, instead of the old cramped
+                horizontal-scrolling strip that also hid Tier/Team/View
+                entirely. Desktop is unaffected — hidden via CSS. */}
+            <button
+              type="button"
+              className="dr-mobile-filter-toggle"
+              onClick={() => setMobileFiltersOpen((v) => !v)}
+              aria-expanded={mobileFiltersOpen}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6" /><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+                <line x1="4" y1="12" x2="20" y2="12" /><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+                <line x1="4" y1="18" x2="20" y2="18" /><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
+              </svg>
+              Filters
+              {activeFilterCount > 0 && <span className="dr-mobile-filter-count">{activeFilterCount}</span>}
+              <span className="dr-mobile-filter-caret">{mobileFiltersOpen ? "▲" : "▼"}</span>
+            </button>
+            {mobileFiltersOpen && <div className="dr-mobile-backdrop" onClick={() => setMobileFiltersOpen(false)} />}
+
+            <div className={`dr-controls-wrap ${mobileFiltersOpen ? "dr-controls-wrap-open" : ""}`}>
+              <div className="dr-mobile-panel-header">
+                <span>Filters</span>
+                <button type="button" className="dr-mobile-panel-done" onClick={() => setMobileFiltersOpen(false)}>
+                  Done
+                </button>
+              </div>
+              <ControlsBar
+                teams={teams}
+                rankRange={rankRange}
+                setRankRange={setRankRange}
+                selectedPositions={selectedPositions}
+                setSelectedPositions={setSelectedPositions}
+                classFilter={classFilter}
+                setClassFilter={setClassFilter}
+                tierFilter={tierFilter}
+                setTierFilter={setTierFilter}
+                expertSortKey={expertSortKey}
+                setExpertSortKey={syncExpertSortKeyFromControls}
+                teamFilter={teamFilter}
+                setTeamFilter={setTeamFilter}
+                search={search}
+                setSearch={setSearch}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                versions={VERSIONS}
+                selectedVersionId={selectedVersionId}
+                setSelectedVersionId={setSelectedVersionId}
+              />
+            </div>
           </div>
         </div>
       </div>

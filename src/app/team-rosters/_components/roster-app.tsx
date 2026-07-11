@@ -18,7 +18,6 @@ import {
   buildRankedProfile,
   caret,
   catValCur,
-  catValPrior,
   catZ,
   changeColor,
   contractFor,
@@ -29,12 +28,10 @@ import {
   money,
   ordinal,
   posLabel,
-  projSeasonVal,
   shortName,
   singularTier,
   starTier,
   tagBadge,
-  zFor,
 } from "./roster-helpers";
 import { PlayerHeadshot } from "./roster-headshot";
 import { TrendHero, type TrendMetric } from "./player-trend-chart";
@@ -344,7 +341,7 @@ export function RosterApp({
       tagShort: p.tag === "rookie" ? "R" : p.tag === "soph" ? "S" : "",
       salary: money(p.salary),
       keyVal: sortProjLocked ? "—" : sort === "dynasty" ? "#" + p.consensus : sort === "salary" ? money(p.salary) : fvRankStr,
-      keyLabel: sortProjLocked ? "" : sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr + " rank",
+      keyLabel: sortProjLocked ? "" : sort === "dynasty" ? "Dynasty rank" : sort === "salary" ? "Cap hit" : fvHdr,
       dynRank: "#" + p.consensus,
       change: p.change,
       caret: caret(p.dir),
@@ -365,7 +362,6 @@ export function RosterApp({
   const isProj = modeNow === "proj";
   const isPrior = modeNow === "prior";
   const projLocked = isProj && !PRO_UNLOCKED;
-  const gamesLine = isProj ? "Model projection · per game 2026–27" : isPrior ? "Per game · 2024–25" : "Per game · 2025–26";
   // Prior is real 2024-25 season_player_stats/season_player_values (see
   // roster-live-data.ts) — priorGp === 0 means the player has no prior-season
   // row (rookies, or a player who missed that season entirely). Projection is
@@ -376,45 +372,7 @@ export function RosterApp({
   // produces a nonsensical double-digit z. Current mode has the same failure
   // mode when there's no real season_player_values row to fall back on either
   // (catVals empty). Guard all three instead of rendering garbage.
-  const hasCurrentSample = sp.gp > 0;
-  const noProfileData =
-    (isPrior && sp.priorGp === 0) ||
-    (isProj && !hasCurrentSample) ||
-    (modeNow === "cur" && sp.catVals.length === 0 && !hasCurrentSample);
   const noDataReason = isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet";
-  // Current mode only: show movement vs. the real 2024-25 line, so a look at
-  // "now" also reads as "up/down from last year" without switching tabs.
-  const showPriorCompare = modeNow === "cur" && sp.priorGp > 0;
-  const valForStat = (c: (typeof CATS)[number]) => (isProj ? projSeasonVal(sp, c) : isPrior ? (sp.priorPg?.[c.key] ?? 0) : sp.pg[c.key]);
-  const fmtStat = (c: (typeof CATS)[number]) => {
-    const v = valForStat(c);
-    if (c.key === "fgp" || c.key === "ftp") return (v * 100).toFixed(1) + "%";
-    return v.toFixed(1);
-  };
-  const zOf = (c: (typeof CATS)[number]) => (modeNow === "cur" ? catValCur(sp, c) : isPrior ? catValPrior(sp, c) : zFor(c, valForStat(c)));
-  const zBg = (c: (typeof CATS)[number]) => {
-    const z = zOf(c);
-    if (z >= 1.25) return "rgba(22,160,106,0.18)";
-    if (z >= 0.5) return "rgba(22,160,106,0.09)";
-    if (z <= -1.25) return "rgba(219,43,57,0.16)";
-    if (z <= -0.5) return "rgba(219,43,57,0.08)";
-    return "transparent";
-  };
-  // vs. 2024-25 delta for the season-stats grid, e.g. "▲2.6%" / "▼0.5". Sign
-  // of "improved" flips for TO (lower is better) so the color reads correctly.
-  const deltaFor = (c: (typeof CATS)[number]): { text: string; color: string } | null => {
-    if (!showPriorCompare) return null;
-    const isPct = c.key === "fgp" || c.key === "ftp";
-    const diff = valForStat(c) - (sp.priorPg![c.key] ?? 0);
-    const shown = isPct ? diff * 100 : diff;
-    if (Math.abs(shown) < 0.05) return null; // negligible float noise, not a real move
-    const improved = c.invert ? diff < 0 : diff > 0;
-    return {
-      text: `${diff >= 0 ? "▲" : "▼"}${Math.abs(shown).toFixed(1)}${isPct ? "%" : ""}`,
-      color: improved ? "var(--rt-up)" : "var(--rt-down)",
-    };
-  };
-  const statRows = CATS.map((c) => ({ label: c.label, value: fmtStat(c), bg: projLocked ? "transparent" : zBg(c), delta: deltaFor(c) }));
 
   // 9-cat profile math (row order anchored to Current mode, z/color/bar per
   // row) lives in buildRankedProfile() so the single-player panel here and
@@ -422,6 +380,7 @@ export function RosterApp({
   const profile = buildRankedProfile(sp, modeNow);
 
   const contract = contractFor(sp);
+  const isNewRookieScale = contract.status === "Rookie Scale" && sp.tag === "rookie";
   const dTag = sp.tag ? tagBadge(sp.tag, true) : null;
 
   // Tier is shown persistently in the hero header regardless of sort — this is
@@ -858,7 +817,7 @@ export function RosterApp({
                         <span style={{ fontSize: 10 }}>{c.fvToneArrow}</span>
                         {c.fvVerdict}
                       </span>
-                      <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 5 }}>{fvHdr} verdict</div>
+                      <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 5 }}>Verdict</div>
                     </div>
                   </div>
                 </div>
@@ -1173,7 +1132,19 @@ export function RosterApp({
         </div>
 
         <div style={{ padding: "18px 18px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Shared Current/Prior/Projection toggle — drives both the 9-cat profile and season stats below */}
+          {/* CTAs — sits between the trend chart above and the 9-cat profile below */}
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              type="button"
+              className="rt-hover-primary"
+              onClick={() => openCompare(sp)}
+              style={{ flex: 1, height: 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
+            >
+              Compare
+            </button>
+          </div>
+
+          {/* Shared Current/Prior/Projection toggle — drives the 9-cat profile below */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-muted)" }}>{SEASON_LABEL[modeNow]}</span>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
@@ -1248,47 +1219,14 @@ export function RosterApp({
                         />
                       )}
                     </span>
-                    <span style={{ width: 46, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
-                      {projLocked ? "—" : (row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
+                    <span style={{ width: 52, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
+                      {projLocked ? "—" : row.stat}
                     </span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Season stats — driven by the shared toggle above */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Season stats</div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>{gamesLine}</div>
-            {noProfileData ? (
-              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                {noDataReason} — {isProj ? "2026–27 projection" : isPrior ? "2024–25 stat line" : "stat line"} unavailable.
-              </div>
-            ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "18px 8px", marginTop: 18 }}>
-                {statRows.map((row) => (
-                  <div key={row.label}>
-                    <div style={{ lineHeight: 1, display: "flex", alignItems: "baseline", gap: 5, flexWrap: "wrap" }}>
-                      <span style={{ display: "inline-block", padding: "5px 9px", marginLeft: -9, borderRadius: 8, background: row.bg, fontFamily: "var(--rt-font-mono)", fontSize: 20, fontWeight: 500, color: projLocked ? "var(--rt-muted-soft)" : "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-                        {projLocked ? "—" : row.value}
-                      </span>
-                      {row.delta && !projLocked && (
-                        <span
-                          title="vs. 2024–25"
-                          style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, fontWeight: 700, color: row.delta.color, fontVariantNumeric: "tabular-nums" }}
-                        >
-                          {row.delta.text}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>{row.label}</div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
 
           {/* Salary & contract */}
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
@@ -1302,8 +1240,8 @@ export function RosterApp({
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "var(--rt-muted)",
-                    border: "1px solid var(--rt-hairline)",
+                    color: isNewRookieScale ? "var(--dynasty-gold)" : "var(--rt-muted)",
+                    border: `1px solid ${isNewRookieScale ? "var(--dynasty-gold)" : "var(--rt-hairline)"}`,
                     borderRadius: 999,
                     padding: "3px 9px",
                   }}
@@ -1312,77 +1250,85 @@ export function RosterApp({
                 </span>
               )}
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16 }}>
-              <div>
-                <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
-                  {contract.n} yr{contract.n > 1 ? "s" : ""} · {money(contract.total)}
+            {contract.rows.length === 0 ? (
+              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                No salary data yet — contract terms haven&apos;t been reported.
+              </div>
+            ) : (
+              <>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
+                      {contract.n} yr{contract.n > 1 ? "s" : ""} · {money(contract.total)}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg salary</div>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>{money(contract.avg)}</div>
+                  </div>
                 </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg salary</div>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>{money(contract.avg)}</div>
-              </div>
-            </div>
-            <div style={{ marginTop: 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "11px 0 9px" }}>
-                <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Year</span>
-                <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Team</span>
-                <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Age</span>
-                <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Salary</span>
-              </div>
-              {contract.rows.map((yr, i) => (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
-                  <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{yr.year}</span>
-                  <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-body)", fontVariantNumeric: "tabular-nums" }}>{yr.team}</span>
-                  <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-muted)", fontVariantNumeric: "tabular-nums", textAlign: "center" }}>{yr.age}</span>
-                  <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
-                    {yr.salary}
-                    {yr.estimated && (
-                      <sup title="Even-split estimate" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>est</sup>
-                    )}
-                    {yr.qo && (
-                      <sup title="Qualifying offer — a real cap hold, not a negotiated salary" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>QO</sup>
-                    )}
-                  </span>
+                <div style={{ marginTop: 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "11px 0 9px" }}>
+                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Year</span>
+                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Team</span>
+                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Age</span>
+                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Salary</span>
+                  </div>
+                  {contract.rows.map((yr, i) => (
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
+                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{yr.year}</span>
+                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-body)", fontVariantNumeric: "tabular-nums" }}>{yr.team}</span>
+                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-muted)", fontVariantNumeric: "tabular-nums", textAlign: "center" }}>{yr.age}</span>
+                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
+                        {yr.salary}
+                        {yr.estimated && (
+                          <sup title="Even-split estimate" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>est</sup>
+                        )}
+                        {yr.qo && (
+                          <sup title="Qualifying offer — a real cap hold, not a negotiated salary" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>QO</sup>
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
-          {/* Rookie draft */}
+          {/* Rookie draft — 2026 draft class only (sp.draft is null for everyone else) */}
           {sp.draft && (
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Rookie draft</span>
-                <span style={{ display: "inline-flex", alignItems: "center", padding: "5px 12px", borderRadius: 999, background: "var(--rt-surface-strong)", color: "var(--rt-primary)", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                  Tier {sp.draft.tier}
-                </span>
+                {sp.draft.boardTier != null && (
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "5px 12px", borderRadius: 999, background: sp.draft.boardTierColor ?? "var(--rt-surface-strong)", color: "#0b0e14", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    Tier {sp.draft.boardTier}
+                  </span>
+                )}
               </div>
-              <div style={{ display: "flex", gap: 28, marginTop: 16 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "16px 28px", marginTop: 16 }}>
                 <div>
-                  <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 24, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>#{sp.draft.pick}</div>
+                  <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: sp.draft.pick != null ? 24 : 15, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>
+                    {sp.draft.pick != null ? `#${sp.draft.pick}` : "Un-drafted"}
+                  </div>
                   <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 4 }}>{sp.draft.year} draft pick</div>
                 </div>
-                <div>
-                  <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 24, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>#{sp.consensus}</div>
-                  <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 4 }}>rookie board rank</div>
-                </div>
+                {sp.draft.boardRank != null && (
+                  <div>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 24, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>#{sp.draft.boardRank}</div>
+                    <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 4 }}>rookie board rank</div>
+                  </div>
+                )}
+                {sp.draft.boardTierLabel && (
+                  <div>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 15, fontWeight: 600, color: sp.draft.boardTierColor ?? "var(--rt-ink)" }}>{sp.draft.boardTierLabel}</div>
+                    <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 4 }}>rookie board tier</div>
+                  </div>
+                )}
               </div>
             </div>
           )}
-
-          {/* CTAs */}
-          <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
-            <button
-              type="button"
-              className="rt-hover-primary"
-              onClick={() => openCompare(sp)}
-              style={{ flex: 1, height: 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
-            >
-              Compare
-            </button>
-          </div>
         </div>
       </aside>
       )}

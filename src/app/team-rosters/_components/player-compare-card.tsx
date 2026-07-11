@@ -132,8 +132,8 @@ export function PlayerCompareCard({
                     }}
                   />
                 </span>
-                <span style={{ width: 38, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: row.color }}>
-                  {(row.z >= 0 ? "+" : "−") + Math.abs(row.z).toFixed(2)}
+                <span style={{ width: 44, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: row.color }}>
+                  {row.stat}
                 </span>
               </div>
             ))}

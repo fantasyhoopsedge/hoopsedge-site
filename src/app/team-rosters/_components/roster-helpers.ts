@@ -243,7 +243,13 @@ export function contractFor(p: Player) {
   return { n, total, avg: n ? total / n : 0, rows, status: p.contractStatus };
 }
 
-export type RankedProfileRow = { key: string; label: string; z: number; color: string; bar: { left: string; width: string } };
+/** Formats a category's raw per-game/percentage value for display, e.g. 17.5 or 56.5%. */
+export function fmtCatStat(c: Cat, v: number): string {
+  if (c.key === "fgp" || c.key === "ftp") return (v * 100).toFixed(1) + "%";
+  return v.toFixed(1);
+}
+
+export type RankedProfileRow = { key: string; label: string; z: number; stat: string; color: string; bar: { left: string; width: string } };
 export type RankedProfile = { noData: true; reason: string } | { noData: false; rows: RankedProfileRow[] };
 
 /** A player's categories ranked highest z-score (current mode) to lowest —
@@ -287,7 +293,7 @@ export function buildRankedProfile(p: Player, mode: SeasonMode, catOrder: Cat[] 
   };
   const rows = catOrder.map((c) => {
     const z = zOf(c);
-    return { key: c.key, label: c.label, z, color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
+    return { key: c.key, label: c.label, z, stat: fmtCatStat(c, valForStat(c)), color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
   });
   return { noData: false, rows };
 }

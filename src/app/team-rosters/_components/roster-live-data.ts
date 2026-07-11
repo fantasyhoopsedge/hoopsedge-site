@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
-import rookieBoard from "@/data/rookie-board.json";
+import { ROOKIE_BOARD, tierInfo } from "@/lib/rookie-board";
 import type { Player } from "./roster-data";
 import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "./trend-insight";
 
@@ -69,14 +69,27 @@ for (const [alias, canonical] of Object.entries(DYN_NORM_ALIASES)) {
 // starTier() reproduces the star from these z's: 5★→1.3, 4★→0.65, 3★→0, 2★→-0.65, 1★→-1.3.
 const STAR_Z: Record<number, number> = { 5: 1.3, 4: 0.65, 3: 0, 2: -0.65, 1: -1.3 };
 const parseStar = (s: unknown): number => STAR_Z[Number(String(s ?? "").match(/\d/)?.[0]) as 1 | 2 | 3 | 4 | 5] ?? 0;
-type RookieProj = { catVals: number[]; pos: string };
+type RookieProj = { catVals: number[]; pos: string; boardRank: number; boardTier: number; boardTierLabel: string; boardTierColor: string };
+/** "THE_UNTOUCHABLES_TIER" -> "The Untouchables". */
+function humanizeTierLabel(raw: string): string {
+  return raw
+    .replace(/_TIER$/i, "")
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
+    .join(" ");
+}
 const ROOKIE_BY_NORM = new Map<string, RookieProj>(
-  ((rookieBoard as { players?: Array<Record<string, unknown>> }).players ?? []).map((r) => [
-    normalizePlayerName(String(r.name)),
+  ROOKIE_BOARD.players.map((r) => [
+    normalizePlayerName(r.name),
     {
       // CATS order: pts, reb, ast, stl, blk, 3pm, fg%, ft%, to
       catVals: [r.pts, r.reb, r.ast, r.stl, r.blk, r.tpm, r.fg, r.ft, r.to].map(parseStar),
-      pos: String(r.pos ?? ""),
+      pos: r.pos ?? "",
+      boardRank: r.rank,
+      boardTier: r.tier,
+      boardTierLabel: humanizeTierLabel(tierInfo(r.tier, ROOKIE_BOARD.tiers).label),
+      boardTierColor: tierInfo(r.tier, ROOKIE_BOARD.tiers).color,
     },
   ]),
 );
@@ -348,10 +361,16 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     const consensus = dyn?.consensusRank ?? 999;
     const tag: Player["tag"] = r.is_incoming_rookie ? "rookie" : r.is_sophomore ? "soph" : null;
     const dir: Player["dir"] = dyn?.trend === "up" ? "up" : dyn?.trend === "down" ? "down" : "flat";
-    const draft =
-      (r.is_incoming_rookie || r.is_sophomore) && r.draft_year && r.draft_pick
-        ? { year: r.draft_year, pick: r.draft_pick, tier: r.draft_pick <= 14 ? 1 : r.draft_pick <= 30 ? 2 : 3 }
-        : null;
+    const draft: Player["draft"] = r.is_incoming_rookie
+      ? {
+          year: r.draft_year ?? 2026,
+          pick: r.draft_pick ?? null,
+          boardRank: rookie?.boardRank ?? null,
+          boardTier: rookie?.boardTier ?? null,
+          boardTierLabel: rookie?.boardTierLabel ?? null,
+          boardTierColor: rookie?.boardTierColor ?? null,
+        }
+      : null;
     const { years: salaryYears, estimated } = resolveSalaryYears(r);
 
     // Real 2024-25 line for the Prior tab. null/empty when the player has no

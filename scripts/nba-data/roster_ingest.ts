@@ -39,6 +39,15 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const SALARY_CSV = resolve(REPO_ROOT, "data/nba-salaries/current.csv");
 const UPSERT_CHUNK = 500;
 
+// Two-way salaries are a fixed CBA rate, not individually negotiated — every
+// Two-Way row in current.csv that DOES have a 2026-27 figure shows the same
+// $678,882. When a Two-Way player is missing from current.csv entirely (a
+// mid-summer signing HoopsHype hasn't caught up on yet) and the roster sheet
+// has no figure either, this is a known fact, not an estimate — so it's
+// filled in directly rather than left blank (found via audit: ~11 real
+// Two-Way players showing $0.0M purely because of this data-source gap).
+const TWO_WAY_YR1_2026_27 = 678_882;
+
 const arg = (flag: string): string | undefined => {
   const i = process.argv.indexOf(flag);
   return i >= 0 ? process.argv[i + 1] : undefined;
@@ -370,7 +379,8 @@ async function main() {
     // they're never mistaken for real cap figures.
     const realByYr: (number | null)[] = [rs?.y2 ?? null, rs?.y3 ?? null, rs?.y4 ?? null, rs?.y5 ?? null]; // yr1..yr4 = 26-27..29-30
     const csvY2 = realByYr[0]; // current.csv's 2026-27 figure (may be null even if the row exists)
-    const yr1 = csvY2 ?? rookiePrefill[0] ?? screenshot2627; // current.csv wins, then the rookie backsolve, then the sheet
+    const twoWayFallback = contractStatusEarly === "Two-Way" ? TWO_WAY_YR1_2026_27 : null;
+    const yr1 = csvY2 ?? rookiePrefill[0] ?? screenshot2627 ?? twoWayFallback; // current.csv wins, then the rookie backsolve, then the sheet, then the known two-way rate
     const yr: (number | null)[] = [
       yr1,
       realByYr[1] ?? rookiePrefill[1],
@@ -378,7 +388,8 @@ async function main() {
       realByYr[3] ?? rookiePrefill[3],
     ];
     const estimatedYears: string[] = [];
-    let salary_source: string | null = rs != null ? "current.csv" : screenshot2627 != null ? "sheet" : null;
+    let salary_source: string | null =
+      rs != null ? "current.csv" : screenshot2627 != null ? "sheet" : twoWayFallback != null ? "two_way_minimum" : null;
 
     // Flag whichever slot(s) the rookie backsolve actually supplied (it only
     // ever fills a slot the lines above left null, so this can't double-count
