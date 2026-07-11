@@ -7,7 +7,7 @@
  * network this script touches is Supabase.
  *
  * Expected (documented) header:
- *   player,team,salary_current,salary_y2,salary_y3,salary_y4,contract_note
+ *   player,team,salary_current,salary_y2,salary_y3,salary_y4,salary_y5,contract_note
  * but the column mapping is DETECTED, not assumed by position, so a rougher
  * HoopsHype paste (ranking column, extra columns, year-labelled salary
  * headers) is tolerated. If the player/salary columns can't be found with
@@ -78,6 +78,7 @@ type ContractRow = {
   salary_y2: number | null;
   salary_y3: number | null;
   salary_y4: number | null;
+  salary_y5: number | null;
   contract_note: string | null;
   free_agent_year: number;
   free_agent_status: string | null;
@@ -155,7 +156,7 @@ async function main() {
   const playerIdx = findCol(header, /\bplayer\b|\bname\b/i);
   const teamIdx = findCol(header, /\bteam\b/i);
   const noteIdx = findCol(header, /note|option|guarantee|status|type|comment/i);
-  const salaryIdxs = findSalaryCols(header).slice(0, 4); // current, y2, y3, y4
+  const salaryIdxs = findSalaryCols(header).slice(0, 5); // current, y2, y3, y4, y5
 
   // Confidence gate — STOP and show a sample if we can't map the key columns.
   if (playerIdx === -1 || salaryIdxs.length === 0) {
@@ -181,7 +182,7 @@ async function main() {
     const team = teamIdx >= 0 ? (row[teamIdx] ?? "").trim() || null : null;
     const sal = salaryIdxs.map((i) => parseMoney(row[i]));
     const note = noteIdx >= 0 ? (row[noteIdx] ?? "").trim() || null : null;
-    const d = derive(sal.slice(1), note); // future = y2..y4
+    const d = derive(sal.slice(1), note); // future = y2..y5
 
     contracts.push({
       player_id: matchPlayer(index, norm, team),
@@ -192,6 +193,7 @@ async function main() {
       salary_y2: sal[1] ?? null,
       salary_y3: sal[2] ?? null,
       salary_y4: sal[3] ?? null,
+      salary_y5: sal[4] ?? null,
       contract_note: note,
       free_agent_year: d.free_agent_year,
       free_agent_status: d.free_agent_status,

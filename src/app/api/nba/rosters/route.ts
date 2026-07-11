@@ -19,6 +19,7 @@ type ContractSummary = Pick<
   | "salary_y2"
   | "salary_y3"
   | "salary_y4"
+  | "salary_y5"
   | "contract_note"
   | "free_agent_year"
   | "free_agent_status"
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
   const { data: contracts, error: contractsError } = await supabase
     .from("nba_contracts")
     .select(
-      "player_id,salary_current,salary_y2,salary_y3,salary_y4,contract_note,free_agent_year,free_agent_status,is_two_way",
+      "player_id,salary_current,salary_y2,salary_y3,salary_y4,salary_y5,contract_note,free_agent_year,free_agent_status,is_two_way",
     )
     .not("player_id", "is", null);
   if (contractsError) {

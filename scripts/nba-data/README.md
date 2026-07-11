@@ -85,8 +85,13 @@ unmatched-rows report as a build artifact.
 `data/nba-salaries/current.csv`:
 
 ```
-player,team,salary_current,salary_y2,salary_y3,salary_y4,contract_note
+player,team,salary_current,salary_y2,salary_y3,salary_y4,salary_y5,contract_note
 ```
+
+Season mapping (authoritative — see `supabase/migrations/20260630000000_nba_roster.sql`,
+do not relabel): `salary_current` = 2025-26, `salary_y2` = 2026-27 (current /
+upcoming season), `salary_y3` = 2027-28, `salary_y4` = 2028-29, `salary_y5` =
+2029-30.
 
 - `salary_*` — dollars; `$` and commas are stripped; blank → null.
 - `contract_note` — free text (e.g. `Player Option`, `Team Option`,
