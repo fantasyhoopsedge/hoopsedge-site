@@ -37,10 +37,14 @@ export type Player = {
   /** Full contract length + total value (nba_roster.contract_years / contract_total). */
   contractYears: number | null;
   contractTotal: number | null;
+  /** Standard | Rookie Scale | Two-Way | Exhibit 10 | RFA | UFA | Draftee (nba_roster.contract_status). */
+  contractStatus: string | null;
   /** Real per-year cap hits, index 0 = 2026-27 (Year 1) → 2029-30. null = no contracted salary that year. */
   salaryYears: (number | null)[];
   /** Comma-separated seasons whose salary is an even-split estimate (e.g. "2027-28, 2028-29"). */
   estimatedYears: string | null;
+  /** Comma-separated seasons whose salary is a Qualifying Offer cap hold, not a negotiated figure (e.g. "2028-29"). */
+  qoYears: string | null;
   /** Dynasty consensus value (arbitrary points scale, higher is better). */
   dynasty: number;
   change: string;

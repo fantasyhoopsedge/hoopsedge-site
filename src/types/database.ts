@@ -466,6 +466,7 @@ export interface Database {
           salary_yr4: number | null;
           salary_estimated: boolean;
           salary_estimated_years: string | null;
+          salary_qo_years: string | null;
           salary_source: string | null;
           is_incoming_rookie: boolean;
           is_sophomore: boolean;

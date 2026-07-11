@@ -202,18 +202,23 @@ export function sparkSeries(p: Player) {
   };
 }
 
-export type ContractRow = { year: string; team: string; age: string; salary: string; estimated: boolean };
+export type ContractRow = { year: string; team: string; age: string; salary: string; estimated: boolean; qo: boolean };
 
 /**
  * Contract table built from real per-year cap hits (p.salaryYears from
  * nba_roster). Year 1 = 2026-27; only seasons with a contracted salary are
- * listed. Even-split estimated years are flagged. nba_roster tracks 4 years
+ * listed. Even-split estimated years are flagged, and Qualifying-Offer years
+ * (a real current.csv figure, but a formulaic RFA cap hold rather than a
+ * negotiated salary) are flagged separately. nba_roster tracks 4 years
  * (through 2029-30), so a longer deal shows its first four seasons.
  */
 export function contractFor(p: Player) {
   const firstStart = 2026; // 2026-27 season = Year 1
   const estSet = new Set(
     (p.estimatedYears ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+  );
+  const qoSet = new Set(
+    (p.qoYears ?? "").split(",").map((s) => s.trim()).filter(Boolean),
   );
   const rows: ContractRow[] = [];
   let rowTotal = 0;
@@ -228,13 +233,14 @@ export function contractFor(p: Player) {
       age: String(p.age + i),
       salary: money(sal),
       estimated: estSet.has(`${startYr}-${shortEnd}`), // estimatedYears uses "2027-28"
+      qo: qoSet.has(`${startYr}-${shortEnd}`),
     });
   });
   // Header shows the FULL contract from nba_roster (length + total may run beyond
   // the 4-year salary window the rows cover); fall back to the rows we have.
   const n = p.contractYears ?? rows.length;
   const total = p.contractTotal ?? rowTotal;
-  return { n, total, avg: n ? total / n : 0, rows };
+  return { n, total, avg: n ? total / n : 0, rows, status: p.contractStatus };
 }
 
 export type RankedProfileRow = { key: string; label: string; z: number; color: string; bar: { left: string; width: string } };

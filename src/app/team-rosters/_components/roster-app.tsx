@@ -1292,7 +1292,26 @@ export function RosterApp({
 
           {/* Salary & contract */}
           <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Salary &amp; contract</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Salary &amp; contract</span>
+              {contract.status && (
+                <span
+                  style={{
+                    fontFamily: "var(--rt-font-sans)",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: "var(--rt-muted)",
+                    border: "1px solid var(--rt-hairline)",
+                    borderRadius: 999,
+                    padding: "3px 9px",
+                  }}
+                >
+                  {contract.status}
+                </span>
+              )}
+            </div>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16 }}>
               <div>
                 <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
@@ -1321,6 +1340,9 @@ export function RosterApp({
                     {yr.salary}
                     {yr.estimated && (
                       <sup title="Even-split estimate" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>est</sup>
+                    )}
+                    {yr.qo && (
+                      <sup title="Qualifying offer — a real cap hold, not a negotiated salary" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>QO</sup>
                     )}
                   </span>
                 </div>

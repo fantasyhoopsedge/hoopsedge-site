@@ -178,7 +178,7 @@ type RosterRow = {
   contract_raw: string | null; contract_years: number | null; contract_total: number | null;
   contract_status: string; fa_year: number | null; fa_option_years: number;
   salary_yr1: number | null; salary_yr2: number | null; salary_yr3: number | null; salary_yr4: number | null;
-  salary_estimated: boolean; salary_estimated_years: string | null; salary_source: string | null;
+  salary_estimated: boolean; salary_estimated_years: string | null; salary_qo_years: string | null; salary_source: string | null;
   is_incoming_rookie: boolean; is_sophomore: boolean; new_to_team: boolean;
   source: string; updated_at: string;
 };
@@ -478,7 +478,12 @@ async function main() {
       contract_status: contractStatusEarly,
       fa_year: fa.year, fa_option_years: fa.options,
       salary_yr1: yr[0], salary_yr2: yr[1], salary_yr3: yr[2], salary_yr4: yr[3],
-      salary_estimated: usedEst, salary_estimated_years: estimatedYears.join(", ") || null, salary_source,
+      salary_estimated: usedEst, salary_estimated_years: estimatedYears.join(", ") || null,
+      salary_qo_years: [0, 1, 2, 3]
+        .filter((i) => yr[i] != null && qoByNorm.get(norm)?.has(yearLabel(season, i)))
+        .map((i) => yearLabel(season, i))
+        .join(", ") || null,
+      salary_source,
       is_incoming_rookie: draftYearNum === 2026 && yos.toUpperCase() === "R",
       is_sophomore: draftYearNum === 2025 && (yosNum === 1 || yos.toUpperCase() === "R"),
       new_to_team: priorTeam != null && NBA_FULL_NAMES.has(priorTeam) && priorTeam !== TEAM_FULL[team],
@@ -586,10 +591,10 @@ async function main() {
   }
   if (process.argv.includes("--audit-tsv")) {
     const estLabels = (r: RosterRow) => new Set((r.salary_estimated_years ?? "").split(", ").filter(Boolean));
+    const qoLabels = (r: RosterRow) => new Set((r.salary_qo_years ?? "").split(", ").filter(Boolean));
     const cell = (r: RosterRow, i: number, v: number | null) => {
       const label = yearLabel(season, i);
-      const isQo = qoByNorm.get(r.norm_name)?.has(label) ?? false;
-      const tag = isQo ? "QO" : estLabels(r).has(label) ? "EST" : v != null ? "real" : "";
+      const tag = qoLabels(r).has(label) ? "QO" : estLabels(r).has(label) ? "EST" : v != null ? "real" : "";
       return `${v ?? ""}\t${tag}`;
     };
     console.log("\n--- AUDIT TSV ---");
