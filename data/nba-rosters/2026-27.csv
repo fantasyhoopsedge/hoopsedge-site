@@ -129,7 +129,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,DAL,Daniel Gafford,21,C,6'10,265,10/01/98,27.76,7,2019-38,USA,AR - El Dorado,Arkansas,Dallas Mavericks,3 yr / $54.4M,2029,17263584
 2026-27,DAL,Kyrie Irving,11,G,6'2,195,03/23/92,34.29,14,2011-01,AUS,Australia - Melbourne,Duke,Dallas Mavericks,3 yr / $118M,2027 +1,39491282
 2026-27,DAL,Vsevolod Ishchenko,13,F,6'6,190,02/10/04,21.39,R,2026-56,RUS,Russia - Rostov-on-Don,Lokomotiv Kuban (Russia),Lokomotiv Kuban (Russia),2nd Rd Pick,,
-2026-27,DAL,AJ Johnson,8,G,6'6,160,12/01/04,21.59,2,2024-23,USA,CA - Fresno,Illawarra (Australia),Dallas Mavericks,4 yr / $14.6M,2027 +1,3237120
+2026-27,MEM,AJ Johnson,8,G,6'6,160,12/01/04,21.59,2,2024-23,USA,CA - Fresno,Illawarra (Australia),Memphis Grizzlies,4 yr / $14.6M,2027 +1,3237120
 2026-27,DAL,Morez Johnson Jr.,14,F,6'9,250,01/25/06,20.44,R,2026-09,USA,IL - Riverdale,Michigan,Michigan,4 yr / $30.8M,2028 +2,6756480
 2026-27,DAL,Tobi Lawal,33,F,6'7,215,05/01/03,23.18,R,2026-48,ENG,England - London,Virginia Tech,Virginia Tech,,,
 2026-27,DAL,Dereck Lively,2,C,7'1,230,02/12/04,22.39,3,2023-12,USA,PA - Philadelphia,Duke,Dallas Mavericks,4 yr / $22.3M,2027,7239131
@@ -197,7 +197,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,GSW,Moses Moody,4,G,6'5,210,05/31/02,24.10,5,2021-14,USA,AR - Little Rock,Arkansas,Golden State Warriors,3 yr / $37.5M,2028,12500000
 2026-27,GSW,Brandin Podziemski,2,G,6'4,205,02/25/03,23.36,3,2023-19,USA,WI - Greenfield,Santa Clara,Golden State Warriors,4 yr / $16.2M,2027,5679459
 2026-27,GSW,Kristaps Porzingis,7,C,7'2,240,08/02/95,30.94,10,2015-04,LAT,Latvia - Liepaja,Sevilla (Spain),Golden State Warriors,2 yr / $40M,2027 +1,20000000
-2026-27,GSW,Quinten Post,21,F,7'0,240,03/21/00,26.29,2,2024-52,NED,Netherlands - Amsterdam,Boston College,Golden State Warriors,RFA,,
+2026-27,MEM,Quinten Post,21,F,7'0,240,03/21/00,26.29,2,2024-52,NED,Netherlands - Amsterdam,Boston College,Memphis Grizzlies,3 yr / $30M,,9500000
 2026-27,GSW,Will Richard,3,G,6'3,205,12/24/02,23.53,1,2025-56,USA,GA - Fairburn,Florida,Golden State Warriors,4 yr / $8.7M,2028 +1,2150917
 2026-27,GSW,Gui Santos,15,F,6'7,185,06/22/02,24.04,3,2022-55,BRA,Brazil - Brasilia,Minas (Brazil),Golden State Warriors,3 yr / $15M,2028 +1,4629630
 2026-27,GSW,Nate Williams,19,F,6'5,205,02/12/99,27.39,4,2022-ND,USA,NY - Rochester,Buffalo,Golden State Warriors,RFA,,
@@ -282,7 +282,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,LAL,Adou Thiero,1,F,6'7,220,05/08/04,22.16,1,2025-36,USA,UT - Salt Lake City,Arkansas,Los Angeles Lakers,3 yr / $5.9M,2027 +2,2150917
 2026-27,LAL,Drew Timme,17,F,6'9,235,09/09/00,25.82,2,2023-ND,USA,TX - Richardson,Gonzaga,Los Angeles Lakers,RFA,,
 2026-27,LAL,Jarred Vanderbilt,2,F,6'8,215,04/03/99,27.26,8,2018-41,USA,TX - Houston,Kentucky,Los Angeles Lakers,4 yr / $48M,2027 +1,12428571
-2026-27,MEM,Santi Aldama,7,F,7'0,215,01/10/01,25.48,5,2021-30,ESP,Spain - Las Palmas,Loyola (MD),Memphis Grizzlies,3 yr / $52.5M,2027 +1,17007043
+2026-27,DAL,Santi Aldama,7,F,7'0,215,01/10/01,25.48,5,2021-30,ESP,Spain - Las Palmas,Loyola (MD),Dallas Mavericks,3 yr / $52.5M,2027 +1,17007043
 2026-27,MEM,Cameron Boozer,27,F,6'8,255,07/18/07,18.96,R,2026-03,USA,UT - Salt Lake City,Duke,Duke,4 yr / $53.8M,2028 +2,11852520
 2026-27,MEM,Kentavious Caldwell-Pope,3,G,6'5,205,02/18/93,33.38,13,2013-08,USA,GA - Thomaston,Georgia,Memphis Grizzlies,3 yr / $66M,2027,21621500
 2026-27,MEM,Walter Clayton Jr.,4,G,6'4,195,03/06/03,23.33,1,2025-18,USA,FL - Sebring,Florida,Memphis Grizzlies,4 yr / $19.3M,2027 +2,4190520

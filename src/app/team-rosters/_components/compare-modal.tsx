@@ -1,15 +1,22 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { TEAMS, type Player, type SeasonMode } from "./roster-data";
+import { PRO_UNLOCKED, TEAMS, type Player, type SeasonMode } from "./roster-data";
 import { PlayerCompareCard } from "./player-compare-card";
 import { catOrderFor } from "./roster-helpers";
+import type { TrendMetric } from "./trend-insight";
 
 const MAX_COMPARE = 4;
 const MODE_DEFS: { id: SeasonMode; label: string }[] = [
+  { id: "recent", label: "Recent" },
   { id: "cur", label: "Current" },
   { id: "prior", label: "Prior" },
   { id: "proj", label: "Projection" },
+];
+const METRIC_DEFS: { id: TrendMetric; label: string }[] = [
+  { id: "minus1V", label: "Minus1V" },
+  { id: "nineCatV", label: "9CatV" },
+  { id: "eightCatV", label: "8CatV" },
 ];
 
 /** One empty grid slot — either a dashed "+ Add player" tile, or (once
@@ -177,6 +184,7 @@ export function CompareModal({
   isMobile: boolean;
 }) {
   const [mode, setMode] = useState<SeasonMode>("cur");
+  const [metric, setMetric] = useState<TrendMetric>("minus1V");
   const excludeIds = new Set(players.map((p) => p.id));
   const emptySlots = Math.max(0, MAX_COMPARE - players.length);
   // Anchor every card's 9-category row order to the first player added, so
@@ -204,7 +212,29 @@ export function CompareModal({
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ fontSize: 18, fontWeight: 600, color: "var(--rt-ink)" }}>Compare players</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              {METRIC_DEFS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMetric(m.id)}
+                  style={{
+                    padding: "6px 12px",
+                    border: "none",
+                    cursor: "pointer",
+                    borderRadius: 999,
+                    fontFamily: "var(--rt-font-sans)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background: metric === m.id ? "var(--rt-primary)" : "transparent",
+                    color: metric === m.id ? "var(--rt-on-primary)" : "var(--rt-body)",
+                  }}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
               {MODE_DEFS.map((m) => (
                 <button
@@ -212,6 +242,9 @@ export function CompareModal({
                   type="button"
                   onClick={() => setMode(m.id)}
                   style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
                     padding: "6px 12px",
                     border: "none",
                     cursor: "pointer",
@@ -223,6 +256,11 @@ export function CompareModal({
                     color: mode === m.id ? "var(--rt-canvas)" : "var(--rt-body)",
                   }}
                 >
+                  {m.id === "proj" && !PRO_UNLOCKED && (
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  )}
                   {m.label}
                 </button>
               ))}
@@ -242,7 +280,7 @@ export function CompareModal({
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(220px, 1fr))", gap: 14, marginTop: 18, overflowX: isMobile ? "visible" : "auto" }}>
           {players.map((p) => (
-            <PlayerCompareCard key={p.id} player={p} mode={mode} catOrder={anchorOrder} onRemove={() => onRemove(p.id)} />
+            <PlayerCompareCard key={p.id} player={p} mode={mode} metric={metric} catOrder={anchorOrder} onRemove={() => onRemove(p.id)} />
           ))}
           {Array.from({ length: emptySlots }).map((_, i) => (
             // Keyed off players.length + i (not just i) so every slot remounts

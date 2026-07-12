@@ -31,6 +31,8 @@ export type Player = {
   age: number;
   gp: number;
   mpg: number;
+  /** 2024-25 minutes/game. 0 = no prior-season row (rookies, etc). Pairs with priorPg/priorGp. */
+  priorMpg: number;
   tag: PlayerTag;
   salary: number;
   thru: string;
@@ -87,6 +89,17 @@ export type Player = {
   rankNineCat: number | null;
   rankMinus1: number | null;
   rankEightCat: number | null;
+  /** Same as rankNineCat/rankMinus1/rankEightCat but for the 2024-25 (Prior) season pool. */
+  priorRankNineCat: number | null;
+  priorRankMinus1: number | null;
+  priorRankEightCat: number | null;
+  /** Same again for the 2023-24 season (the anchor the Prior-mode arrow compares Prior against). */
+  priorPriorRankNineCat: number | null;
+  priorPriorRankMinus1: number | null;
+  priorPriorRankEightCat: number | null;
+  /** 2023-24 games played + minutes/game, 0 = no row that season. Gates the Prior-mode arrow. */
+  priorPriorGp: number;
+  priorPriorMpg: number;
   /**
    * Blended consensus-vs-real-value 8-tag trend read per metric (see
    * trend-insight.ts), precomputed server-side from the nba_player_trends table.
@@ -255,6 +268,12 @@ export const DYNASTY_TIER_META: Record<number, { name: string; color: string }> 
   8: { name: "Lottery Tickets", color: "#64748b" },
 };
 
+// Edge Pro (season comparison / projections) hasn't shipped yet — locked for
+// everyone. Shared by roster-app.tsx (single-player panel) and the compare
+// tool (compare-modal.tsx, player-compare-card.tsx) so Projection is gated
+// identically everywhere instead of drifting into two different flags.
+export const PRO_UNLOCKED = false;
+
 export type SortKey = "dynasty" | "minus1" | "ninecat" | "eightcat" | "salary" | "proj";
 export type FvMetric = "minus1" | "ninecat" | "eightcat";
-export type SeasonMode = "cur" | "prior" | "proj";
+export type SeasonMode = "cur" | "prior" | "proj" | "recent";

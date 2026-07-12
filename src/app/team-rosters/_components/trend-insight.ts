@@ -37,6 +37,23 @@ export type SeasonHistoryEntry = {
   minus1V: number;
   eightCatV: number;
 };
+/** Raw per-game line for a window, same shape as the UI's PerGameStats (roster-data.ts). */
+export type RecentPerGame = { pts: number; reb: number; ast: number; stl: number; blk: number; tpm: number; fgp: number; ftp: number; to: number };
+/** Trailing 20-week (10-block) window — see RecentOut in build-player-trends.ts. null
+ * when the window has 0 games. Powers the compare tool's "Recent" mode. */
+export type TrendRecent = {
+  gamesPlayed: number;
+  mpg: number;
+  pg: RecentPerGame;
+  /** CATS order (roster-data.ts): pts, reb, ast, stl, blk, tpm, fgp, ftp, to. */
+  catVals: number[];
+  nineCatV: number;
+  minus1V: number;
+  eightCatV: number;
+  rankNineCat: number | null;
+  rankMinus1: number | null;
+  rankEightCat: number | null;
+} | null;
 export type TrendPlayer = {
   playerId: string;
   player: string;
@@ -44,6 +61,7 @@ export type TrendPlayer = {
   mpg: number;
   blocks: BlockOut[];
   seasonHistory: SeasonHistoryEntry[];
+  recent: TrendRecent;
 };
 
 export type TrendMetric = "nineCatV" | "minus1V" | "eightCatV";

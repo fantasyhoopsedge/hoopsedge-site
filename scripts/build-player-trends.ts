@@ -39,7 +39,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, loadEnv } from "./nba-data/client";
-import { computeValuesAgainstPool, type PlayerStats } from "../src/lib/value/compute-values";
+import { computeValuesAgainstPool, type PlayerStats, type PlayerValues } from "../src/lib/value/compute-values";
 import { SEASON_DATASETS, type SeasonType, type SeasonDataset as Dataset } from "../src/lib/value/seasons";
 import { filterRealGames, type LogRow } from "./build-seasonal-values";
 
@@ -68,6 +68,12 @@ const BLOCK_COUNT = 12;
 const BLOCK_DAYS = 14;
 const LAST_BLOCK_START_DAY = (BLOCK_COUNT - 1) * BLOCK_DAYS; // 154
 const MIN_GAMES_FRESH = 2;
+// "Recent" mode (Recent/Current/Prior toggle): the most recent 8-week block =
+// 4 two-week blocks. Deliberately shorter than the 20-week (LOOKBACK_BLOCKS=10)
+// trend CHART window — Recent is a short-term form read whose rank/9-cat profile
+// is scored over just the trailing 4 blocks, then compared against the full-season
+// rank to derive an up/down signal (see resolveModeStat in roster-helpers.ts).
+const RECENT_WINDOW_BLOCKS = 4;
 
 type MetricKey = "nineCatV" | "minus1V" | "eightCatV";
 const METRICS: MetricKey[] = ["nineCatV", "minus1V", "eightCatV"];
@@ -97,6 +103,27 @@ type SeasonHistoryEntry = {
   minus1V: number;
   eightCatV: number;
 };
+/** Raw per-game line for a window, same shape as the UI's PerGameStats (roster-data.ts). */
+type RecentPerGame = { pts: number; reb: number; ast: number; stl: number; blk: number; tpm: number; fgp: number; ftp: number; to: number };
+/**
+ * Trailing RECENT_WINDOW_BLOCKS-block (20-week) window, scored against the same
+ * frozen pool as everything else here. null when the window has 0 games (e.g. the
+ * player was hurt/inactive the whole stretch). Powers the compare tool's "Recent"
+ * mode — both the 9-cat profile (catVals, CATS order: pts/reb/ast/stl/blk/3pm/fg%/
+ * ft%/to) and the dynamic games-played/rank chip above it.
+ */
+type RecentOut = {
+  gamesPlayed: number;
+  mpg: number;
+  pg: RecentPerGame;
+  catVals: number[];
+  nineCatV: number;
+  minus1V: number;
+  eightCatV: number;
+  rankNineCat: number | null;
+  rankMinus1: number | null;
+  rankEightCat: number | null;
+} | null;
 type PlayerTrendOut = {
   playerId: string;
   player: string;
@@ -108,6 +135,7 @@ type PlayerTrendOut = {
   blocks: BlockOut[];
   /** Up to 3 seasons (oldest first) — powers the age/aging-decline read in trend-insight.ts. */
   seasonHistory: SeasonHistoryEntry[];
+  recent: RecentOut;
 };
 
 type DisplayRow = {
@@ -448,6 +476,21 @@ function valueFromAgg(playerId: string, agg: BlockAgg, pool: PlayerStats[]): Rec
   return { nineCatV: pv.value, minus1V: pv.minus1v, eightCatV: (pv.value * 9 - pv.vTo) / 8 };
 }
 
+/** Same idea as valueFromAgg, but keeps the FULL per-category breakdown (all 9
+ * v-scores) plus the raw per-game line and mpg — what "Recent" needs that the
+ * narrower valueFromAgg (used by the last2/last4/last6/seasonAvg rolling windows,
+ * which only ever display the 3 aggregate scores) discards. */
+function fullValueFromAgg(playerId: string, agg: BlockAgg, pool: PlayerStats[]): { pv: PlayerValues; pg: RecentPerGame; gamesPlayed: number; mpg: number } | null {
+  if (agg.gp === 0) return null;
+  const stats = statsFromAgg(playerId, agg);
+  const [pv] = computeValuesAgainstPool([stats], pool);
+  const pg: RecentPerGame = {
+    pts: stats.pts, reb: stats.reb, ast: stats.ast, stl: stats.stl, blk: stats.blk,
+    tpm: stats.fg3m, fgp: stats.fgPct, ftp: stats.ftPct, to: stats.tov,
+  };
+  return { pv, pg, gamesPlayed: agg.gp, mpg: agg.sumMin / agg.gp };
+}
+
 function meanOf(xs: number[]): number {
   return xs.length === 0 ? 0 : xs.reduce((a, b) => a + b, 0) / xs.length;
 }
@@ -529,6 +572,27 @@ function assemblePlayer(
     };
   });
 
+  // "Recent" = a single trailing RECENT_WINDOW_BLOCKS-block window off the end of
+  // the season's blocks (not a rolling per-block series like last2/last4/last6) —
+  // computed once here, ranked cross-sectionally afterward by attachRecentRanks().
+  const recentAgg = sumBlockAggs(aggs, BLOCK_COUNT - 1, RECENT_WINDOW_BLOCKS);
+  const recentFull = fullValueFromAgg(row.player_id, recentAgg, pool);
+  const recent: RecentOut = recentFull
+    ? {
+        gamesPlayed: recentFull.gamesPlayed,
+        mpg: recentFull.mpg,
+        pg: recentFull.pg,
+        // CATS order (roster-data.ts): pts, reb, ast, stl, blk, tpm, fgp, ftp, to.
+        catVals: [recentFull.pv.vPts, recentFull.pv.vReb, recentFull.pv.vAst, recentFull.pv.vStl, recentFull.pv.vBlk, recentFull.pv.vFg3, recentFull.pv.vFg, recentFull.pv.vFt, recentFull.pv.vTo],
+        nineCatV: recentFull.pv.value,
+        minus1V: recentFull.pv.minus1v,
+        eightCatV: (recentFull.pv.value * 9 - recentFull.pv.vTo) / 8,
+        rankNineCat: null,
+        rankMinus1: null,
+        rankEightCat: null,
+      }
+    : null;
+
   return {
     playerId: row.player_id,
     player: row.name,
@@ -539,7 +603,24 @@ function assemblePlayer(
     mpg: row.mpg,
     blocks,
     seasonHistory,
+    recent,
   };
+}
+
+/**
+ * Cross-sectional rank (1 = best) of `recent.{nineCatV,minus1V,eightCatV}` among
+ * all display-eligible players with a non-null recent window — mirrors
+ * attachCumRanks() but runs once (recent is a single window, not a per-block
+ * series). Run AFTER every player has been assembled (needs the full field).
+ */
+function attachRecentRanks(players: PlayerTrendOut[]): void {
+  const withRecent = players.filter((p): p is PlayerTrendOut & { recent: NonNullable<RecentOut> } => p.recent != null);
+  const rankBy = (score: (p: NonNullable<RecentOut>) => number, assign: (p: NonNullable<RecentOut>, rank: number) => void) => {
+    [...withRecent].sort((a, b) => score(b.recent) - score(a.recent)).forEach((p, i) => assign(p.recent, i + 1));
+  };
+  rankBy((r) => r.nineCatV, (r, rank) => { r.rankNineCat = rank; });
+  rankBy((r) => r.minus1V, (r, rank) => { r.rankMinus1 = rank; });
+  rankBy((r) => r.eightCatV, (r, rank) => { r.rankEightCat = rank; });
 }
 
 /**
@@ -661,6 +742,7 @@ async function buildTrendsForDataset(ds: Dataset): Promise<void> {
     assemblePlayer(row, byPlayerBlock.get(row.player_id), pool, ranges, historyByPlayer.get(row.player_id) ?? []),
   );
   attachCumRanks(players);
+  attachRecentRanks(players);
 
   if (DRY_RUN) {
     const sample = players[0];

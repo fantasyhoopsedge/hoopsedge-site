@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "purpose": "Maps HoopsHype's internal numeric team ID (their salary page's hidden 'team' column) to our 3-letter team codes. HoopsHype's salary export uses a numeric ID, not an abbreviation - this table decodes it.",
+    "derivedFrom": "A manual HoopsHype salary pull (2026-07-12) cross-referenced against data/nba-rosters/2026-27.csv as ground truth: for every raw row whose player name matched exactly one roster row, the roster's team abbreviation was used to vote on that row's numeric code. 30/30 codes resolved with zero conflicting votes, so this table is currently high-confidence and stable.",
+    "caveats": [
+      "HoopsHype identifies a player by name only (no stable player ID), so their export can contain duplicate/stale rows for the same display name (e.g. a leftover pre-trade cap-hold row alongside the real current one). This table decodes the numeric code correctly, but you still need to pick the right row when a name appears more than once - don't just trust the last occurrence.",
+      "HoopsHype abbreviates some first names to a single initial (e.g. 'G. Antetokounmpo', 'S. Gilgeous-Alexander') even for stars, which breaks naive name matching against our full-name records - match by surname (+ first-initial to disambiguate) as a fallback, verified against the roster CSV.",
+      "Code 5312 decodes to CHA (Charlotte) - not a typo, just an oddly large ID in HoopsHype's own system.",
+      "Re-verify this table on the next HoopsHype refresh (majority-vote it again against the roster CSV) rather than assuming team IDs never change on their end."
+    ]
+  },
+  "codes": {
+    "1": "ATL",
+    "2": "BOS",
+    "3": "NOP",
+    "4": "CHI",
+    "5": "CLE",
+    "6": "DAL",
+    "7": "DEN",
+    "8": "DET",
+    "9": "GSW",
+    "10": "HOU",
+    "11": "IND",
+    "12": "LAC",
+    "13": "LAL",
+    "14": "MIA",
+    "15": "MIL",
+    "16": "MIN",
+    "17": "BKN",
+    "18": "NYK",
+    "19": "ORL",
+    "20": "PHI",
+    "21": "PHX",
+    "22": "POR",
+    "23": "SAC",
+    "24": "SAS",
+    "25": "OKC",
+    "26": "UTA",
+    "27": "WAS",
+    "28": "TOR",
+    "29": "MEM",
+    "5312": "CHA"
+  }
+}

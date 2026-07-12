@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   CATS,
   DYNASTY_TIER_META,
+  PRO_UNLOCKED,
   STATSET_COLORS,
   STATSET_DEFS,
   TEAM_LOGO,
@@ -16,7 +17,9 @@ import {
 } from "./roster-data";
 import {
   buildRankedProfile,
+  buildRecentProfile,
   caret,
+  catOrderFor,
   catValCur,
   catZ,
   changeColor,
@@ -26,15 +29,17 @@ import {
   heroName,
   initials,
   money,
+  mpgBarFor,
   ordinal,
   posLabel,
+  seasonTriosFor,
   shortName,
   singularTier,
   starTier,
   tagBadge,
 } from "./roster-helpers";
 import { PlayerHeadshot } from "./roster-headshot";
-import { TrendHero, type TrendMetric } from "./player-trend-chart";
+import { TrendHero, usePlayerTrend, type TrendMetric } from "./player-trend-chart";
 import { TAG_META, type TrendTag } from "./trend-insight";
 import { CompareModal } from "./compare-modal";
 
@@ -44,8 +49,6 @@ const TRENDS_SEASON = 2026;
 const TRENDS_SEASON_TYPE = "regular";
 const TREND_METRIC: Record<FvMetric, TrendMetric> = { minus1: "minus1V", ninecat: "nineCatV", eightcat: "eightCatV" };
 
-// Edge Pro (season comparison / projections) hasn't shipped yet — locked for everyone.
-const PRO_UNLOCKED = false;
 // Highlight the top-5 dynasty-consensus players on the roster with the accent plate.
 const ACCENT_RANK = 5;
 // Projected 2026-27 luxury tax line, for the payroll summary card.
@@ -56,7 +59,7 @@ const MAX_COMPARE = 4;
 const COMPARE_STORAGE_KEY = "fhe-compare-players";
 
 const FV_HEADER: Record<FvMetric, string> = { minus1: "Minus1V", ninecat: "9CatV", eightcat: "8CatV" };
-const SEASON_LABEL: Record<SeasonMode, string> = { cur: "2025–26", prior: "2024–25", proj: "2026–27 proj." };
+const SEASON_LABEL: Record<SeasonMode, string> = { cur: "2025–26", prior: "2024–25", proj: "2026–27 proj.", recent: "Last 8 weeks" };
 
 // The single Edge Pro CTA shown wherever locked projection data would otherwise
 // display — one shared paywall pitch, themed for the dark hero card or the
@@ -381,8 +384,10 @@ export function RosterApp({
 
   // ---- selected player detail ----
   const sp = players.find((p) => p.id === selectedId) ?? players[0];
+  const spTrend = usePlayerTrend(sp.id, TRENDS_SEASON, TRENDS_SEASON_TYPE);
   const isProj = modeNow === "proj";
   const isPrior = modeNow === "prior";
+  const isRecent = modeNow === "recent";
   const projLocked = isProj && !PRO_UNLOCKED;
   // Prior is real 2024-25 season_player_stats/season_player_values (see
   // roster-live-data.ts) — priorGp === 0 means the player has no prior-season
@@ -394,12 +399,19 @@ export function RosterApp({
   // produces a nonsensical double-digit z. Current mode has the same failure
   // mode when there's no real season_player_values row to fall back on either
   // (catVals empty). Guard all three instead of rendering garbage.
-  const noDataReason = isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet";
 
   // 9-cat profile math (row order anchored to Current mode, z/color/bar per
-  // row) lives in buildRankedProfile() so the single-player panel here and
-  // every card in the compare modal share one implementation.
-  const profile = buildRankedProfile(sp, modeNow);
+  // row) lives in buildRankedProfile()/buildRecentProfile() so the
+  // single-player panel here and every card in the compare modal share one
+  // implementation.
+  const profile = isRecent ? buildRecentProfile(spTrend, catOrderFor(sp), sp.gp, sp.mpg) : buildRankedProfile(sp, modeNow);
+  const spDisplayMpg = isRecent ? (spTrend.data?.recent?.mpg ?? null) : isPrior ? sp.priorMpg : sp.mpg;
+  // No MPG whenever the profile itself has nothing to show (Recent under its
+  // 10-GP gate, or literally zero games that season, e.g. Prior for a player who
+  // wasn't in the league yet) — a minutes number next to a "no data" message for
+  // the same window reads as contradictory.
+  const spHideMpg = projLocked || profile.noData;
+  const spMpgBar = spDisplayMpg != null && !spHideMpg ? mpgBarFor(spDisplayMpg) : null;
 
   const contract = contractFor(sp);
   const isNewRookieScale = contract.status === "Rookie Scale" && sp.tag === "rookie";
@@ -410,6 +422,9 @@ export function RosterApp({
   const heroTier = sp.tier != null ? DYNASTY_TIER_META[sp.tier] ?? null : null;
 
   const trendMetric = TREND_METRIC[activeMetric];
+  // Season anchors (rank + gp + mpg) for the active value metric — drive the
+  // per-mode GP/rank/arrow in TrendHero (shared with the compare cards).
+  const spTrios = seasonTriosFor(sp, trendMetric);
 
   const curTeam = TEAMS.find((t) => t.abbr === team) ?? TEAMS.find((t) => t.abbr === "OKC")!;
 
@@ -1225,13 +1240,15 @@ export function RosterApp({
               seasonType={TRENDS_SEASON_TYPE}
               metric={trendMetric}
               metricLabel={fvHdr}
-              rank={poolRankOf(sp, activeMetric)}
+              cur={spTrios.cur}
+              prior={spTrios.prior}
+              priorPrior={spTrios.priorPrior}
               consensusRank={sp.consensus}
               consensusDir={sp.dir}
               age={sp.age}
-              gamesPlayed={sp.gp}
-              mpg={sp.mpg}
               isRookie={sp.tag === "soph"}
+              mode={modeNow}
+              prefetched={spTrend}
             />
           )}
         </div>
@@ -1249,10 +1266,17 @@ export function RosterApp({
             </button>
           </div>
 
-          {/* Shared Current/Prior/Projection toggle — drives the 9-cat profile below */}
+          {/* Shared Recent/Current/Prior/Projection toggle — drives the 9-cat profile below */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-muted)" }}>{SEASON_LABEL[modeNow]}</span>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              <button
+                type="button"
+                onClick={() => setMode("recent")}
+                style={{ padding: "6px 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600, background: modeNow === "recent" ? "var(--rt-ink)" : "transparent", color: modeNow === "recent" ? "var(--rt-canvas)" : "var(--rt-body)" }}
+              >
+                Recent
+              </button>
               <button
                 type="button"
                 onClick={() => setMode("cur")}
@@ -1289,9 +1313,21 @@ export function RosterApp({
               {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
+            {spMpgBar && (
+              <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 0 0" }}>
+                <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>MPG</span>
+                <span style={{ position: "relative", flex: 1, height: 8, background: "var(--rt-hairline-soft)", borderRadius: 999, overflow: "hidden" }}>
+                  <span style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${spMpgBar.widthPct}%`, background: spMpgBar.color, borderRadius: 999 }} />
+                </span>
+                <span style={{ width: 52, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 700, color: spMpgBar.color }}>
+                  {spDisplayMpg!.toFixed(1)}
+                </span>
+              </div>
+            )}
+
             {profile.noData ? (
               <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                {noDataReason} — {isProj ? "2026–27 projection" : isPrior ? "2024–25 profile" : "profile"} unavailable.
+                {profile.reason}
               </div>
             ) : (
               <div style={{ marginTop: 14 }}>
@@ -1329,6 +1365,11 @@ export function RosterApp({
                     </span>
                   </div>
                 ))}
+              </div>
+            )}
+            {isRecent && (
+              <div style={{ marginTop: 12, fontSize: 11, color: "var(--rt-muted)", lineHeight: 1.4 }}>
+                Recent shows the trailing 8-week stat profile.
               </div>
             )}
           </div>

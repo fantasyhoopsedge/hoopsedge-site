@@ -3,11 +3,18 @@
 import { useState } from "react";
 import { PlayerCompareCard } from "./player-compare-card";
 import type { Player, SeasonMode } from "./roster-data";
+import type { TrendMetric } from "./trend-insight";
 
 const MODE_DEFS: { id: SeasonMode; label: string }[] = [
+  { id: "recent", label: "Recent" },
   { id: "cur", label: "Current" },
   { id: "prior", label: "Prior" },
   { id: "proj", label: "Projection" },
+];
+const METRIC_DEFS: { id: TrendMetric; label: string }[] = [
+  { id: "minus1V", label: "Minus1V" },
+  { id: "nineCatV", label: "9CatV" },
+  { id: "eightCatV", label: "8CatV" },
 ];
 
 /**
@@ -31,6 +38,7 @@ export function PlayerQuickViewModal({
   isMobile: boolean;
 }) {
   const [mode, setMode] = useState<SeasonMode>("cur");
+  const [metric, setMetric] = useState<TrendMetric>("minus1V");
 
   return (
     <div
@@ -50,7 +58,31 @@ export function PlayerQuickViewModal({
           padding: isMobile ? 16 : 24,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+            {METRIC_DEFS.map((m) => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMetric(m.id)}
+                disabled={!player}
+                style={{
+                  padding: "6px 10px",
+                  border: "none",
+                  cursor: player ? "pointer" : "default",
+                  opacity: player ? 1 : 0.5,
+                  borderRadius: 999,
+                  fontFamily: "var(--rt-font-sans)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: metric === m.id ? "var(--rt-primary)" : "transparent",
+                  color: metric === m.id ? "var(--rt-on-primary)" : "var(--rt-body)",
+                }}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
           <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
             {MODE_DEFS.map((m) => (
               <button
@@ -93,7 +125,7 @@ export function PlayerQuickViewModal({
           ) : error ? (
             <div style={{ padding: "48px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 13, lineHeight: 1.5 }}>{error}</div>
           ) : player ? (
-            <PlayerCompareCard player={player} mode={mode} onRemove={onClose} />
+            <PlayerCompareCard player={player} mode={mode} metric={metric} onRemove={onClose} />
           ) : null}
         </div>
       </div>

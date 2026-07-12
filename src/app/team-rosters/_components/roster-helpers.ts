@@ -6,6 +6,7 @@
  * real season_player_stats/season_player_values data — see roster-live-data.ts.
  */
 import { CATS, STATSET_COLORS, TAG_THEME, type Cat, type FvMetric, type PerGameStats, type Player, type PlayerTag, type SeasonMode } from "./roster-data";
+import type { TrendMetric, TrendPlayer, TrendRecent } from "./trend-insight";
 
 // Category key → its index in Player.catVals (which is in CATS order).
 const CAT_IDX = Object.fromEntries(CATS.map((c, i) => [c.key, i])) as Record<keyof PerGameStats, number>;
@@ -285,15 +286,157 @@ export function buildRankedProfile(p: Player, mode: SeasonMode, catOrder: Cat[] 
 
   const valForStat = (c: Cat) => (isProj ? projSeasonVal(p, c) : isPrior ? (p.priorPg?.[c.key] ?? 0) : p.pg[c.key]);
   const zOf = (c: Cat) => (mode === "cur" ? catValCur(p, c) : isPrior ? catValPrior(p, c) : zFor(c, valForStat(c)));
-  const mkBar = (z: number) => {
-    const zc = clamp(z, -3, 3);
-    const isPos = zc >= 0;
-    const mag = (Math.abs(zc) / 3) * 50;
-    return { left: (isPos ? 50 : 50 - mag) + "%", width: mag + "%" };
-  };
-  const rows = catOrder.map((c) => {
+  return { noData: false, rows: rowsFromCategoryValues(catOrder, zOf, valForStat) };
+}
+
+/** Diverging ±3 z-score bar, centered at 50% — shared by every 9-cat profile row regardless of season mode. */
+function mkBar(z: number): { left: string; width: string } {
+  const zc = clamp(z, -3, 3);
+  const isPos = zc >= 0;
+  const mag = (Math.abs(zc) / 3) * 50;
+  return { left: (isPos ? 50 : 50 - mag) + "%", width: mag + "%" };
+}
+
+/** The row-building math shared by buildRankedProfile (cur/prior/proj, sourced from
+ * the Player object) and buildRecentProfile (sourced from the trends payload). */
+function rowsFromCategoryValues(catOrder: Cat[], zOf: (c: Cat) => number, valForStat: (c: Cat) => number): RankedProfileRow[] {
+  return catOrder.map((c) => {
     const z = zOf(c);
     return { key: c.key, label: c.label, z, stat: fmtCatStat(c, valForStat(c)), color: STATSET_COLORS[starTier(z)], bar: mkBar(z) };
   });
-  return { noData: false, rows };
+}
+
+// Must match MIN_GAMES_DISPLAY / MIN_MPG_DISPLAY in scripts/build-player-trends.ts —
+// players under this bar are excluded from the trend dataset entirely (too few
+// games or too few minutes/game to score a stable per-block value against).
+const TREND_MIN_GAMES = 10;
+const TREND_MIN_MPG = 10;
+
+/** Distinguishes "hasn't played" from "played, but too little volume yet to trend". */
+export function noTrendMessage(gamesPlayed: number, mpg: number): string {
+  if (gamesPlayed <= 0) return "No trend history yet";
+  const shortGames = gamesPlayed <= TREND_MIN_GAMES;
+  const shortMinutes = mpg <= TREND_MIN_MPG;
+  if (shortGames && shortMinutes) return `Limited sample — ${gamesPlayed} GP at ${mpg.toFixed(1)} MPG (trend needs 10+ games at 10+ minutes)`;
+  if (shortGames) return `Limited sample — ${gamesPlayed} GP so far (trend needs 10+ games)`;
+  if (shortMinutes) return `Limited sample — ${mpg.toFixed(1)} MPG so far (trend needs 10+ minutes/game)`;
+  return "No trend history yet";
+}
+
+export type TrendFetchState = { data: TrendPlayer | null; notFound: boolean; loading: boolean; isSynthetic: boolean };
+
+// Recent (8-week / 4-block window) needs at least this many games before its
+// 9-cat profile is trustworthy — mirrors the GATE_MIN_GAMES header gate below.
+const RECENT_MIN_GAMES = 10;
+
+/**
+ * The "Recent" mode (most recent 8-week / 4-block window) — sourced from the
+ * /api/player-trends payload instead of the Player object, since that's where the
+ * block-level history lives. Mirrors buildRankedProfile's noData messaging; under
+ * 10 games it shows the doc's exact "Limited sample" string instead of bars.
+ */
+export function buildRecentProfile(trend: TrendFetchState, catOrder: Cat[], fallbackGp: number, fallbackMpg: number): RankedProfile {
+  if (trend.isSynthetic) return { noData: true, reason: "No trend history yet" };
+  if (trend.loading) return { noData: true, reason: "Loading…" };
+  if (trend.notFound || !trend.data) return { noData: true, reason: noTrendMessage(fallbackGp, fallbackMpg) };
+  const recent = trend.data.recent;
+  if (!recent) return { noData: true, reason: "No games in the last 8 weeks" };
+  if (recent.gamesPlayed < RECENT_MIN_GAMES) return { noData: true, reason: `Limited sample — only ${recent.gamesPlayed} GP (trend needs 10+ games)` };
+
+  const zOf = (c: Cat) => recent.catVals[CAT_IDX[c.key]] ?? 0;
+  const valForStat = (c: Cat) => recent.pg[c.key];
+  return { noData: false, rows: rowsFromCategoryValues(catOrder, zOf, valForStat) };
+}
+
+// ── Per-mode header stat resolution (Recent/Current/Prior × value metric) ────────
+// Shared by the single-player hero (roster-app.tsx) and every compare card
+// (player-compare-card.tsx) so the GP / ValueRank / up-down arrow above the trend
+// chart are computed one way in one place. See the spec in
+// docs/trend-tag-audit-2026-07.md-adjacent rules; GP≥10 & MPG≥10 gates throughout.
+
+const GATE_MIN_GAMES = 10;
+const GATE_MIN_MPG = 10;
+
+/** One season's anchor: pool rank for the selected metric + that season's GP/MPG (the gate inputs). */
+export type ModeStatInput = { rank: number | null; gp: number; mpg: number };
+export type ResolvedModeStat = {
+  /** Games played to print above the chart (null when unknown). */
+  gp: number | null;
+  /** ValueRank to print (null when the mode is gated out — sample too small). */
+  rank: number | null;
+  /** Signed rank move vs this mode's comparison anchor: positive = improved (better/lower rank). null = no arrow. */
+  arrowDelta: number | null;
+  /** False when GP/MPG fall under the gate — caller shows gateMessage instead of GP/rank. */
+  gateOk: boolean;
+  gateMessage: string | null;
+  /** Label suffix under the rank, e.g. "8wk" / "season" / "prior season". */
+  suffix: string;
+};
+
+const passesGate = (s: ModeStatInput): boolean => s.gp >= GATE_MIN_GAMES && s.mpg >= GATE_MIN_MPG;
+
+/** Rank of a Recent window for the selected metric (mirrors poolRankOf on the season ranks). */
+export function recentRankOf(recent: NonNullable<TrendRecent>, metric: TrendMetric): number | null {
+  return metric === "nineCatV" ? recent.rankNineCat : metric === "eightCatV" ? recent.rankEightCat : recent.rankMinus1;
+}
+
+/**
+ * The header GP / rank / arrow for one card at one (mode × metric). All four
+ * inputs are already metric-resolved by the caller (rank picked per metric), so
+ * this stays metric-agnostic. Arrow = anchorRank − thisRank (positive → this
+ * period's rank is better/lower → green up arrow), printed only when the anchor
+ * period itself clears the GP/MPG gate.
+ */
+export function resolveModeStat(
+  mode: SeasonMode,
+  cur: ModeStatInput,
+  prior: ModeStatInput,
+  priorPrior: ModeStatInput,
+  recent: ModeStatInput | null,
+): ResolvedModeStat {
+  const arrow = (thisRank: number | null, anchor: ModeStatInput): number | null =>
+    thisRank != null && anchor.rank != null && passesGate(anchor) ? anchor.rank - thisRank : null;
+
+  if (mode === "recent") {
+    if (!recent || !passesGate(recent)) {
+      return { gp: recent?.gp ?? 0, rank: null, arrowDelta: null, gateOk: false, gateMessage: `Limited sample — only ${recent?.gp ?? 0} GP (trend needs 10+ games)`, suffix: "8wk" };
+    }
+    // Compare the 8-week block rank against the full-season rank.
+    return { gp: recent.gp, rank: recent.rank, arrowDelta: arrow(recent.rank, cur), gateOk: true, gateMessage: null, suffix: "8wk" };
+  }
+  if (mode === "prior") {
+    if (!passesGate(prior)) {
+      return { gp: prior.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "Limited sample — under 10 GP / 10 MPG that season", suffix: "prior season" };
+    }
+    // Compare the prior season against the season before it (2023-24).
+    return { gp: prior.gp, rank: prior.rank, arrowDelta: arrow(prior.rank, priorPrior), gateOk: true, gateMessage: null, suffix: "prior season" };
+  }
+  // current (default)
+  if (!passesGate(cur)) {
+    return { gp: cur.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "Limited sample — under 10 GP / 10 MPG this season", suffix: "season" };
+  }
+  // Compare the full season just completed against the full prior season.
+  return { gp: cur.gp, rank: cur.rank, arrowDelta: arrow(cur.rank, prior), gateOk: true, gateMessage: null, suffix: "season" };
+}
+
+/** The current / prior / prior-prior season anchors for a Player at one value metric —
+ * the season-level inputs resolveModeStat needs (Recent's anchor comes from the trends
+ * payload, not here). Keeps the hero and compare callers building trios identically. */
+export function seasonTriosFor(p: Player, metric: TrendMetric): { cur: ModeStatInput; prior: ModeStatInput; priorPrior: ModeStatInput } {
+  const curRank = metric === "nineCatV" ? p.rankNineCat : metric === "eightCatV" ? p.rankEightCat : p.rankMinus1;
+  const priorRank = metric === "nineCatV" ? p.priorRankNineCat : metric === "eightCatV" ? p.priorRankEightCat : p.priorRankMinus1;
+  const priorPriorRank = metric === "nineCatV" ? p.priorPriorRankNineCat : metric === "eightCatV" ? p.priorPriorRankEightCat : p.priorPriorRankMinus1;
+  return {
+    cur: { rank: curRank, gp: p.gp, mpg: p.mpg },
+    prior: { rank: priorRank, gp: p.priorGp, mpg: p.priorMpg },
+    priorPrior: { rank: priorPriorRank, gp: p.priorPriorGp, mpg: p.priorPriorMpg },
+  };
+}
+
+/** Fixed 0-40min bar (not diverging like the 9-cat bars), colored via the same
+ * 5-tier STATSET_COLORS scale bucketed into quintiles of the 0-40 range. */
+export function mpgBarFor(mpg: number): { widthPct: number; color: string } {
+  const pct = clamp(mpg, 0, 40) / 40;
+  const tier = pct >= 0.8 ? 5 : pct >= 0.6 ? 4 : pct >= 0.4 ? 3 : pct >= 0.2 ? 2 : 1;
+  return { widthPct: pct * 100, color: STATSET_COLORS[tier] };
 }

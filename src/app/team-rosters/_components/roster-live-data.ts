@@ -20,6 +20,7 @@ export const ROSTER_TAG = "team-rosters";
 const ROSTER_SEASON = "2026-27";
 const STATS_SEASON = 2026; // hoopR: 2026 = the 2025-26 season (latest full)
 const PRIOR_STATS_SEASON = STATS_SEASON - 1; // 2025 = 2024-25, for the Prior tab
+const PRIOR_PRIOR_STATS_SEASON = STATS_SEASON - 2; // 2024 = 2023-24, the anchor the Prior-mode arrow compares against
 const VALUE_LEAGUE_SIZE = 400; // matches /seasonal-rankings default 1:1
 const CACHE_OPTS = { revalidate: 900, tags: [ROSTER_TAG] };
 const TRENDS_SEASON_TYPE = "regular";
@@ -156,6 +157,74 @@ const getPoolRanks = unstable_cache(
   CACHE_OPTS,
 );
 
+/** Same as getPoolRanks but for the 2024-25 (Prior) season — powers the compare
+ * tool's dynamic Prior-mode Minus1V rank. Cached, shared across teams. */
+const getPriorPoolRanks = unstable_cache(
+  async (): Promise<Record<string, { nine: number; m1: number; eight: number }>> => {
+    const supabase = createReadClient();
+    const rows: { player_id: string; value: number | null; minus1v: number | null; v_to: number | null }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("season_player_values")
+        .select("player_id,value,minus1v,v_to")
+        .eq("season", PRIOR_STATS_SEASON)
+        .eq("season_type", "regular")
+        .eq("league_size", VALUE_LEAGUE_SIZE)
+        .range(from, from + 999);
+      if (!data?.length) break;
+      rows.push(...(data as typeof rows));
+      if (data.length < 1000) break;
+    }
+    const rankBy = (score: (r: (typeof rows)[number]) => number): Record<string, number> => {
+      const m: Record<string, number> = {};
+      [...rows].sort((a, b) => score(b) - score(a)).forEach((r, i) => (m[r.player_id] = i + 1));
+      return m;
+    };
+    const nine = rankBy((r) => r.value ?? -999);
+    const m1 = rankBy((r) => r.minus1v ?? -999);
+    const eight = rankBy((r) => ((r.value ?? 0) * 9 - (r.v_to ?? 0)) / 8);
+    const out: Record<string, { nine: number; m1: number; eight: number }> = {};
+    for (const r of rows) out[r.player_id] = { nine: nine[r.player_id], m1: m1[r.player_id], eight: eight[r.player_id] };
+    return out;
+  },
+  ["team-roster-pool-ranks-prior"],
+  CACHE_OPTS,
+);
+
+/** Same as getPoolRanks but for the 2023-24 season — the anchor the Prior-mode arrow
+ * compares the Prior (2024-25) season against. Cached, shared across teams. */
+const getPriorPriorPoolRanks = unstable_cache(
+  async (): Promise<Record<string, { nine: number; m1: number; eight: number }>> => {
+    const supabase = createReadClient();
+    const rows: { player_id: string; value: number | null; minus1v: number | null; v_to: number | null }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("season_player_values")
+        .select("player_id,value,minus1v,v_to")
+        .eq("season", PRIOR_PRIOR_STATS_SEASON)
+        .eq("season_type", "regular")
+        .eq("league_size", VALUE_LEAGUE_SIZE)
+        .range(from, from + 999);
+      if (!data?.length) break;
+      rows.push(...(data as typeof rows));
+      if (data.length < 1000) break;
+    }
+    const rankBy = (score: (r: (typeof rows)[number]) => number): Record<string, number> => {
+      const m: Record<string, number> = {};
+      [...rows].sort((a, b) => score(b) - score(a)).forEach((r, i) => (m[r.player_id] = i + 1));
+      return m;
+    };
+    const nine = rankBy((r) => r.value ?? -999);
+    const m1 = rankBy((r) => r.minus1v ?? -999);
+    const eight = rankBy((r) => ((r.value ?? 0) * 9 - (r.v_to ?? 0)) / 8);
+    const out: Record<string, { nine: number; m1: number; eight: number }> = {};
+    for (const r of rows) out[r.player_id] = { nine: nine[r.player_id], m1: m1[r.player_id], eight: eight[r.player_id] };
+    return out;
+  },
+  ["team-roster-pool-ranks-prior-prior"],
+  CACHE_OPTS,
+);
+
 /** Average age (salaried players only) per team, ranked youngest-first. Cached, shared across teams. */
 const getLeagueAgeRanks = unstable_cache(
   async (): Promise<Record<string, { rank: number; total: number }>> => {
@@ -266,7 +335,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
 
   const ids = roster.map((r) => r.player_id).filter((v): v is string => v != null);
 
-  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, trendsRes, poolRanks] = await Promise.all([
+  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, priorPriorStatsRes, trendsRes, poolRanks, priorPoolRanks, priorPriorPoolRanks] = await Promise.all([
     ids.length
       ? supabase
           .from("season_player_stats")
@@ -303,6 +372,14 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       : Promise.resolve({ data: [] as never[] }),
     ids.length
       ? supabase
+          .from("season_player_stats")
+          .select("player_id,g,mpg")
+          .eq("season", PRIOR_PRIOR_STATS_SEASON)
+          .eq("season_type", "regular")
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
           .from("nba_player_trends")
           .select("player_id,payload")
           .eq("season", STATS_SEASON)
@@ -310,10 +387,13 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
           .in("player_id", ids)
       : Promise.resolve({ data: [] as never[] }),
     getPoolRanks(),
+    getPriorPoolRanks(),
+    getPriorPriorPoolRanks(),
   ]);
 
   const statsById = new Map((statsRes.data ?? []).map((s) => [s.player_id, s]));
   const priorStatsById = new Map((priorStatsRes.data ?? []).map((s) => [s.player_id, s]));
+  const priorPriorStatsById = new Map((priorPriorStatsRes.data ?? []).map((s) => [s.player_id, s]));
   const priorValuesById = new Map((priorValuesRes.data ?? []).map((v) => [v.player_id, v]));
   const valuesById = new Map((valuesRes.data ?? []).map((v) => [v.player_id, v]));
   const trendsById = new Map((trendsRes.data ?? []).map((t) => [t.player_id, t.payload as unknown as TrendPayload]));
@@ -330,6 +410,9 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     const priorSt = r.player_id ? priorStatsById.get(r.player_id) : undefined;
     const priorVal = r.player_id ? priorValuesById.get(r.player_id) : undefined;
     const rank = r.player_id ? poolRanks[r.player_id] : undefined;
+    const priorRank = r.player_id ? priorPoolRanks[r.player_id] : undefined;
+    const priorPriorRank = r.player_id ? priorPriorPoolRanks[r.player_id] : undefined;
+    const priorPriorSt = r.player_id ? priorPriorStatsById.get(r.player_id) : undefined;
     const dyn = DYN_BY_NORM.get(r.norm_name);
     const trendTags = tags[i];
     const rookie = r.is_incoming_rookie ? ROOKIE_BY_NORM.get(r.norm_name) : undefined;
@@ -404,6 +487,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       age: ageByRow[i],
       gp: st?.g ?? 0,
       mpg: st?.mpg ?? 0,
+      priorMpg: priorSt?.mpg ?? 0,
       tag,
       salary: r.salary_yr1 ?? 0,
       thru: String(r.fa_year ?? (r.contract_years ? 2026 + r.contract_years - 1 : 2026)),
@@ -440,6 +524,14 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       rankNineCat: rank?.nine ?? null,
       rankMinus1: rank?.m1 ?? null,
       rankEightCat: rank?.eight ?? null,
+      priorRankNineCat: priorRank?.nine ?? null,
+      priorRankMinus1: priorRank?.m1 ?? null,
+      priorRankEightCat: priorRank?.eight ?? null,
+      priorPriorRankNineCat: priorPriorRank?.nine ?? null,
+      priorPriorRankMinus1: priorPriorRank?.m1 ?? null,
+      priorPriorRankEightCat: priorPriorRank?.eight ?? null,
+      priorPriorGp: priorPriorSt?.g ?? 0,
+      priorPriorMpg: priorPriorSt?.mpg ?? 0,
       tagNineCat: trendTags.nine,
       tagMinus1: trendTags.m1,
       tagEightCat: trendTags.eight,
