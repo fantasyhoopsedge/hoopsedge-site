@@ -484,7 +484,7 @@ export function SeasonalRankingsTable(props: {
             </button>
           </div>
           {/* Season — reloads the page with a different dataset */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-season">
             <label className="sr-label" htmlFor="sr-season">Season</label>
             <select
               id="sr-season"
@@ -499,7 +499,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Player pool — the ONLY control that changes Value/Minus1V */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-pool">
             <label className="sr-label" htmlFor="sr-pool">Player Pool</label>
             <select
               id="sr-pool"
@@ -515,7 +515,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Cat Value mode — 9CatV (full) vs 8CatV (turnovers removed) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-catmode">
             <label className="sr-label" htmlFor="sr-catmode">Cat Value</label>
             <select
               id="sr-catmode"
@@ -531,7 +531,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Position multi-select */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-position sr-g-full">
             <span className="sr-label">Position</span>
             <div className="sr-pill-row">
               <button
@@ -557,7 +557,7 @@ export function SeasonalRankingsTable(props: {
           {/* Rookie/sophomore class — season-relative to the active dataset, see classOf().
               Multi-select like Position: Rookies + Sophomores together shows either,
               Veterans excludes both, and any combination unions/excludes accordingly. */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-class sr-g-full">
             <span className="sr-label">Class</span>
             <div className="sr-pill-row">
               <button
@@ -592,7 +592,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Per-game / Totals (display only) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mode sr-g-full">
             <span className="sr-label">Mode</span>
             <div className="sr-pill-row">
               <button
@@ -613,7 +613,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Ticked-player filter — grouped with the other pill buttons */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mylist sr-g-full">
             <span className="sr-label">My List</span>
             <div className="sr-pill-row">
               <button
@@ -637,7 +637,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Rank by (mirrors header-click sorting) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-rankby">
             <label className="sr-label" htmlFor="sr-rankby">Rank By</label>
             <select
               id="sr-rankby"
@@ -658,7 +658,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Team */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-team">
             <label className="sr-label" htmlFor="sr-team">Team</label>
             <select
               id="sr-team"
@@ -674,7 +674,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Min games (display filter) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mingames">
             <label className="sr-label" htmlFor="sr-mingames">Min Games</label>
             <select
               id="sr-mingames"
@@ -689,7 +689,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Min minutes (display filter) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-minmins">
             <label className="sr-label" htmlFor="sr-minmins">Min Minutes</label>
             <select
               id="sr-minmins"
@@ -704,7 +704,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Search */}
-          <div className="sr-group sr-group-search">
+          <div className="sr-group sr-group-search sr-g-search sr-g-full">
             <label className="sr-label" htmlFor="sr-search">Search</label>
             <input
               id="sr-search"
@@ -1064,15 +1064,40 @@ export function SeasonalRankingsTable(props: {
             background: rgba(0,0,0,0.6);
           }
 
+          /* Two-column grid, not the base rule's flex-wrap row: flex-direction:
+             column + inherited flex-wrap:wrap used to overflow into a second
+             *column* off-screen right once content exceeded the fixed-height
+             overlay, forcing a horizontal scroll to reach some filters. Grid
+             sizes columns to the container instead, so everything stays
+             reachable with only vertical scroll. Pairs are ordered via
+             .sr-g-* (see below), independent of desktop's DOM-order flex-wrap. */
           .sr-controls-inner {
             display: none; /* hidden until opened — see .sr-controls-inner-open */
             position: fixed; top: 92px; left: 0; right: 0; bottom: 0; z-index: 90;
-            flex-direction: column; align-items: stretch; gap: 14px;
-            background: var(--bg-surface); overflow-y: auto;
+            grid-template-columns: 1fr 1fr; align-items: end; gap: 10px;
+            background: var(--bg-surface); overflow-y: auto; overflow-x: hidden;
             padding: 4px 14px 28px; max-width: none; margin: 0;
             box-shadow: 0 12px 24px rgba(0,0,0,0.35);
           }
-          .sr-controls-inner.sr-controls-inner-open { display: flex; }
+          .sr-controls-inner.sr-controls-inner-open { display: grid; }
+          /* Grid items default to min-width:max-content, which can overflow a
+             tight column; the select must shrink to fill its cell. */
+          .sr-controls-inner .sr-group { min-width: 0; }
+          .sr-controls-inner .sr-select { width: 100%; }
+          .sr-controls-inner .sr-g-full,
+          .sr-controls-inner .sr-mobile-panel-header { grid-column: 1 / -1; }
+          .sr-controls-inner .sr-g-season { order: 1; }
+          .sr-controls-inner .sr-g-pool { order: 2; }
+          .sr-controls-inner .sr-g-catmode { order: 3; }
+          .sr-controls-inner .sr-g-rankby { order: 4; }
+          .sr-controls-inner .sr-g-position { order: 5; }
+          .sr-controls-inner .sr-g-class { order: 6; }
+          .sr-controls-inner .sr-g-mode { order: 7; }
+          .sr-controls-inner .sr-g-mylist { order: 8; }
+          .sr-controls-inner .sr-g-team { order: 9; }
+          .sr-controls-inner .sr-g-mingames { order: 10; }
+          .sr-controls-inner .sr-g-minmins { order: 11; }
+          .sr-controls-inner .sr-g-search { order: 12; }
           .sr-mobile-panel-header {
             display: flex; align-items: center; justify-content: space-between;
             position: sticky; top: 0; z-index: 1;
