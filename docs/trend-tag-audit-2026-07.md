@@ -2,6 +2,27 @@
 
 *Generated 2026-07-11 from live `nba_player_trends` + `season_player_values` data, reproducing `deriveFinalTake()` exactly as `/team-rosters` runs it (default metric: Minus1V, league size 400).*
 
+> **Doc updated 2026-07-12 — tag labels below now match the final badges.** `TAG_META` in `trend-insight.ts` renamed several display labels the same day this audit was written (R12–R16, Part 3.1b), after most of Part 2's per-player write-ups were already drafted. The *internal* `TrendTag` ids cited throughout (tables, Part 3's rule prose, the "Current" column in 3.2) are unchanged and still match the live code exactly — only the ALL-CAPS display label text was swept to the final name. Reference:
+>
+> | Internal id | Final badge | Emoji | How this doc originally labeled it |
+> |---|---|---|---|
+> | `breaking-out` | POPPING | 🚀 | was BREAKING-OUT |
+> | `surging` | SURGING | 📈 | unchanged |
+> | `outproducing` | ACING | 💪 | *new — split out of `surging` by R14; no Part 2 section (see the SURGING section's note)* |
+> | `climbing` | CLIMBING | ↗️ | unchanged |
+> | `developing` | GROWING | 🌱 | *new — R15's rookie framing; no Part 2 section* |
+> | `stable` | STABLE | ➡️ | unchanged |
+> | `regressing` | SINKING | ↘️ | was REGRESSING |
+> | `fading` | FADING | 📉 | unchanged |
+> | `plunging` | PLUNGING | ⚰️ | unchanged |
+> | `cratering` | TANKING | ⚠️ | was CRATERING |
+> | `games-limited` | LIMITED | 🏥 | was INJURY-LIMITED (R12 renamed the *id* `injury-limited`→`games-limited`; the *label* was simplified further to LIMITED, not "GAMES-LIMITED") |
+> | `small-sample` | SMALL SAMPLE | 🔬 | *new — split out of `games-limited` by R13; no Part 2 section* |
+> | `aging-decline` | AGEING | ⏳ | was AGE DECLINE / AGING-DECLINE |
+> | `washed` | WASHED | 🧼 | *new — stricter tier above `aging-decline` by R16; no Part 2 section* |
+>
+> The four new tags (ACING, GROWING, SMALL SAMPLE, WASHED) didn't exist as split-out labels when Part 2's per-player sample was pulled, so none has a dedicated section — each was carved out of an existing tag's population by R13–R16 the same day. A SURGING call in Part 2 with a near-zero window trend (flat, "holding above consensus") would print as ACING today; see the note at the top of the SURGING section.
+
 ---
 
 ## Part 1 — The rules that assign trend tags
@@ -18,27 +39,33 @@ Every rostered player with a trends payload (437 of 579 roster rows; the display
 
 Derived quantities: `gapNow = nowRank − consensusRank` (positive = producing **below** consensus) and `trend = startRank − nowRank` (positive = improved over the window).
 
-### 1.2 The two override gates (checked first)
+### 1.2 The gates (checked before the decision tree)
 
-1. **INJURY-LIMITED** — if stale blocks ÷ elapsed blocks ≥ **0.35** (`INJURY_STALE_SHARE`), the tag is `injury-limited` regardless of direction. Blurb: "Missed significant time this season (X of Y blocks)…".
-2. **AGE DECLINE** — if age ≥ **30**, and Minus1V declined across **every** "healthy" season (GP ≥ 50) in the history, and the player is neither elite by consensus (≤ 25) nor still producing top-60 now, the tag is `aging-decline`. Minutes are cited only if the most recent healthy-season drop is ≥ 5.0 MPG.
+As implemented, each of the original two gates split into two tiers (R12–R16, Part 3.1b) — this is no longer a flat pair of overrides:
+
+1. **Availability.** If stale blocks ÷ elapsed blocks ≥ **0.35** (`INJURY_STALE_SHARE`), *or* the last 3 of the trailing 4 blocks are stale (R4 — played most of the year, then went idle over the run-in), the cumulative rank is judged unreliable. Within that: a short season (≤30 GP) with no real prior-year track record (no season with ≥40 GP) is a late-call-up/two-way audition, not a health story — tags **SMALL SAMPLE** (`small-sample`, R13). Everything else that fails the availability check tags **LIMITED** (`games-limited`). Blurb: "Missed significant time this season (X of Y blocks)…" for LIMITED, or "an audition sample, not a level" for SMALL SAMPLE.
+2. **Age.** If age ≥ **30**, and Minus1V declined across **every** "healthy" season (GP ≥ 50) in the history — by more than a rounding-noise epsilon (≥0.03/season, ≥0.12 total, R7) — and the most recent season isn't actively rebounding (R7), and the player is neither elite by consensus (≤ 25) nor still producing top-60 now, the tag is **AGEING** (`aging-decline`). If additionally age ≥ 33, every healthy step declined by ≥ 0.05, and current production has fallen out of the rosterable tier (rank > 300), it hardens to **WASHED** (`washed`, R16) — reserved for cases nobody would argue. Minutes are cited only if the most recent healthy-season drop is ≥ 5.0 MPG.
 
 ### 1.3 The core decision tree (when no gate fires)
 
-Thresholds: `FLOOR = 10`, `SMALL_GAP = 20`, `HEAVY = 40`, `FAR_GAP = 60` (all in rank spots).
+Thresholds: `FLOOR = 10`, `SMALL_GAP = 20`, `HEAVY = 40`, `FAR_GAP = 60`, `ROOKIE_COLLAPSE = 60` (all in rank spots). `isRookie` = first-year player in the charted season (R6/R15).
 
-| Position vs consensus | Window trend | Tag |
-|---|---|---|
-| gapNow < −20 (outproducing) | trend ≤ −10 | **REGRESSING** |
-| gapNow < −20 | otherwise | **SURGING** (includes flat "holding") |
-| gapNow > +20 (underproducing) | trend ≥ +10 | **CLIMBING** |
-| gapNow > +60 AND trend ≤ −40 | | **CRATERING** |
-| gapNow > +20 | otherwise | **FADING** (includes flat) |
-| −20 ≤ gapNow ≤ +20 (near) | trend ≥ +40 | **BREAKING OUT** |
-| near | trend ≤ −40 | **PLUNGING** |
-| near | otherwise | **STABLE** |
+| Position vs consensus | Window trend | Rookie? | Tag |
+|---|---|---|---|
+| gapNow < −20 (outproducing) | trend ≤ −10 | — | **SINKING** |
+| gapNow < −20 | trend ≥ +10 | — | **SURGING** |
+| gapNow < −20 | flat (−10 < trend < +10) | — | **ACING** (R14 — flat above consensus is a stale market rank, not a trend) |
+| gapNow > +20 (underproducing) | trend ≥ +10 | — | **CLIMBING** |
+| gapNow > +20 | trend ≤ −60 | rookie | **FADING** (rookie-framed — a real collapse, not just the dynasty discount) |
+| gapNow > +20 | trend > −60 | rookie | **GROWING** (R15 — the gap prices dynasty upside, not decline) |
+| gapNow ≥ +60 AND trend ≤ −40 | | veteran | **TANKING** |
+| gapNow > +20 | otherwise | veteran | **FADING** |
+| −20 ≤ gapNow ≤ +20 (near) | trend ≥ +40 | — | **POPPING** |
+| near | trend ≤ −40 AND gapNow ≤ +10 | — | **SINKING** (R5 — a hot start normalizing to/above consensus, not a crash) |
+| near | trend ≤ −40 AND gapNow > +10 | — | **PLUNGING** |
+| near | otherwise | — | **STABLE** |
 
-A **postseason rider** is appended to the blurb when the player has ≥ 4 playoff games and his playoff value differs from his regular-season value by ≥ 0.30 z (up or down).
+A **postseason rider** is appended to the blurb when the player has ≥ 6 playoff games (R10 raised this from 4; also lifted the postseason display filter to `g>5`, no MPG floor — D2) and his playoff value differs from his regular-season value by ≥ 0.30 z (up or down), softened when the downward case still ranked top-15 in the playoffs.
 
 ### 1.4 What the tag actually measures (and doesn't)
 
@@ -50,20 +77,27 @@ The trend is **first-to-last of the cumulative season-average rank** over ~20 we
 
 ### 1.5 Tag population (Minus1V, full pool of 374 tagged players)
 
-| Tag | Count | Sampled |
-|---|---|---|
-| regressing | 68 | 25 |
-| surging | 66 | 25 |
-| stable | 64 | 25 |
-| injury-limited | 59 | 25 |
-| fading | 31 | 25 |
-| aging-decline | 25 | 25 |
-| climbing | 21 | 21 |
-| plunging | 17 | 17 |
-| cratering | 12 | 12 |
-| breaking-out | 11 | 11 |
+Two tables here on purpose: the **live counts** are post-R1–R17 (verified 2026-07-11, after implementation); the **sampled** counts are from Part 2's per-player write-ups, pulled from the *pre-implementation* population — R1–R17 reshuffled 89 of 211 sampled players onto a *different tag entirely* (not just a relabel) the same day, e.g. a player Part 2 reviewed under SINKING (`regressing`) may since have been recalibrated to LIMITED, STABLE, or elsewhere per Part 3.2's individual re-calibrations. Don't read "25 of 68" against "65" below as the same cohort.
 
-**45 of the 374 tagged players carry the fallback consensus of 999** — every one of their gap-based tags (and any blurb citing "#999 consensus rank") is invalid on its face.
+| Final badge | Internal id | Live count (2026-07-11, post-implementation) | Sampled in Part 2 (pre-implementation pull) |
+|---|---|---|---|
+| SINKING | `regressing` | 65 | 25 of 68 |
+| STABLE | `stable` | 63 | 25 of 64 |
+| LIMITED | `games-limited` | 59 | 25 of 59 (pre-split; includes what's now also SMALL SAMPLE) |
+| SURGING | `surging` | 37 | 25 of 66 (pre-split; includes what's now also ACING) |
+| ACING | `outproducing` | 23 | *0 — split out of surging post-audit* |
+| CLIMBING | `climbing` | 22 | 21 of 21 |
+| FADING | `fading` | 19 | 25 of 31 |
+| SMALL SAMPLE | `small-sample` | 17 | *0 — split out of games-limited post-audit* |
+| AGEING | `aging-decline` | 15 | 25 of 25 (pre-split; includes what's now also WASHED) |
+| GROWING | `developing` | 12 | *0 — split out of fading/cratering (rookies) post-audit* |
+| POPPING | `breaking-out` | 12 | 11 of 11 |
+| TANKING | `cratering` | 6 | 12 of 12 |
+| PLUNGING | `plunging` | 5 | 17 of 17 |
+| WASHED | `washed` | 1 | *0 — split out of aging-decline post-audit* |
+| *(no tag)* | — | 18 | — |
+
+**Pre-implementation, 45 of the 374 tagged players carried the fallback consensus of 999** — every one of their gap-based tags (and any blurb citing "#999 consensus rank") was invalid on its face. **R1 (implemented) suppresses gap-based tags for 999-consensus players**; post-implementation these players either fall through to an availability/age tag (neither needs a consensus rank) or carry no tag at all — accounting for most of the 18 "no tag" players above.
 
 ### 1.6 Methodology notes for the per-player reviews
 
@@ -75,7 +109,7 @@ The trend is **first-to-last of the cumulative season-average rank** over ~20 we
 
 ## Part 2 — Per-player reviews by tag
 
-### REGRESSING (sampled 25 of 68)
+### SINKING · `regressing` (sampled 25 of 68)
 
 **Julius Randle (BKN) · cons #91 · age 32 · 79 GP** — window #35→#64 (−29)
 Concerns: none — fully sampled (0 stale), steady drift off a top-40 start. Confidence: **High**.
@@ -94,7 +128,7 @@ Vs consensus: at #104 vs cons #125 he still outproduces his market rank even in 
 Concerns: rookie; start #51 was a genuinely strong first ~25 games, not a sample artifact — the league adjusted. Confidence: **High**.
 Playoffs 26: n/a. Blurb: fine; "off ~66 spots" is real.
 Prior: none (rookie). Cross-season: n/a.
-Vs consensus: even faded, #117 beats his #149 consensus — a rookie big outproducing his market rank is a quiet buy signal, which "REGRESSING" doesn't convey. Consider blurb tweak noting he still sits above consensus.
+Vs consensus: even faded, #117 beats his #149 consensus — a rookie big outproducing his market rank is a quiet buy signal, which "SINKING" doesn't convey. Consider blurb tweak noting he still sits above consensus.
 
 **Isaiah Stewart (MEM) · cons #177 · age 25 · 58 GP** — window #101→#129 (−28)
 Concerns: last four blocks are thin (0/4/3/3 games) — the late drift is part absence, not just form. Confidence: **Medium**.
@@ -154,7 +188,7 @@ Concerns: window start sits just after a #114 spike (block 3) built on ~20 games
 Playoffs 26: **#161** (7 GP, 12.7 MPG) — better than his season line, small role.
 Blurb: fine directionally; "off ~64 spots" overstates a normalization.
 Prior: 2024 9 GP · #417 | 2025 52 GP · #511. Cross-season: 417→511→273 — a large real step forward in year 3; season-long trend is up even though the window reads down.
-Vs consensus: 34 ahead of #307 — a young player outproducing consensus while tagged REGRESSING is the endpoint-window artifact in miniature.
+Vs consensus: 34 ahead of #307 — a young player outproducing consensus while tagged SINKING is the endpoint-window artifact in miniature.
 
 **Will Richard (GSW) · cons #312 · age 24 · 69 GP** — window #215→#276 (−61)
 Concerns: rookie; strong first two months (#179–#215), then the rank decayed as his shooting cooled. Confidence: **Medium-High**.
@@ -226,9 +260,9 @@ Playoffs 26: n/a (11 GP, 6.6 MPG). Prior: 2024 69 GP · #338 | 2025 69 GP · #33
 Concerns: invalid consensus. Confidence: **Low → suppress tag**.
 Playoffs 26: n/a (6 GP, 4.8 MPG). Prior: 2024 72 GP · #257 | 2025 60 GP · #390. Cross-season: 257→390→407 — three-year slide out of the rotation.
 
-**Regressing — group verdict.** The tag is mechanically sound and mostly correct for veterans with full samples (Randle, Huerter, Patrick Williams). Two recurring distortions: (1) hot-start normalization printed as decline (Joe, Tomlin, Walsh, Barlow — often career-best seasons reading as bad news), and (2) the five consensus-999 players, where the tag shouldn't exist at all.
+**Sinking — group verdict.** The tag is mechanically sound and mostly correct for veterans with full samples (Randle, Huerter, Patrick Williams). Two recurring distortions: (1) hot-start normalization printed as decline (Joe, Tomlin, Walsh, Barlow — often career-best seasons reading as bad news), and (2) the five consensus-999 players, where the tag shouldn't exist at all.
 
-### AGING-DECLINE (sampled 25 of 25 — full population)
+### AGEING · `aging-decline` (sampled 25 of 25 — full population)
 
 **Myles Turner (MIL) · cons #104 · age 30 · 71 GP** — window #69→#107 (flat tag, no arrow)
 Concerns: the trigger is paper-thin — his Minus1V was 0.68 → 0.68 → 0.35; the 2024→2025 "decline" is smaller than rounding. He's also exactly at the minimum age (30), and both other metrics read **stable**. Confidence: **Low → recommend STABLE** (and an epsilon on the decline check — systemic fix F).
@@ -269,13 +303,13 @@ Prior: 2024 55 GP · #95 | 2025 68 GP · #103. Cross-season: 95→103→176 — 
 Vs consensus: still 50 ahead of #226.
 
 **Bobby Portis (MIA) · cons #281 · age 31 · 67 GP** — window #230→#165 (**improved +65 in-window**)
-Concerns: the multi-season line declines (0.33→0.29→0.14) but his current season *improved all year* and he finished 116 spots above consensus — the tag tells the opposite story from the chart it sits on. Confidence: **Medium → keep only with an in-season rider**, else REGRESSING/SURGING territory.
+Concerns: the multi-season line declines (0.33→0.29→0.14) but his current season *improved all year* and he finished 116 spots above consensus — the tag tells the opposite story from the chart it sits on. Confidence: **Medium → keep only with an in-season rider**, else SINKING/SURGING territory.
 Playoffs 26: n/a. Blurb: add "though he closed this season strong (#230→#165 over the window)."
 Prior: 2024 82 GP · #119 | 2025 49 GP · #118. Cross-season: 119→118→165 — one down year, modest slope.
 Vs consensus: 116 ahead of #281 — the most bullish "aging-decline" card in the set.
 
 **Jusuf Nurkic (UTA) · cons #287 · age 32 · 42 GP** — window #167→#99 (**improved +68**)
-Concerns: multiple. His 2026 (42 GP) is excluded by the healthy filter, so the tag rests on 2024→2025 — but 2026 *rebounded* sharply (−0.03 → 0.36). The blurb says "minutes down ~6.5/game **this year**" while citing 2023-24 → 2024-25 — factually mislabeled. And he didn't play at all after block 8 (0/0/0). Confidence: **Low → recommend INJURY-LIMITED** (trailing absence) — the aging read is stale and the blurb is wrong.
+Concerns: multiple. His 2026 (42 GP) is excluded by the healthy filter, so the tag rests on 2024→2025 — but 2026 *rebounded* sharply (−0.03 → 0.36). The blurb says "minutes down ~6.5/game **this year**" while citing 2023-24 → 2024-25 — factually mislabeled. And he didn't play at all after block 8 (0/0/0). Confidence: **Low → recommend LIMITED** (trailing absence) — the aging read is stale and the blurb is wrong.
 Playoffs 26: n/a. Prior: 2024 76 GP · #89 | 2025 51 GP · #226. Cross-season: 89→226→99 — V-shaped, not monotone decline.
 Vs consensus: produced 188 spots above #287 when he played.
 
@@ -307,7 +341,7 @@ Prior: 2024 65 GP · #106 | 2025 59 GP · #135. Cross-season: 106→135→147 �
 Vs consensus: 173 ahead of #320.
 
 **Andre Drummond (NYK) · cons #356 · age 33 · 63 GP** — window #133→#233
-Concerns: his 2025 (40 GP) is excluded, so "every healthy season" is really 2024→2026 — and 2026 (−0.03) actually *improved* on 2025 (−0.13). The 9-cat metric reads regressing. Confidence: **Low → recommend REGRESSING** (above consensus, trending down in-window; the multi-year story is mixed, not monotone).
+Concerns: his 2025 (40 GP) is excluded, so "every healthy season" is really 2024→2026 — and 2026 (−0.03) actually *improved* on 2025 (−0.13). The 9-cat metric reads regressing. Confidence: **Low → recommend SINKING** (above consensus, trending down in-window; the multi-year story is mixed, not monotone).
 Playoffs 26: **#124** (11 GP, 12.8 MPG).
 Prior: 2024 79 GP · #166 | 2025 40 GP · #268. Cross-season: 166→268→233 — down, partial rebound.
 Vs consensus: 123 ahead of #356.
@@ -342,7 +376,7 @@ Prior: 2024 82 GP · #111 | 2025 81 GP · #137. Cross-season: 111→137→259 �
 Vs consensus: 142 ahead of #401.
 
 **Terance Mann (BKN) · cons #412 · age 30 · 63 GP** — window #228→#313
-Concerns: minimum age, and the latest "decline" step is −0.23 → −0.25 — noise-level (epsilon problem). The 8-cat metric reads regressing. Confidence: **Low → recommend REGRESSING** (above consensus, sliding in-window — that's the real story).
+Concerns: minimum age, and the latest "decline" step is −0.23 → −0.25 — noise-level (epsilon problem). The 8-cat metric reads regressing. Confidence: **Low → recommend SINKING** (above consensus, sliding in-window — that's the real story).
 Playoffs 26: n/a. Prior: 2024 75 GP · #232 | 2025 67 GP · #317. Cross-season: 232→317→313 — flat-to-down at a low level.
 Vs consensus: 99 ahead of #412.
 
@@ -362,7 +396,7 @@ Playoffs 26: n/a. Prior: 2024 76 GP · #116 | 2025 77 GP · #170. Cross-season: 
 Vs consensus: 151 ahead of #445.
 
 **Dorian Finney-Smith (CHA) · cons #999 (fallback) · age 33 · 37 GP** — window #344→#423
-Concerns: missed the first four blocks entirely (4/12 stale — under the gate again), 37 GP season, and no valid consensus. The aging read rests on 2024→2025 values of 0.06→0.00 — epsilon-thin. Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: missed the first four blocks entirely (4/12 stale — under the gate again), 37 GP season, and no valid consensus. The aging read rests on 2024→2025 values of 0.06→0.00 — epsilon-thin. Confidence: **Low → recommend LIMITED**.
 Playoffs 26: n/a (4 GP). Prior: 2024 68 GP · #190 | 2025 63 GP · #215. Cross-season: gentle drift, then an injury-wrecked 2026 — absence is the story, not aging.
 
 **Caleb Martin (DAL) · cons #999 (fallback) · age 31 · 58 GP** — window #361→#402
@@ -373,9 +407,9 @@ Playoffs 26: n/a. Prior: 2024 64 GP · #227 | 2025 45 GP · #298. Cross-season: 
 Concerns: 2026 (43 GP) is excluded from the healthy set, and it *rebounded* (−0.15 → +0.01); the tag is built entirely on 2024→2025. Blurb cites a minutes drop "this year" that's actually 2024-25's. Confidence: **Low → recommend STABLE or no tag** (consensus also missing).
 Playoffs 26: n/a (8 GP, 7.5 MPG). Prior: 2024 79 GP · #219 | 2025 61 GP · #276. Cross-season: down then partial recovery — mislabeled by the current blurb.
 
-**Aging-decline — group verdict.** For genuinely old, monotone decliners (DeRozan, Conley, Klay, Capela, Lopez, Valanciunas) the tag is excellent. Three defects recur: (1) **no epsilon** — hair-thin declines trigger it (Turner, Kennard, Mann, DFS); (2) **the healthy-season filter can exclude the current season**, so a live rebound gets ignored and "this year" in the blurb points at last year (Nurkic, Anderson, Drummond); (3) **in-window improvers** (Portis, Horford, Lopez, Nurkic) show a decline story over a chart that visibly rises.
+**Ageing — group verdict.** For genuinely old, monotone decliners (DeRozan, Conley, Klay, Capela, Lopez, Valanciunas) the tag is excellent. Three defects recur: (1) **no epsilon** — hair-thin declines trigger it (Turner, Kennard, Mann, DFS); (2) **the healthy-season filter can exclude the current season**, so a live rebound gets ignored and "this year" in the blurb points at last year (Nurkic, Anderson, Drummond); (3) **in-window improvers** (Portis, Horford, Lopez, Nurkic) show a decline story over a chart that visibly rises.
 
-### STABLE (sampled 25 of 64)
+### STABLE · `stable` (sampled 25 of 64)
 
 **Victor Wembanyama (SAS) · cons #1 · age 23 · 64 GP** — window #2→#2
 Concerns: none (two mid-season stale blocks, irrelevant at his level). Confidence: **High**.
@@ -402,7 +436,7 @@ Prior: 2024 82 GP · #29 | 2025 32 GP · #64. Cross-season: 29→(injury 64)→2
 Vs consensus: production #24 vs cons #12 — close enough; healthy convergence upward.
 
 **Giannis Antetokounmpo (MIA) · cons #20 · age 32 · 36 GP** — window #9→#19
-Concerns: only 36 GP, 4/12 stale (0.333 — one under the injury gate), and both other metrics read fading. The #19 finish is partly idle-drift. Confidence: **Medium** — STABLE is acceptable, but INJURY-LIMITED describes the season better.
+Concerns: only 36 GP, 4/12 stale (0.333 — one under the injury gate), and both other metrics read fading. The #19 finish is partly idle-drift. Confidence: **Medium** — STABLE is acceptable, but LIMITED describes the season better.
 Playoffs 26: n/a. Blurb: fine as far as it goes; a games-played caveat would help.
 Prior: 2024 73 GP · #7 | 2025 67 GP · #4. Cross-season: 7→4→19 — the rank drop is availability, not per-game slippage.
 Vs consensus: tracking #20 consensus exactly — but on 36 games.
@@ -492,7 +526,7 @@ Playoffs 26: n/a. Prior: 2024 73 GP · #145 | 2025 57 GP · #109. Cross-season: 
 Vs consensus: matches #144.
 
 **Max Christie (DAL) · cons #211 · age 23 · 77 GP** — window #170→#200
-Concerns: −30 drift inside the near-band, and **both** other metrics read REGRESSING — the Minus1V gap happens to sit at −11 while 9-cat/8-cat gaps cross the line. Cross-metric whiplash on one card. Confidence: **Medium** — STABLE is defensible; expect users to notice the mismatch.
+Concerns: −30 drift inside the near-band, and **both** other metrics read SINKING — the Minus1V gap happens to sit at −11 while 9-cat/8-cat gaps cross the line. Cross-metric whiplash on one card. Confidence: **Medium** — STABLE is defensible; expect users to notice the mismatch.
 Playoffs 26: n/a. Prior: 2024 67 GP · #393 | 2025 76 GP · #238. Cross-season: 393→238→200 — every year better; the within-season fade is off a hot start.
 Vs consensus: 11 ahead of #211.
 
@@ -508,18 +542,18 @@ Prior: 2025 31 GP · #427. Cross-season: 427→320 — modest sophomore progress
 Vs consensus: 20 behind #300 — right at the edge of FADING; fine as STABLE.
 
 **Julian Strawther (DEN) · cons #340 · age 24 · 57 GP** — window #393→#359 (+34)
-Concerns: 9-cat reads BREAKING-OUT and 8-cat CLIMBING off the same season — the Minus1V +34 just misses the +40 bar. Two stale blocks early. Confidence: **Medium** — the metric split will confuse; Minus1V STABLE is rule-correct.
+Concerns: 9-cat reads POPPING and 8-cat CLIMBING off the same season — the Minus1V +34 just misses the +40 bar. Two stale blocks early. Confidence: **Medium** — the metric split will confuse; Minus1V STABLE is rule-correct.
 Playoffs 26: n/a (2 GP). Prior: 2024 50 GP · #458 | 2025 65 GP · #326. Cross-season: 458→326→359 — fringe rotation, slightly better than 2024, slightly worse than 2025.
 Vs consensus: 19 behind #340.
 
 **Sidy Cissoko (POR) · cons #410 · age 22 · 75 GP** — window #379→#404
-Concerns: 9-cat/8-cat read REGRESSING (his gap sits just inside the near-band on Minus1V). Confidence: **Medium-High**.
+Concerns: 9-cat/8-cat read SINKING (his gap sits just inside the near-band on Minus1V). Confidence: **Medium-High**.
 Playoffs 26: n/a (4 GP). Prior: 2024 12 GP · #352 | 2025 22 GP · #560 (tiny samples). Cross-season: first real NBA season; deep-bench value.
 Vs consensus: matches #410.
 
 **Stable — group verdict.** The strongest tag in the system — for full-sample players it is nearly always right, and it correctly holds stars (Jokic, Wemby, Maxey) and role players alike. Watch items: borderline-band players whose other metrics disagree (Christie, Strawther, Vassell), availability-flattered cards at 4/12 stale (Giannis, Poeltl), and the too-harsh downward playoff rider on elite playoff performers (Maxey).
 
-### INJURY-LIMITED (sampled 25 of 59)
+### LIMITED · `games-limited` (sampled 25 of 59 — pre-R13 split; some of these would now read SMALL SAMPLE)
 
 *This tag is factual (stale-block share ≥ 0.35), so the review focuses on whether "injury" is the right story and whether the small-sample cumRank is being framed honestly.*
 
@@ -640,9 +674,9 @@ Playoffs 26: n/a. Prior: none. Cross-season: n/a.
 Concerns: 5/12 stale, fringe usage; consensus missing. Confidence: **Medium**.
 Playoffs 26: n/a. Prior: none since 2022. Cross-season: n/a.
 
-**Injury-limited — group verdict.** The gate itself works — every sampled player genuinely missed big chunks of season. Two fixes: (1) the blurb's "reflects games missed, not a production decline" is one-directional and reads backwards for hot-sample players (Jerome #48, Slawson #122, Mbeng #121, Tatum #23) — it should also warn the rank may be *inflated*; (2) for two-way/call-up players (McClung, Leons, Dennis, Mbeng, Slawson, Jordan) "injury" is the wrong frame — a neutral "LIMITED SAMPLE" label fits, and most of these are also consensus-999 cases that shouldn't carry consensus-anchored copy at all.
+**Limited — group verdict.** The gate itself works — every sampled player genuinely missed big chunks of season. Two fixes: (1) the blurb's "reflects games missed, not a production decline" is one-directional and reads backwards for hot-sample players (Jerome #48, Slawson #122, Mbeng #121, Tatum #23) — it should also warn the rank may be *inflated*; (2) for two-way/call-up players (McClung, Leons, Dennis, Mbeng, Slawson, Jordan) "injury" is the wrong frame — a neutral "LIMITED SAMPLE" label fits, and most of these are also consensus-999 cases that shouldn't carry consensus-anchored copy at all.
 
-### BREAKING-OUT (sampled 11 of 11 — full population)
+### POPPING · `breaking-out` (sampled 11 of 11 — full population)
 
 **Amen Thompson (HOU) · cons #19 · age 23 · 79 GP** — window #96→#37 (+59)
 Concerns: none — 79 games, monotone climb. Confidence: **High**. The system's best advertisement.
@@ -652,7 +686,7 @@ Prior: 2024 62 GP · #139 | 2025 69 GP · #57. Cross-season: 139→57→37 — t
 Vs consensus: production #37 vs cons #19 — market already believes; the tag confirms.
 
 **Jaren Jackson Jr. (UTA) · cons #39 · age 27 · 48 GP** — window #119→#54 (+65)
-Concerns: **didn't play after block 8** (0/0/0 — 4/12 stale, one under the injury gate). "BREAKING OUT" on a player idle for six weeks is the trailing-absence artifact at its worst. The climb while playing was real. Confidence: **Low → recommend INJURY-LIMITED** (or the tag with an idle caveat).
+Concerns: **didn't play after block 8** (0/0/0 — 4/12 stale, one under the injury gate). "POPPING" on a player idle for six weeks is the trailing-absence artifact at its worst. The climb while playing was real. Confidence: **Low → recommend LIMITED** (or the tag with an idle caveat).
 Playoffs 26: n/a. Prior: 2024 66 GP · #46 | 2025 74 GP · #39. Cross-season: 46→39→54 — he was returning to his normal level, not breaking out; the early-season cum was depressed by a slow start.
 Vs consensus: #54 vs #39 — tracking his established rank, ironically STABLE-shaped.
 
@@ -684,7 +718,7 @@ Vs consensus: matches #207.
 **Brice Sensabaugh (UTA) · cons #220 · age 23 · 75 GP** — window #272→#231 (+41)
 Concerns: +41 barely clears the +40 bar, and the path meandered (#285 mid-season). Confidence: **Medium** — one spot from STABLE; expect churn between builds.
 Playoffs 26: n/a. Prior: 2024 32 GP · #367 | 2025 71 GP · #247. Cross-season: 367→247→231 — incremental, not explosive.
-Vs consensus: #231 vs #220 — aligned; "BREAKING OUT" oversells this one.
+Vs consensus: #231 vs #220 — aligned; "POPPING" oversells this one.
 
 **Oso Ighodaro (PHX) · cons #244 · age 24 · 82 GP** — window #295→#232 (+63)
 Concerns: none — 82 games. Confidence: **High**.
@@ -701,14 +735,16 @@ Concerns: 46 GP at 15.7 MPG with nine of twelve blocks at ≤3 games — the "su
 Playoffs 26: n/a. Prior: 2024 17 GP · #454 | 2025 13 GP · #510 (both tiny). Cross-season: no reliable baseline.
 Vs consensus: near #289, but on April evidence.
 
-**Breaking-out — group verdict.** When the sample is full (Thompson, Buzelis, Filipowski, Ighodaro) this tag is the system's most valuable output. Its failure mode is **cold-start inflation**: injury-recovery players (Miller, Jackson, JJJ) and late-season-minutes players (L. Miller) print +50 to +160 "surges" that are mostly the starved start point. A minimum-games-by-window-start guard (fix B) would clean up 5 of these 11 cards.
+**Popping — group verdict.** When the sample is full (Thompson, Buzelis, Filipowski, Ighodaro) this tag is the system's most valuable output. Its failure mode is **cold-start inflation**: injury-recovery players (Miller, Jackson, JJJ) and late-season-minutes players (L. Miller) print +50 to +160 "surges" that are mostly the starved start point. A minimum-games-by-window-start guard (fix B) would clean up 5 of these 11 cards.
 
 ---
 
-### SURGING (sampled 25 of 66)
+### SURGING · `surging` (sampled 25 of 66 — pre-R14 split; some of these would now read ACING)
+
+> **Post-audit note:** R14 split this tag the same day into SURGING (trend ≥ +10, genuinely rising) and **ACING** (`outproducing`, |trend| < 10 — flat, just parked above a stale consensus). Every card below was pulled *before* that split, so any entry here whose window move reads as small/flat (a few spots either way) would print as ACING today, not SURGING — its own tag with its own framing ("outproducing his consensus rank, holding well above where the market has him," no directional arrow). Entries with a real double-digit-plus climb are still genuinely SURGING.
 
 **Lauri Markkanen (UTA) · cons #46 · age 29 · 43 GP** — window #22→#17
-Concerns: **didn't play after block 8** (0/0/0; 4/12 stale — one under the gate). "Holding well above where the market has him" describes a man who wasn't playing. Confidence: **Low → recommend INJURY-LIMITED** (trailing-absence rule, fix C).
+Concerns: **didn't play after block 8** (0/0/0; 4/12 stale — one under the gate). "Holding well above where the market has him" describes a man who wasn't playing. Confidence: **Low → recommend LIMITED** (trailing-absence rule, fix C).
 Playoffs 26: n/a. Prior: 2024 55 GP · #25 | 2025 47 GP · #85. Cross-season: 25→85→17 — elite per-game level re-established this year, availability now the only question.
 Vs consensus: 29 ahead of #46 when active.
 
@@ -736,7 +772,7 @@ Prior: 2024 82 GP · #207 | 2025 82 GP · #255. Cross-season: 207→255→39 —
 Vs consensus: 51 ahead of #90 — consensus badly trailing.
 
 **Rudy Gobert (MIN) · cons #127 · age 34 · 76 GP** — window #73→#42 (+31)
-Concerns: **9-cat and 8-cat both read AGING-DECLINE on the same card** — Minus1V drops his FT%, hiding the category that's declining. The most jarring cross-metric contradiction in the audit. Confidence: **Medium-High** for Minus1V itself (76 games, real climb) — but the card needs the metric-context made explicit.
+Concerns: **9-cat and 8-cat both read AGEING on the same card** — Minus1V drops his FT%, hiding the category that's declining. The most jarring cross-metric contradiction in the audit. Confidence: **Medium-High** for Minus1V itself (76 games, real climb) — but the card needs the metric-context made explicit.
 Playoffs 26: **#64** (12 GP, 31.1 MPG). Prior: 2024 76 GP · #26 | 2025 72 GP · #60. Cross-season: 26→60→42 — down from peak, stabilized in punt-FT builds.
 Vs consensus: 85 ahead of #127 in Minus1V terms.
 
@@ -749,7 +785,7 @@ Vs consensus: 44 ahead of #156.
 **Neemias Queta (BOS) · cons #173 · age 27 · 76 GP** — window #81→#60 (+21)
 Concerns: none. Confidence: **High**.
 Playoffs 26: **#59** (7 GP, 21.7 MPG) — held his level.
-Prior: 2024 28 GP · #212 | 2025 61 GP · #293. Cross-season: 212→293→60 — a true role-driven breakout; arguably BREAKING-OUT was the fairer tag earlier in the year.
+Prior: 2024 28 GP · #212 | 2025 61 GP · #293. Cross-season: 212→293→60 — a true role-driven breakout; arguably POPPING was the fairer tag earlier in the year.
 Vs consensus: 113 ahead of #173 — one of the largest live gaps; consensus review candidate.
 
 **Saddiq Bey (NOP) · cons #200 · age 27 · 72 GP** — window #163→#90 (+73)
@@ -811,7 +847,7 @@ Playoffs 26: n/a. Prior: 2024 10 GP · #295 | 2025 35 GP · #261. Cross-season: 
 Vs consensus: 73 ahead of #372.
 
 **Jock Landale (ATL) · cons #389 · age 31 · 68 GP** — window #216→#220 (flat)
-Concerns: 9-cat and 8-cat both read REGRESSING — Minus1V's dropped category flips the read; another cross-metric whiplash card. Confidence: **Medium-Low** — suggest aligning copy with the majority metric or noting the split.
+Concerns: 9-cat and 8-cat both read SINKING — Minus1V's dropped category flips the read; another cross-metric whiplash card. Confidence: **Medium-Low** — suggest aligning copy with the majority metric or noting the split.
 Playoffs 26: n/a. Prior: 2024 56 GP · #311 | 2025 42 GP · #401. Cross-season: 311→401→220 — best year of three.
 Vs consensus: 169 ahead of #389.
 
@@ -839,7 +875,7 @@ Playoffs 26: n/a. Prior: 2025 32 GP · #370. Cross-season: fringe.
 
 **Surging — group verdict.** Two distinct populations wear one label: genuine climbers (Durant, NAW, Queta, Bey, J. Champagnie) and **flat players sitting above a stale consensus** (Sexton, LaRavia, Landale, Okoro) — the latter are consensus-calibration signals, not trends (fix G: consider an "OUTPRODUCING" variant for flat-above). Plus the recurring defects: trailing-absence stars (Markkanen, Curry), cross-metric whiplash (Gobert, Landale), and three consensus-999 cards including the Cameron Johnson join bug.
 
-### FADING (sampled 25 of 31)
+### FADING · `fading` (sampled 25 of 31 — pre-R15 split; rookie cases here would now often read GROWING)
 
 **Alperen Sengun (HOU) · cons #15 · age 24 · 72 GP** — window #29→#40 (−11)
 Concerns: the gap (+25) is barely past the near-band and the move (−11) barely past the floor — he's the "least faded FADING" possible, in a **career-best value season** (#40 vs #47/#77 prior). Confidence: **Medium-Low → recommend STABLE**; the tag reads far more bearish than the data.
@@ -849,7 +885,7 @@ Prior: 2024 63 GP · #47 | 2025 76 GP · #77. Cross-season: 47→77→40 — bes
 Vs consensus: #15 consensus prices a leap he hasn't fully made in 9-cat terms; that's a consensus question, not a player fade.
 
 **Alex Sarr (WAS) · cons #35 · age 21 · 48 GP** — window #39→#56 (−17)
-Concerns: 4/12 stale with a nearly empty run-in (0/1/5/1 games in the last four blocks) — the slide from #39 is substantially idle-drift while hurt. Year-over-year he *leapt* (141→56). Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: 4/12 stale with a nearly empty run-in (0/1/5/1 games in the last four blocks) — the slide from #39 is substantially idle-drift while hurt. Year-over-year he *leapt* (141→56). Confidence: **Low → recommend LIMITED**.
 Playoffs 26: n/a. Prior: 2025 67 GP · #141. Cross-season: 141→56 — a big genuine sophomore improvement; FADING inverts the real story.
 Vs consensus: #56 vs #35 on 48 games of a 21-year-old — the market's bet looks fine.
 
@@ -867,7 +903,7 @@ Prior: 2025 80 GP · #292. Cross-season: 292→111 — one of the biggest YoY ri
 Vs consensus: 58 behind #53 — the market is betting on exactly what the playoffs showed.
 
 **Ivica Zubac (IND) · cons #64 · age 29 · 48 GP** — window #50→#92 (−42)
-Concerns: 3/12 stale with blocks 8–9 and 11 empty — the late slide is heavily absence-driven (traded + hurt?). Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: 3/12 stale with blocks 8–9 and 11 empty — the late slide is heavily absence-driven (traded + hurt?). Confidence: **Low → recommend LIMITED**.
 Playoffs 26: n/a. Prior: 2024 68 GP · #90 | 2025 80 GP · #29. Cross-season: 90→29→92 — a career 2025, then an interrupted 2026; per-game level when active was fine early.
 Vs consensus: 28 behind #64, mostly absence.
 
@@ -877,7 +913,7 @@ Playoffs 26: n/a. Prior: none. Cross-season: n/a.
 Vs consensus: 72 behind #92 — the tag is doing honest work against an over-eager consensus.
 
 **Tari Eason (HOU) · cons #110 · age 25 · 60 GP** — window #166→#169 (flat)
-Concerns: 9-cat reads CRATERING off the same season (its gap/trend cross different bars) — cross-metric whiplash. Two stale blocks early. Confidence: **Medium**.
+Concerns: 9-cat reads TANKING off the same season (its gap/trend cross different bars) — cross-metric whiplash. Two stale blocks early. Confidence: **Medium**.
 Playoffs 26: **#20** (6 GP, 32.5 MPG) — spectacular playoff surge; the blurb has no rider (verify; 6 GP qualifies). That fact reframes the whole card.
 Prior: 2024 22 GP · #112 | 2025 57 GP · #79. Cross-season: 112→79→169 — a genuinely down regular season.
 Vs consensus: 59 behind #110, then #20 in the playoffs — "regular-season fade, playoff monster" is the real story.
@@ -904,12 +940,12 @@ Playoffs 26: n/a. Prior: 2024 72 GP · #140 | 2025 65 GP · #87. Cross-season: 1
 Vs consensus: 48 behind #176 — market still ahead of production; tag earns its keep.
 
 **Jordan Poole (NOP) · cons #178 · age 27 · 39 GP** — window #121→#216 (−95)
-Concerns: 39 GP, 3/12 stale, blocks 7–11 mostly 2–4 games — availability and form are entangled; the #121 start is also early-sample. Confidence: **Medium-Low → recommend INJURY-LIMITED** (or FADING with an availability caveat).
+Concerns: 39 GP, 3/12 stale, blocks 7–11 mostly 2–4 games — availability and form are entangled; the #121 start is also early-sample. Confidence: **Medium-Low → recommend LIMITED** (or FADING with an availability caveat).
 Playoffs 26: n/a. Prior: 2024 78 GP · #114 | 2025 68 GP · #58. Cross-season: 114→58→216 — a genuinely alarming YoY collapse either way.
 Vs consensus: 38 behind #178.
 
 **Anfernee Simons (PHI) · cons #187 · age 27 · 55 GP** — window #208→#213 (flat)
-Concerns: **last three blocks empty (0/0/0)** — finish is pure idle-drift; "without closing the gap" describes a man not playing. Confidence: **Low → recommend INJURY-LIMITED** (trailing-absence rule).
+Concerns: **last three blocks empty (0/0/0)** — finish is pure idle-drift; "without closing the gap" describes a man not playing. Confidence: **Low → recommend LIMITED** (trailing-absence rule).
 Playoffs 26: n/a. Prior: 2024 46 GP · #73 | 2025 70 GP · #100. Cross-season: 73→100→213 — two-year value slide is real and pre-dates the absence.
 Vs consensus: 26 behind #187.
 
@@ -941,7 +977,7 @@ Playoffs 26: n/a. Prior: none (rookie). Cross-season: n/a.
 Vs consensus: 100 behind a consensus pricing the draft slot; partially the rookie mismatch, but the in-season drift is also real.
 
 **Ryan Dunn (PHX) · cons #245 · age 23 · 70 GP** — window #147→#304 (−157)
-Concerns: the #147 start reflects a hot-shooting October (cum #120 at block 0); the collapse to #304 is real but ~half start-artifact. One spot of gap short of CRATERING — expect tag churn. Confidence: **Medium**.
+Concerns: the #147 start reflects a hot-shooting October (cum #120 at block 0); the collapse to #304 is real but ~half start-artifact. One spot of gap short of TANKING — expect tag churn. Confidence: **Medium**.
 Playoffs 26: n/a (4 GP). Prior: 2025 74 GP · #334. Cross-season: 334→304 — flat sophomore year around a wild in-season arc.
 Vs consensus: 59 behind #245.
 
@@ -961,7 +997,7 @@ Playoffs 26: n/a. Prior: 2024 33 GP · #408 | 2025 37 GP · #428. Cross-season: 
 Vs consensus: 99 behind #257.
 
 **Devin Carter (ATL) · cons #298 · age 24 · 38 GP** — window #353→#354 (flat)
-Concerns: 4/12 stale (0.333 again), 38 GP scattered — availability season. Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: 4/12 stale (0.333 again), 38 GP scattered — availability season. Confidence: **Low → recommend LIMITED**.
 Playoffs 26: n/a. Prior: 2025 36 GP · #494. Cross-season: two straight injury-limited years; no clean baseline yet.
 Vs consensus: 56 behind #298.
 
@@ -979,10 +1015,10 @@ Vs consensus: 42 behind #387.
 
 ---
 
-### CRATERING (sampled 12 of 12 — full population)
+### TANKING · `cratering` (sampled 12 of 12 — full population; pre-R15, so several rookie cases here would now read GROWING or FADING with rookie framing)
 
 **Dylan Harper (SAS) · cons #31 · age 20 · 69 GP** — window #173→#230 (−57)
-Concerns: the harshest card in the system sits on a **rookie** whose #31 consensus prices his long-term upside, and whose most recent form was elite — **#61 across 23 playoff games at 26.7 MPG**. The code's own comments cite Harper as the reason the postseason rider exists; the rider fires, but the tag still screams CRATERING with a ⚰️-adjacent ⚠️. Confidence: **Low → recommend rookie-aware reclassification** (CLIMBING/"developing" framing, or at minimum FADING).
+Concerns: the harshest card in the system sits on a **rookie** whose #31 consensus prices his long-term upside, and whose most recent form was elite — **#61 across 23 playoff games at 26.7 MPG**. The code's own comments cite Harper as the reason the postseason rider exists; the rider fires, but the tag still screams TANKING with a ⚰️-adjacent ⚠️. Confidence: **Low → recommend rookie-aware reclassification** (CLIMBING/"developing" framing, or at minimum FADING).
 Playoffs 26: **#61** (23 GP, 26.7 MPG).
 Prior: none (rookie). Cross-season: n/a.
 Vs consensus: 199 behind #31 — the number measures dynasty pricing of a 20-year-old, not a collapse.
@@ -1042,23 +1078,23 @@ Concerns: none — a real slide at the fringe. Confidence: **Medium-High**.
 Playoffs 26: n/a (8 GP, 6.6 MPG). Prior: 2025 41 GP · #498. Cross-season: 498→415 — still fringe.
 Vs consensus: 66 behind #349.
 
-**Cratering — group verdict.** **Ten of twelve CRATERING players are 23 or younger, and eight are first- or second-year players.** The tag is functioning as a rookie-penalty: dynasty consensus prices upside, deep-bench rookie production sits 60+ spots below it, any slide clears the −40 bar, and the scariest label in the system lands on the youngest assets (Harper, with a #61 playoff run, is the indictment). Only Gradey Dick and Kolek — actual veterans-in-decline — read as intended. Recommend the rookie-aware gate (fix E) plus the start-point guard (fix B, which alone would fix Coby White).
+**Tanking — group verdict.** **Ten of twelve TANKING players are 23 or younger, and eight are first- or second-year players.** The tag is functioning as a rookie-penalty: dynasty consensus prices upside, deep-bench rookie production sits 60+ spots below it, any slide clears the −40 bar, and the scariest label in the system lands on the youngest assets (Harper, with a #61 playoff run, is the indictment). Only Gradey Dick and Kolek — actual veterans-in-decline — read as intended. Recommend the rookie-aware gate (fix E) plus the start-point guard (fix B, which alone would fix Coby White).
 
-### PLUNGING (sampled 17 of 17 — full population)
+### PLUNGING · `plunging` (sampled 17 of 17 — full population)
 
 **Tyler Herro (MIL) · cons #49 · age 26 · 33 GP** — window #15→#57 (−42)
-Concerns: the #15 start is a **4-game sample** (his first block back from injury), and he's 4/12 stale — one block under the injury gate. The −42 "plunge" is almost entirely start-point artifact plus absence. Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: the #15 start is a **4-game sample** (his first block back from injury), and he's 4/12 stale — one block under the injury gate. The −42 "plunge" is almost entirely start-point artifact plus absence. Confidence: **Low → recommend LIMITED**.
 Playoffs 26: n/a. Prior: 2024 42 GP · #99 | 2025 77 GP · #27. Cross-season: 99→27→57 — a healthy 2025 career year, then an injury season; nothing "plunged."
 Vs consensus: #57 vs #49 — on 33 games, essentially at consensus.
 
 **Mikal Bridges (NYK) · cons #76 · age 30 · 82 GP** — window #18→#63 (−45)
-Concerns: 82 games, real decline from a hot start — but "**crashed to #63**" when his consensus is #76 means the blurb describes *converging to a rank better than the market's* as a crash. The near-band plunge copy is sign-blind (fix D). Confidence: **Medium → keep direction, fix copy** (REGRESSING-style: "cooling from a top-20 start, still ahead of his #76 consensus").
+Concerns: 82 games, real decline from a hot start — but "**crashed to #63**" when his consensus is #76 means the blurb describes *converging to a rank better than the market's* as a crash. The near-band plunge copy is sign-blind (fix D). Confidence: **Medium → keep direction, fix copy** (SINKING-style: "cooling from a top-20 start, still ahead of his #76 consensus").
 Playoffs 26: **#55** (19 GP, 32.1 MPG) — steady at his level.
 Prior: 2024 82 GP · #102 | 2025 82 GP · #95. Cross-season: 102→95→63 — his best value season of the three; the tag punishes the shape of the year, not the year.
 Vs consensus: 13 ahead of #76.
 
 **Isaiah Hartenstein (OKC) · cons #81 · age 28 · 47 GP** — window #54→#100 (−46)
-Concerns: 3/12 stale (blocks 5–6 empty, 1-game block 3) — the slide is availability-entangled. Confidence: **Medium-Low → recommend INJURY-LIMITED or availability caveat**.
+Concerns: 3/12 stale (blocks 5–6 empty, 1-game block 3) — the slide is availability-entangled. Confidence: **Medium-Low → recommend LIMITED or availability caveat**.
 Playoffs 26: **#57** (15 GP, 23.4 MPG) — back at his early-season level in the playoffs.
 Prior: 2024 75 GP · #68 | 2025 57 GP · #70. Cross-season: 68→70→100 — mild dip in an injury year, playoffs say fine.
 Vs consensus: 19 behind #81.
@@ -1069,7 +1105,7 @@ Playoffs 26: n/a. Prior: 2024 69 GP · #60 | 2025 64 GP · #72. Cross-season: 60
 Vs consensus: exactly at consensus (−1).
 
 **Aaron Nesmith (IND) · cons #174 · age 27 · 45 GP** — window #130→#185 (−55)
-Concerns: 45 GP, blocks 2–4 nearly empty, choppy availability throughout — form and absence entangled. Confidence: **Medium-Low → INJURY-LIMITED or caveat**.
+Concerns: 45 GP, blocks 2–4 nearly empty, choppy availability throughout — form and absence entangled. Confidence: **Medium-Low → LIMITED or caveat**.
 Playoffs 26: n/a. Prior: 2024 72 GP · #128 | 2025 45 GP · #123. Cross-season: 128→123→185 — down year on limited games.
 Vs consensus: 11 behind #174.
 
@@ -1085,7 +1121,7 @@ Prior: 2024 51 GP · #321 | 2025 75 GP · #165. Cross-season: 321→165→192 �
 Vs consensus: 14 ahead of #206.
 
 **De'Andre Hunter (SAC) · cons #233 · age 29 · 45 GP** — window #157→#244 (−87)
-Concerns: **didn't play the last four blocks** (0/0/0/0 — 4/12 stale, one under the gate). The printed plunge is half idle-drift. Confidence: **Low → recommend INJURY-LIMITED** (trailing-absence rule).
+Concerns: **didn't play the last four blocks** (0/0/0/0 — 4/12 stale, one under the gate). The printed plunge is half idle-drift. Confidence: **Low → recommend LIMITED** (trailing-absence rule).
 Playoffs 26: n/a. Prior: 2024 57 GP · #167 | 2025 64 GP · #117. Cross-season: 167→117→244 — down year even before the shutdown.
 Vs consensus: 11 behind #233.
 
@@ -1105,7 +1141,7 @@ Playoffs 26: n/a (4 GP). Prior: 2024 10 GP · #546 | 2025 5 GP · #439 (both mea
 Vs consensus: 5 ahead of #355.
 
 **Marcus Sasser (DET) · cons #362 · age 26 · 38 GP** — window #324→#380 (−56)
-Concerns: 3/12 stale, 38 GP, start sits after three empty blocks — availability season. Confidence: **Medium-Low → INJURY-LIMITED candidate**.
+Concerns: 3/12 stale, 38 GP, start sits after three empty blocks — availability season. Confidence: **Medium-Low → LIMITED candidate**.
 Playoffs 26: **#138** (6 GP, 10.3 MPG) — clears your gate by a hair and ranked well above his season level; noteworthy.
 Prior: 2024 72 GP · #294 | 2025 57 GP · #343. Cross-season: 294→343→380 — three-year drift out of the rotation.
 Vs consensus: 18 behind #362.
@@ -1139,10 +1175,10 @@ Vs consensus: 16 ahead of #443.
 
 ---
 
-### CLIMBING (sampled 21 of 21 — full population)
+### CLIMBING · `climbing` (sampled 21 of 21 — full population)
 
 **Cooper Flagg (DAL) · cons #6 · age 20 · 70 GP** — window #94→#45 (+49)
-Concerns: none — this is the tag working exactly as designed for a rookie: below a dynasty consensus, closing fast. Confidence: **High**. (Contrast with Harper's CRATERING — same situation, opposite label, purely because Flagg's arrow points up. The rookie-aware fix should make Harper-type cards look more like this one.)
+Concerns: none — this is the tag working exactly as designed for a rookie: below a dynasty consensus, closing fast. Confidence: **High**. (Contrast with Harper's TANKING — same situation, opposite label, purely because Flagg's arrow points up. The rookie-aware fix should make Harper-type cards look more like this one.)
 Playoffs 26: n/a. Prior: none. Cross-season: n/a.
 Vs consensus: 39 behind #6 and closing — exactly what a #1-pick rookie card should say.
 
@@ -1191,7 +1227,7 @@ Prior: 2024 69 GP · #427 | 2025 79 GP · #274. Cross-season: 427→274→158 �
 Vs consensus: 57 behind #101.
 
 **Shaedon Sharpe (POR) · cons #109 · age 23 · 50 GP** — window #168→#131 (+37)
-Concerns: **barely played after block 7** (0/0/0/2) — "closing the gap" describes a frozen rank; 3/12 stale evades the gate. Confidence: **Low → recommend INJURY-LIMITED or idle caveat** (fix C).
+Concerns: **barely played after block 7** (0/0/0/2) — "closing the gap" describes a frozen rank; 3/12 stale evades the gate. Confidence: **Low → recommend LIMITED or idle caveat** (fix C).
 Playoffs 26: n/a (5 GP). Prior: 2024 32 GP · #152 | 2025 72 GP · #168. Cross-season: 152→168→131 — flat-ish; talent/production gap persists.
 Vs consensus: 22 behind #109.
 
@@ -1201,7 +1237,7 @@ Playoffs 26: n/a. Prior: 2024 63 GP · #246 | 2025 59 GP · #175. Cross-season: 
 Vs consensus: 23 behind #128.
 
 **Christian Braun (DEN) · cons #147 · age 25 · 44 GP** — window #201→#188 (+13)
-Concerns: 4/12 stale (0.333 — under the gate again) with a mid-season absence that swung his cum #201→#273→#188; the +13 print is the difference of two noisy endpoints. Confidence: **Low → recommend INJURY-LIMITED**.
+Concerns: 4/12 stale (0.333 — under the gate again) with a mid-season absence that swung his cum #201→#273→#188; the +13 print is the difference of two noisy endpoints. Confidence: **Low → recommend LIMITED**.
 Playoffs 26: **#90** (6 GP, 31.3 MPG) — back at his real level.
 Prior: 2024 82 GP · #320 | 2025 79 GP · #78. Cross-season: 320→78→188 — breakout 2025, injury-noised 2026; healthy level likely top-100.
 Vs consensus: 41 behind #147.
@@ -1264,10 +1300,10 @@ Vs consensus: 41 behind #293.
 - **R1 — Suppress gap-based tags when consensus is the 999 fallback.** 45 of 374 tagged players (12%) carry tags and blurbs anchored to "#999 consensus rank," which prints on cards. Show no tag (or an availability/sample tag only) when the dynasty join misses. Fixes ~13 sampled cards outright.
 - **R2 — Fix the dynasty name-join for Cameron Johnson** (and audit for other alias misses — likely "Cam Johnson" in `dynasty-rankings.json` vs "Cameron Johnson" in `nba_roster`). He is a top-150 asset currently tagged against #999.
 - **R3 — Start-point guard.** Require a minimum cumulative games sample at the window's start block (suggest ≥ 15 GP by the first charted block, else slide the start forward to the first block that qualifies). Kills the fake −120/+160 moves (Coby White #3-after-one-game, Herro's 4-game #15, GG Jackson, Raynaud, Garland).
-- **R4 — Trailing-absence rule.** If the last 3+ blocks are stale, route to INJURY-LIMITED (or append an "idle since <date>" caveat and drop the directional arrow). Eleven sampled players sit at exactly 4/12 stale — one under the 0.35 gate — while wearing directional tags (Markkanen SURGING, JJJ BREAKING-OUT, Simons FADING, Hunter PLUNGING, Sharpe CLIMBING…). Alternatively/additionally lower `INJURY_STALE_SHARE` to 0.33.
+- **R4 — Trailing-absence rule.** If the last 3+ blocks are stale, route to LIMITED (or append an "idle since <date>" caveat and drop the directional arrow). Eleven sampled players sit at exactly 4/12 stale — one under the 0.35 gate — while wearing directional tags (Markkanen SURGING, JJJ POPPING, Simons FADING, Hunter PLUNGING, Sharpe CLIMBING…). Alternatively/additionally lower `INJURY_STALE_SHARE` to 0.33.
 - **R5 — Sign-aware plunge/crater copy.** In the near-band, when `gapNow ≤ 0` (finishing at or above consensus), never print "crashed/collapsed to #X" — use regression-to-market copy instead. Affected: Mikal Bridges, Miles Bridges, Mitchell, Grimes, James, Peavy, Mann, Knecht.
-- **R6 — Rookie-aware gate.** For first-year players (draft_year == current season), dynasty consensus prices upside, so below-consensus tags measure the dynasty discount, not decline. Route rookies away from CRATERING/FADING toward CLIMBING/"DEVELOPING" framing unless production is *also* declining steeply in absolute terms. Ten of twelve CRATERING players are ≤ 23.
-- **R7 — Aging-decline epsilon + recency.** Require a minimum per-season decline (suggest ≥ 0.05 Minus1V) so 0.68→0.68 (Turner) and 0.10→0.04→−0.01 (Kennard) don't trigger; require the most recent season (healthy or not) to be non-improving so live rebounds (Nurkic +0.39, Anderson +0.16) block the tag; and fix the blurb's "this year" when the cited minutes drop is from a prior season.
+- **R6 — Rookie-aware gate.** For first-year players (draft_year == current season), dynasty consensus prices upside, so below-consensus tags measure the dynasty discount, not decline. Route rookies away from TANKING/FADING toward CLIMBING/"DEVELOPING" framing unless production is *also* declining steeply in absolute terms. Ten of twelve TANKING players are ≤ 23.
+- **R7 — Ageing epsilon + recency.** Require a minimum per-season decline (suggest ≥ 0.05 Minus1V) so 0.68→0.68 (Turner) and 0.10→0.04→−0.01 (Kennard) don't trigger; require the most recent season (healthy or not) to be non-improving so live rebounds (Nurkic +0.39, Anderson +0.16) block the tag; and fix the blurb's "this year" when the cited minutes drop is from a prior season.
 - **R8 — Two-sided injury-limited blurb + neutral label for call-ups.** When the small-sample rank is *better* than the player's consensus/history, say the rank may be inflated by a hot short sample (Jerome #48, Slawson #122, Mbeng #121); and for two-way/late-call-up usage patterns say "limited sample," not injury language (McClung, Leons, Dennis, DeAndre Jordan).
 - **R9 — In-season rider on aging-decline.** When the charted window *improved* ≥ 20 spots, append it ("though he closed this season strong: #230→#165") so the card doesn't contradict its own chart (Portis, Horford, Lopez).
 - **R10 — Playoff-rider audit.** Several qualifying playoff surges produced no rider (Marcus Smart #30/10 GP, Tari Eason #20/6 GP, Ayo Dosunmu #40/10 GP, LeVert #109/13 GP, Grimes, Shannon). Verify the ≥ 0.3 z-jump threshold isn't too strict relative to rank movement, and consider your 6-GP/10-MPG gate replacing the current 4-GP bar. Also soften the *downward* rider when the playoff rank is still elite (Maxey #13: "fell well short" reads wrong).
@@ -1275,12 +1311,12 @@ Vs consensus: 41 behind #293.
 
 ### 3.1b Taxonomy changes — splits & renames (added after review discussion)
 
-- **R12 — Rename INJURY-LIMITED → "GAMES-LIMITED".** More accurate (the gate measures games, not injuries) and honest for the non-injury cases (McClung, DeAndre Jordan). Standalone — no logic change; label + blurb noun only.
+- **R12 — Rename INJURY-LIMITED → "GAMES-LIMITED".** More accurate (the gate measures games, not injuries) and honest for the non-injury cases (McClung, DeAndre Jordan). Standalone — no logic change; label + blurb noun only. *(The `TrendTag` id landed as `games-limited`, per this rule; the display badge was simplified once more the same day to just LIMITED — see the tag reference table at the top of this doc.)*
 - **R13 — Split GAMES-LIMITED into two tags: GAMES-LIMITED (injury pattern) vs SMALL SAMPLE (call-up pattern).** Heuristic for the SMALL SAMPLE branch: games concentrated in the final 2–3 blocks + little/no prior-season track record (two-ways, late-season auditions — Mbeng, Slawson, Malachi Smith, McClung, Leons, KJ Simpson). Tatum missing 60 games is a health question; Mbeng playing 15 April games at 32 MPG is an evaluation question with an inflated rank — different stories deserve different labels. Pairs with R8's two-sided blurb.
 - **R14 — Split SURGING into SURGING (trend ≥ +10, genuinely rising) vs OUTPRODUCING (|trend| < 10, flat above consensus).** Two populations currently share one 📈 label: true climbers (Durant, NAW, Queta) and flat players parked above a stale market rank (Sexton, LaRavia, Landale). Flat-above-consensus is a market-rank signal, not a player trend, and the copy should say so.
-- **R15 — New DEVELOPING tag for first-year players (implements R6's rookie gate).** Rookies below their dynasty consensus get DEVELOPING (neutral-to-positive framing, cites the dynasty discount) instead of FADING/CRATERING, unless production is also collapsing in absolute terms. CRATERING then stays exclusively for established players (Gradey Dick, Kolek), where it's excellent. Cooper Flagg's CLIMBING card is the template for what a rookie card should feel like.
-- **R16 — "WASHED" as a stricter tier above AGE DECLINE (not a rename).** Straight renaming aging-decline → WASHED is risky while the tag still misfires (Turner triggered on 0.68→0.68; Nurkić/Anderson while rebounding) and while ~half its cohort still outproduces consensus (DeRozan +88 spots, McCollum #79 in the playoffs) — "washed" reads as "worthless now" and would contradict the card's own numbers. Instead: **R7 (epsilon + recency) is a prerequisite**, then split the tier — ⏳ AGE DECLINE stays for decliners who are still assets (DeRozan, Klay, Draymond); **WASHED** requires age ≥ 33 AND three consecutive real declines (≥ 0.05 Minus1V each) AND current production below ~#250. In this sample that tier is roughly Conley/Capela-type cases where nobody would argue.
-- **R17 — (Optional, copy-only) REGRESSING copy split.** Distinguish "cooling off a hot start" (Barlow, Porter Jr., Huerter — often career-best seasons) from "genuinely declining" (Patrick Williams) in the blurb wording, without adding a new tag. Heuristic: if season-long value ≥ both prior seasons', use the hot-start framing.
+- **R15 — New DEVELOPING tag for first-year players (implements R6's rookie gate).** Rookies below their dynasty consensus get DEVELOPING (neutral-to-positive framing, cites the dynasty discount) instead of FADING/TANKING, unless production is also collapsing in absolute terms. TANKING then stays exclusively for established players (Gradey Dick, Kolek), where it's excellent. Cooper Flagg's CLIMBING card is the template for what a rookie card should feel like.
+- **R16 — "WASHED" as a stricter tier above AGEING (not a rename).** Straight renaming aging-decline → WASHED is risky while the tag still misfires (Turner triggered on 0.68→0.68; Nurkić/Anderson while rebounding) and while ~half its cohort still outproduces consensus (DeRozan +88 spots, McCollum #79 in the playoffs) — "washed" reads as "worthless now" and would contradict the card's own numbers. Instead: **R7 (epsilon + recency) is a prerequisite**, then split the tier — ⏳ AGEING stays for decliners who are still assets (DeRozan, Klay, Draymond); **WASHED** requires age ≥ 33 AND three consecutive real declines (≥ 0.05 Minus1V each) AND current production below ~#250. In this sample that tier is roughly Conley/Capela-type cases where nobody would argue.
+- **R17 — (Optional, copy-only) SINKING copy split.** Distinguish "cooling off a hot start" (Barlow, Porter Jr., Huerter — often career-best seasons) from "genuinely declining" (Patrick Williams) in the blurb wording, without adding a new tag. Heuristic: if season-long value ≥ both prior seasons', use the hot-start framing.
 
 ### 3.2 Per-player tag re-calibrations
 
