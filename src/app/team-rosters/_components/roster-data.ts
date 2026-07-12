@@ -132,6 +132,7 @@ export const TEAMS: Team[] = [
   { abbr: "TOR", name: "Toronto Raptors" },
   { abbr: "UTA", name: "Utah Jazz" },
   { abbr: "WAS", name: "Washington Wizards" },
+  { abbr: "UFA", name: "NBA Free Agents" },
 ];
 
 // Team wordmark/logo files, seeded from public/images/nba team images/ (filenames

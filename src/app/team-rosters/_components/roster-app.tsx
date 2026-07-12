@@ -1102,6 +1102,33 @@ export function RosterApp({
               No players match your filter. Clear the search to see the full roster.
             </div>
           )}
+
+          <section
+            aria-label="About NBA team rosters"
+            style={{ flexShrink: 0, padding: "40px 4px 8px", maxWidth: 860, color: "var(--rt-muted)", fontSize: 13, lineHeight: 1.7 }}
+          >
+            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: "var(--rt-body)" }}>
+              About NBA Team Rosters
+            </h2>
+            <p>
+              Each team page pairs the current active roster with dynasty consensus rank, salary and
+              contract terms, and per-player 9-category fantasy value (9CatV, Minus1V, 8CatV) — so you
+              can see how a team&apos;s real assets stack up as fantasy assets in one place, not spread
+              across three tools.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              Trend tags (Climbing, Sinking, Tanking, Acing, and the rest) compare a player&apos;s
+              rolling 20-week fantasy value against his dynasty consensus rank, flagging players
+              trending meaningfully above or below where experts have them ranked. Tap a player for
+              game logs, category breakdowns, and full contract-year detail; use Build a trade to
+              compare multiple players&apos; dynasty value side by side.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              Rosters, salaries, and stats are drawn from real box-score data and updated as trades,
+              signings, and contract options are reported — a team missing a recent move reflects a
+              pending data update, not a permanent gap.
+            </p>
+          </section>
         </div>
       </div>
 
