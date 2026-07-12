@@ -386,16 +386,30 @@ async function upsert(
       season: ds.season,
       season_type: ds.type,
       name,
-      // Team priority:
-      // 1. Consensus (current season only) — catches traded-but-didn't-play cases
-      //    like a player moved at the deadline who never suited up for the new team.
-      // 2. Last game log team — the team they actually finished the season with.
-      // 3. nba_players snapshot — final fallback when neither source has data.
-      // Historical seasons skip (1) because the consensus reflects today's roster,
-      // not where a player finished that season.
-      team: (ds.season === GATE.season
-        ? (consensus.get(normalizeName(name))?.team ?? null)
-        : null) ?? lastGameTeam.get(s.playerId) ?? meta?.team ?? null,
+      // Team priority — player cat values always shows the team a player
+      // actually accumulated that season's stats with, never today's roster:
+      // 1. Last game log team — the team they actually finished the season
+      //    with. This must win whenever it exists; a player's current/dynasty
+      //    team can differ (trade, free agency, waiver) without that season's
+      //    box scores changing which team they were on when they were played.
+      // 2. nba_players snapshot — fallback for a player with zero game logs
+      //    that season (e.g. injured all year).
+      // 3. Consensus (current season only) — last resort only, for a player
+      //    with no game logs AND no nba_players team on file (e.g. moved at
+      //    the trade deadline and never suited up for either team that
+      //    season). Historical seasons skip this because the consensus
+      //    reflects today's roster, not where a player finished that season.
+      //
+      // PREVIOUSLY consensus was checked first for the current season, which
+      // meant any player whose current team differs from where they actually
+      // played (Nic Claxton BKN->CHI, Norman Powell MIA->CHI, Walker Kessler
+      // UTA->LAL, Rui Hachimura LAL->LAC, Cole Anthony's ORL/MIL mismatch)
+      // had their real season team silently overwritten by their current
+      // roster team. Team-rosters and dynasty-rankings are the right place
+      // for "current team" — this table is specifically the season's stats.
+      team: lastGameTeam.get(s.playerId)
+        ?? meta?.team
+        ?? (ds.season === GATE.season ? (consensus.get(normalizeName(name))?.team ?? null) : null),
       // Consensus position wins when the player is ranked; else fall back to the
       // nba_players position. (Item 2.)
       position: cons?.position ?? pos5(meta?.position ?? null),
