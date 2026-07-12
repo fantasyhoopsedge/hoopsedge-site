@@ -95,7 +95,7 @@
   --bg-card-hover: #f7f7f5;
   --dr-row: #ffffff;
   --dr-row-alt: #f7f7f5;
-  --bg-nav: rgba(10, 18, 48, 0.96);
+  --bg-nav: #ffffff;
   --bg-ticker: #E0E7FF;
   --border-main: #e3e3dd;
   --border-light: #edeeea;
@@ -312,14 +312,12 @@ nav {
   font-size: 12px;
   line-height: 1;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
-
-/* nav-info-strip stays white — nav bg is dark in both themes */
 
 /* ===== HERO ===== */
 .hero {
@@ -1590,6 +1588,84 @@ body:has(.dr-rankings-shell) {
 
   .dr-rankings-shell col.dr-col-cg-avg {
     width: 44px !important;
+  }
+
+  /* The RANK/"#" and "AVG RANK"/"AVG" short-label swaps below normally only
+     apply inside the max-width:767px block — but a landscape phone is often
+     WIDER than 767px once rotated, so without repeating the swap here the
+     columns above get squeezed to 24-44px while still showing the long text
+     ("RANK", "AVG RANK"), truncating it (found via header-overflow audit at
+     812px width: RANK needed 28px in a 24px cell, AVG RANK needed 58px in a
+     44px cell). */
+  .dr-rankings-shell .dr-th-rank-long,
+  .dr-rankings-shell .dr-th-avg-long {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-th-rank-short,
+  .dr-rankings-shell .dr-th-avg-short {
+    display: inline;
+  }
+
+  /* Age carries .dr-desktop-only and .dr-col-age-responsive — both plain
+     single-class "hide below 767px/1023px" rules. The compound
+     .dr-rankings-shell selector below outranks them regardless of source
+     order, so Age stays visible here even when a landscape phone also
+     happens to be <=767px wide. (Tier carries the same .dr-desktop-only
+     class but is deliberately left OUT of the landscape column set — see
+     showTierColumn in rankings-table.tsx — so it needs no override here.) */
+  .dr-rankings-shell .dr-table-head th.dr-col-age,
+  .dr-rankings-shell .dr-table tbody td.dr-col-age {
+    display: table-cell;
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-age {
+    width: 32px !important;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-vscons,
+  .dr-rankings-shell .dr-table tbody td.dr-col-vscons {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    padding: 4px 2px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-vscons {
+    width: 34px !important;
+  }
+
+  /* Sized generously (measured need + real margin) rather than the tightest
+     possible fit — DIZZLE/ANGLE/MBALL alone need ~30px, but whichever one is
+     the active sort also carries a sort-arrow glyph (SortArrow), measured up
+     to 47px for "ANGLE↑". A few extra px of horizontal scroll is an
+     acceptable trade for headers that never clip regardless of sort state. */
+  .dr-rankings-shell .dr-th-expert,
+  .dr-rankings-shell .dr-td-expert {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    padding: 4px 1px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-expert {
+    width: 50px !important;
+  }
+
+  /* HASHTAG/DYNATYZE (7-8 chars) measured 42-44px alone, more with an active
+     sort arrow — same margin-over-measured approach as the narrow columns. */
+  .dr-rankings-shell .dr-th-expert.dr-col-w-hashtag,
+  .dr-rankings-shell .dr-td-expert.dr-col-w-hashtag {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-expert-wide {
+    width: 60px !important;
   }
 }
 
@@ -3350,32 +3426,19 @@ body:has(.dr-rankings-shell) {
 }
 
 /* ===== LIGHT MODE COMPONENT OVERRIDES =====
-   Nav is dark navy in light mode — white text applies everywhere.
-   Content areas use blue-tinted backgrounds.
+   Content areas use blue-tinted backgrounds. Nav now matches team-rosters'
+   own light-mode header (white bg, dark text via --bg-nav/--text-primary/
+   --text-secondary, all already theme-aware) instead of the old "nav stays
+   dark navy in light mode, white text everywhere" treatment — the forced-
+   white .nav-brand/.nav-links/.theme-toggle overrides that used to live
+   here are gone; the base rules (site-nav.tsx's <style> block + the shared
+   .nav-brand/.nav-links a/.theme-toggle rules above) already read the
+   correct light-theme tokens once the nav background itself isn't dark.
 */
 
 /* Sticky table header: override hardcoded dark bg */
 [data-theme="light"] .dr-table-head th {
   background-color: var(--bg-surface);
-}
-
-/* Nav: dark navy bg — override base text/border to white at all viewports */
-[data-theme="light"] .nav-brand {
-  color: rgba(255, 255, 255, 0.95);
-}
-[data-theme="light"] .nav-links a {
-  color: rgba(255, 255, 255, 0.72);
-}
-[data-theme="light"] .nav-links a:hover {
-  color: #ffffff;
-}
-[data-theme="light"] .theme-toggle {
-  border-color: rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.7);
-}
-[data-theme="light"] .theme-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #ffffff;
 }
 
 /* Player avatar: was blue-tinted in light mode, now orange to match brand */

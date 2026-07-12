@@ -243,7 +243,7 @@ export function SiteNav(props: {
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
           <img
             className="nav-brand-full"
-            src="/brand/logo-wordmark-on-dark.svg"
+            src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
             alt="Fantasy Hoops Edge"
             style={{ height: BRAND_LOGO_HEIGHT, width: "auto" }}
           />
@@ -437,7 +437,7 @@ export function SiteNav(props: {
         .nav-dropdown-trigger {
           background: none; border: none; cursor: pointer; padding: 0;
           font-family: 'Oswald', sans-serif; font-weight: 500; font-size: 13px;
-          letter-spacing: 2px; text-transform: uppercase; color: #ffffff;
+          letter-spacing: 2px; text-transform: uppercase; color: var(--text-primary);
           display: inline-flex; align-items: center; gap: 5px; transition: color 0.3s;
         }
         .nav-dropdown-trigger:hover { color: var(--edge-orange); }
@@ -461,11 +461,13 @@ export function SiteNav(props: {
           color: var(--text-secondary); text-decoration: none; transition: background 0.2s, color 0.2s;
         }
         .nav-dropdown-menu a:hover { background: var(--bg-card-hover); color: var(--text-primary); }
-        /* Light mode: render dropdown links in the navy used by the nav bar.
-           High specificity so it wins over the faded/mobile .nav-links a rules. */
+        /* Light mode: the dropdown menu's own background (--bg-surface) is
+           light regardless of the top bar's color, so its links need dark
+           text — high specificity so it wins over the faded/mobile
+           .nav-links a rules. */
         [data-theme="light"] .nav-links li.nav-dropdown .nav-dropdown-menu a,
         [data-theme="light"] .nav-links li.nav-dropdown .nav-dropdown-menu a:hover { color: #0a1230; }
-        .nav-arena a { color: #ffffff; }
+        .nav-arena a { color: var(--text-primary); }
         .nav-arena a:hover { color: var(--edge-orange); }
 
         /* ── User menu ───────────────────────────────────────────────────── */

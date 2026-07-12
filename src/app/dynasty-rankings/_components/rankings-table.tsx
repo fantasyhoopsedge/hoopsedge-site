@@ -200,6 +200,13 @@ export function RankingsTable(props: {
   const [visibleCount, setVisibleCount] = useState(50);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Phone in landscape (keyed on height + orientation, matching the
+  // @media (max-height: 480px) and (orientation: landscape) CSS block in
+  // globals.css) gets the full column set — Age/Tier/Vs Cons/all 5 expert
+  // panels — instead of the reduced portrait set, since there's horizontal
+  // room even though width alone (often >767px rotated) can't tell portrait
+  // and landscape apart.
+  const [isLandscape, setIsLandscape] = useState(false);
 
   const sorted = useMemo(() => {
     const out = [...rows];
@@ -219,6 +226,14 @@ export function RankingsTable(props: {
     updateIsMobile();
     window.addEventListener("resize", updateIsMobile);
     return () => window.removeEventListener("resize", updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-height: 480px) and (orientation: landscape)");
+    const sync = () => setIsLandscape(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
   }, []);
 
   const shown = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
@@ -279,11 +294,17 @@ export function RankingsTable(props: {
   const mobileExpertMode = isMobile && expertMode;
 
   const showAvatarColumn = !isMobile;
+  // Position already shows inline next to the name on mobile (the small
+  // badge in the player cell), so its dedicated column stays desktop-only
+  // regardless of orientation — Age/Vs Cons/experts have no such inline
+  // fallback, so landscape restores them. Tier is deliberately left OUT of
+  // landscape (even though it has room like Age does) — dropping it gives
+  // the expert-rank columns more breathing room in an already-tight row.
   const showPosColumn = !isMobile;
-  const showAgeColumn = !isMobile;
-  const showTierColumn = !isMobile;
-  const showVsConsColumn = !isMobile || expertMode;
-  const showExpertColumns = !isMobile;
+  const showAgeColumn = !isMobile || isLandscape;
+  const showTierColumn = !isMobile && !isLandscape;
+  const showVsConsColumn = !isMobile || isLandscape || expertMode;
+  const showExpertColumns = !isMobile || isLandscape;
 
   const consensusAvgSortActive = !activeExpertKey && sortKey === "avgRank";
 
@@ -324,7 +345,13 @@ export function RankingsTable(props: {
             {showTierColumn ? <col className="dr-col-cg-tier" style={{ width: 60 }} /> : null}
             {showVsConsColumn ? <col className="dr-col-cg-vscons" style={{ width: 80 }} /> : null}
             {showExpertColumns
-              ? EXPERT_ORDER.map((e) => <col key={e.key} style={{ width: e.wide ? 75 : 65 }} />)
+              ? EXPERT_ORDER.map((e) => (
+                  <col
+                    key={e.key}
+                    className={e.wide ? "dr-col-cg-expert-wide" : "dr-col-cg-expert"}
+                    style={{ width: e.wide ? 75 : 65 }}
+                  />
+                ))
               : null}
           </colgroup>
           <thead className="dr-table-head">
@@ -371,7 +398,11 @@ export function RankingsTable(props: {
               ) : null}
               {showVsConsColumn ? (
                 <th scope="col" className="dr-th dr-col-vscons dr-th-vscons-head">
-                  {mobileExpertMode ? "VS" : "VS CONS"}
+                  {/* Landscape shows this column at the same narrow width as
+                      mobile+expert mode (34px) — "VS CONS" only fits at the
+                      full desktop width, so use the same short form whenever
+                      the column itself is narrow, not just in that one case. */}
+                  {isMobile || isLandscape ? "VS" : "VS CONS"}
                 </th>
               ) : null}
               {showExpertColumns
