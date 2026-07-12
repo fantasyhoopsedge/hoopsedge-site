@@ -110,20 +110,31 @@ export function RosterApp({
   const router = useRouter();
 
   const [selectedId, setSelectedId] = useState(players[0]?.id ?? "");
-  // Position/status filter pills are multi-select (toggle on/off, OR'd
-  // together) rather than single-select — "all" is a special value that
-  // means "no specific filter," auto-restored whenever the last specific
-  // filter is deselected, and cleared the moment any specific filter is picked.
-  const [posFilters, setPosFilters] = useState<Set<string>>(new Set(["all"]));
+  // Position and class are two INDEPENDENT multi-select filter groups, ANDed
+  // together — Guards + Rookies shows rookie guards, not all guards plus all
+  // rookies. Each group is itself an OR (Guards + Forwards shows either).
+  // Empty set = no filter within that group ("all").
+  const [posFilters, setPosFilters] = useState<Set<string>>(new Set());
+  const [classFilters, setClassFilters] = useState<Set<string>>(new Set());
   function togglePosFilter(id: string) {
     setPosFilters((prev) => {
-      if (id === "all") return new Set(["all"]);
       const next = new Set(prev);
-      next.delete("all");
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      return next.size === 0 ? new Set(["all"]) : next;
+      return next;
     });
+  }
+  function toggleClassFilter(id: string) {
+    setClassFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  function clearAllFilters() {
+    setPosFilters(new Set());
+    setClassFilters(new Set());
   }
   const [mode, setMode] = useState<SeasonMode | null>(null);
   const [q, setQ] = useState("");
@@ -141,6 +152,15 @@ export function RosterApp({
       selectedTeamBtnRef.current?.scrollIntoView({ block: "center", behavior: "instant" });
     }
   }, [teamMenuOpen]);
+  // Detail panel now stays mounted (see the aside render below) so the
+  // ROSTER LIST's own scroll position survives opening/closing it — but that
+  // means the detail panel's scroll would otherwise persist too, showing the
+  // previous player's scroll depth when a new one is opened. Reset it to the
+  // top on every player switch, same as its old mount-fresh behavior.
+  const detailPanelRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    detailPanelRef.current?.scrollTo({ top: 0 });
+  }, [selectedId]);
   // Mobile has no room for the list+detail split — the detail panel becomes
   // a full-screen view you navigate into (see the aside render below) rather
   // than a persistent 392px rail, so track whether it's currently showing.
@@ -234,21 +254,23 @@ export function RosterApp({
     return "middle of the pack, age-wise";
   })();
 
-  const posFilterDefs = [
-    { id: "all", label: "All players" },
+  const positionFilterDefs = [
     { id: "G", label: "Guards" },
     { id: "F", label: "Forwards" },
     { id: "C", label: "Centers" },
+  ];
+  const classFilterDefs = [
     { id: "rook", label: "Rookies" },
     { id: "soph", label: "Sophomores" },
+    { id: "vet", label: "Veterans" },
   ];
+  const classOf = (p: Player): "rook" | "soph" | "vet" => (p.tag === "rookie" ? "rook" : p.tag === "soph" ? "soph" : "vet");
 
   let list = players.filter((p) => {
-    const posOk =
-      posFilters.has("all") ||
-      Array.from(posFilters).some((id) => (id === "rook" ? p.tag === "rookie" : id === "soph" ? p.tag === "soph" : p.group === id));
+    const posOk = posFilters.size === 0 || posFilters.has(p.group);
+    const classOk = classFilters.size === 0 || classFilters.has(classOf(p));
     const qOk = !qLower || p.name.toLowerCase().includes(qLower);
-    return posOk && qOk;
+    return posOk && classOk && qOk;
   });
 
   if (colSort) {
@@ -426,8 +448,12 @@ export function RosterApp({
     <>
     <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex" }}>
       {/* ================= MAIN COLUMN ================= */}
-      {(!isMobile || !mobileDetailOpen) && (
-      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: "flex", flexDirection: "column" }}>
+      {/* Always mounted (hidden via display:none on mobile when the detail
+          panel is open) rather than conditionally unmounted — the roster
+          list's scroll position lives on this DOM node's overflow:auto, so
+          unmounting it on every player tap reset the scroll to the top on
+          return. display:none preserves scrollTop across the toggle. */}
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: isMobile && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
@@ -690,8 +716,27 @@ export function RosterApp({
 
           {/* Position filters */}
           <div style={{ flexShrink: 0, display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
-              {posFilterDefs.map((pf) => {
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
+              <button
+                type="button"
+                onClick={clearAllFilters}
+                style={{
+                  flexShrink: 0,
+                  padding: isMobile ? "7px 12px" : "9px 18px",
+                  border: "none",
+                  cursor: "pointer",
+                  borderRadius: 999,
+                  fontFamily: "var(--rt-font-sans)",
+                  fontSize: isMobile ? 12.5 : 14,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  background: posFilters.size === 0 && classFilters.size === 0 ? "var(--rt-ink)" : "var(--rt-surface-strong)",
+                  color: posFilters.size === 0 && classFilters.size === 0 ? "var(--rt-canvas)" : "var(--rt-body)",
+                }}
+              >
+                All players
+              </button>
+              {positionFilterDefs.map((pf) => {
                 const on = posFilters.has(pf.id);
                 return (
                   <button
@@ -700,12 +745,12 @@ export function RosterApp({
                     onClick={() => togglePosFilter(pf.id)}
                     style={{
                       flexShrink: 0,
-                      padding: "9px 18px",
+                      padding: isMobile ? "7px 12px" : "9px 18px",
                       border: "none",
                       cursor: "pointer",
                       borderRadius: 999,
                       fontFamily: "var(--rt-font-sans)",
-                      fontSize: 14,
+                      fontSize: isMobile ? 12.5 : 14,
                       fontWeight: 600,
                       whiteSpace: "nowrap",
                       background: on ? "var(--rt-ink)" : "var(--rt-surface-strong)",
@@ -713,6 +758,36 @@ export function RosterApp({
                     }}
                   >
                     {pf.label}
+                  </button>
+                );
+              })}
+              {/* Thin divider between the position group and the class group —
+                  they're independent (ANDed) filters, not one flat list. Hidden
+                  on mobile, where the pills wrap onto their own rows anyway and
+                  a 1px bar reads as a stray mark rather than a separator. */}
+              {!isMobile && <span style={{ width: 1, alignSelf: "stretch", background: "var(--rt-hairline)", flexShrink: 0 }} />}
+              {classFilterDefs.map((cf) => {
+                const on = classFilters.has(cf.id);
+                return (
+                  <button
+                    key={cf.id}
+                    type="button"
+                    onClick={() => toggleClassFilter(cf.id)}
+                    style={{
+                      flexShrink: 0,
+                      padding: isMobile ? "7px 12px" : "9px 18px",
+                      border: "none",
+                      cursor: "pointer",
+                      borderRadius: 999,
+                      fontFamily: "var(--rt-font-sans)",
+                      fontSize: isMobile ? 12.5 : 14,
+                      fontWeight: 600,
+                      whiteSpace: "nowrap",
+                      background: on ? "var(--rt-ink)" : "var(--rt-surface-strong)",
+                      color: on ? "var(--rt-canvas)" : "var(--rt-body)",
+                    }}
+                  >
+                    {cf.label}
                   </button>
                 );
               })}
@@ -1029,14 +1104,17 @@ export function RosterApp({
           )}
         </div>
       </div>
-      )}
 
       {/* ================= DETAIL PANEL ================= */}
-      {(!isMobile || mobileDetailOpen) && (
+      {/* Also always mounted on mobile now (display:none when closed) for the
+          same reason as the main column above — and so its own scroll
+          resets to the top fresh each time a NEW player is opened (handled
+          by the effect below), rather than keeping a stale unmount/remount. */}
       <aside
+        ref={detailPanelRef}
         style={
           isMobile
-            ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto" }
+            ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
             : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
@@ -1331,7 +1409,6 @@ export function RosterApp({
           )}
         </div>
       </aside>
-      )}
     </div>
     {sortProjLocked && (
       <div
