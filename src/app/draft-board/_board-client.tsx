@@ -169,6 +169,7 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
   }
 
   const { color: tierColor } = tierInfo(player.tier, tiers);
+  const heroLogo = player.nbaTeam ? TEAM_LOGO[ROOKIE_TEAM_ALIAS[player.nbaTeam] ?? player.nbaTeam] : undefined;
 
   return (
     <div
@@ -188,34 +189,51 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
           onClick={onClose}
           style={{
             position: "absolute", top: 14, right: 14, zIndex: 10,
-            background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
-            color: "white", borderRadius: "50%",
+            background: "color-mix(in srgb, var(--text-primary) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--text-primary) 15%, transparent)",
+            color: "var(--text-primary)", borderRadius: "50%",
             width: 30, height: 30, cursor: "pointer",
             fontFamily: "'JetBrains Mono', monospace", fontSize: 13,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >✕</button>
 
-        {/* Hero */}
+        {/* Hero — background is var(--bg-nav), which flips to white in light
+            mode, so every text/overlay color in here must be theme-aware too
+            (previously hardcoded white/rgba-white, invisible on the light-mode
+            white hero). */}
         <div style={{
           background: "var(--bg-nav)", position: "relative",
           overflow: "hidden", padding: "26px 26px 22px",
           borderRadius: "16px 16px 0 0",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "1px solid var(--border-main)",
         }}>
           {/* Subtle corner glow, replaces the old clipped watermark text */}
           <div aria-hidden style={{
             position: "absolute", right: -40, top: -40,
             width: 140, height: 140, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(255,255,255,0.07), transparent 70%)",
+            background: "radial-gradient(circle, color-mix(in srgb, var(--text-primary) 7%, transparent), transparent 70%)",
             pointerEvents: "none",
           }} />
+
+          {/* NBA team logo watermark — same faded corner-flourish treatment as
+              the team-rosters single-player hero (roster-app.tsx). */}
+          {heroLogo && (
+            // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/, sized as a background flourish
+            <img
+              src={`/images/nba%20team%20images/${heroLogo}`}
+              alt=""
+              width={150}
+              height={150}
+              style={{ position: "absolute", top: -20, right: -14, width: 150, height: 150, objectFit: "contain", opacity: 0.14, pointerEvents: "none", userSelect: "none" }}
+            />
+          )}
 
           {/* Breadcrumb */}
           <div style={{
             fontFamily: "'Oswald', sans-serif", fontSize: 9,
             letterSpacing: 1.5, textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)", marginBottom: 18,
+            color: "var(--text-muted)", marginBottom: 18,
             position: "relative", whiteSpace: "nowrap",
           }}>
             2026 ROOKIE BOARD · PICK {player.pick}
@@ -241,22 +259,17 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
               <div style={{
                 fontFamily: "'Oswald', sans-serif", fontWeight: 700,
                 fontSize: 19, textTransform: "uppercase",
-                letterSpacing: 0.3, color: "white", lineHeight: 1.18,
+                letterSpacing: 0.3, color: "var(--text-primary)", lineHeight: 1.18,
                 marginBottom: 8, wordBreak: "break-word",
               }}>
                 {player.name}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                 {positionBadge(player.pos)}
-                <span style={{
-                  fontFamily: "'Oswald', sans-serif", fontSize: 10.5,
-                  letterSpacing: 1.5, textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.6)",
-                }}>{player.nbaTeam}</span>
                 {player.ht && (
                   <span style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    fontSize: 10, color: "rgba(255,255,255,0.35)",
+                    fontSize: 10, color: "var(--text-muted)",
                   }}>{player.ht}</span>
                 )}
                 {age != null && (
@@ -271,7 +284,7 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
                   <MovementChip m={movement} />
                   <span style={{
                     fontFamily: "'Oswald', sans-serif", fontSize: 10.5,
-                    letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.55)",
+                    letterSpacing: 1, textTransform: "uppercase", color: "var(--text-secondary)",
                   }}>
                     {movement.isNew
                       ? "New this version"

@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "arena" | "ai-assistant";
+// "profile" doesn't match any NAV_ITEMS key by design — the account/settings
+// page isn't one of the main content sections, so nothing in the rail should
+// highlight while it's active.
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -131,8 +134,34 @@ export function AppSidebar({
   theme: "light" | "dark";
   onToggleTheme: (next: "light" | "dark") => void;
 }) {
-  const { user, profile, openSignUp } = useAuth();
+  const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const displayName = profile?.username ?? user?.email?.split("@")[0] ?? "Guest";
+
+  // Show the rookie-board editor link to admins (and always on localhost) —
+  // same check as site-nav.tsx's UserMenu / team-rosters-shell.tsx's mobile
+  // menu, so this sidebar (the desktop nav on every rebranded page) has the
+  // same admin-tool visibility those already have.
+  const [isBoardAdmin, setIsBoardAdmin] = useState(false);
+  useEffect(() => {
+    if (!user || !supabase) {
+      setIsBoardAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const sb = supabase as unknown as { rpc(fn: string): Promise<{ data: boolean | null }> };
+        const { data } = await sb.rpc("is_rb_admin");
+        if (!cancelled) setIsBoardAdmin(Boolean(data));
+      } catch {
+        if (!cancelled) setIsBoardAdmin(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, supabase]);
+  const showBoardEditor = process.env.NODE_ENV !== "production" || isBoardAdmin;
 
   return (
     <aside
@@ -206,6 +235,30 @@ export function AppSidebar({
           <div key={item.key}>{row}</div>
         );
       })}
+
+      {showBoardEditor && (
+        <Link href="/admin/rookie-board" style={{ textDecoration: "none" }} title="Rookie board editor (admins only)">
+          <div
+            className="rt-hover-surface"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 12px",
+              borderRadius: 10,
+              color: "var(--rt-primary)",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            </svg>
+            <span style={{ whiteSpace: "nowrap" }}>Board Editor</span>
+          </div>
+        </Link>
+      )}
 
       <div style={{ marginTop: "auto", padding: "8px 6px 0" }}>
         <a
@@ -296,26 +349,56 @@ export function AppSidebar({
         }}
       >
         {user ? (
-          <Link
-            href="/profile"
-            className="rt-hover-surface"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "6px 6px",
-              borderRadius: 10,
-              textDecoration: "none",
-            }}
-          >
-            <SidebarAvatar src={profile?.avatar_url ?? null} name={displayName} size={32} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {displayName}
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Link
+              href="/profile"
+              className="rt-hover-surface"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "6px 6px",
+                borderRadius: 10,
+                textDecoration: "none",
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              <SidebarAvatar src={profile?.avatar_url ?? null} name={displayName} size={32} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {displayName}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>View profile</div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>View profile</div>
-            </div>
-          </Link>
+            </Link>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              aria-label="Sign out"
+              title="Sign out"
+              className="rt-hover-surface"
+              style={{
+                flex: "0 0 auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 32,
+                height: 32,
+                border: "none",
+                background: "none",
+                borderRadius: 10,
+                color: "var(--rt-muted)",
+                cursor: "pointer",
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
         ) : (
           <button
             type="button"
