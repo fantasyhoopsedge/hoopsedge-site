@@ -29,12 +29,16 @@ export function PlayerQuickViewModal({
   loading,
   error,
   onClose,
+  onCompare,
   isMobile,
 }: {
   player: Player | null;
   loading: boolean;
   error: string | null;
   onClose: () => void;
+  /** Opens the shared 4-player CompareModal prefilled with this card's
+   * player — omit to hide the button (e.g. contexts with no compare tool). */
+  onCompare?: () => void;
   isMobile: boolean;
 }) {
   const [mode, setMode] = useState<SeasonMode>("cur");
@@ -83,6 +87,27 @@ export function PlayerQuickViewModal({
               </button>
             ))}
           </div>
+          {onCompare && (
+            <button
+              type="button"
+              onClick={onCompare}
+              disabled={!player}
+              style={{
+                padding: "6px 14px",
+                border: "none",
+                cursor: player ? "pointer" : "default",
+                opacity: player ? 1 : 0.5,
+                borderRadius: 999,
+                background: "var(--rt-primary)",
+                color: "var(--rt-on-primary)",
+                fontFamily: "var(--rt-font-sans)",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              Compare
+            </button>
+          )}
           <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
             {MODE_DEFS.map((m) => (
               <button

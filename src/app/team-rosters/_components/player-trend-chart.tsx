@@ -213,7 +213,24 @@ export function TrendHero({
   return (
     <div style={{ marginTop: compact ? 10 : 16, paddingTop: compact ? 10 : 16, borderTop: "1px solid var(--rt-hero-hairline)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "flex-end", gap: compact ? 14 : 26 }}>
+        <div
+          style={
+            compact
+              ? // Fixed-width value/arrow slots (above) make each block's own
+                // footprint constant regardless of digit count or arrow
+                // presence — but the three blocks are still naturally
+                // different widths from each other (Rank's reserved arrow
+                // slot makes it wider than GP). A flat `gap` only evens out
+                // per-block variance, not that cross-block difference, so
+                // the GP→Rank gap still visibly differed from the Rank→
+                // Dynasty gap. `space-between` distributes the row's leftover
+                // space equally regardless of each block's width, and since
+                // every block's width is now constant, that leftover — and
+                // therefore both gaps — comes out identical, every card.
+                { display: "flex", width: "100%", justifyContent: "space-between", alignItems: "flex-end" }
+              : { display: "flex", alignItems: "flex-end", gap: 26 }
+          }
+        >
           {isProj ? (
             <div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink-soft)" }}>—</div>
@@ -224,33 +241,53 @@ export function TrendHero({
           ) : (
             <>
               <div>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{modeStat.gp ?? "—"}</div>
-                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Games played</div>
+                {/* Fixed width (not just font-size) so this number's box is the
+                    same size whether GP is 1 or 2 digits — otherwise a 1-digit
+                    GP left less trailing space before the rank block than a
+                    2-digit GP, and the gap between blocks visibly shrank/grew
+                    from card to card and row to row. GP tops out at 82 (an NBA
+                    season), so 2 digits always covers it. */}
+                <div style={{ width: compact ? 24 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{modeStat.gp ?? "—"}</div>
+                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? "GP" : "Games played"}</div>
               </div>
               <div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
-                  <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                  <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
                     {modeStat.rank != null ? "#" + modeStat.rank : "—"}
                   </span>
-                  {showArrow && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700, color: arrow >= 0 ? "var(--rt-up)" : "var(--rt-down)" }}>
-                      <span style={{ fontSize: 9 }}>{arrow >= 0 ? "▲" : "▼"}</span>
-                      {Math.abs(arrow)}
-                    </span>
-                  )}
+                  {/* Always takes up the same slot (visibility, not
+                      conditional rendering) so a player with no rank change
+                      doesn't leave the Dynasty block's gap looking bigger than
+                      a player with a two-digit ▲/▼ delta — the arrow badge's
+                      own footprint is now constant whether it's shown or not. */}
+                  <span
+                    style={{
+                      width: compact ? 26 : undefined,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 3,
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: showArrow ? (arrow >= 0 ? "var(--rt-up)" : "var(--rt-down)") : "transparent",
+                      visibility: showArrow ? "visible" : "hidden",
+                    }}
+                  >
+                    <span style={{ fontSize: 9 }}>{arrow != null && arrow >= 0 ? "▲" : "▼"}</span>
+                    {arrow != null ? Math.abs(arrow) : 0}
+                  </span>
                 </div>
-                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{metricLabel} rank</div>
+                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? metricLabel : `${metricLabel} rank`}</div>
               </div>
             </>
           )}
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+              <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
                 {consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
               </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>{caret(consensusDir)}</span>
+              <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 12 : undefined, fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>{caret(consensusDir)}</span>
             </div>
-            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>Dynasty rank</div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? "Dynasty" : "Dynasty rank"}</div>
           </div>
         </div>
       </div>

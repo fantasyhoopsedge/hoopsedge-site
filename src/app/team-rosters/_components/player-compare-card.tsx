@@ -156,48 +156,55 @@ export function PlayerCompareCard({
             </span>
           )}
         </div>
-        {mpgBar && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0 2px" }}>
-            <span style={{ width: 28, fontSize: 10, fontWeight: 600, color: "var(--rt-ink)" }}>MPG</span>
-            <span style={{ position: "relative", flex: 1, height: 6, background: "var(--rt-hairline-soft)", borderRadius: 999, overflow: "hidden" }}>
-              <span style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${mpgBar.widthPct}%`, background: mpgBar.color, borderRadius: 999 }} />
-            </span>
-            <span style={{ width: 44, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: mpgBar.color }}>
-              {displayMpg!.toFixed(1)}
-            </span>
-          </div>
-        )}
-        {profile.noData ? (
-          <div style={{ padding: "12px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 11, lineHeight: 1.4 }}>{profile.reason}</div>
-        ) : (
-          <div style={{ marginTop: 8 }}>
-            {profile.rows.map((row) => (
-              <div key={row.key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0" }}>
-                <span style={{ width: 28, fontSize: 10, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
-                <span style={{ position: "relative", flex: 1, height: 10 }}>
-                  <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
-                  {!projLocked && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        height: 6,
-                        left: row.bar.left,
-                        width: row.bar.width,
-                        background: row.color,
-                        borderRadius: 999,
-                      }}
-                    />
-                  )}
-                </span>
-                <span style={{ width: 44, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
-                  {projLocked ? "—" : row.stat}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* FIXED min-height (not just the noData message's own padding) so a
+            "Limited sample" card (e.g. Recent mode, <10 GP) reserves the same
+            vertical space as a full 9-row profile — otherwise the "Recent
+            shows..." footnote below lands right under the short message
+            instead of at the same Y as every other card in the row. */}
+        <div style={{ minHeight: 190, display: "flex", flexDirection: "column", justifyContent: profile.noData ? "center" : "flex-start" }}>
+          {mpgBar && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 0 2px" }}>
+              <span style={{ width: 28, fontSize: 10, fontWeight: 600, color: "var(--rt-ink)" }}>MPG</span>
+              <span style={{ position: "relative", flex: 1, height: 6, background: "var(--rt-hairline-soft)", borderRadius: 999, overflow: "hidden" }}>
+                <span style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${mpgBar.widthPct}%`, background: mpgBar.color, borderRadius: 999 }} />
+              </span>
+              <span style={{ width: 44, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: mpgBar.color }}>
+                {displayMpg!.toFixed(1)}
+              </span>
+            </div>
+          )}
+          {profile.noData ? (
+            <div style={{ padding: "12px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 11, lineHeight: 1.4 }}>{profile.reason}</div>
+          ) : (
+            <div style={{ marginTop: 8 }}>
+              {profile.rows.map((row) => (
+                <div key={row.key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "3px 0" }}>
+                  <span style={{ width: 28, fontSize: 10, fontWeight: 600, color: "var(--rt-ink)" }}>{row.label}</span>
+                  <span style={{ position: "relative", flex: 1, height: 10 }}>
+                    <span style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "var(--rt-hairline)" }} />
+                    {!projLocked && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          height: 6,
+                          left: row.bar.left,
+                          width: row.bar.width,
+                          background: row.color,
+                          borderRadius: 999,
+                        }}
+                      />
+                    )}
+                  </span>
+                  <span style={{ width: 44, textAlign: "right", fontFamily: "var(--rt-font-mono)", fontSize: 10, fontWeight: 700, color: projLocked ? "var(--rt-muted-soft)" : row.color }}>
+                    {projLocked ? "—" : row.stat}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         {mode === "recent" && (
           <div style={{ marginTop: 10, fontSize: 9, color: "var(--rt-muted)", lineHeight: 1.4 }}>
             Recent shows the trailing 8-week stat profile.

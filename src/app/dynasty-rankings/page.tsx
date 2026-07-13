@@ -7,6 +7,7 @@ import { ControlsBar, type ClassFilterKey, type RankRangeKey } from "./_componen
 import { RankingsTable, type SortKey } from "./_components/rankings-table";
 import { TierView } from "./_components/tier-view";
 import { PlayerQuickViewModal } from "@/app/team-rosters/_components/player-quickview-modal";
+import { CompareModal } from "@/app/team-rosters/_components/compare-modal";
 import type { Player } from "@/app/team-rosters/_components/roster-data";
 
 // Same alias/exception set as rankings-table.tsx's/tier-view.tsx's TeamCell —
@@ -14,6 +15,12 @@ import type { Player } from "@/app/team-rosters/_components/roster-data";
 // TEAMS abbreviations ("NOR"/"PHO" vs "NOP"/"PHX"), and "FA" isn't a real team.
 const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
 const NON_TEAM_VALUES = new Set(["FA"]);
+
+// Same shared compare tool as /team-rosters (up to 4 players, persisted in
+// sessionStorage under the identical key so the list survives navigating
+// between the two pages, not just opening/closing the modal).
+const MAX_COMPARE = 4;
+const COMPARE_STORAGE_KEY = "fhe-compare-players";
 
 // ── Version registry ─────────────────────────────────────────────────────────
 // To add a new version:
@@ -111,6 +118,48 @@ export default function DynastyRankingsPage() {
     error: null,
     player: null,
   });
+
+  // Compare modal: same shared tool/state pattern as roster-app.tsx.
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareList, setCompareList] = useState<Player[]>([]);
+  // The AddPlayerSlot picker needs a "current team" + its roster preloaded so
+  // it has something to show before the user touches the team dropdown — set
+  // to whichever player's card the compare tool was opened from.
+  const [compareTeam, setCompareTeam] = useState("");
+  const [compareTeamPlayers, setCompareTeamPlayers] = useState<Player[]>([]);
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(COMPARE_STORAGE_KEY);
+      if (stored) setCompareList(JSON.parse(stored));
+    } catch {
+      // sessionStorage unavailable or corrupt — start empty
+    }
+  }, []);
+  const updateCompareList = (next: Player[]) => {
+    setCompareList(next);
+    try {
+      sessionStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore — compare list just won't persist across navigation
+    }
+  };
+  const openCompare = (prefill?: Player) => {
+    setCompareOpen(true);
+    if (!prefill) return;
+    setCompareTeam(prefill.team);
+    fetch(`/api/team-rosters/${prefill.team}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Player[]) => setCompareTeamPlayers(data))
+      .catch(() => setCompareTeamPlayers([]));
+    if (compareList.length < MAX_COMPARE && !compareList.some((p) => p.id === prefill.id)) {
+      updateCompareList([...compareList, prefill]);
+    }
+  };
+  const addToCompare = (player: Player) => {
+    if (compareList.length >= MAX_COMPARE || compareList.some((p) => p.id === player.id)) return;
+    updateCompareList([...compareList, player]);
+  };
+  const removeFromCompare = (id: string) => updateCompareList(compareList.filter((p) => p.id !== id));
 
   // Sophomore status lives in nba_roster (runtime DB), not this page's build-time
   // dynasty-rankings.json bundle — see CLAUDE.md's data-provenance note. Fetched
@@ -404,9 +453,30 @@ export default function DynastyRankingsPage() {
           loading={quickView.loading}
           error={quickView.error}
           onClose={closeQuickView}
+          onCompare={
+            quickView.player
+              ? () => {
+                  const player = quickView.player!;
+                  closeQuickView();
+                  openCompare(player);
+                }
+              : undefined
+          }
           isMobile={isMobileNav}
         />
       ) : null}
+
+      {compareOpen && (
+        <CompareModal
+          currentTeam={compareTeam}
+          currentTeamPlayers={compareTeamPlayers}
+          players={compareList}
+          onAdd={addToCompare}
+          onRemove={removeFromCompare}
+          onClose={() => setCompareOpen(false)}
+          isMobile={isMobileNav}
+        />
+      )}
     </div>
   );
 }

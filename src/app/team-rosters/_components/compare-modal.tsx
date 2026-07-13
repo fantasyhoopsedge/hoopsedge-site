@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PRO_UNLOCKED, TEAMS, type Player, type SeasonMode } from "./roster-data";
 import { PlayerCompareCard } from "./player-compare-card";
 import { catOrderFor } from "./roster-helpers";
@@ -46,6 +46,16 @@ function AddPlayerSlot({
   // again before an in-flight request resolves, that stale response must
   // not clobber the roster with the wrong team's players.
   const requestId = useRef(0);
+
+  // Some host pages (e.g. dynasty-rankings, which has no single "current
+  // team" of its own) fetch currentTeamPlayers asynchronously right as the
+  // compare modal opens, so it can still be empty at this component's first
+  // render — the useState initializer above only runs once and would miss
+  // the data arriving later. Re-sync whenever it changes, as long as the
+  // picker hasn't since been switched to a different team.
+  useEffect(() => {
+    if (pickerTeam === currentTeam) setRoster(currentTeamPlayers);
+  }, [currentTeamPlayers, currentTeam, pickerTeam]);
 
   const loadTeam = async (team: string) => {
     const thisRequest = ++requestId.current;
