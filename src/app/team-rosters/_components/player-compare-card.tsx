@@ -140,6 +140,7 @@ export function PlayerCompareCard({
         isRookie={player.tag === "soph"}
         mode={mode}
         prefetched={trend}
+        tag={player.tag}
         compact
       />
 

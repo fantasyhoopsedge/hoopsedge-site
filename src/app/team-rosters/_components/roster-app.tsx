@@ -1249,6 +1249,7 @@ export function RosterApp({
               isRookie={sp.tag === "soph"}
               mode={modeNow}
               prefetched={spTrend}
+              tag={sp.tag}
             />
           )}
         </div>

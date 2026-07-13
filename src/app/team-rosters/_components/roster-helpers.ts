@@ -393,6 +393,7 @@ export function resolveModeStat(
   prior: ModeStatInput,
   priorPrior: ModeStatInput,
   recent: ModeStatInput | null,
+  tag?: "rookie" | "soph" | null,
 ): ResolvedModeStat {
   const arrow = (thisRank: number | null, anchor: ModeStatInput): number | null =>
     thisRank != null && anchor.rank != null && passesGate(anchor) ? anchor.rank - thisRank : null;
@@ -406,6 +407,10 @@ export function resolveModeStat(
   }
   if (mode === "prior") {
     if (!passesGate(prior)) {
+      // Rookies and sophomores weren't in the league in prior seasons.
+      if (tag === "rookie" || tag === "soph") {
+        return { gp: prior.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "No trend history yet", suffix: "prior season" };
+      }
       return { gp: prior.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "Limited sample — under 10 GP / 10 MPG that season", suffix: "prior season" };
     }
     // Compare the prior season against the season before it (2023-24).
@@ -413,6 +418,10 @@ export function resolveModeStat(
   }
   // current (default)
   if (!passesGate(cur)) {
+    // Rookies in their first season (current 2025-26) should show "No trend history yet".
+    if (tag === "rookie") {
+      return { gp: cur.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "No trend history yet", suffix: "season" };
+    }
     return { gp: cur.gp, rank: null, arrowDelta: null, gateOk: false, gateMessage: "Limited sample — under 10 GP / 10 MPG this season", suffix: "season" };
   }
   // Compare the full season just completed against the full prior season.

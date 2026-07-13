@@ -112,6 +112,7 @@ export function TrendHero({
   compact = false,
   mode = "cur",
   prefetched,
+  tag,
 }: {
   playerId: string;
   season: number;
@@ -148,6 +149,8 @@ export function TrendHero({
    * made, e.g. to also build a Recent-mode 9-cat profile) — skips this
    * component's own fetch so the two consumers share one request. */
   prefetched?: ReturnType<typeof usePlayerTrend>;
+  /** Player's tag (rookie or sophomore status) for determining trend messaging. */
+  tag?: "rookie" | "soph" | null;
 }) {
   const ownFetch = usePlayerTrend(playerId, season, seasonType, !!prefetched);
   const { data, notFound, loading, isSynthetic } = prefetched ?? ownFetch;
@@ -168,7 +171,7 @@ export function TrendHero({
   const recentInput: ModeStatInput | null = data?.recent
     ? { rank: recentRankOf(data.recent, metric), gp: data.recent.gamesPlayed, mpg: data.recent.mpg }
     : null;
-  const modeStat = resolveModeStat(mode, cur, prior, priorPrior, recentInput);
+  const modeStat = resolveModeStat(mode, cur, prior, priorPrior, recentInput, tag);
   const arrow = modeStat.arrowDelta;
   const showArrow = arrow != null && arrow !== 0;
 
@@ -255,24 +258,38 @@ export function TrendHero({
       {/* Caption: the trend tag always wins when it exists — golden rule, see
           showInsight above. When it doesn't (no real data anywhere), the chart
           region below already prints "No trend history yet"/noTrendMessage, so
-          this slot stays empty rather than duplicating that message. The gate
-          message only fills this slot for Prior/Current when insight itself is
-          null (e.g. no consensus rank) but the player still has some games;
-          Recent's own "< 10 GP" note lives at the bottom, in place of the stat
-          profile, not here (see player-compare-card.tsx / roster-app.tsx). Fixed
-          min-height in compact mode so every card's chart starts at the same
-          offset regardless of whether this slot is empty, one line, or wraps. */}
-      <div style={{ marginTop: compact ? 8 : 12, minHeight: compact ? 20 : undefined }}>
-        {!isProj && !insight && mode !== "recent" && !modeStat.gateOk && modeStat.gateMessage && (
-          <div style={{ fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)" }}>{modeStat.gateMessage}</div>
-        )}
+          this slot stays empty rather than duplicating that message.
+
+          FIXED height (not min-height) + a 4-line clamp on the detail so this
+          slot is byte-for-byte the same height for every card — a rookie with no
+          insight, a veteran with a short blurb, and one with a 5-line blurb all
+          occupy exactly this box. That's what keeps the chart, Compare button and
+          everything below at the same Y across players (the detail text and the
+          presence/absence of the date axis were the two things that shifted the
+          card before). 84px fits the tag row + 4 lines at 11px/1.4. */}
+      <div style={{ marginTop: compact ? 8 : 12, height: compact ? 44 : 84, overflow: "hidden" }}>
         {showInsight && insight && (
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 7, height: 7, flex: "0 0 7px", borderRadius: 999, background: color }} />
               <span style={{ fontSize: compact ? 12 : 13, fontWeight: 700, color }}>{TAG_META[insight.tag].emoji} {insight.title}</span>
             </div>
-            {!compact && <div style={{ fontSize: 11, color: "var(--rt-hero-ink-soft)", marginTop: 3, lineHeight: 1.4 }}>{insight.detail}</div>}
+            {!compact && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "var(--rt-hero-ink-soft)",
+                  marginTop: 3,
+                  lineHeight: 1.4,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 4,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {insight.detail}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -281,19 +298,22 @@ export function TrendHero({
           chart underneath Prior's "not available" overlay, so keep printing it
           there too; hiding it made Prior's card a line shorter than Current/
           Recent's, which broke the height match across mode switches. */}
-      {data && !chartUnavailable && (
-        <div style={{ fontSize: 9, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: compact ? 8 : 12 }}>
-          {windowGp} games · 20wk
-        </div>
-      )}
+      <div style={{ fontSize: 9, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: compact ? 8 : 12, minHeight: compact ? 16 : 20 }}>
+        {data && !chartUnavailable && `${windowGp} games · 20wk`}
+      </div>
 
-      <div style={{ position: "relative", marginTop: data && !chartUnavailable ? 2 : 12 }}>
+      {/* Chart region hugs the SVG's own aspect-ratio height (W/H) instead of a
+          fixed min-height — a fixed box left ~50px of dead space below the ~70px
+          line, widening as the card grew. The "no data"/loading placeholders use
+          the SAME aspect-ratio box, so a rookie card and a veteran card stay the
+          exact same height at every width (uniformity) with no wasted gap. */}
+      <div style={{ position: "relative", marginTop: 12 }}>
         {chartUnavailable ? (
-          <div style={{ fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", padding: "18px 0", textAlign: "center" }}>
+          <div style={{ width: "100%", aspectRatio: `${W} / ${H}`, fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {isSynthetic ? "No trend history yet" : notFound ? noTrendMessage(cur.gp, cur.mpg) : "—"}
           </div>
         ) : loading && !data ? (
-          <div style={{ fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", padding: "18px 0", textAlign: "center" }}>Loading trend…</div>
+          <div style={{ width: "100%", aspectRatio: `${W} / ${H}`, fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading trend…</div>
         ) : (
           <>
             {hoverPt && hoverRank != null && !isPrior && (
@@ -366,19 +386,20 @@ export function TrendHero({
           </>
         )}
       </div>
-      {data && !chartUnavailable && (
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
-          {chartBlocks.map((b, i) => {
-            // Every other label, anchored to the most recent point so "now" is always shown.
-            const show = (chartBlocks.length - 1 - i) % 2 === 0;
-            return (
-              <span key={b.block} style={{ fontSize: 9, color: "var(--rt-hero-ink-soft)" }}>
-                {show ? fmtDate(b.dateRange[0]) : ""}
-              </span>
-            );
-          })}
-        </div>
-      )}
+      {/* Date axis — always rendered (empty when there's no chart) with a fixed
+          height so a card WITH a date axis and one WITHOUT it are the same total
+          height. This row was the other thing that shifted rookies vs veterans. */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, height: 12 }}>
+        {data && !chartUnavailable && chartBlocks.map((b, i) => {
+          // Every other label, anchored to the most recent point so "now" is always shown.
+          const show = (chartBlocks.length - 1 - i) % 2 === 0;
+          return (
+            <span key={b.block} style={{ fontSize: 9, color: "var(--rt-hero-ink-soft)" }}>
+              {show ? fmtDate(b.dateRange[0]) : ""}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
