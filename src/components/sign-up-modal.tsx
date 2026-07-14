@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 /**
@@ -14,6 +14,7 @@ export function SignUpModal() {
     signUpModalOpen,
     closeSignUp,
     signUpNext,
+    signUpModalMode,
     user,
     signInWithGoogle,
     signInWithEmail,
@@ -26,6 +27,13 @@ export function SignUpModal() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+
+  // When the modal opens, sync its mode with the context
+  useEffect(() => {
+    if (signUpModalOpen) {
+      setMode(signUpModalMode);
+    }
+  }, [signUpModalOpen, signUpModalMode]);
 
   // Gated on !user so a successful sign-in dismisses it without a setState effect.
   if (!signUpModalOpen || user) return null;
