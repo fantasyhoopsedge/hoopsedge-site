@@ -81,7 +81,7 @@ export function HomeNav() {
           <button
             type="button"
             className="home-nav-signin"
-            onClick={() => openSignUp()}
+            onClick={() => openSignUp("/prediction-arena", "login")}
             style={{
               fontFamily: "var(--rt-font-sans)",
               fontSize: 14,
@@ -94,7 +94,7 @@ export function HomeNav() {
           >
             Sign in
           </button>
-          <Button size="sm" onClick={() => openSignUp()}>
+          <Button size="sm" onClick={() => openSignUp("/prediction-arena", "signup")}>
             Sign up
           </Button>
         </div>

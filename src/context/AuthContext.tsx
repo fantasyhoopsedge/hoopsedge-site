@@ -45,8 +45,10 @@ type AuthContextValue = {
   signUpModalOpen: boolean;
   /** Same-origin path to return to after OAuth/email-confirm sign-up. */
   signUpNext: string;
-  /** Open the shared sign-up modal; `next` is where to land after auth. */
-  openSignUp: (next?: string) => void;
+  /** Initial mode for the sign-up modal: "signup" or "login". */
+  signUpModalMode: "signup" | "login";
+  /** Open the shared sign-up modal; `next` is where to land after auth, `mode` is the initial view. */
+  openSignUp: (next?: string, mode?: "signup" | "login") => void;
   closeSignUp: () => void;
 };
 
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [signUpModalOpen, setSignUpModalOpen] = useState(false);
   const [signUpNext, setSignUpNext] = useState("/prediction-arena");
+  const [signUpModalMode, setSignUpModalMode] = useState<"signup" | "login">("signup");
 
   // Track auth state. onAuthStateChange fires INITIAL_SESSION on mount, so it
   // doubles as the initial load. Profile fetching happens in the effect below
@@ -223,11 +226,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [supabase, user],
   );
 
-  const openSignUp = useCallback((next: string = "/prediction-arena") => {
+  const openSignUp = useCallback((next: string = "/prediction-arena", mode: "signup" | "login" = "signup") => {
     setAuthError(null);
     setAuthMessage(null);
     const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/prediction-arena";
     setSignUpNext(safeNext);
+    setSignUpModalMode(mode);
     setSignUpModalOpen(true);
   }, []);
 
@@ -260,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       signUpModalOpen,
       signUpNext,
+      signUpModalMode,
       openSignUp,
       closeSignUp,
     }),
@@ -278,6 +283,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       signUpModalOpen,
       signUpNext,
+      signUpModalMode,
       openSignUp,
       closeSignUp,
     ],
