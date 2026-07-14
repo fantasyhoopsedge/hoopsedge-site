@@ -15,7 +15,7 @@ const LINKS = [
 ];
 
 export function HomeNav() {
-  const { openSignUp } = useAuth();
+  const { user, profile, openSignUp } = useAuth();
 
   return (
     <>
@@ -78,25 +78,53 @@ export function HomeNav() {
           ))}
         </div>
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
-          <button
-            type="button"
-            className="home-nav-signin"
-            onClick={() => openSignUp("/prediction-arena", "login")}
-            style={{
-              fontFamily: "var(--rt-font-sans)",
-              fontSize: 14,
-              fontWeight: 500,
-              color: "var(--rt-on-dark)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Sign in
-          </button>
-          <Button size="sm" onClick={() => openSignUp("/prediction-arena", "signup")}>
-            Sign up
-          </Button>
+          {user && profile ? (
+            <Link
+              href="/profile"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                textDecoration: "none",
+                padding: "6px 12px",
+                borderRadius: 6,
+                color: "var(--rt-on-dark)",
+                fontSize: 14,
+                fontWeight: 500,
+              }}
+            >
+              {profile.avatar_url && (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.username || "Profile"}
+                  style={{ width: 24, height: 24, borderRadius: "50%" }}
+                />
+              )}
+              <span>{profile.username || user.email?.split("@")[0] || "Profile"}</span>
+            </Link>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="home-nav-signin"
+                onClick={() => openSignUp("/prediction-arena", "login")}
+                style={{
+                  fontFamily: "var(--rt-font-sans)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--rt-on-dark)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Sign in
+              </button>
+              <Button size="sm" onClick={() => openSignUp("/prediction-arena", "signup")}>
+                Sign up
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>
