@@ -1,0 +1,221 @@
+{
+  "meta": {
+    "name": "fhe-brand-system",
+    "version": "2.0.0",
+    "scope": "Sourced exclusively from the team-rosters page (/team-rosters/[team]) and its supporting component/helper files. No other page (homepage, dynasty-rankings, seasonal-rankings, draft-board, prospects) was used, even where they reference the same rt-* CSS variables.",
+    "sourceFiles": [
+      "src/app/team-rosters/_components/team-rosters-shell.tsx",
+      "src/app/team-rosters/_components/roster-tokens.css",
+      "src/app/team-rosters/_components/roster-app.tsx",
+      "src/app/team-rosters/_components/roster-headshot.tsx",
+      "src/app/team-rosters/_components/roster-helpers.ts",
+      "src/app/team-rosters/_components/roster-data.ts",
+      "src/app/team-rosters/_components/trend-insight.ts",
+      "src/app/team-rosters/_components/player-trend-chart.tsx",
+      "src/components/app-sidebar.tsx",
+      "src/app/layout.tsx"
+    ],
+    "extractedFrom": "fantasyhoopsedge/hoopsedge-site, branch design/fhe-rebrand, as of 2026-07-08"
+  },
+  "colors": [
+    { "name": "rt-primary", "value": "#fa4616", "cssVar": "--rt-primary", "theme": "both", "tier": "primary-accent", "source": "roster-tokens.css:11", "usage": ["primary buttons", "active nav item", "active toggle segment", "selected-card border", "focus/hover accents"] },
+    { "name": "rt-primary-active", "value": "#d63a0c", "cssVar": "--rt-primary-active", "theme": "both", "tier": "primary-accent", "source": "roster-tokens.css:12", "usage": ["hover/pressed state (.rt-hover-primary)"] },
+
+    { "name": "rt-canvas", "value": "#111315", "valueLight": "#ffffff", "cssVar": "--rt-canvas", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:14,63", "usage": ["page/card background"] },
+    { "name": "rt-surface-soft", "value": "#181a1d", "valueLight": "#f7f7f5", "cssVar": "--rt-surface-soft", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:15,64", "usage": ["detail-panel column bg", "list header row"] },
+    { "name": "rt-surface-strong", "value": "#212327", "valueLight": "#edeeea", "cssVar": "--rt-surface-strong", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:16,65", "usage": ["active nav item", "toggle wrapper bg", "avatar-plate fallback", "'Soon' chip"] },
+    { "name": "rt-surface-dark", "value": "#1b1d20", "valueLight": "#0c0d0e", "cssVar": "--rt-surface-dark", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:17,66", "usage": ["hero card bg (dark mode)"] },
+    { "name": "rt-surface-dark-elevated", "value": "#26282c", "valueLight": "#17181b", "cssVar": "--rt-surface-dark-elevated", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:18,67", "usage": ["hero card elevated tooltip/chip"] },
+    { "name": "rt-hairline", "value": "rgba(255,255,255,0.11)", "valueLight": "#e3e3dd", "cssVar": "--rt-hairline", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:20,68", "usage": ["card border", "sidebar divider"] },
+    { "name": "rt-hairline-soft", "value": "rgba(255,255,255,0.06)", "valueLight": "#edeeea", "cssVar": "--rt-hairline-soft", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:21,69", "usage": ["subtle row divider"] },
+    { "name": "rt-ink", "value": "#f2f2f0", "valueLight": "#0c0d0e", "cssVar": "--rt-ink", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:23,70", "usage": ["primary text"] },
+    { "name": "rt-body", "value": "#b7bbc1", "valueLight": "#5c5f66", "cssVar": "--rt-body", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:24,71", "usage": ["secondary/body text"] },
+    { "name": "rt-body-strong", "value": "#f2f2f0", "valueLight": "#0c0d0e", "cssVar": "--rt-body-strong", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:25,72", "usage": ["emphasized body text"] },
+    { "name": "rt-muted", "value": "#888d95", "valueLight": "#7c8088", "cssVar": "--rt-muted", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:26,73", "usage": ["caption/meta text"] },
+    { "name": "rt-muted-soft", "value": "#666b72", "valueLight": "#a9adb3", "cssVar": "--rt-muted-soft", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:27,74", "usage": ["faintest caption text"] },
+    { "name": "rt-on-primary", "value": "#ffffff", "valueLight": "#ffffff", "cssVar": "--rt-on-primary", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:29", "usage": ["text/icon on rt-primary fill"] },
+    { "name": "rt-on-dark", "value": "#ffffff", "valueLight": "#ffffff", "cssVar": "--rt-on-dark", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:30", "usage": ["text on forced-dark surfaces"] },
+    { "name": "rt-on-dark-soft", "value": "#a9adb3", "valueLight": "#a9adb3", "cssVar": "--rt-on-dark-soft", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:31", "usage": ["secondary text on forced-dark surfaces"] },
+    { "name": "rt-up", "value": "#16a06a", "valueLight": "#16a06a", "cssVar": "--rt-up", "theme": "dark+light", "tier": "semantic", "source": "roster-tokens.css:33", "usage": ["positive stat delta", "rank-improvement chip"] },
+    { "name": "rt-down", "value": "#db2b39", "valueLight": "#db2b39", "cssVar": "--rt-down", "theme": "dark+light", "tier": "semantic", "source": "roster-tokens.css:34", "usage": ["negative stat delta", "rank-decline chip"] },
+    { "name": "rt-raised", "value": "#2c2e32", "valueLight": "#ffffff", "cssVar": "--rt-raised", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:36,61", "usage": ["active segment in toggles"] },
+    { "name": "rt-scrim", "value": "rgba(12,13,14,0.8)", "valueLight": "rgba(252,252,250,0.82)", "cssVar": "--rt-scrim", "theme": "dark+light", "tier": "neutral", "source": "roster-tokens.css:37,62", "usage": ["defined but not used by the one modal on this page — see knownDrift"] },
+
+    { "name": "stat-tier-5", "value": "#12a150", "cssVar": null, "theme": "both", "tier": "semantic-literal", "source": "roster-data.ts:197 (STATSET_COLORS[5])", "usage": ["stat-set chip, elite tier"] },
+    { "name": "stat-tier-4", "value": "#62a046", "cssVar": null, "theme": "both", "tier": "semantic-literal", "source": "roster-data.ts:198", "usage": ["stat-set chip"] },
+    { "name": "stat-tier-3", "value": "var(--rt-muted)", "cssVar": "--rt-muted", "theme": "both", "tier": "semantic-literal", "source": "roster-data.ts:199", "usage": ["stat-set chip, neutral tier — only one reusing an rt- token"] },
+    { "name": "stat-tier-2-caution", "value": "#dd7a2b", "cssVar": null, "theme": "both", "tier": "semantic-literal", "source": "roster-data.ts:200; trend-insight.ts:52 (TONE_COLOR.caution)", "usage": ["stat-set chip", "BUY/SELL/HOLD caution tone"] },
+    { "name": "stat-tier-1", "value": "#cf2230", "cssVar": null, "theme": "both", "tier": "semantic-literal", "source": "roster-data.ts:201", "usage": ["stat-set chip, worst tier"] },
+
+    { "name": "tag-rookie-dark-text", "value": "#f0bb4a", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:212 (TAG_THEME.rookie.darkText)", "usage": ["rookie badge label, dark mode"] },
+    { "name": "tag-rookie-light-text", "value": "#a8730a", "cssVar": null, "theme": "light", "tier": "semantic-literal", "source": "roster-data.ts:211", "usage": ["rookie badge label, light mode"] },
+    { "name": "tag-rookie-dark-border", "value": "rgba(240,165,0,0.55)", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:213", "usage": ["rookie badge border, dark mode"] },
+    { "name": "tag-rookie-light-border", "value": "rgba(168,115,10,0.34)", "cssVar": null, "theme": "light", "tier": "semantic-literal", "source": "roster-data.ts:214", "usage": ["rookie badge border, light mode"] },
+    { "name": "tag-rookie-dark-bg", "value": "rgba(240,165,0,0.08)", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:215", "usage": ["rookie badge fill, dark mode (light mode falls back to var(--rt-canvas) — see knownDrift)"] },
+    { "name": "tag-soph-dark-text", "value": "#9aa6ef", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:220 (TAG_THEME.soph.darkText)", "usage": ["sophomore badge label, dark mode"] },
+    { "name": "tag-soph-light-text", "value": "#4c56c0", "cssVar": null, "theme": "light", "tier": "semantic-literal", "source": "roster-data.ts:219", "usage": ["sophomore badge label, light mode"] },
+    { "name": "tag-soph-dark-border", "value": "rgba(154,166,239,0.52)", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:222", "usage": ["sophomore badge border, dark mode"] },
+    { "name": "tag-soph-light-border", "value": "rgba(76,86,192,0.32)", "cssVar": null, "theme": "light", "tier": "semantic-literal", "source": "roster-data.ts:221", "usage": ["sophomore badge border, light mode"] },
+    { "name": "tag-soph-dark-bg", "value": "rgba(154,166,239,0.09)", "cssVar": null, "theme": "dark", "tier": "semantic-literal", "source": "roster-data.ts:224", "usage": ["sophomore badge fill, dark mode"] },
+
+    { "name": "dynasty-tier-1", "value": "#F0C040", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:230 (DYNASTY_TIER_META[1])", "usage": ["'Fantasy-Altering Juggernauts' tier dot/chip"] },
+    { "name": "dynasty-tier-2", "value": "#22c55e", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:231", "usage": ["'Dynasty Cornerstones' tier dot/chip"] },
+    { "name": "dynasty-tier-3", "value": "#3b82f6", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:232", "usage": ["'Proven Contributors' tier dot/chip"] },
+    { "name": "dynasty-tier-4", "value": "#9b5de5", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:233", "usage": ["'Depth Tilters' tier dot/chip"] },
+    { "name": "dynasty-tier-5", "value": "#FF6B2B", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:234", "usage": ["'Developmental Assets' tier dot/chip — same hex as legacy 'Edge Orange' but used here purely as a semantic tier color, not brand primary"] },
+    { "name": "dynasty-tier-6", "value": "#f72585", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:235", "usage": ["'Speculative Holds' tier dot/chip"] },
+    { "name": "dynasty-tier-7", "value": "#00c8e0", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:236", "usage": ["'Deep League Filler' tier dot/chip"] },
+    { "name": "dynasty-tier-8", "value": "#64748b", "cssVar": null, "theme": "both", "tier": "semantic-literal-tier-palette", "source": "roster-data.ts:237", "usage": ["'Lottery Tickets' tier dot/chip"] }
+  ],
+  "typography": [
+    {
+      "role": "sans",
+      "family": "Geist",
+      "cssVar": "--rt-font-sans",
+      "loadedVia": "geist/font/sans npm package (GeistSans)",
+      "source": "src/app/layout.tsx:3; src/app/team-rosters/_components/team-rosters-shell.tsx:4; var defined roster-tokens.css:48",
+      "fallback": "var(--font-geist-sans), -apple-system, system-ui, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "usedFor": "all UI text, headings, body"
+    },
+    {
+      "role": "mono",
+      "family": "Geist Mono",
+      "cssVar": "--rt-font-mono",
+      "loadedVia": "geist/font/mono npm package (GeistMono)",
+      "source": "src/app/layout.tsx:4; team-rosters-shell.tsx:5; var defined roster-tokens.css:49",
+      "fallback": "var(--font-geist-mono), ui-monospace, \"SF Mono\", \"JetBrains Mono\", Menlo, Consolas, monospace",
+      "usedFor": "stats, tabular numbers, tags, mono labels"
+    }
+  ],
+  "weightsObserved": [400, 500, 600, 700, 800],
+  "typeScale": {
+    "defined": false,
+    "note": "No responsive type-size scale is defined in any config. Sizes are literal px values set per element. Recurring values observed on this page (not a formal scale): 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 22, 23, 26, 38."
+  },
+  "spacing": {
+    "defined": false,
+    "note": "No spacing/radius/shadow scale exists in config (no tailwind.config.*, no @theme block). Values below are recurring literals observed in team-rosters component code, not a formal token system.",
+    "radiusObserved": ["999px (pills, toggles, avatars, sign-up CTA)", "16px (cards)", "14px (team-switcher dropdown)", "12px (nav rows)", "10px (buttons, sidebar rows)", "6px (trend-chart hover tooltip)"],
+    "shadowObserved": [
+      { "value": "0 4px 12px rgba(0,0,0,0.06)", "usage": ".rt-hover-shadow", "source": "roster-tokens.css:135-137" },
+      { "value": "0 12px 32px rgba(0,0,0,0.14)", "usage": "team-switcher dropdown", "source": "roster-app.tsx:471" },
+      { "value": "0 24px 60px rgba(0,0,0,0.35)", "usage": "Edge Pro paywall modal", "source": "roster-app.tsx:1163" }
+    ]
+  },
+  "components": [
+    {
+      "name": "AppSidebar (nav rail)",
+      "file": "src/components/app-sidebar.tsx",
+      "variants": {
+        "active-item": "background: var(--rt-surface-strong); color: var(--rt-primary); font-weight: 600",
+        "inactive-item": "color: var(--rt-body)",
+        "soon-chip": "background: var(--rt-surface-strong); color: var(--rt-muted); border-radius: 999px",
+        "sign-up-cta": "border-radius: 10px; background: var(--rt-primary); color: var(--rt-on-primary); font-weight: 700",
+        "theme-toggle": "wrapper: padding 3px, background var(--rt-surface-strong), border-radius 999px; active: background var(--rt-raised), color var(--rt-ink)"
+      }
+    },
+    {
+      "name": "Primary button (pill CTA)",
+      "file": "src/app/team-rosters/_components/roster-app.tsx:77-83,1139-1145",
+      "spec": "border-radius: 999px; background: var(--rt-primary); color: var(--rt-on-primary); font-family: var(--rt-font-sans); font-weight: 600-700",
+      "hoverClass": ".rt-hover-primary { background: var(--rt-primary-active) !important; }"
+    },
+    {
+      "name": "Secondary/ghost button",
+      "file": "roster-app.tsx:84-90,1146-1151",
+      "spec": "border-radius: 999px; background: var(--rt-surface-strong) or transparent; color: var(--rt-ink) or var(--rt-body); no border"
+    },
+    {
+      "name": "Segmented toggle",
+      "file": "roster-app.tsx:655-679,963-990; app-sidebar.tsx:226-279",
+      "spec": "wrapper: padding 3px, background var(--rt-surface-strong), border-radius 999px; active segment: background var(--rt-ink), color var(--rt-canvas) (main content) or background var(--rt-raised), color var(--rt-ink) (sidebar)"
+    },
+    {
+      "name": "Position/pill filter button",
+      "file": "roster-app.tsx:628-651",
+      "spec": "border-radius: 999px; font-weight: 600; active: background var(--rt-ink), color var(--rt-canvas); inactive: background var(--rt-surface-strong), color var(--rt-body)"
+    },
+    {
+      "name": "Card",
+      "file": "roster-app.tsx:590-624,685-748,994,1045,1078,1117",
+      "spec": "background: var(--rt-canvas); border: 1px solid var(--rt-hairline); border-radius: 16px; padding: 20px (or 20px 22px)"
+    },
+    {
+      "name": "Rookie/sophomore tag badge",
+      "file": "src/app/team-rosters/_components/roster-helpers.ts:133-141 (tagBadge); roster-app.tsx:699-719 (grid), roster-app.tsx:819-839 (list, single-letter variant)",
+      "spec": "pill; border: 1px solid {border}; background: {bg}; color: {color} — values from TAG_THEME (roster-data.ts)"
+    },
+    {
+      "name": "Dynasty tier chip",
+      "file": "roster-app.tsx:1117-1123 (chip), roster-app.tsx:929-936 (hero dot+label)",
+      "spec": "chip: background var(--rt-surface-strong), color var(--rt-primary), border-radius 999px, uppercase; hero dot/label: literal DYNASTY_TIER_META color"
+    },
+    {
+      "name": "Stat-set chip",
+      "file": "roster-app.tsx:862-868,214-218",
+      "spec": "plain colored mono text, no background/border; color from STATSET_COLORS[starTier(z)]"
+    },
+    {
+      "name": "BUY/SELL/HOLD verdict",
+      "file": "roster-app.tsx:740-744,856-861",
+      "spec": "colored mono text + arrow glyph; color from TONE_COLOR[tone] (trend-insight.ts:49-54)"
+    },
+    {
+      "name": "Trend sparkline (TrendHero)",
+      "file": "src/app/team-rosters/_components/player-trend-chart.tsx",
+      "spec": "SVG polyline, stroke = tone color, strokeWidth 2.25; points as circles r 2.25-4.5; hover tooltip: background var(--rt-hero-elevated), border 1px solid var(--rt-hero-elevated-border), border-radius 6px; insight callout: 7px dot + bold label in tone color"
+    },
+    {
+      "name": "Team-switcher dropdown",
+      "file": "roster-app.tsx:459-538",
+      "spec": "background: var(--rt-canvas); border: 1px solid var(--rt-hairline); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.14); rows border-radius 10px, selected row background var(--rt-surface-strong)"
+    }
+  ],
+  "knownDrift": [
+    {
+      "issue": "Blueprint Blue absent",
+      "detail": "#2563EB does not appear anywhere in team-rosters' code.",
+      "sources": []
+    },
+    {
+      "issue": "Edge Orange is not the primary/CTA color here",
+      "detail": "rt-primary (#fa4616) is a different hex and carries all primary/CTA/active-state duty. #FF6B2B survives only as the semantic 'Tier 5 / Developmental Assets' dynasty-tier color.",
+      "sources": ["roster-tokens.css:11", "roster-data.ts:234"]
+    },
+    {
+      "issue": "Hardwood Black not literal",
+      "detail": "#0A0A0A does not appear. Nearest dark neutrals are rt-canvas (#111315) and rt-surface-dark/light-mode rt-ink (#0c0d0e).",
+      "sources": ["roster-tokens.css:14,63,17"]
+    },
+    {
+      "issue": "Ice Grey absent",
+      "detail": "#F0F4FF does not appear anywhere. Light-mode canvas is pure white with neutral (non-blue-tinted) off-white surfaces.",
+      "sources": []
+    },
+    {
+      "issue": "Dynasty Gold survives only as one of eight tier colors",
+      "detail": "#F0C040 is used solely as 'Tier 1 / Fantasy-Altering Juggernauts', not as a general brand accent.",
+      "sources": ["roster-data.ts:230"]
+    },
+    {
+      "issue": "Legacy fonts entirely absent",
+      "detail": "Oswald, Source Sans 3, and JetBrains Mono are not loaded or referenced anywhere in team-rosters. Fully replaced by Geist / Geist Mono — font migration is complete on this page.",
+      "sources": []
+    },
+    {
+      "issue": "Parallel literal-hex semantic color sets exist outside the rt- namespace",
+      "detail": "STATSET_COLORS, TAG_THEME, and DYNASTY_TIER_META are plain string constants in roster-data.ts, not CSS custom properties, and not part of the rt-* variable convention. Intentional, not an oversight — but worth knowing they exist separately.",
+      "sources": ["roster-data.ts:196-238"]
+    },
+    {
+      "issue": "tagBadge() mixes an rt- var with literal rgba inconsistently",
+      "detail": "Dark-mode badge background is a literal rgba(240,165,0,0.08)/rgba(154,166,239,0.09); light-mode background falls back to var(--rt-canvas) instead of a parallel literal light tint.",
+      "sources": ["roster-helpers.ts:133-141"]
+    },
+    {
+      "issue": "rt-scrim is defined but unused on this page",
+      "detail": "The Edge Pro paywall modal overlay uses a literal rgba(0,0,0,0.55) instead of var(--rt-scrim).",
+      "sources": ["roster-tokens.css:37,62", "roster-app.tsx:1159"]
+    }
+  ]
+}

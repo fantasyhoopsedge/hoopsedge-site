@@ -83,16 +83,22 @@
 
 /* LIGHT THEME */
 [data-theme="light"] {
-  --bg-body: #EEF2FF;
-  --bg-surface: #E0E7FF;
-  --bg-card: #F5F8FF;
-  --bg-card-hover: #EEF2FF;
-  --dr-row: #F5F8FF;
-  --dr-row-alt: #EEF2FF;
-  --bg-nav: rgba(10, 18, 48, 0.96);
+  /* Neutral surfaces (rt- palette — see fhe-brand-rt-design-system memory):
+     the shared light theme was still blueprint-blue-tinted (#EEF2FF etc.),
+     mismatching the sidebar's neutral off-white canvas. Detinted to match
+     team-rosters' own light-mode rt-canvas/rt-surface-soft/rt-hairline
+     values exactly. Brand-accent tokens (hero gradient, tags, modal, footer)
+     are untouched — out of scope here, not yet visually reviewed. */
+  --bg-body: #ffffff;
+  --bg-surface: #f7f7f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f7f7f5;
+  --dr-row: #ffffff;
+  --dr-row-alt: #f7f7f5;
+  --bg-nav: #ffffff;
   --bg-ticker: #E0E7FF;
-  --border-main: rgba(37, 99, 235, 0.2);
-  --border-light: rgba(37, 99, 235, 0.15);
+  --border-main: #e3e3dd;
+  --border-light: #edeeea;
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
@@ -139,8 +145,92 @@
   --modal-google-text: #0f172a;
   --modal-google-border: rgba(37, 99, 235, 0.2);
   --modal-divider: rgba(37, 99, 235, 0.15);
-  --shadow-card: 0 12px 40px rgba(37, 99, 235, 0.08);
-  --shadow-board: 0 20px 60px rgba(37, 99, 235, 0.12);
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.08);
+  --shadow-board: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== "rt-" DESIGN TOKENS (Team Rosters shell) — sitewide copy =====
+ * Same values as .rt-shell in roster-tokens.css, but keyed off the site's
+ * own [data-theme] attribute on <html> so components built for that shell
+ * (AppSidebar) can render standalone on other pages, not just inside
+ * team-rosters' own .rt-shell wrapper. .rt-shell's own scoped block still
+ * wins by cascade for anything nested inside it — this is purely additive.
+ */
+[data-theme="dark"] {
+  --rt-primary: #fa4616;
+  --rt-primary-active: #d63a0c;
+  --rt-canvas: #111315;
+  --rt-surface-soft: #181a1d;
+  --rt-surface-strong: #212327;
+  --rt-surface-dark: #1b1d20;
+  --rt-surface-dark-elevated: #26282c;
+  --rt-hairline: rgba(255, 255, 255, 0.11);
+  --rt-hairline-soft: rgba(255, 255, 255, 0.06);
+  --rt-ink: #f2f2f0;
+  --rt-body: #b7bbc1;
+  --rt-body-strong: #f2f2f0;
+  --rt-muted: #888d95;
+  --rt-muted-soft: #666b72;
+  --rt-on-primary: #ffffff;
+  --rt-on-dark: #ffffff;
+  --rt-on-dark-soft: #a9adb3;
+  --rt-up: #16a06a;
+  --rt-down: #db2b39;
+  --rt-raised: #2c2e32;
+  --rt-scrim: rgba(12, 13, 14, 0.8);
+  --rt-hero-bg: var(--rt-surface-dark);
+  --rt-hero-ink: var(--rt-on-dark);
+  --rt-hero-ink-soft: var(--rt-on-dark-soft);
+  --rt-hero-hairline: rgba(255, 255, 255, 0.08);
+  --rt-hero-elevated: var(--rt-surface-dark-elevated);
+  --rt-hero-elevated-border: rgba(255, 255, 255, 0.16);
+  --rt-font-sans: "Geist", var(--font-geist-sans, "Geist"), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+[data-theme="light"] {
+  --rt-primary: #fa4616;
+  --rt-primary-active: #d63a0c;
+  --rt-canvas: #ffffff;
+  --rt-surface-soft: #f7f7f5;
+  --rt-surface-strong: #edeeea;
+  --rt-surface-dark: #0c0d0e;
+  --rt-surface-dark-elevated: #17181b;
+  --rt-hairline: #e3e3dd;
+  --rt-hairline-soft: #edeeea;
+  --rt-ink: #0c0d0e;
+  --rt-body: #5c5f66;
+  --rt-body-strong: #0c0d0e;
+  --rt-muted: #7c8088;
+  --rt-muted-soft: #a9adb3;
+  --rt-on-primary: #ffffff;
+  --rt-on-dark: #ffffff;
+  --rt-on-dark-soft: #a9adb3;
+  --rt-up: #16a06a;
+  --rt-down: #db2b39;
+  --rt-raised: #ffffff;
+  --rt-scrim: rgba(252, 252, 250, 0.82);
+  --rt-hero-bg: var(--rt-canvas);
+  --rt-hero-ink: var(--rt-ink);
+  --rt-hero-ink-soft: var(--rt-muted);
+  --rt-hero-hairline: var(--rt-hairline);
+  --rt-hero-elevated: var(--rt-raised);
+  --rt-hero-elevated-border: var(--rt-hairline);
+  --rt-font-sans: "Geist", var(--font-geist-sans, "Geist"), -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+/* Sidebar-as-platform-nav: fixed left rail on desktop, hidden on mobile
+ * (mobile falls back to the site's existing top <nav> — see PlatformSidebarNav). */
+.platform-sidebar-desktop {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 150;
+  background: var(--rt-canvas);
+  font-family: var(--rt-font-sans);
+}
+.platform-sidebar-mobile { display: none; }
+@media (max-width: 767px) {
+  .platform-sidebar-desktop { display: none; }
+  .platform-sidebar-mobile { display: block; }
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -187,12 +277,16 @@ nav {
 .nav-mobile-opposite-link {
   display: none;
 }
-.nav-cta {
-  background: var(--blueprint) !important; color: white !important;
-  padding: 8px 20px !important; border-radius: 8px; font-size: 12px !important;
-  transition: all 0.3s !important;
+.nav-mobile-spacer {
+  display: none;
 }
-.nav-cta:hover { background: var(--blueprint-dark) !important; }
+.nav-cta {
+  background: var(--rt-primary) !important; color: var(--rt-on-primary, #fff) !important;
+  padding: 9px 20px !important; border-radius: 100px; font-family: var(--rt-font-sans);
+  font-size: 13px !important; font-weight: 600; letter-spacing: 0; text-transform: none;
+  transition: all 0.2s !important; display: inline-flex; align-items: center; gap: 6px;
+}
+.nav-cta:hover { background: var(--rt-primary-active, var(--rt-primary)) !important; }
 
 .theme-toggle {
   background: none; border: 1px solid var(--border-main);
@@ -218,14 +312,12 @@ nav {
   font-size: 12px;
   line-height: 1;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
-
-/* nav-info-strip stays white — nav bg is dark in both themes */
 
 /* ===== HERO ===== */
 .hero {
@@ -541,56 +633,9 @@ nav {
   margin-top: 14px; position: relative;
 }
 
-/* ===== FOOTER ===== */
-footer {
-  border-top: 1px solid var(--border-main); padding: 36px 60px 24px;
-  display: flex; flex-direction: column; gap: 20px;
-  background: var(--footer-bg); transition: background 0.4s, border-color 0.4s;
-}
-.footer-top {
-  display: flex; justify-content: space-between; align-items: center;
-}
-.footer-brand {
-  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px;
-  letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted);
-}
-.footer-brand .accent { color: var(--edge-orange); }
-.footer-links { display: flex; gap: 24px; }
-.footer-links a {
-  color: var(--text-muted); text-decoration: none; font-size: 13px;
-  font-weight: 500; transition: color 0.3s;
-}
-.footer-links a:hover { color: var(--text-primary); }
-.footer-social a {
-  width: 36px; height: 36px; border: 1px solid var(--border-main);
-  border-radius: 8px; display: inline-flex; align-items: center;
-  justify-content: center; color: var(--text-muted); text-decoration: none;
-  font-size: 14px; font-weight: 700; transition: all 0.3s;
-}
-.footer-social a:hover { border-color: var(--blueprint); color: var(--blueprint-glow); }
-.footer-bottom {
-  display: flex; justify-content: space-between; align-items: center;
-  border-top: 1px solid var(--border-main); padding-top: 20px;
-}
-.footer-copy {
-  font-size: 14px; color: var(--text-secondary);
-}
-.footer-legal { display: flex; gap: 24px; }
-.footer-legal a {
-  color: var(--text-secondary); text-decoration: none; font-size: 14px;
-  transition: color 0.3s;
-}
-.footer-legal a:hover { color: var(--text-primary); }
-
-@media (max-width: 768px) {
-  footer { padding: 32px 24px 24px; gap: 20px; }
-  .footer-top { flex-direction: column; align-items: center; gap: 18px; text-align: center; }
-  .footer-links { flex-wrap: wrap; gap: 10px 20px; justify-content: center; }
-  .footer-social { display: flex; justify-content: center; }
-  .footer-bottom { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
-  .footer-legal { flex-wrap: wrap; gap: 10px 20px; justify-content: center; }
-  .footer-copy { text-align: center; }
-}
+/* ===== FOOTER =====
+ * Component (footer.tsx) is styled inline on rt- tokens now; see the
+ * .site-footer-grid rule near EOF for its one responsive breakpoint. */
 
 /* ===== LEGAL PAGES ===== */
 .legal-page {
@@ -692,20 +737,34 @@ footer {
 @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) {
   nav { padding: 0 14px; height: 52px; }
-  /* Show short brand mark on all pages; shell-specific rules override for special pages */
-  .nav-brand-full { display: none; }
-  .nav-brand-mobile { display: inline-flex; align-items: center; font-size: 17px; letter-spacing: 4px; }
+  /* Hamburger-left, centered full wordmark — matches team-rosters'
+     .rt-mobile-topbar exactly. nav-links (now just the hamburger li on
+     mobile — every other li is display:none below) moves to the front;
+     the brand link centers in the remaining space; nav-mobile-spacer
+     balances the hamburger's width on the other side. */
+  .nav-brand-full { display: inline-flex; }
+  .nav-brand-mobile { display: none; }
   .nav-brand { font-size: 17px; letter-spacing: 4px; white-space: nowrap; }
   .nav-cta { padding: 7px 12px !important; font-size: 11px !important; white-space: nowrap; letter-spacing: 1px !important; }
+  nav > a {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
   .nav-links {
+    order: -1;
     gap: 8px;
     flex-wrap: nowrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
   .nav-links a,
   .nav-links button.theme-toggle {
     font-size: 11px;
     letter-spacing: 0.5px;
+  }
+  .nav-mobile-spacer {
+    display: block;
+    flex: 0 0 36px;
   }
   .hero { padding: 100px 24px 60px; }
   .hero h1 { font-size: 44px; }
@@ -952,10 +1011,21 @@ body:has(.dr-rankings-shell) {
   min-height: 0;
   overflow: hidden;
   background: var(--bg-body);
+  /* Desktop: left rail sidebar (position:fixed, 236px) offsets via
+     padding-left. Mobile (see @media below) reverts to the old fixed
+     top-nav offset instead — see PlatformSidebarNav. */
+  padding-left: 236px;
 }
 
 .dr-rankings-shell > nav {
   flex-shrink: 0;
+}
+
+/* draft-board + prospects/[slug] share this shell class. Neither has a base
+   layout rule of its own (their top-nav clearance is an inline style on an
+   inner div) — only the left-sidebar offset is added here. */
+.draft-board-shell {
+  padding-left: 236px;
 }
 
 .dr-rankings-measured-top {
@@ -963,13 +1033,11 @@ body:has(.dr-rankings-shell) {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* Offset fixed global nav (nav does not consume layout flow) */
-  padding-top: var(--dr-nav-h, 64px);
 }
 
 .dr-sticky-controls {
   position: sticky;
-  top: var(--dr-nav-h, 64px);
+  top: 0;
   z-index: 60;
   background: var(--bg-body);
   border-bottom: 1px solid var(--border-main);
@@ -1042,78 +1110,24 @@ body:has(.dr-rankings-shell) {
     display: none !important;
   }
 
+  .dr-rankings-shell,
+  .draft-board-shell {
+    padding-left: 0;
+  }
+
   .dr-rankings-shell {
-    --dr-nav-h: 44px;
+    /* :root sets --dr-nav-h: 64px for desktop; the mobile nav is 52px
+       sitewide (globals.css:741) — override for this shell to match. */
+    --dr-nav-h: 52px;
   }
 
-  .draft-board-shell > nav,
-  .dr-rankings-shell > nav {
-    height: 44px;
-    min-height: 44px;
-    max-height: 44px;
-    padding: 0 12px;
-    box-sizing: border-box;
-    align-items: center;
+  .dr-rankings-measured-top {
+    /* Offset the fixed global nav (nav does not consume layout flow) */
+    padding-top: var(--dr-nav-h);
   }
 
-  .draft-board-shell .nav-brand,
-  .dr-rankings-shell .nav-brand {
-    font-size: 12px;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    white-space: nowrap;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .nav-brand-full,
-  .dr-rankings-shell .nav-brand-full {
-    display: none;
-  }
-
-  .draft-board-shell .nav-brand-mobile,
-  .dr-rankings-shell .nav-brand-mobile {
-    display: inline-flex;
-    align-items: center;
-    font-size: 16px;
-    letter-spacing: 4px;
-  }
-
-  .draft-board-shell .nav-brand .accent,
-  .dr-rankings-shell .nav-brand .accent {
-    color: #ff6b2b;
-  }
-
-  .draft-board-shell .nav-links,
-  .dr-rankings-shell .nav-links {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-  }
-
-  .draft-board-shell .nav-links > li,
-  .dr-rankings-shell .nav-links > li {
-    display: none;
-  }
-
-  .draft-board-shell .nav-links > li.nav-mobile-opposite-link,
-  .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link,
-  .draft-board-shell .nav-links > li:last-child,
-  .dr-rankings-shell .nav-links > li:last-child {
-    display: list-item;
-  }
-
-  .draft-board-shell .nav-links > li.nav-mobile-opposite-link a,
-  .dr-rankings-shell .nav-links > li.nav-mobile-opposite-link a {
-    font-family: "Oswald", sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: #ffffff;
-    text-decoration: none;
-    white-space: nowrap;
+  .dr-sticky-controls {
+    top: var(--dr-nav-h);
   }
 
   .draft-board-shell .nav-info-strip-wrap,
@@ -1136,146 +1150,162 @@ body:has(.dr-rankings-shell) {
     display: inline;
   }
 
-  /* Controls: max 80px total, row1 horizontal scroll, row2 expert + search */
+  /* Filters no longer sit in normal flow pushing the table down — the
+     compact toggle bar is all that occupies real height in
+     .dr-sticky-controls; the full control stack becomes a fixed overlay
+     above the table, opened on demand. Same pattern as /seasonal-rankings'
+     SeasonalRankingsTable (.sr-mobile-filter-toggle / .sr-controls-inner) —
+     and unlike the old cramped strip this replaces, Tier/Team/View are no
+     longer hidden entirely for lack of room. */
   .dr-rankings-shell .dr-sticky-controls {
-    padding: 4px 0;
-    max-height: 80px;
-    box-sizing: border-box;
-    overflow: hidden;
+    padding: 0;
   }
 
-  .dr-rankings-shell .dr-controls-inner {
-    gap: 4px;
+  .dr-rankings-shell .dr-page-gutter {
+    padding: 0;
   }
 
-  .dr-rankings-shell .dr-controls-row {
-    gap: 4px;
-    align-items: center;
-  }
-
-  .dr-rankings-shell .dr-controls-row-1 {
-    flex-wrap: nowrap;
-    align-items: center;
-    min-height: 0;
-  }
-
-  .dr-rankings-shell .dr-pills-desktop-layout {
+  /* .dr-rankings-shell-prefixed (compound selector) so these reliably beat
+     the later unconditional "hidden on desktop" rule near .dr-controls-inner
+     — same specificity tie every other override in this block already
+     avoids by using the shell prefix. */
+  .dr-rankings-shell .dr-mobile-filter-toggle {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
+    gap: 8px;
     width: 100%;
-    max-width: 100%;
-    min-height: 28px;
-    max-height: 28px;
-    box-sizing: border-box;
+    height: 40px;
+    padding: 0 16px;
+    margin: 0;
+    background: var(--bg-card, #1a1a1a);
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-family: var(--rt-font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
   }
 
-  .dr-rankings-shell .dr-pills-desktop-layout .dr-filter-label {
-    display: none;
-  }
-
-  .dr-rankings-shell .dr-pills-desktop-layout .dr-filter-group {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    min-width: 0;
-  }
-
-  .dr-rankings-shell .dr-pills-desktop-layout .dr-pill-row {
-    flex-wrap: nowrap;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-  }
-
-  .dr-rankings-shell .dr-pills-desktop-layout .dr-pill {
-    flex: 0 0 auto;
-    font-size: 11px;
-    padding: 4px 10px;
-    height: 28px;
-    min-height: 28px;
-    max-height: 28px;
-    box-sizing: border-box;
+  .dr-rankings-shell .dr-mobile-filter-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--rt-primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
   }
 
-  .dr-rankings-shell .dr-controls-row-2-fields {
+  .dr-rankings-shell .dr-mobile-filter-caret {
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+
+  .dr-rankings-shell .dr-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: calc(var(--dr-nav-h) + 40px) 0 0 0;
+    z-index: 80;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .dr-rankings-shell .dr-controls-wrap {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-controls-wrap.dr-controls-wrap-open {
+    display: block;
+    position: fixed;
+    top: calc(var(--dr-nav-h) + 40px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    background: var(--bg-surface);
+    overflow-y: auto;
+    padding: 0 16px 24px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  .dr-rankings-shell .dr-mobile-panel-header {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 -16px;
+    padding: 12px 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-main);
+    font-family: var(--rt-font-sans);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+
+  .dr-rankings-shell .dr-mobile-panel-done {
+    height: 30px;
+    padding: 0 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    background: var(--rt-primary);
+    color: #fff;
+    border: none;
+    font-family: var(--rt-font-sans);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Inside the open panel: every group stacks full-width with its label
+     visible (the old strip hid labels + Tier/Team/View to fit 116px). */
+  .dr-rankings-shell .dr-controls-inner {
+    gap: 16px;
+    padding-top: 14px;
+  }
+
+  .dr-rankings-shell .dr-pills-desktop-layout,
+  .dr-rankings-shell .dr-controls-row-2-fields {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
     width: 100%;
-    align-items: flex-end;
-    min-height: 0;
   }
 
-  .dr-rankings-shell .dr-field-expert {
-    flex: 0 0 40%;
-    width: 40%;
-    max-width: 40%;
-    min-width: 0;
-  }
-
-  .dr-rankings-shell .dr-field-search {
-    flex: 0 0 60%;
-    width: 60%;
-    max-width: 60%;
-    min-width: 0;
-  }
-
+  .dr-rankings-shell .dr-field-expert,
+  .dr-rankings-shell .dr-field-search,
   .dr-rankings-shell .dr-field-tier,
   .dr-rankings-shell .dr-field-team,
-  .dr-rankings-shell .dr-view-row {
-    display: none !important;
-  }
-
-  .dr-rankings-shell .dr-controls-row-2 .dr-filter-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .dr-rankings-shell .dr-select {
+  .dr-rankings-shell .dr-field-version {
     width: 100%;
     max-width: none;
-    min-width: 0;
-    box-sizing: border-box;
-    padding: 6px 8px;
-    font-size: 13px;
-    line-height: 1.2;
+    flex: none;
   }
 
+  .dr-rankings-shell .dr-select,
   .dr-rankings-shell .dr-search-wrap .dr-input-icon-wrap {
     width: 100%;
     max-width: none;
-  }
-
-  .dr-rankings-shell .dr-input-search {
-    width: 100%;
     box-sizing: border-box;
-    padding: 6px 10px 6px 32px;
-    font-size: 13px;
-    line-height: 1.2;
   }
 
-  .dr-rankings-shell .dr-search-wrap .dr-input-prefix {
-    left: 8px;
+  .dr-rankings-shell .dr-view-toggle {
+    width: 100%;
+  }
+
+  .dr-rankings-shell .dr-view-toggle .dr-icon-toggle {
+    flex: 1;
+    justify-content: center;
   }
 
   .dr-rankings-shell .dr-table-scroll {
@@ -1331,6 +1361,20 @@ body:has(.dr-rankings-shell) {
     width: 30px;
     min-width: 30px;
     max-width: 30px;
+    /* The base 8px side padding + "RANK" text left only ~14px of content
+       width — the header text overflowed past the table's left edge (the
+       column sits at x:0, so anything spilling left is unreachable, not
+       just clipped). Tighter padding + the shortened "#" label (see the
+       .dr-th-rank-long/-short swap below) both fit comfortably now. */
+    padding: 4px 2px;
+  }
+
+  .dr-rankings-shell .dr-th-rank-long {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-th-rank-short {
+    display: inline;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-player-col,
@@ -1359,6 +1403,28 @@ body:has(.dr-rankings-shell) {
     width: 35px;
     min-width: 35px;
     max-width: 35px;
+  }
+
+  /* Team logo gets its own narrow column on mobile too now, instead of being
+     crammed inline after the player name. */
+  .dr-rankings-shell .dr-table-head th.dr-col-team,
+  .dr-rankings-shell .dr-table tbody td.dr-col-team {
+    width: 30px;
+    min-width: 30px;
+    max-width: 30px;
+    padding: 4px 2px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-team {
+    width: 30px !important;
+  }
+
+  .dr-rankings-shell .dr-th-team-long {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-th-team-short {
+    display: inline;
   }
 
   .dr-rankings-shell .dr-table-head th.dr-expert-mobile-visible,
@@ -1449,6 +1515,160 @@ body:has(.dr-rankings-shell) {
   }
 }
 
+/* Phone in landscape: most modern phones exceed the 767px width breakpoint
+   above once rotated, so they'd otherwise fall back to full desktop table
+   sizing. Keyed on height + orientation instead of width so it reliably
+   catches landscape phones regardless of exact width — tightens the table
+   further so more columns (POS/AVG/TIER/expert panels) fit before
+   horizontal scroll is needed. Mirrors seasonal-rankings-table.tsx's
+   equivalent @media (max-height: 480px) block. */
+@media (max-height: 480px) and (orientation: landscape) {
+  /* At landscape widths above 767px, the desktop .dr-table rule's hardcoded
+     min-width: 1120px / width: 100% forces every column to be squeezed
+     proportionally to fit — the individual width overrides below would be
+     silently overridden by that redistribution. Dropping the forced
+     width/min-width lets the table size itself to the SUM of its (now much
+     smaller) column widths instead, so it's naturally narrower and the
+     table-scroll container's overflow-x:auto only kicks in for genuine
+     excess — real column widths, not fictional squished ones. */
+  .dr-rankings-shell .dr-table {
+    table-layout: fixed;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .dr-rankings-shell .dr-table th,
+  .dr-rankings-shell .dr-table td,
+  .dr-rankings-shell .dr-table-head th,
+  .dr-rankings-shell .dr-th,
+  .dr-rankings-shell .dr-table .dr-mono,
+  .dr-rankings-shell .dr-table .dr-td-numeric {
+    font-size: 10px;
+  }
+
+  .dr-rankings-shell .dr-table .dr-player-name-line {
+    font-size: 11px;
+  }
+
+  .dr-rankings-shell .dr-table tbody tr.dr-tr {
+    height: 32px;
+    max-height: 32px;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-team,
+  .dr-rankings-shell .dr-table tbody td.dr-col-team {
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    padding: 2px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-team {
+    width: 24px !important;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-rank,
+  .dr-rankings-shell .dr-table tbody td.dr-col-rank {
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-rank {
+    width: 24px !important;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-avg,
+  .dr-rankings-shell .dr-table tbody td.dr-col-avg {
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-avg {
+    width: 44px !important;
+  }
+
+  /* The RANK/"#" and "AVG RANK"/"AVG" short-label swaps below normally only
+     apply inside the max-width:767px block — but a landscape phone is often
+     WIDER than 767px once rotated, so without repeating the swap here the
+     columns above get squeezed to 24-44px while still showing the long text
+     ("RANK", "AVG RANK"), truncating it (found via header-overflow audit at
+     812px width: RANK needed 28px in a 24px cell, AVG RANK needed 58px in a
+     44px cell). */
+  .dr-rankings-shell .dr-th-rank-long,
+  .dr-rankings-shell .dr-th-avg-long {
+    display: none;
+  }
+
+  .dr-rankings-shell .dr-th-rank-short,
+  .dr-rankings-shell .dr-th-avg-short {
+    display: inline;
+  }
+
+  /* Age carries .dr-desktop-only and .dr-col-age-responsive — both plain
+     single-class "hide below 767px/1023px" rules. The compound
+     .dr-rankings-shell selector below outranks them regardless of source
+     order, so Age stays visible here even when a landscape phone also
+     happens to be <=767px wide. (Tier carries the same .dr-desktop-only
+     class but is deliberately left OUT of the landscape column set — see
+     showTierColumn in rankings-table.tsx — so it needs no override here.) */
+  .dr-rankings-shell .dr-table-head th.dr-col-age,
+  .dr-rankings-shell .dr-table tbody td.dr-col-age {
+    display: table-cell;
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-age {
+    width: 32px !important;
+  }
+
+  .dr-rankings-shell .dr-table-head th.dr-col-vscons,
+  .dr-rankings-shell .dr-table tbody td.dr-col-vscons {
+    width: 34px;
+    min-width: 34px;
+    max-width: 34px;
+    padding: 4px 2px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-vscons {
+    width: 34px !important;
+  }
+
+  /* Sized generously (measured need + real margin) rather than the tightest
+     possible fit — DIZZLE/ANGLE/MBALL alone need ~30px, but whichever one is
+     the active sort also carries a sort-arrow glyph (SortArrow), measured up
+     to 47px for "ANGLE↑". A few extra px of horizontal scroll is an
+     acceptable trade for headers that never clip regardless of sort state. */
+  .dr-rankings-shell .dr-th-expert,
+  .dr-rankings-shell .dr-td-expert {
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    padding: 4px 1px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-expert {
+    width: 50px !important;
+  }
+
+  /* HASHTAG/DYNATYZE (7-8 chars) measured 42-44px alone, more with an active
+     sort arrow — same margin-over-measured approach as the narrow columns. */
+  .dr-rankings-shell .dr-th-expert.dr-col-w-hashtag,
+  .dr-rankings-shell .dr-td-expert.dr-col-w-hashtag {
+    width: 60px;
+    min-width: 60px;
+    max-width: 60px;
+  }
+
+  .dr-rankings-shell col.dr-col-cg-expert-wide {
+    width: 60px !important;
+  }
+}
+
 .dr-empty {
   text-align: center;
   color: var(--text-muted);
@@ -1471,10 +1691,23 @@ body:has(.dr-rankings-shell) {
   display: none;
 }
 
+.dr-th-rank-short,
+.dr-th-team-short {
+  display: none;
+}
+
 .dr-controls-inner {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+/* Mobile-only overlay pieces — invisible on desktop, unhidden inside the
+   max-width:767px block. Mirrors seasonal-rankings-table.tsx's .sr-* set. */
+.dr-mobile-filter-toggle,
+.dr-mobile-backdrop,
+.dr-mobile-panel-header {
+  display: none;
 }
 
 .dr-controls-row {
@@ -1512,7 +1745,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-filter-label {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -1531,7 +1764,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-pill {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   letter-spacing: 1px;
   font-weight: 600;
@@ -1546,20 +1779,26 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-pill:hover {
-  border-color: var(--blueprint-glow);
+  border-color: var(--rt-primary);
   color: var(--text-primary);
 }
 
 .dr-pill-active {
-  border-color: var(--blueprint-glow);
-  background: rgba(37, 99, 235, 0.15);
-  color: var(--hero-badge-text);
+  border-color: var(--rt-primary);
+  background: rgba(250, 70, 22, 0.15);
+  color: var(--rt-primary);
 }
 
 .dr-pill-active-rookies {
   border-color: #f0c040;
   background: rgba(240, 192, 64, 0.18);
   color: #f0c040;
+}
+
+.dr-pill-active-sophomores {
+  border-color: #9aa6ef;
+  background: rgba(154, 166, 239, 0.18);
+  color: #9aa6ef;
 }
 
 .dr-select {
@@ -1569,7 +1808,7 @@ body:has(.dr-rankings-shell) {
   border: 1px solid var(--border-main);
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
   color: var(--text-primary);
   cursor: pointer;
@@ -1582,13 +1821,13 @@ body:has(.dr-rankings-shell) {
   border: 1px solid var(--border-main);
   background: var(--bg-card);
   color: var(--text-primary);
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
 }
 
 .dr-input:focus {
   outline: none;
-  border-color: var(--blueprint);
+  border-color: var(--rt-primary);
 }
 
 .dr-view-toggle {
@@ -1609,7 +1848,7 @@ body:has(.dr-rankings-shell) {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -1618,8 +1857,8 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-icon-toggle-on {
-  background: rgba(37, 99, 235, 0.2);
-  color: var(--blueprint-glow);
+  background: rgba(250, 70, 22, 0.2);
+  color: var(--rt-primary);
 }
 
 .dr-checkbox {
@@ -1726,7 +1965,7 @@ body:has(.dr-rankings-shell) {
 .dr-th {
   padding: 6px 8px;
   border-bottom: 1px solid var(--border-main);
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1849,11 +2088,11 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-highlight .dr-th-btn {
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-th-active-sort {
-  border-bottom: 2px solid #2563eb;
+  border-bottom: 2px solid var(--rt-primary);
   box-shadow: none;
 }
 
@@ -1862,12 +2101,12 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-highlight.dr-th-expert {
-  box-shadow: inset 0 -3px 0 var(--blueprint);
-  background: rgba(37, 99, 235, 0.08);
+  box-shadow: inset 0 -3px 0 var(--rt-primary);
+  background: rgba(250, 70, 22, 0.08);
 }
 
 [data-theme="light"] .dr-th-highlight.dr-th-expert {
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(250, 70, 22, 0.12);
 }
 
 .dr-rank-head-wrap {
@@ -1880,7 +2119,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-rank-view-label {
-  font-family: "Source Sans 3", sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1892,15 +2131,15 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-th-rank-consensus.dr-th-highlight-consensus .dr-th-btn {
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-th-rank-consensus.dr-th-highlight-consensus {
-  box-shadow: inset 0 -3px 0 var(--blueprint);
+  box-shadow: inset 0 -3px 0 var(--rt-primary);
 }
 
 .dr-vs-cons-cell {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 12px;
   white-space: nowrap;
@@ -1990,7 +2229,7 @@ body:has(.dr-rankings-shell) {
 
 .dr-sort-icon-active {
   opacity: 1;
-  color: var(--blueprint-glow);
+  color: var(--rt-primary);
 }
 
 .dr-table tbody tr {
@@ -2014,6 +2253,10 @@ body:has(.dr-rankings-shell) {
   background: #141418;
 }
 
+.dr-tr {
+  cursor: pointer;
+}
+
 .dr-tr:hover {
   background: #1e1e28;
 }
@@ -2027,11 +2270,11 @@ body:has(.dr-rankings-shell) {
 }
 
 [data-theme="light"] .dr-tr:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(250, 70, 22, 0.06);
 }
 
 .dr-rank-num {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 16px;
   display: inline-flex;
@@ -2063,7 +2306,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-rank-nr {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 13px;
   color: #9a9aaa;
@@ -2071,7 +2314,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-weight: 600;
   font-size: 13px;
 }
@@ -2112,7 +2355,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-player-name {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 400;
   font-size: 14px;
   letter-spacing: 0.01em;
@@ -2151,7 +2394,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-player-name-line {
-  font-family: "Source Sans 3", sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 14px;
   font-weight: 500;
   color: #ffffff;
@@ -2176,7 +2419,7 @@ body:has(.dr-rankings-shell) {
   color: #9a9aaa;
 }
 
-.dr-table .dr-player-meta-line .dr-team-pill:not(.dr-team-pill-rookie) {
+.dr-table .dr-player-meta-line .dr-team-pill {
   color: #9a9aaa;
 }
 
@@ -2202,7 +2445,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-team-pill {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -2217,14 +2460,55 @@ body:has(.dr-rankings-shell) {
   padding: 2px 6px;
 }
 
-.dr-team-pill-rookie {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
-  border: none;
+/* Team logo replacing the plain team-code pill (see TeamCell) — "FA" (no
+   current NBA team, including undrafted 2026 rookies) keeps the text pill above. */
+.dr-team-logo { width: 32px; height: 32px; object-fit: contain; display: block; }
+
+/* Center the logo under the TEAM header (table view only — text-align:center on
+   the td doesn't affect a display:block img; tier-view's meta row is a flex
+   container where auto-margins would eat the row's gap instead). */
+.dr-table tbody td.dr-col-team .dr-team-logo { margin: 0 auto; }
+
+/* Rookie ("R") badge — matches the class-tag circle on /team-rosters (roster-app.tsx
+   tagShort), rendered next to the player name instead of tied to the team cell. */
+.dr-rookie-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 192, 64, 0.55);
+  background: rgba(240, 192, 64, 0.12);
+  color: var(--dynasty-gold);
+  font-family: var(--rt-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* Sophomore ("S") badge — same shape as .dr-rookie-badge, periwinkle instead
+   of gold to match the TAG_THEME.soph class color used on /team-rosters. */
+.dr-soph-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(154, 166, 239, 0.52);
+  background: rgba(154, 166, 239, 0.1);
+  color: #9aa6ef;
+  font-family: var(--rt-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  margin-left: 6px;
 }
 
 .dr-pos {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -2238,24 +2522,19 @@ body:has(.dr-rankings-shell) {
   padding: 2px 5px;
 }
 
-.dr-pos-g {
-  background: var(--blueprint);
-  color: #ffffff;
-}
-
-.dr-pos-f {
-  background: var(--edge-orange);
-  color: #ffffff;
-}
-
+/* One accent family (rt-primary), not the old blue/orange/gold rainbow —
+   tier colors (TIER_COLORS in rankings-table.tsx, gold/green/blue/etc.)
+   are semantic and untouched. */
+.dr-pos-g,
+.dr-pos-f,
 .dr-pos-c-single {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
+  background: var(--rt-primary);
+  color: var(--rt-on-primary);
 }
 
 .dr-pos-split {
   display: inline-flex;
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -2279,28 +2558,20 @@ body:has(.dr-rankings-shell) {
   padding: 2px 5px;
 }
 
-.dr-pos-split-gf .dr-pos-split-l {
-  background: var(--blueprint);
-  color: #ffffff;
-}
-
-.dr-pos-split-gf .dr-pos-split-r {
-  background: var(--edge-orange);
-  color: #ffffff;
-}
-
+.dr-pos-split-gf .dr-pos-split-l,
 .dr-pos-split-fc .dr-pos-split-l {
-  background: var(--edge-orange);
-  color: #ffffff;
+  background: var(--rt-primary);
+  color: var(--rt-on-primary);
 }
 
+.dr-pos-split-gf .dr-pos-split-r,
 .dr-pos-split-fc .dr-pos-split-r {
-  background: var(--dynasty-gold);
-  color: #1a1a1a;
+  background: var(--rt-primary-active);
+  color: var(--rt-on-primary);
 }
 
 .dr-tier {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--rt-font-mono);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 8px;
@@ -2332,7 +2603,7 @@ body:has(.dr-rankings-shell) {
 .dr-tier-t8 { background: rgba(100, 116, 139, 0.15); color: #64748b; }
 
 .dr-trend-up {
-  color: var(--edge-orange);
+  color: var(--rt-primary);
   font-weight: 700;
   font-size: 15px;
 }
@@ -2374,7 +2645,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-show-more {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-size: 12px;
   letter-spacing: 2px;
   font-weight: 700;
@@ -2389,8 +2660,8 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-show-more:hover {
-  border-color: var(--blueprint-glow);
-  background: rgba(37, 99, 235, 0.1);
+  border-color: var(--rt-primary);
+  background: rgba(250, 70, 22, 0.1);
 }
 
 .dr-input-icon-wrap {
@@ -2460,7 +2731,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-tier-title {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 1px;
@@ -2494,6 +2765,7 @@ body:has(.dr-rankings-shell) {
   border-radius: 10px;
   border: 1px solid var(--border-main);
   background: var(--bg-body);
+  cursor: pointer;
   transition:
     transform 0.2s ease,
     border-color 0.2s ease,
@@ -2502,14 +2774,14 @@ body:has(.dr-rankings-shell) {
 
 .dr-tier-card:hover {
   transform: scale(1.015);
-  border-color: rgba(37, 99, 235, 0.65);
+  border-color: rgba(250, 70, 22, 0.65);
   box-shadow:
-    0 0 0 1px rgba(37, 99, 235, 0.35),
-    0 10px 28px rgba(37, 99, 235, 0.12);
+    0 0 0 1px rgba(250, 70, 22, 0.35),
+    0 10px 28px rgba(250, 70, 22, 0.12);
 }
 
 .dr-tier-card-rank {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 800;
   font-size: 26px;
   color: var(--blueprint-glow);
@@ -2519,7 +2791,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-tier-card-name {
-  font-family: 'Oswald', sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.02em;
@@ -2664,7 +2936,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-name {
-  font-family: "Oswald", sans-serif;
+  font-family: var(--rt-font-sans);
   font-weight: 600;
   font-size: 17px;
   text-transform: none;
@@ -2686,6 +2958,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-meta-text {
+  font-family: var(--rt-font-sans);
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -2701,7 +2974,7 @@ body:has(.dr-rankings-shell) {
 /* Rank-movement chip (▲n / ▼n / NEW / – no change) — fixed width so every
    row carries a chip and the player names stay vertically aligned. */
 .db-mv {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-size: 11px;
   font-weight: 700;
   line-height: 1;
@@ -2750,7 +3023,7 @@ body:has(.dr-rankings-shell) {
 }
 
 .db-player-pick {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--rt-font-mono);
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
@@ -2789,6 +3062,26 @@ body:has(.dr-rankings-shell) {
   margin-bottom: 0;
 }
 
+/* Light mode only: rt-primary orange border marks each row/banner as a card
+   (dark mode already contrasts fine against its near-black canvas and is
+   left alone). No grey fill on rows/banner — outlined cards on plain white,
+   per explicit user direction (the grey read as too heavy against the sidebar).
+   .db-row's fill is set inline (_board-client.tsx) so it needs !important to
+   win here; .db-expanded-panel/.db-version-banner have no inline background,
+   so a plain override is enough for those. */
+[data-theme="light"] .db-row,
+[data-theme="light"] .db-expanded-panel,
+[data-theme="light"] .db-version-banner {
+  border-color: var(--rt-primary);
+}
+[data-theme="light"] .db-row {
+  background-color: transparent !important;
+}
+[data-theme="light"] .db-expanded-panel,
+[data-theme="light"] .db-version-banner {
+  background: var(--bg-card);
+}
+
 .db-expanded-panel {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -2803,17 +3096,14 @@ body:has(.dr-rankings-shell) {
 }
 
 @media (min-width: 768px) {
-  .draft-board-shell .db-pos-badge-g {
-    background: #2563EB;
-  }
-
-  .draft-board-shell .db-pos-badge-f {
-    background: #FF6B2B;
-  }
-
+  /* Position badges: one accent family (rt-primary + its darker shade),
+     not the old blue/orange/gold rainbow — tier colors (gold/green/blue,
+     used for rank + the "// TIER_NAME" divider) are semantic and untouched. */
+  .draft-board-shell .db-pos-badge-g,
+  .draft-board-shell .db-pos-badge-f,
   .draft-board-shell .db-pos-badge-c {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge-split-l,
@@ -2825,23 +3115,16 @@ body:has(.dr-rankings-shell) {
     justify-content: center;
   }
 
-  .draft-board-shell .db-pos-badge-split-l {
-    background: #2563EB;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .db-pos-badge-split-r {
-    background: #FF6B2B;
-    color: #ffffff;
-  }
-
+  .draft-board-shell .db-pos-badge-split-l,
   .draft-board-shell .db-pos-badge-split-l-orange {
-    background: #FF6B2B;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
+  .draft-board-shell .db-pos-badge-split-r,
   .draft-board-shell .db-pos-badge-split-r-gold {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary-active);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge {
@@ -3001,17 +3284,14 @@ body:has(.dr-rankings-shell) {
     line-height: 1;
   }
 
-  .draft-board-shell .db-pos-badge-g {
-    background: #2563EB;
-  }
-
-  .draft-board-shell .db-pos-badge-f {
-    background: #FF6B2B;
-  }
-
+  /* Position badges: one accent family (rt-primary + its darker shade),
+     not the old blue/orange/gold rainbow — tier colors (gold/green/blue,
+     used for rank + the "// TIER_NAME" divider) are semantic and untouched. */
+  .draft-board-shell .db-pos-badge-g,
+  .draft-board-shell .db-pos-badge-f,
   .draft-board-shell .db-pos-badge-c {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pos-badge-split-l,
@@ -3023,23 +3303,16 @@ body:has(.dr-rankings-shell) {
     justify-content: center;
   }
 
-  .draft-board-shell .db-pos-badge-split-l {
-    background: #2563EB;
-    color: #ffffff;
-  }
-
-  .draft-board-shell .db-pos-badge-split-r {
-    background: #FF6B2B;
-    color: #ffffff;
-  }
-
+  .draft-board-shell .db-pos-badge-split-l,
   .draft-board-shell .db-pos-badge-split-l-orange {
-    background: #FF6B2B;
+    background: var(--rt-primary);
+    color: var(--rt-on-primary);
   }
 
+  .draft-board-shell .db-pos-badge-split-r,
   .draft-board-shell .db-pos-badge-split-r-gold {
-    background: #F0C040;
-    color: #1a1a1a;
+    background: var(--rt-primary-active);
+    color: var(--rt-on-primary);
   }
 
   .draft-board-shell .db-pick-tier {
@@ -3128,8 +3401,12 @@ body:has(.dr-rankings-shell) {
     order: 1;
   }
 
-  .dr-controls-row-1 .dr-range-wrap {
+  .dr-controls-row-1 .dr-class-wrap {
     order: 2;
+  }
+
+  .dr-controls-row-1 .dr-range-wrap {
+    order: 3;
   }
 
   .dr-controls-row-2 {
@@ -3149,8 +3426,14 @@ body:has(.dr-rankings-shell) {
 }
 
 /* ===== LIGHT MODE COMPONENT OVERRIDES =====
-   Nav is dark navy in light mode — white text applies everywhere.
-   Content areas use blue-tinted backgrounds.
+   Content areas use blue-tinted backgrounds. Nav now matches team-rosters'
+   own light-mode header (white bg, dark text via --bg-nav/--text-primary/
+   --text-secondary, all already theme-aware) instead of the old "nav stays
+   dark navy in light mode, white text everywhere" treatment — the forced-
+   white .nav-brand/.nav-links/.theme-toggle overrides that used to live
+   here are gone; the base rules (site-nav.tsx's <style> block + the shared
+   .nav-brand/.nav-links a/.theme-toggle rules above) already read the
+   correct light-theme tokens once the nav background itself isn't dark.
 */
 
 /* Sticky table header: override hardcoded dark bg */
@@ -3158,41 +3441,23 @@ body:has(.dr-rankings-shell) {
   background-color: var(--bg-surface);
 }
 
-/* Nav: dark navy bg — override base text/border to white at all viewports */
-[data-theme="light"] .nav-brand {
-  color: rgba(255, 255, 255, 0.95);
-}
-[data-theme="light"] .nav-links a {
-  color: rgba(255, 255, 255, 0.72);
-}
-[data-theme="light"] .nav-links a:hover {
-  color: #ffffff;
-}
-[data-theme="light"] .theme-toggle {
-  border-color: rgba(255, 255, 255, 0.22);
-  color: rgba(255, 255, 255, 0.7);
-}
-[data-theme="light"] .theme-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.55);
-  color: #ffffff;
-}
-
-/* Player avatar: blue-tinted in light mode */
+/* Player avatar: was blue-tinted in light mode, now orange to match brand */
 [data-theme="light"] .dr-player-avatar {
-  background: rgba(37, 99, 235, 0.14);
-  color: #1d4ed8;
+  background: rgba(250, 70, 22, 0.14);
+  color: var(--rt-primary-active);
 }
 
-/* Team pill: blue-tinted on light bg */
+/* Team pill (only rendered now for "FA" — see TeamCell):
+   was blue-tinted on light bg, now orange to match brand */
 [data-theme="light"] .dr-team-pill {
-  background: rgba(37, 99, 235, 0.1);
+  background: rgba(250, 70, 22, 0.1);
 }
 
 /* Player meta text: use themed colours instead of hardcoded dark-mode values */
 [data-theme="light"] .dr-player-meta-line {
   color: var(--text-secondary);
 }
-[data-theme="light"] .dr-table .dr-player-meta-line .dr-team-pill:not(.dr-team-pill-rookie) {
+[data-theme="light"] .dr-table .dr-player-meta-line .dr-team-pill {
   color: var(--text-secondary);
 }
 [data-theme="light"] .dr-rank-nr {
@@ -3229,4 +3494,77 @@ body:has(.dr-rankings-shell) {
 [data-theme="light"] .draft-board-shell .dbp-tier.tier-six {
   background: rgba(100, 116, 139, 0.14);
   color: #475569;
+}
+
+/* ===== Homepage (rt- marketing landing) — layout-only rules =====
+ * Everything else on this page is styled with inline `style={{}}` (matching
+ * app-sidebar.tsx / site-nav.tsx convention) since Tailwind utility classes
+ * lose cascade fights against this file's un-layered legacy rules. Only the
+ * bits that need a media query live here. Placed at EOF so plain-selector
+ * source-order also favors it. */
+.home-hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 48px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 24px 96px;
+}
+.home-hero-visual { display: block; }
+.home-features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+.home-rankings-grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 56px;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 96px 24px;
+}
+.home-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.home-nav-links { display: flex; }
+.home-nav-signin { display: inline-block; }
+
+/* Mobile swaps the homepage's own sticky header for the same SiteNav
+   hamburger + full-screen menu every other content page uses (see
+   home-nav.tsx) — SiteNav's <nav> is position:fixed (an overlay, unlike
+   the sticky header it replaces), so home-hero-grid gets matching top
+   padding on mobile to avoid sitting under the bar. */
+.home-nav-mobile { display: none; }
+@media (max-width: 767px) {
+  .home-nav-desktop { display: none; }
+  .home-nav-mobile { display: block; }
+}
+
+@media (max-width: 1023px) {
+  .home-nav-links { display: none; }
+}
+@media (max-width: 767px) {
+  .home-hero-grid { grid-template-columns: 1fr; padding: 92px 20px 64px; }
+  .home-hero-visual { display: none; }
+  .home-features-grid { grid-template-columns: 1fr; }
+  .home-rankings-grid { grid-template-columns: 1fr; padding: 64px 20px; gap: 32px; }
+  .home-pricing-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 479px) {
+  .home-nav-signin { display: none; }
+}
+
+/* Sitewide footer (rebuilt on rt- tokens, forced light like the marketing
+ * chrome above — see footer.tsx) grid: brand column + link columns. */
+.site-footer-grid { grid-template-columns: 1.4fr repeat(2, 1fr); }
+@media (max-width: 640px) {
+  .site-footer-grid { grid-template-columns: 1fr; }
 }

@@ -58,7 +58,7 @@ const REF_VALUES: Record<string, number> = {
 const REF_BASELINE_PTS_MU = 11.783;
 const VALUE_TOLERANCE = 0.03;
 
-type LogRow = {
+export type LogRow = {
   player_id: string;
   game_id: string | null;
   game_date: string | null;
@@ -81,7 +81,7 @@ type LogRow = {
 // so All-Star / Rising Stars exhibition rows — whose "team" label changes every
 // year (2024: EAST/WEST, 2025: CHK/SHQ/KEN/CAN, 2026: STARS/STRIPES/WORLD) and
 // which the feed mislabels season_type='regular' — are dropped generically.
-const NBA_TEAMS = new Set([
+export const NBA_TEAMS = new Set([
   "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GS",
   "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NO", "NY",
   "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SA", "TOR", "UTAH", "WSH",
@@ -100,7 +100,7 @@ const CONSENSUS_TEAM_MAP: Record<string, string> = {
  * game the two >82-game teams share inside the tournament-final window
  * (~Dec 6-20, neutral site). Returns game_ids to drop. Regular season only.
  */
-function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
+export function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
   const drop = new Set<string>();
   if (ds.type !== "regular") return drop;
   const byTeam = new Map<string, Set<string>>();
@@ -126,7 +126,7 @@ function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
 }
 
 /** Drop exhibition (non-NBA-team) rows + the Cup final from a season's logs. */
-function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
+export function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
   const nba = logs.filter((r) => r.team != null && NBA_TEAMS.has(r.team));
   const drop = cupFinalGameIds(nba, ds);
   const kept = drop.size > 0 ? nba.filter((r) => !(r.game_id && drop.has(r.game_id))) : nba;
@@ -386,16 +386,30 @@ async function upsert(
       season: ds.season,
       season_type: ds.type,
       name,
-      // Team priority:
-      // 1. Consensus (current season only) — catches traded-but-didn't-play cases
-      //    like a player moved at the deadline who never suited up for the new team.
-      // 2. Last game log team — the team they actually finished the season with.
-      // 3. nba_players snapshot — final fallback when neither source has data.
-      // Historical seasons skip (1) because the consensus reflects today's roster,
-      // not where a player finished that season.
-      team: (ds.season === GATE.season
-        ? (consensus.get(normalizeName(name))?.team ?? null)
-        : null) ?? lastGameTeam.get(s.playerId) ?? meta?.team ?? null,
+      // Team priority — player cat values always shows the team a player
+      // actually accumulated that season's stats with, never today's roster:
+      // 1. Last game log team — the team they actually finished the season
+      //    with. This must win whenever it exists; a player's current/dynasty
+      //    team can differ (trade, free agency, waiver) without that season's
+      //    box scores changing which team they were on when they were played.
+      // 2. nba_players snapshot — fallback for a player with zero game logs
+      //    that season (e.g. injured all year).
+      // 3. Consensus (current season only) — last resort only, for a player
+      //    with no game logs AND no nba_players team on file (e.g. moved at
+      //    the trade deadline and never suited up for either team that
+      //    season). Historical seasons skip this because the consensus
+      //    reflects today's roster, not where a player finished that season.
+      //
+      // PREVIOUSLY consensus was checked first for the current season, which
+      // meant any player whose current team differs from where they actually
+      // played (Nic Claxton BKN->CHI, Norman Powell MIA->CHI, Walker Kessler
+      // UTA->LAL, Rui Hachimura LAL->LAC, Cole Anthony's ORL/MIL mismatch)
+      // had their real season team silently overwritten by their current
+      // roster team. Team-rosters and dynasty-rankings are the right place
+      // for "current team" — this table is specifically the season's stats.
+      team: lastGameTeam.get(s.playerId)
+        ?? meta?.team
+        ?? (ds.season === GATE.season ? (consensus.get(normalizeName(name))?.team ?? null) : null),
       // Consensus position wins when the player is ranked; else fall back to the
       // nba_players position. (Item 2.)
       position: cons?.position ?? pos5(meta?.position ?? null),
@@ -560,7 +574,13 @@ async function main(): Promise<void> {
   console.log(`\n✓ done (${datasets.length} dataset${datasets.length === 1 ? "" : "s"})`);
 }
 
-main().catch((e) => {
-  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
-  process.exit(1);
-});
+// Guard against running main() as a side effect of importing filterRealGames/
+// NBA_TEAMS/etc. into another script (e.g. build-player-trends.ts) — only run
+// the build when this file is the actual entrypoint.
+const isEntrypoint = process.argv[1] != null && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isEntrypoint) {
+  main().catch((e) => {
+    console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  });
+}

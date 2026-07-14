@@ -1,4 +1,4 @@
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { createClient } from "@/utils/supabase/server";
 import { getProspectLiteMap } from "@/lib/prospects";
 import { GAME_SLUG } from "@/lib/draftNight/config";
@@ -51,8 +51,8 @@ export default async function DraftNightPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--bg-body)", color: "var(--text-primary)" }}>
-      <SiteNav />
+    <main className="dn-page-shell" style={{ minHeight: "100vh", background: "var(--bg-body)", color: "var(--text-primary)" }}>
+      <PlatformSidebarNav active="arena" />
       <DraftNightClient game={game} minis={minis} result={result} prospects={prospects} />
     </main>
   );

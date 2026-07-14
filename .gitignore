@@ -54,3 +54,8 @@ data/nba-salaries/current_raw.csv
 
 # Rookie board editor: unpublished work-in-progress draft (local only)
 src/data/rookie-board.draft.json
+
+# Generated build artifacts (regeneratable from Supabase, not committed source data).
+# player-trends now lives in the nba_player_trends table (trends:build pushes it);
+# the local JSON is a --file debug artifact only.
+/output/

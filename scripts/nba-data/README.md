@@ -85,8 +85,13 @@ unmatched-rows report as a build artifact.
 `data/nba-salaries/current.csv`:
 
 ```
-player,team,salary_current,salary_y2,salary_y3,salary_y4,contract_note
+player,team,salary_current,salary_y2,salary_y3,salary_y4,salary_y5,contract_note
 ```
+
+Season mapping (authoritative — see `supabase/migrations/20260630000000_nba_roster.sql`,
+do not relabel): `salary_current` = 2025-26, `salary_y2` = 2026-27 (current /
+upcoming season), `salary_y3` = 2027-28, `salary_y4` = 2028-29, `salary_y5` =
+2029-30.
 
 - `salary_*` — dollars; `$` and commas are stripped; blank → null.
 - `contract_note` — free text (e.g. `Player Option`, `Team Option`,
@@ -128,7 +133,18 @@ Derived fields (clearly heuristic, from the committed data only):
    ```
 
 3. Paste into `data/nba-salaries/current.csv` and **eyeball it** — confirm
-   names, teams, and dollar amounts look right.
+   names, teams, and dollar amounts look right. If your source is HoopsHype's
+   own salary export specifically, note two quirks discovered 2026-07-12
+   (see `data/nba-salaries/hoopshype-team-codes.json`):
+   - Their `team` column is a **numeric internal ID**, not an abbreviation —
+     decode it with the `codes` map in that file (re-verify by majority vote
+     against `data/nba-rosters/2026-27.csv` if you suspect it's drifted).
+   - The export can contain **duplicate rows for one display name** (a stale
+     pre-trade/pre-signing row alongside the real current one) and abbreviates
+     some first names to a single initial (`G. Antetokounmpo`), which breaks
+     naive name matching. Cross-reference every row against the roster CSV by
+     name (falling back to surname + first-initial for the abbreviated ones)
+     before trusting a row — don't just take the last occurrence of a name.
 4. Commit and push to `main`. The salary-ingest workflow runs automatically.
 5. Review unmatched rows: open the workflow run → download the
    `nba-salary-unmatched` artifact (or read `data/nba-salaries/_unmatched.json`

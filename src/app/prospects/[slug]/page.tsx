@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getAllProspectSlugs, getProspectBySlug } from '@/lib/prospects';
 import { generateProspectSchema } from '@/lib/schemas';
-import { SiteNav } from '@/components/site-nav';
+import { PlatformSidebarNav } from '@/components/platform-sidebar-nav';
 import ProspectHeadshot from './_components/ProspectHeadshot';
 
 export async function generateStaticParams() {
@@ -91,7 +91,7 @@ export default async function ProspectPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="draft-board-shell">
-      <SiteNav active="draft" />
+      <PlatformSidebarNav active="rookie-board" />
 
       {/* JSON-LD — invisible to users, crawled by Google */}
       <script

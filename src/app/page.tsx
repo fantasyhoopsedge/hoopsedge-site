@@ -1,182 +1,405 @@
 "use client";
 import { useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { SiteNav } from "@/components/site-nav";
 import { useAuth } from "@/context/AuthContext";
-import { DYNASTY_RANKINGS, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { DYNASTY_RANKINGS } from "@/lib/dynasty-rankings";
+import { HomeNav } from "@/components/home/home-nav";
+import { Button } from "@/components/home/button";
+import { Badge } from "@/components/home/badge";
+import { Card } from "@/components/home/card";
+import { PlayerRow } from "@/components/home/player-row";
+import { SearchPill } from "@/components/home/search-pill";
 
-function tierColor(tier: number): string {
-  if (tier === 1) return "var(--dynasty-gold)";
-  if (tier === 2) return "var(--green-elite)";
-  if (tier === 3) return "var(--blueprint-glow)";
-  if (tier === 4) return "#9b5de5";
-  if (tier === 5) return "var(--edge-orange)";
-  return "#f72585";
-}
+// Rounded for marketing copy — the live consensus board fluctuates in the
+// low 400s as data refreshes; the Pricing section already promises "Top 450".
+const RANKED_PLAYER_COUNT = 450;
 
-type DraftBoardPanelRow = Pick<
-  DynastyPlayer,
-  "consensusRank" | "player" | "team" | "position" | "tier"
->;
-
-const ROOKIE_DRAFT_BOARD_TOP5: DraftBoardPanelRow[] = [
-  { consensusRank: 1, player: "Cameron Boozer", team: "Duke", position: "F/C", tier: 1 },
-  { consensusRank: 2, player: "Darryn Peterson", team: "Kansas", position: "G", tier: 2 },
-  { consensusRank: 3, player: "AJ Dybantsa", team: "BYU", position: "G/F", tier: 2 },
-  { consensusRank: 4, player: "Caleb Wilson", team: "North Carolina", position: "F", tier: 2 },
-  { consensusRank: 5, player: "Kingston Flemings", team: "Houston", position: "G", tier: 3 },
+const FEATURES = [
+  {
+    tag: "Dynasty rankings",
+    title: "Expert consensus",
+    body: "Partnered with the best industry experts to produce a consensus ranking — so you know where the average is, with no bias.",
+    href: "/dynasty-rankings",
+  },
+  {
+    tag: "Rookie board",
+    title: "Draft with conviction",
+    body: "A rookie draft board with statistical ratings — know who, what, and where to draft them.",
+    href: "/draft-board",
+  },
+  {
+    tag: "Player category values",
+    title: "See them early",
+    body: "Track your favourite players' category fantasy value — standard 9-cat, 8-cat and Minus 1 value. Stay ahead of the game.",
+    href: "/seasonal-rankings",
+  },
+  {
+    tag: "NBA team rosters",
+    title: "Know every player",
+    body: "All 30 NBA rosters with real NBA salary and contract data — track risers and fallers and see exactly who you're trading for.",
+    href: "/team-rosters",
+  },
 ];
 
+const PRICING_TIERS = [
+  {
+    name: "Standard",
+    price: "Free",
+    cap: "/forever",
+    featured: false,
+    features: [
+      "Top 450 consensus dynasty rankings",
+      "Player category value / ranking",
+      "Rookie draft board",
+      "NBA team rosters",
+    ],
+  },
+  {
+    name: "Edge",
+    price: "$8",
+    cap: "/month",
+    featured: true,
+    features: ["Fantasy projections", "Create your own dynasty rankings", "AI Edge assistant", "League sync"],
+  },
+];
+
+function CheckIcon({ dark }: { dark: boolean }) {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={dark ? "var(--rt-on-dark)" : "var(--rt-primary)"}
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ flex: "0 0 16px", marginTop: 3 }}
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 export default function Home() {
-  const router = useRouter();
   const { openSignUp } = useAuth();
 
-  const { tickerTop30, panelTop10 } = useMemo(() => {
+  const { heroRows, previewRows } = useMemo(() => {
     const sorted = [...DYNASTY_RANKINGS].sort((a, b) => a.consensusRank - b.consensusRank);
-    return {
-      tickerTop30: sorted.slice(0, 30),
-      panelTop10: [...ROOKIE_DRAFT_BOARD_TOP5, ...sorted.slice(5, 10)],
-    };
+    return { heroRows: sorted.slice(0, 4), previewRows: sorted.slice(0, 6) };
   }, []);
 
-  const tickerItems = [...tickerTop30, ...tickerTop30];
-
   return (
-    <>
-      <SiteNav navClassName="home-nav" />
-
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-content">
-          <h1>
-            Fantasy Hoops Edge.<br />
-            <span className="line2">Built Different.</span><br />
-            <span className="line3">Built for Dynasty.</span>
-          </h1>
-          <p className="hero-sub">
-            Dynasty rankings, rookie draft boards, and prospect analysis for serious{" "}
-            <strong>dynasty managers</strong>.
-          </p>
-          <button className="btn-hero" onClick={() => openSignUp("/prediction-arena")}>
-            Get The Edge →
-          </button>
-          <div className="hero-links">
-            <a href="/seasonal-rankings" style={{
-              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
-              color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
-              padding: "10px 20px", borderRadius: "8px",
-              textDecoration: "none", whiteSpace: "nowrap",
-            }}>View Player Category Values →</a>
-            <a href="/dynasty-rankings" style={{
-              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
-              color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.28)",
-              padding: "10px 20px", borderRadius: "8px",
-              textDecoration: "none", whiteSpace: "nowrap",
-            }}>View Consensus Dynasty Rankings →</a>
-            <a href="/draft-board" style={{
-              fontSize: "13px", fontWeight: 700, letterSpacing: "1.5px",
-              color: "var(--edge-orange)", border: "1px solid var(--edge-orange)",
-              padding: "10px 20px", borderRadius: "8px",
-              textDecoration: "none", whiteSpace: "nowrap",
-            }}>View Rookie Draft Board →</a>
+    // Marketing site is a fixed light-canvas/dark-hero brand rotation (see design
+    // handoff), not the app's toggleable dark-mode default — pin it here so
+    // --rt-* tokens resolve to their light-theme values regardless of the
+    // visitor's site-wide theme preference.
+    <div data-theme="light" style={{ background: "var(--rt-canvas)" }}>
+      {/* HERO — dark, floating dashboard cards */}
+      <section style={{ background: "var(--rt-surface-dark)", overflow: "hidden" }}>
+        <HomeNav />
+        <div className="home-hero-grid">
+          <div>
+            <Badge tone="dark" style={{ marginBottom: 24 }}>
+              Dynasty intelligence
+            </Badge>
+            <h1
+              style={{
+                fontFamily: "var(--rt-font-sans)",
+                fontWeight: 400,
+                fontSize: 56,
+                lineHeight: 1,
+                letterSpacing: "-1.4px",
+                color: "var(--rt-on-dark)",
+                margin: "0 0 20px",
+                maxWidth: 520,
+              }}
+            >
+              Win your dynasty league before tip-off.
+            </h1>
+            <p
+              style={{
+                fontFamily: "var(--rt-font-sans)",
+                fontSize: 18,
+                lineHeight: 1.5,
+                color: "var(--rt-on-dark-soft)",
+                margin: "0 0 32px",
+                maxWidth: 460,
+              }}
+            >
+              Tiered dynasty rankings, rookie draft board, standard player category values,
+              fantasy projections, AI fantasy advice and player trend analysis - kept current
+              all season, and built for managers who play to win.
+            </p>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <Button size="lg" onClick={() => openSignUp("/prediction-arena")}>
+                Start your edge
+              </Button>
+              <Button variant="outline-on-dark" size="lg" href="/dynasty-rankings">
+                See the rankings
+              </Button>
+            </div>
           </div>
-        </div>
 
-        {/* DRAFT BOARD PREVIEW */}
-        <div className="hero-visual">
-          <div
-            className="draft-board-preview"
-            onClick={() => router.push("/draft-board")}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="dbp-header">
-              <div className="dbp-header-top">2026 NBA Draft</div>
-              <h3>Rookie <span>Draft Board</span></h3>
-              <div className="dbp-subtext">9-Cat Dynasty Value Rankings</div>
-            </div>
-            <div className="dbp-list">
-              {panelTop10.map((p) => (
-                <div className="dbp-row" key={p.consensusRank}>
-                  <div className="dbp-rank" style={{ color: tierColor(p.tier) }}>{p.consensusRank}</div>
-                  <div className="dbp-info">
-                    <div className="dbp-name">{p.player}</div>
-                    <div className="dbp-meta">
-                      <span className="dbp-school">{p.team}</span>
-                      <span className="dbp-pos">{p.position}</span>
-                    </div>
-                  </div>
-                  <div
-                    className="dbp-tier"
-                    style={{ color: tierColor(p.tier), borderColor: `${tierColor(p.tier)}60` }}
-                  >
-                    TIER {p.tier}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="dbp-footer">
-              <a href="/draft-board" onClick={(e) => e.stopPropagation()}>View Full Board (Top 100) →</a>
-            </div>
+          <div className="home-hero-visual" style={{ position: "relative", minHeight: 380 }}>
+            <Card variant="product-dark" padding={24} style={{ position: "relative", zIndex: 2, transform: "rotate(-1.5deg)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <span style={{ fontFamily: "var(--rt-font-sans)", fontWeight: 600, fontSize: 15, color: "var(--rt-on-dark)" }}>
+                  Top {RANKED_PLAYER_COUNT} · Dynasty
+                </span>
+                <Badge tone="dark">Avg. Rank</Badge>
+              </div>
+              <div>
+                {heroRows.map((p) => (
+                  <PlayerRow
+                    key={p.consensusRank}
+                    rank={p.consensusRank}
+                    name={p.player}
+                    team={p.team}
+                    position={p.position}
+                    tier={p.tier}
+                    avgRank={p.avgRank}
+                    isRookie={p.isRookie}
+                    dark
+                  />
+                ))}
+              </div>
+            </Card>
+            <Card
+              variant="product-dark"
+              padding={20}
+              style={{
+                position: "absolute",
+                right: -18,
+                bottom: -28,
+                width: 210,
+                zIndex: 3,
+                transform: "rotate(3deg)",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+              }}
+            >
+              <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 12, color: "var(--rt-on-dark-soft)" }}>
+                Consensus dynasty board
+              </span>
+              <div
+                style={{
+                  fontFamily: "var(--rt-font-mono)",
+                  fontSize: 34,
+                  color: "var(--rt-on-dark)",
+                  letterSpacing: "-1px",
+                  margin: "4px 0 2px",
+                }}
+              >
+                {RANKED_PLAYER_COUNT}
+              </div>
+              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 15, color: "var(--rt-up)" }}>
+                players ranked monthly
+              </span>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* TICKER */}
-      <div className="ticker-bar">
-        <div className="ticker-track">
-          {tickerItems.map((p, i) => (
-            <span key={i} style={{ display: "contents" }}>
-              <div className="ticker-item">
-                <span className="ticker-rank">#{p.consensusRank}</span>
-                <span className="ticker-label">{p.player}</span>
-              </div>
-              <div className="ticker-divider"></div>
-            </span>
+      {/* FEATURES — white band */}
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px 48px" }}>
+        <h2
+          style={{
+            fontFamily: "var(--rt-font-sans)",
+            fontWeight: 400,
+            fontSize: 40,
+            lineHeight: 1.1,
+            letterSpacing: "-0.8px",
+            color: "var(--rt-ink)",
+            margin: "0 0 12px",
+            maxWidth: 640,
+          }}
+        >
+          Everything a dynasty manager needs in one place.
+        </h2>
+        <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, color: "var(--rt-body)", margin: "0 0 48px", maxWidth: 520 }}>
+          The tools we wished existed when we were grinding our own leagues.
+        </p>
+        <div className="home-features-grid">
+          {FEATURES.map((f) => (
+            <a key={f.tag} href={f.href} style={{ textDecoration: "none", display: "block" }}>
+              <Card variant="feature" hover style={{ height: "100%" }}>
+                <Badge tone="brand">{f.tag}</Badge>
+                <h3
+                  style={{
+                    fontFamily: "var(--rt-font-sans)",
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: "var(--rt-ink)",
+                    margin: "16px 0 8px",
+                  }}
+                >
+                  {f.title}
+                </h3>
+                <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 15, lineHeight: 1.5, color: "var(--rt-body)", margin: 0 }}>
+                  {f.body}
+                </p>
+              </Card>
+            </a>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* FEATURES */}
-      <section style={{ padding: "100px 60px" }}>
-        <div className="features-grid">
-          <a className="feature-card feature-card-link" href="/seasonal-rankings">
-            <div className="feature-icon fi-gold">📈</div>
-            <h3>Player Category Values</h3>
-            <p>9-cat seasonal player values with per-league-size baselines. Rank every player by total category production and category strengths.</p>
-          </a>
-          <a className="feature-card feature-card-link" href="/dynasty-rankings">
-            <div className="feature-icon fi-blue">📊</div>
-            <h3>Dynasty Rankings</h3>
-            <p>Live 9-cat dynasty rankings updated nightly from real box-score data. Filter by position, category strength, and league depth.</p>
-          </a>
-          <a className="feature-card feature-card-link" href="/draft-board">
-            <div className="feature-icon fi-orange">🏀</div>
-            <h3>Rookie Draft Board</h3>
-            <p>Top 12 dynasty rookie board free for all. Full top 100 board with category ratings and stat translations for subscribers.</p>
-          </a>
-          <a className="feature-card feature-card-link" href="/prediction-arena">
-            <div className="feature-icon fi-green">🎯</div>
-            <h3>Prediction Arena</h3>
-            <p>Play the Draft Night Challenge — four fast mini-games on the 2026 NBA Draft. Lock your picks, climb the leaderboard, and grab your &ldquo;Called It&rdquo; card.</p>
-            <span className="feature-tag tag-live">Live Now</span>
-          </a>
+      {/* RANKINGS PREVIEW — soft band */}
+      <section style={{ background: "var(--rt-surface-soft)" }}>
+        <div className="home-rankings-grid">
+          <div>
+            <Badge>Consensus dynasty rankings</Badge>
+            <h2
+              style={{
+                fontFamily: "var(--rt-font-sans)",
+                fontWeight: 400,
+                fontSize: 32,
+                lineHeight: 1.13,
+                letterSpacing: "-0.4px",
+                color: "var(--rt-ink)",
+                margin: "18px 0 14px",
+              }}
+            >
+              Player value, tracked like a market.
+            </h2>
+            <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 17, lineHeight: 1.5, color: "var(--rt-body)", margin: "0 0 28px" }}>
+              Your favourite dynasty analyst rankings are combined into a consensus, tracking a
+              player&apos;s market value over time. Track risers and fallers in dynasty with an edge.
+            </p>
+            <Button href="/dynasty-rankings">Browse all {RANKED_PLAYER_COUNT}</Button>
+          </div>
+          <Card variant="product-light" padding={24}>
+            <SearchPill />
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
+              <Badge>Avg. Rank</Badge>
+            </div>
+            {previewRows.map((p) => (
+              <PlayerRow
+                key={p.consensusRank}
+                rank={p.consensusRank}
+                name={p.player}
+                team={p.team}
+                position={p.position}
+                tier={p.tier}
+                avgRank={p.avgRank}
+                isRookie={p.isRookie}
+              />
+            ))}
+          </Card>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="cta-section">
-        <h2>Get The <span>Edge</span>.</h2>
-        <p className="cta-desc">
-          Free dynasty rankings, rookie draft boards, and AI-powered analysis. Built for managers who take dynasty seriously.
-        </p>
-        <div className="cta-email">
-          <button className="btn-cta-orange" onClick={() => openSignUp("/prediction-arena")}>
-            Get The Edge →
-          </button>
+      {/* PRICING */}
+      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <h2
+            style={{
+              fontFamily: "var(--rt-font-sans)",
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.1,
+              letterSpacing: "-0.8px",
+              color: "var(--rt-ink)",
+              margin: "0 0 12px",
+            }}
+          >
+            Pick your edge.
+          </h2>
+          <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, color: "var(--rt-body)", margin: 0 }}>
+            Start free. Upgrade when your league gets serious.
+          </p>
         </div>
-        <p className="cta-note">No spam. Dynasty content only. Unsubscribe anytime.</p>
+        <div className="home-pricing-grid">
+          {PRICING_TIERS.map((t) => {
+            const dark = t.featured;
+            return (
+              <Card key={t.name} variant={dark ? "product-dark" : "feature"} padding={32}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, fontWeight: 600, color: dark ? "var(--rt-on-dark)" : "var(--rt-ink)" }}>
+                    {t.name}
+                  </span>
+                  {dark ? <Badge tone="dark">Most popular</Badge> : null}
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 24 }}>
+                  <span
+                    style={{
+                      fontFamily: "var(--rt-font-mono)",
+                      fontSize: 44,
+                      letterSpacing: "-1.5px",
+                      color: dark ? "var(--rt-on-dark)" : "var(--rt-ink)",
+                    }}
+                  >
+                    {t.price}
+                  </span>
+                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 15, color: dark ? "var(--rt-on-dark-soft)" : "var(--rt-muted)" }}>
+                    {t.cap}
+                  </span>
+                </div>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 12 }}>
+                  {t.features.map((f) => (
+                    <li
+                      key={f}
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        fontFamily: "var(--rt-font-sans)",
+                        fontSize: 15,
+                        lineHeight: 1.4,
+                        color: dark ? "var(--rt-on-dark)" : "var(--rt-body)",
+                      }}
+                    >
+                      <CheckIcon dark={dark} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                {t.price === "Free" ? (
+                  <Button
+                    variant={dark ? "primary" : "secondary-light"}
+                    style={{ width: "100%" }}
+                    onClick={() => openSignUp()}
+                  >
+                    Get started
+                  </Button>
+                ) : (
+                  <Button variant={dark ? "primary" : "secondary-light"} style={{ width: "100%" }} disabled>
+                    Coming soon
+                  </Button>
+                )}
+              </Card>
+            );
+          })}
+        </div>
       </section>
 
-    </>
+      {/* CTA band — dark, closes the page above the shared site footer */}
+      <section style={{ background: "var(--rt-surface-dark)" }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", padding: "96px 24px", textAlign: "center" }}>
+          <h2
+            style={{
+              fontFamily: "var(--rt-font-sans)",
+              fontWeight: 400,
+              fontSize: 40,
+              lineHeight: 1.1,
+              letterSpacing: "-0.8px",
+              color: "var(--rt-on-dark)",
+              margin: "0 0 16px",
+            }}
+          >
+            Take control of your dynasty.
+          </h2>
+          <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, color: "var(--rt-on-dark-soft)", margin: "0 0 32px" }}>
+            Join the managers raising the standard of play in their leagues.
+          </p>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <Button size="lg" onClick={() => openSignUp("/prediction-arena")}>
+              Start your edge
+            </Button>
+            <Button variant="outline-on-dark" size="lg" href="/contact">
+              Contact us
+            </Button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

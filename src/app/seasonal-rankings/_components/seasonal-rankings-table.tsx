@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
+import { shortenPlayerName } from "@/lib/shorten-name";
+import { normalizePlayerName } from "@/lib/dynasty-rankings";
 
 type SeasonOption = { key: string; label: string };
 
@@ -137,20 +140,53 @@ function Headshot({ id, name }: { id: string | null; name: string }) {
   );
 }
 
+// season_player_stats.team uses hoopR's short codes for these 6 teams, which
+// diverge from the standard 3-letter codes TEAM_LOGO (team-rosters) keys by —
+// verified empirically against the live table (30 distinct codes, 24 already
+// match). Everything else passes through unchanged.
+const HOOPR_TEAM_ALIAS: Record<string, string> = {
+  GS: "GSW", NO: "NOP", NY: "NYK", SA: "SAS", UTAH: "UTA", WSH: "WAS",
+};
+
+function TeamLogo({ team }: { team: string | null }) {
+  const [ok, setOk] = useState(true);
+  if (!team) return <span className="sr-td-team-text">—</span>;
+  const abbr = HOOPR_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (file && ok) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+      <img
+        src={`/images/nba%20team%20images/${file}`}
+        alt={team}
+        width={28}
+        height={28}
+        loading="lazy"
+        onError={() => setOk(false)}
+        className="sr-team-logo"
+      />
+    );
+  }
+  // Unknown/unmapped code — show the raw text rather than nothing.
+  return <span className="sr-td-team-text">{team}</span>;
+}
+
 // Sortable numeric header cell.
 function SortTh({
-  label, sortKey, sort, onSort, strong,
+  label, sortKey, sort, onSort, strong, wide,
 }: {
   label: string;
   sortKey: SortKey;
   sort: { key: SortKey; dir: SortDir };
   onSort: (k: SortKey) => void;
   strong?: boolean;
+  /** MINUS1V is a touch wider than the other headers in Geist — see .sr-num-h-wide. */
+  wide?: boolean;
 }) {
   const active = sort.key === sortKey;
   return (
     <th
-      className={`sr-th sr-num-h sr-th-sortable ${active ? "sr-th-active" : ""} ${strong ? "sr-th-strong" : ""}`}
+      className={`sr-th sr-num-h sr-th-sortable ${wide ? "sr-num-h-wide" : ""} ${active ? "sr-th-active" : ""} ${strong ? "sr-th-strong" : ""}`}
       onClick={() => onSort(sortKey)}
       aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
     >
@@ -168,8 +204,9 @@ export function SeasonalRankingsTable(props: {
   seasons: SeasonOption[];
   activeSeason: string;
   ageByRank: Record<number, number>;
+  draftYearByName: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank, draftYearByName } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
@@ -180,6 +217,20 @@ export function SeasonalRankingsTable(props: {
     const base = ageByRank[s.consensus_rank];
     if (base == null) return null;
     return base - (2026 - seasonNum);
+  };
+
+  // Rookie/sophomore status is SEASON-relative here (unlike /dynasty-rankings and
+  // /team-rosters, which tag a player's status TODAY) — this table shows historical
+  // per-season stat rows, so a 2025 draftee reads ROOKIE on the 2025-26 dataset and
+  // SOPHOMORE on 2026-27, not "sophomore" on every season he's ever played. Draft
+  // year is a fixed fact, so it works against any season in the picker (hoopR season
+  // N = the draftYear+1/draftYear+2 year for a player's rookie/sophomore season).
+  const classOf = (s: SeasonPlayerStats): "rookie" | "soph" | null => {
+    const draftYear = draftYearByName[normalizePlayerName(s.name)];
+    if (draftYear == null) return null;
+    if (seasonNum === draftYear + 1) return "rookie";
+    if (seasonNum === draftYear + 2) return "soph";
+    return null;
   };
 
   // Season switch is a soft navigation (server refetch); a pending flag dims the
@@ -236,6 +287,17 @@ export function SeasonalRankingsTable(props: {
   }, [leagueSize, activeSeason, loadedValues]);
   const [teamFilter, setTeamFilter] = useState<Set<string>>(new Set());
   const [posFilter, setPosFilter] = useState<Set<string>>(new Set());
+  // Multi-select, same union pattern as posFilter: empty = no filter, and
+  // "vet" (neither rookie nor sophomore this season) can combine with the
+  // other two so a manager can e.g. hide rookies+sophomores at once, or
+  // show rookies and sophomores together while excluding veterans.
+  const [classFilter, setClassFilter] = useState<Set<"rookie" | "soph" | "vet">>(new Set());
+  const toggleClass = (c: "rookie" | "soph" | "vet") => {
+    const next = new Set(classFilter);
+    if (next.has(c)) next.delete(c);
+    else next.add(c);
+    setClassFilter(next);
+  };
   const [perGame, setPerGame] = useState(true);
   const [minGames, setMinGames] = useState(0); // 0 = any; else strictly greater than
   const [minMins, setMinMins] = useState(0);
@@ -247,6 +309,18 @@ export function SeasonalRankingsTable(props: {
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [tickedOnly, setTickedOnly] = useState(false);
+  // Mobile only: filters render as an overlay above the table (not pushed above
+  // it in normal flow) so the player list always starts right under the nav —
+  // see .sr-controls-inner / .sr-mobile-filter-toggle in the mobile media query.
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const activeFilterCount =
+    (teamFilter.size > 0 ? 1 : 0) +
+    (posFilter.size > 0 ? 1 : 0) +
+    (classFilter.size > 0 ? 1 : 0) +
+    (minGames > 0 ? 1 : 0) +
+    (minMins > 0 ? 1 : 0) +
+    (tickedOnly ? 1 : 0) +
+    (search.trim() ? 1 : 0);
 
   const toggleCheck = (id: string) =>
     setChecked((prev) => {
@@ -352,12 +426,17 @@ export function SeasonalRankingsTable(props: {
       if (tickedOnly && !checked.has(s.player_id)) return false;
       if (teamFilter.size > 0 && !(s.team && teamFilter.has(s.team))) return false;
       if (posFilter.size > 0 && !(s.position && [...posFilter].some((p) => s.position!.includes(p)))) return false;
+      if (classFilter.size > 0) {
+        const cls = classOf(s) ?? "vet";
+        if (!classFilter.has(cls)) return false;
+      }
       if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
       if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
       if (q && !s.name.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, minGames, minMins, search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, classFilter, minGames, minMins, search]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -374,12 +453,38 @@ export function SeasonalRankingsTable(props: {
 
   return (
     <div className="sr-shell">
-      <SiteNav active="rankings" />
+      <PlatformSidebarNav active="cat-values" />
 
       <div className="sr-controls" ref={controlsRef}>
-        <div className="sr-controls-inner">
+        {/* Mobile only: compact toggle that opens the filters as an overlay
+            above the table, instead of the full control stack pushing the
+            table down the page (desktop is unaffected — hidden via CSS). */}
+        <button
+          type="button"
+          className="sr-mobile-filter-toggle"
+          onClick={() => setMobileFiltersOpen((v) => !v)}
+          aria-expanded={mobileFiltersOpen}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6" /><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none" />
+            <line x1="4" y1="12" x2="20" y2="12" /><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none" />
+            <line x1="4" y1="18" x2="20" y2="18" /><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none" />
+          </svg>
+          Filters
+          {activeFilterCount > 0 && <span className="sr-mobile-filter-count">{activeFilterCount}</span>}
+          <span className="sr-mobile-filter-caret">{mobileFiltersOpen ? "▲" : "▼"}</span>
+        </button>
+        {mobileFiltersOpen && <div className="sr-mobile-backdrop" onClick={() => setMobileFiltersOpen(false)} />}
+
+        <div className={`sr-controls-inner ${mobileFiltersOpen ? "sr-controls-inner-open" : ""}`}>
+          <div className="sr-mobile-panel-header">
+            <span>Filters</span>
+            <button type="button" className="sr-mobile-panel-done" onClick={() => setMobileFiltersOpen(false)}>
+              Done
+            </button>
+          </div>
           {/* Season — reloads the page with a different dataset */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-season">
             <label className="sr-label" htmlFor="sr-season">Season</label>
             <select
               id="sr-season"
@@ -394,7 +499,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Player pool — the ONLY control that changes Value/Minus1V */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-pool">
             <label className="sr-label" htmlFor="sr-pool">Player Pool</label>
             <select
               id="sr-pool"
@@ -410,7 +515,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Cat Value mode — 9CatV (full) vs 8CatV (turnovers removed) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-catmode">
             <label className="sr-label" htmlFor="sr-catmode">Cat Value</label>
             <select
               id="sr-catmode"
@@ -426,7 +531,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Position multi-select */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-position sr-g-full">
             <span className="sr-label">Position</span>
             <div className="sr-pill-row">
               <button
@@ -449,8 +554,45 @@ export function SeasonalRankingsTable(props: {
             </div>
           </div>
 
+          {/* Rookie/sophomore class — season-relative to the active dataset, see classOf().
+              Multi-select like Position: Rookies + Sophomores together shows either,
+              Veterans excludes both, and any combination unions/excludes accordingly. */}
+          <div className="sr-group sr-g-class sr-g-full">
+            <span className="sr-label">Class</span>
+            <div className="sr-pill-row">
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.size === 0 ? "sr-pill-on" : ""}`}
+                onClick={() => setClassFilter(new Set())}
+              >
+                ALL
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("rookie") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("rookie")}
+              >
+                Rookies
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("soph") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("soph")}
+              >
+                Sophomores
+              </button>
+              <button
+                type="button"
+                className={`sr-pill ${classFilter.has("vet") ? "sr-pill-on" : ""}`}
+                onClick={() => toggleClass("vet")}
+              >
+                Veterans
+              </button>
+            </div>
+          </div>
+
           {/* Per-game / Totals (display only) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mode sr-g-full">
             <span className="sr-label">Mode</span>
             <div className="sr-pill-row">
               <button
@@ -471,7 +613,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Ticked-player filter — grouped with the other pill buttons */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mylist sr-g-full">
             <span className="sr-label">My List</span>
             <div className="sr-pill-row">
               <button
@@ -495,7 +637,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Rank by (mirrors header-click sorting) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-rankby">
             <label className="sr-label" htmlFor="sr-rankby">Rank By</label>
             <select
               id="sr-rankby"
@@ -516,7 +658,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Team */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-team">
             <label className="sr-label" htmlFor="sr-team">Team</label>
             <select
               id="sr-team"
@@ -532,7 +674,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Min games (display filter) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-mingames">
             <label className="sr-label" htmlFor="sr-mingames">Min Games</label>
             <select
               id="sr-mingames"
@@ -547,7 +689,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Min minutes (display filter) */}
-          <div className="sr-group">
+          <div className="sr-group sr-g-minmins">
             <label className="sr-label" htmlFor="sr-minmins">Min Minutes</label>
             <select
               id="sr-minmins"
@@ -562,7 +704,7 @@ export function SeasonalRankingsTable(props: {
           </div>
 
           {/* Search */}
-          <div className="sr-group sr-group-search">
+          <div className="sr-group sr-group-search sr-g-search sr-g-full">
             <label className="sr-label" htmlFor="sr-search">Search</label>
             <input
               id="sr-search"
@@ -592,16 +734,17 @@ export function SeasonalRankingsTable(props: {
               <thead>
                 <tr>
                   <th className="sr-th sr-th-pick" aria-label="Tick" />
-                  <th className="sr-th sr-num-h">RANK</th>
+                  <th className="sr-th sr-num-h sr-th-rank">RANK</th>
                   <th className="sr-th sr-th-shot" aria-label="Headshot" />
                   <th className="sr-th sr-th-player sr-sticky-col">PLAYER</th>
+                  <th className="sr-th sr-w-tag" aria-label="Rookie/Sophomore" />
                   <th className="sr-th sr-w">TEAM</th>
                   <th className="sr-th sr-w">POS</th>
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
                   <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
-                  <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} />
+                  <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
                   <SortTh label="3PM" sortKey="fg3m" sort={sort} onSort={onSort} />
                   <SortTh label="REB" sortKey="reb" sort={sort} onSort={onSort} />
@@ -640,6 +783,7 @@ export function SeasonalRankingsTable(props: {
                   const toDim = catMode === "8cat" ? " sr-dim" : "";
                   // Bold the actively-sorted column's cells (and only that column).
                   const bold = (key: SortKey) => (sort.key === key ? " sr-sorted" : "");
+                  const cls = classOf(s);
 
                   return (
                     <tr key={s.player_id} className="sr-tr">
@@ -651,12 +795,23 @@ export function SeasonalRankingsTable(props: {
                           aria-label={`Tick ${s.name}`}
                         />
                       </td>
-                      <td className="sr-td sr-num">{rank}</td>
+                      <td className="sr-td sr-num sr-td-rank">{rank}</td>
                       <td className="sr-td sr-td-shot">
                         <Headshot id={s.headshot_id} name={s.name} />
                       </td>
-                      <td className="sr-td sr-td-player sr-sticky-col">{s.name}</td>
-                      <td className={`sr-td sr-td-team sr-w`}>{s.team ?? "—"}</td>
+                      <td className="sr-td sr-td-player sr-sticky-col" title={s.name}>
+                        {shortenPlayerName(s.name)}
+                      </td>
+                      <td className="sr-td sr-td-tag">
+                        {cls === "rookie" ? (
+                          <span className="dr-rookie-badge" title="Rookie this season">R</span>
+                        ) : cls === "soph" ? (
+                          <span className="dr-soph-badge" title="Sophomore this season">S</span>
+                        ) : null}
+                      </td>
+                      <td className="sr-td sr-td-team sr-w">
+                        <TeamLogo team={s.team} />
+                      </td>
                       <td className="sr-td sr-w">{s.position ?? "—"}</td>
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
@@ -664,7 +819,7 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
                         {fVal(catValue(av))}
                       </td>
-                      <td className={`sr-td sr-num${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
+                      <td className={`sr-td sr-num sr-num-wide${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
                         {fVal(av?.minus1v)}
                       </td>
                       <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
@@ -722,28 +877,32 @@ export function SeasonalRankingsTable(props: {
       <Footer />
 
       <style>{`
-        /* The global <nav> is position:fixed and does not consume layout flow,
-           so the shell offsets its height (64px desktop / 52px mobile). */
-        .sr-shell { min-height: 100vh; display: flex; flex-direction: column; padding-top: 64px; }
+        /* Desktop: left rail sidebar (position:fixed, 236px) offsets via
+           padding-left. Mobile falls back to the old fixed top <nav>
+           (52px) — see PlatformSidebarNav and the media query below. */
+        .sr-shell { min-height: 100vh; display: flex; flex-direction: column; padding-left: 236px; }
         .sr-controls {
-          position: sticky; top: 64px; z-index: 50;
+          position: sticky; top: 0; z-index: 50;
           background: var(--bg-surface); border-bottom: 1px solid var(--border-main);
         }
         .sr-controls-inner {
           display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end;
           padding: 12px 20px; max-width: 1400px; margin: 0 auto;
         }
+        /* Mobile-only overlay pieces — invisible on desktop, unhidden inside
+           the max-width:767px block below. */
+        .sr-mobile-filter-toggle, .sr-mobile-backdrop, .sr-mobile-panel-header { display: none; }
         .sr-group { display: flex; flex-direction: column; gap: 6px; }
         .sr-group-search { flex: 1 1 160px; min-width: 140px; }
         .sr-label {
-          font-family: 'VT323', monospace; font-size: 10px; font-weight: 600;
+          font-family: var(--rt-font-sans); font-size: 10px; font-weight: 600;
           letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted);
         }
         .sr-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
         /* All filter buttons: same font/size, uppercase, and the same 34px height
            as the dropdowns for a consistent control row. */
         .sr-pill {
-          font-family: 'VT323', monospace; font-size: 13px; font-weight: 500;
+          font-family: var(--rt-font-sans); font-size: 13px; font-weight: 500;
           letter-spacing: 0.5px; text-transform: uppercase;
           height: 34px; padding: 0 12px; border-radius: 7px; cursor: pointer;
           display: inline-flex; align-items: center;
@@ -751,31 +910,31 @@ export function SeasonalRankingsTable(props: {
           border: 1px solid var(--border-main); transition: all 0.15s; white-space: nowrap;
         }
         .sr-pill:disabled { opacity: 0.4; cursor: not-allowed; }
-        .sr-pill:hover { color: var(--text-primary); border-color: var(--blueprint); }
+        .sr-pill:hover { color: var(--text-primary); border-color: var(--rt-primary); }
         .sr-pill-on {
-          background: var(--blueprint); color: #fff; border-color: var(--blueprint);
+          background: var(--rt-primary); color: #fff; border-color: var(--rt-primary);
         }
         /* Form controls only — NOT the table's numeric cells (which reuse the
            .sr-num class); keep these selectors off .sr-num to avoid painting a
            --bg-card background onto RANK/AGE/GP/MIN. */
         .sr-select, .sr-search {
-          font-family: 'VT323', monospace; font-size: 13px;
+          font-family: var(--rt-font-sans); font-size: 13px;
           padding: 7px 10px; border-radius: 7px;
           background: var(--bg-card, #1a1a1a); color: var(--text-primary);
           border: 1px solid var(--border-main); height: 34px;
         }
         .sr-select:focus, .sr-search:focus {
-          outline: none; border-color: var(--blueprint);
+          outline: none; border-color: var(--rt-primary);
         }
         .sr-search { width: 100%; }
 
         .sr-main { flex: 1; }
         .sr-empty {
           text-align: center; color: var(--text-secondary); padding: 60px 20px;
-          font-family: 'VT323', monospace;
+          font-family: var(--rt-font-sans);
         }
         .sr-empty code {
-          font-family: 'VT323', monospace; font-size: 12px;
+          font-family: var(--rt-font-mono); font-size: 12px;
           background: var(--bg-card, #1a1a1a); padding: 2px 6px; border-radius: 4px;
         }
         /* Inner scroll box → both the thead (top:0) and the player column (left:0)
@@ -790,33 +949,57 @@ export function SeasonalRankingsTable(props: {
         .sr-th {
           position: sticky; top: 0; z-index: 10;
           background: var(--bg-body);
-          font-family: 'VT323', monospace; font-size: 15px; font-weight: 400;
+          font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400;
           letter-spacing: 0; color: var(--text-secondary); text-transform: uppercase;
           padding: 7px 4px; text-align: center; white-space: nowrap;
           border-bottom: 1px solid var(--border-main);
         }
-        /* Number/value columns AND team/pos share one fixed width (header + cells),
-           sized so the widest header (MINUS1V) shows in full. */
+        /* Number/value columns AND team/pos share one fixed width (header + cells). */
         .sr-num-h, .sr-num, .sr-w { width: 56px; min-width: 56px; max-width: 56px; }
+        /* MINUS1V renders a touch wider than the other headers in Geist Sans (was
+           fine at 56px in the old VT323 font) — widen just this column, header
+           and data cell together, rather than the shared width above. */
+        .sr-num-h-wide, .sr-num-wide { width: 74px; min-width: 74px; max-width: 74px; }
         .sr-th-sortable { cursor: pointer; user-select: none; }
         .sr-th-sortable:hover { color: var(--text-primary); }
         .sr-th-strong { color: var(--text-primary); }
-        .sr-th-active { color: var(--edge-orange); font-weight: 700; }
+        .sr-th-active { color: var(--rt-primary); font-weight: 700; }
         .sr-sort-arrow { margin-left: 2px; font-size: 10px; }
-        /* leading tick-box column — fixed + aligned far left, before RANK */
+        /* leading tick-box column — fixed + aligned far left, before RANK.
+           This, RANK, and the headshot all stay pinned as the table scrolls
+           right through the stat columns, same as the PLAYER column. */
         .sr-th-pick, .sr-td-pick { width: 30px; min-width: 30px; max-width: 30px; padding: 0 0 0 10px; }
-        .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--edge-orange); cursor: pointer; display: block; margin: 0 auto; }
+        .sr-td-pick input { width: 13px; height: 13px; accent-color: var(--rt-primary); cursor: pointer; display: block; margin: 0 auto; }
         .sr-th-shot { width: 40px; }
-        /* PLAYER wide enough to keep every name on one line */
-        .sr-th-player { width: 175px; min-width: 175px; max-width: 175px; }
+        /* Shortened names ("F. SURNAME") fit in a much tighter column than full
+           names did. A rare long single-word surname (Antetokounmpo,
+           Mamukelashvili, Niederhauser…) that shortenPlayerName can't compress
+           any further wraps to a second line instead of getting cut off —
+           title attribute still carries the full name for a hover tooltip. */
+        .sr-th-player, .sr-td-player { width: 148px; min-width: 148px; max-width: 148px; }
+        /* Compound selector (not just .sr-td-player) so this reliably beats
+           the later .sr-td { white-space: nowrap } rule regardless of source
+           order/specificity ties. */
+        .sr-td.sr-td-player { white-space: normal; word-break: break-word; line-height: 1.15; }
+        /* Rookie/sophomore badge gets its own narrow column (not squeezed inline
+           after the name) so it can never collide with or truncate the player name. */
+        .sr-w-tag, .sr-td-tag { width: 28px; min-width: 28px; max-width: 28px; padding: 5px 2px; }
+        .sr-td-tag .dr-rookie-badge, .sr-td-tag .dr-soph-badge { margin-left: 0; }
+
+        .sr-th-pick, .sr-th-rank, .sr-th-shot { position: sticky; z-index: 20; background: var(--bg-body); }
+        .sr-td-pick, .sr-td-rank, .sr-td-shot { position: sticky; z-index: 5; background: var(--bg-body); }
+        .sr-th-pick, .sr-td-pick { left: 0; }
+        .sr-th-rank, .sr-td-rank { left: 30px; }
+        .sr-th-shot, .sr-td-shot { left: 86px; } /* 30 (pick) + 56 (rank) */
+        .sr-tr:hover .sr-td-pick, .sr-tr:hover .sr-td-rank, .sr-tr:hover .sr-td-shot { background: var(--bg-card-hover, #1c1c1c); }
         /* the frozen corner cell (PLAYER header) needs to win on both axes */
-        .sr-th.sr-sticky-col { left: 0; z-index: 20; background: var(--bg-body); }
+        .sr-th.sr-sticky-col { left: 126px; z-index: 20; background: var(--bg-body); } /* 30 + 56 + 40 (shot) */
 
         .sr-tr:hover .sr-td { background: var(--bg-card-hover, rgba(255,255,255,0.03)); }
         .sr-td {
           padding: 5px 5px; font-size: 15px; color: var(--text-primary);
           border-bottom: 1px solid var(--border-main); white-space: nowrap;
-          font-family: 'VT323', monospace; text-align: center; line-height: 1.05;
+          font-family: var(--rt-font-mono); text-align: center; line-height: 1.05;
         }
         /* Number/value columns: same font, smaller than the name/text columns. */
         .sr-num {
@@ -829,12 +1012,13 @@ export function SeasonalRankingsTable(props: {
         .sr-dim { opacity: 0.16; transition: opacity 0.15s; }
         /* Minus1V: a very thin blue outline marks each player's dropped category. */
         .sr-outline { box-shadow: inset 0 0 0 1px var(--blueprint); border-radius: 4px; }
-        .sr-td-player { font-weight: 400; text-transform: uppercase; }
-        .sr-td-team, .sr-td .sr-td-team { color: var(--text-secondary); }
+        .sr-td-player { font-weight: 400; text-transform: uppercase; font-family: var(--rt-font-sans); }
+        .sr-td-team-text { color: var(--text-secondary); }
+        .sr-team-logo { width: 28px; height: 28px; object-fit: contain; display: block; margin: 0 auto; }
 
         /* sticky player column — same base background as the data cells (which
            show the page body), so no column has a different shade in either theme */
-        .sr-sticky-col { position: sticky; left: 0; z-index: 5; background: var(--bg-body); }
+        .sr-sticky-col { position: sticky; left: 126px; z-index: 5; background: var(--bg-body); }
         .sr-tr:hover .sr-sticky-col { background: var(--bg-card-hover, #1c1c1c); }
 
         .sr-headshot-img {
@@ -849,14 +1033,120 @@ export function SeasonalRankingsTable(props: {
         }
         .sr-count {
           text-align: center; font-size: 11px; color: var(--text-muted);
-          padding: 10px 0 24px; font-family: 'VT323', monospace;
+          padding: 10px 0 24px; font-family: var(--rt-font-sans);
         }
 
         @media (max-width: 767px) {
-          .sr-shell { padding-top: 52px; }
+          .sr-shell { padding-left: 0; padding-top: 52px; }
           .sr-controls { top: 52px; }
-          .sr-controls-inner { gap: 10px; padding: 10px 12px; }
+
+          /* Filters no longer sit in normal flow pushing the table down — the
+             compact toggle bar is all that occupies real height; the full
+             control stack becomes a fixed overlay above the table, opened on
+             demand. This is what keeps the player list at the top of the
+             screen on mobile (see .sr-controls-inner below). */
+          .sr-mobile-filter-toggle {
+            display: flex; align-items: center; gap: 8px;
+            width: 100%; height: 40px; padding: 0 14px; margin: 0;
+            background: var(--bg-card, #1a1a1a); border: none; cursor: pointer;
+            color: var(--text-primary); font-family: var(--rt-font-sans);
+            font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;
+          }
+          .sr-mobile-filter-count {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+            background: var(--rt-primary); color: #fff; font-size: 10px; font-weight: 700;
+          }
+          .sr-mobile-filter-caret { margin-left: auto; font-size: 9px; color: var(--text-muted); }
+
+          .sr-mobile-backdrop {
+            display: block; position: fixed; inset: 92px 0 0 0; z-index: 80;
+            background: rgba(0,0,0,0.6);
+          }
+
+          /* Two-column grid, not the base rule's flex-wrap row: flex-direction:
+             column + inherited flex-wrap:wrap used to overflow into a second
+             *column* off-screen right once content exceeded the fixed-height
+             overlay, forcing a horizontal scroll to reach some filters. Grid
+             sizes columns to the container instead, so everything stays
+             reachable with only vertical scroll. Pairs are ordered via
+             .sr-g-* (see below), independent of desktop's DOM-order flex-wrap. */
+          .sr-controls-inner {
+            display: none; /* hidden until opened — see .sr-controls-inner-open */
+            position: fixed; top: 92px; left: 0; right: 0; bottom: 0; z-index: 90;
+            grid-template-columns: 1fr 1fr; align-items: end; gap: 10px;
+            background: var(--bg-surface); overflow-y: auto; overflow-x: hidden;
+            padding: 4px 14px 28px; max-width: none; margin: 0;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.35);
+          }
+          .sr-controls-inner.sr-controls-inner-open { display: grid; }
+          /* Grid items default to min-width:max-content, which can overflow a
+             tight column; the select must shrink to fill its cell. */
+          .sr-controls-inner .sr-group { min-width: 0; }
+          .sr-controls-inner .sr-select { width: 100%; }
+          .sr-controls-inner .sr-g-full,
+          .sr-controls-inner .sr-mobile-panel-header { grid-column: 1 / -1; }
+          .sr-controls-inner .sr-g-season { order: 1; }
+          .sr-controls-inner .sr-g-pool { order: 2; }
+          .sr-controls-inner .sr-g-catmode { order: 3; }
+          .sr-controls-inner .sr-g-rankby { order: 4; }
+          .sr-controls-inner .sr-g-position { order: 5; }
+          .sr-controls-inner .sr-g-class { order: 6; }
+          .sr-controls-inner .sr-g-mode { order: 7; }
+          .sr-controls-inner .sr-g-mylist { order: 8; }
+          .sr-controls-inner .sr-g-team { order: 9; }
+          .sr-controls-inner .sr-g-mingames { order: 10; }
+          .sr-controls-inner .sr-g-minmins { order: 11; }
+          .sr-controls-inner .sr-g-search { order: 12; }
+          .sr-mobile-panel-header {
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 1;
+            margin: 0 -14px; padding: 12px 14px; background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-main);
+            font-family: var(--rt-font-sans); font-size: 12px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary);
+          }
+          .sr-mobile-panel-done {
+            height: 30px; padding: 0 14px; border-radius: 7px; cursor: pointer;
+            background: var(--rt-primary); color: #fff; border: none;
+            font-family: var(--rt-font-sans); font-size: 12px; font-weight: 700; text-transform: uppercase;
+          }
+
           .sr-th-shot, .sr-td-shot { display: none; }
+          /* headshot column is gone, so the frozen PLAYER column shifts left
+             to sit right after RANK — 30 (pick) + 42 (rank, shrunk below). */
+          .sr-th.sr-sticky-col, .sr-sticky-col { left: 72px; }
+          /* Smaller + narrower than desktop, so a phone in landscape shows
+             several more of the 9-cat columns before horizontal scroll kicks in. */
+          .sr-th, .sr-td, .sr-num { font-size: 11px; }
+          .sr-th { padding: 6px 3px; }
+          .sr-td { padding: 4px 3px; }
+          .sr-num-h, .sr-num, .sr-w { width: 40px; min-width: 40px; max-width: 40px; }
+          .sr-num-h-wide, .sr-num-wide { width: 52px; min-width: 52px; max-width: 52px; }
+          .sr-th-player, .sr-td-player { width: 104px; min-width: 104px; max-width: 104px; }
+          .sr-th-rank, .sr-td-rank { left: 30px; }
+          .sr-team-logo { width: 20px; height: 20px; }
+          .sr-headshot-img, .sr-headshot-fallback { width: 26px; height: 26px; }
+          .sr-count { font-size: 10px; padding: 8px 0 18px; }
+        }
+
+        /* Phone in landscape: most modern phones are wider than the 767px
+           sitewide mobile breakpoint once rotated (e.g. ~844px), so they'd
+           otherwise fall back to the full desktop sidebar/table sizing here.
+           Keyed on height + orientation instead of width so it reliably
+           catches landscape phones regardless of exact width — tightens the
+           table further so more of the 9-cat columns fit before horizontal
+           scroll is needed. Table-only: doesn't touch the sidebar/filter-panel
+           layout, which still follows the sitewide width breakpoint. */
+        @media (max-height: 480px) and (orientation: landscape) {
+          .sr-th, .sr-td, .sr-num { font-size: 10px; }
+          .sr-th { padding: 5px 2px; }
+          .sr-td { padding: 3px 2px; }
+          .sr-num-h, .sr-num, .sr-w { width: 36px; min-width: 36px; max-width: 36px; }
+          .sr-num-h-wide, .sr-num-wide { width: 46px; min-width: 46px; max-width: 46px; }
+          .sr-th-player, .sr-td-player { width: 92px; min-width: 92px; max-width: 92px; }
+          .sr-team-logo { width: 18px; height: 18px; }
+          .sr-headshot-img, .sr-headshot-fallback { width: 22px; height: 22px; }
         }
       `}</style>
     </div>

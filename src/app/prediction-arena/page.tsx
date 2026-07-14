@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { useAuth } from "@/context/AuthContext";
 import { createClient } from "@/utils/supabase/client";
 import { PredictionFeed } from "./_components/prediction-feed";
@@ -96,7 +96,7 @@ function ArenaLanding({ onSignIn, dnResolved }: { onSignIn: () => void; dnResolv
     <div className="pa-wrap">
       <span className="pa-eyebrow">FHE PREDICTION ARENA</span>
       <h1 className="pa-h1">
-        Make the call. <span style={{ color: "var(--edge-orange)" }}>Earn the edge.</span>
+        Make the call. <span style={{ color: "var(--rt-primary)" }}>Earn the edge.</span>
       </h1>
       <p className="pa-lede">
         NBA prediction games with hard deadlines and results on the record —
@@ -154,7 +154,7 @@ function ArenaDashboard({ dnResolved }: { dnResolved: boolean }) {
 
         <div className="pa-stats">
           <div className="pa-stat">
-            <span className="pa-stat-value" style={{ color: "var(--edge-orange)" }}>
+            <span className="pa-stat-value" style={{ color: "var(--rt-primary)" }}>
               {(profile?.edge_points ?? 0).toLocaleString()}
             </span>
             <span className="pa-stat-label">EDGE POINTS</span>
@@ -162,7 +162,7 @@ function ArenaDashboard({ dnResolved }: { dnResolved: boolean }) {
           <div className="pa-stat">
             <span
               className="pa-stat-value"
-              style={{ color: profile?.analyst_badge ? "var(--dynasty-gold)" : "var(--text-muted)" }}
+              style={{ color: profile?.analyst_badge ? "#b5790a" : "var(--rt-muted)" }}
             >
               {profile?.analyst_badge ? "🏅 EARNED" : "—"}
             </span>
@@ -202,8 +202,8 @@ export default function PredictionArenaPage() {
   }, []);
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--bg-body)", color: "var(--text-primary)" }}>
-      <SiteNav />
+    <main className="pa-shell" style={{ minHeight: "100vh", background: "var(--rt-canvas)", color: "var(--rt-ink)" }}>
+      <PlatformSidebarNav active="arena" />
       {loading ? (
         <ArenaSkeleton />
       ) : user ? (

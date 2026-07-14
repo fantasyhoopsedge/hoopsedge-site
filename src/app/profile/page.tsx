@@ -1,13 +1,25 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { SiteNav } from "@/components/site-nav";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { containsProfanity } from "@/lib/profanity";
 
 const MAX_NAME_LEN = 12;
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+// padding-left offsets the fixed-position left sidebar (PlatformSidebarNav
+// desktop rail, 236px) — same convention as .dr-rankings-shell /
+// .draft-board-shell in globals.css. Reverts to 0 under the sidebar's own
+// 767px breakpoint, where it falls back to the top SiteNav instead.
+const PROFILE_SHELL_STYLES = `
+  .profile-main { padding-left: 236px; }
+  @media (max-width: 767px) {
+    .profile-main { padding-left: 0; }
+  }
+`;
 
 function validateDisplayName(v: string): string | null {
   const t = v.trim();
@@ -306,13 +318,14 @@ export default function ProfilePage() {
   if (!user) {
     return (
       <>
-        <SiteNav />
-        <main style={{ minHeight: "100vh", background: "var(--bg-body)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <PlatformSidebarNav active="profile" />
+        <main className="profile-main" style={{ minHeight: "100vh", background: "var(--bg-body)", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
           <div style={{ textAlign: "center" }}>
             <p style={{ color: "var(--text-secondary)", marginBottom: 20 }}>Sign in to view your profile.</p>
             <button className="nav-cta" onClick={() => openSignUp("/profile")}>Sign In</button>
           </div>
         </main>
+        <style>{PROFILE_SHELL_STYLES}</style>
       </>
     );
   }
@@ -322,7 +335,7 @@ export default function ProfilePage() {
 
   return (
     <>
-      <SiteNav />
+      <PlatformSidebarNav active="profile" />
 
       {showPositioner && posDataUrl && posNatural && (
         <AvatarPositioner
@@ -334,8 +347,9 @@ export default function ProfilePage() {
         />
       )}
 
-      <main style={{ minHeight: "100vh", background: "var(--bg-body)", paddingTop: 80, paddingBottom: 60 }}>
+      <main className="profile-main" style={{ minHeight: "100vh", background: "var(--bg-body)", paddingTop: 80, paddingBottom: 60 }}>
         <div className="profile-wrap">
+          <Link href="/" className="profile-close" aria-label="Close and return home" title="Close">✕</Link>
 
           {/* ── Header ── */}
           <div className="profile-header">
@@ -429,8 +443,17 @@ export default function ProfilePage() {
           </section>
         </div>
 
+        <style>{PROFILE_SHELL_STYLES}</style>
         <style>{`
-          .profile-wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; }
+          .profile-wrap { max-width: 560px; margin: 0 auto; padding: 0 20px; position: relative; }
+          .profile-close {
+            position: absolute; top: 0; right: 20px; width: 32px; height: 32px;
+            border-radius: 50%; border: 1px solid var(--border-main);
+            background: var(--bg-card); color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; text-decoration: none; transition: border-color 0.2s, color 0.2s;
+          }
+          .profile-close:hover { border-color: var(--edge-orange); color: var(--text-primary); }
           .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; }
           .profile-avatar-large { position: relative; flex-shrink: 0; }
           .profile-avatar-large img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-main); }

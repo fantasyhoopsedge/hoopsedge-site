@@ -335,10 +335,13 @@ export interface Database {
           salary_y2: number | null;
           salary_y3: number | null;
           salary_y4: number | null;
+          salary_y5: number | null; // 2029-30 (migration 20260630000000)
           contract_note: string | null;
           free_agent_year: number | null;
           free_agent_status: string | null;
           is_two_way: boolean | null;
+          salary_estimated: boolean; // any year even-split estimated
+          salary_note: string | null;
           source: string;
           updated_at: string;
         };
@@ -425,6 +428,87 @@ export interface Database {
           },
         ];
       };
+      // Enriched per-season roster (migration 20260630000000_nba_roster).
+      // Fed by scripts/nba-data/roster_ingest.ts from data/nba-rosters/<season>.csv.
+      // salary_yr1 = `season`; yr2..yr4 are the following seasons. Estimated years
+      // (even-split of contract_total) flagged in salary_estimated/_years.
+      nba_roster: {
+        Row: {
+          season: string;
+          team: string;
+          player_id: string | null;
+          norm_name: string;
+          full_name: string;
+          jersey: string | null;
+          position: string | null;
+          height: string | null;
+          weight: number | null;
+          dob: string | null;
+          age_at_ingest: number | null;
+          years_of_service: string | null;
+          draft_raw: string | null;
+          draft_year: number | null;
+          draft_pick: number | null;
+          is_undrafted: boolean;
+          nationality: string | null;
+          birthplace: string | null;
+          pre_draft: string | null;
+          prior_team: string | null;
+          contract_raw: string | null;
+          contract_years: number | null;
+          contract_total: number | null;
+          contract_status: string | null;
+          fa_year: number | null;
+          fa_option_years: number;
+          salary_yr1: number | null;
+          salary_yr2: number | null;
+          salary_yr3: number | null;
+          salary_yr4: number | null;
+          salary_estimated: boolean;
+          salary_estimated_years: string | null;
+          salary_qo_years: string | null;
+          salary_source: string | null;
+          is_incoming_rookie: boolean;
+          is_sophomore: boolean;
+          new_to_team: boolean;
+          source: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "nba_roster_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "nba_players";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      // Per-player block-level value trends (migration 20260707000000_nba_player_trends).
+      // Written by scripts/build-player-trends.ts (service role); payload is the full
+      // PlayerTrendOut object — the exact shape /api/player-trends serves.
+      nba_player_trends: {
+        Row: {
+          season: number;
+          season_type: string;
+          player_id: string;
+          player_name: string;
+          generated_at: string;
+          payload: Json;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "nba_player_trends_player_id_fkey";
+            columns: ["player_id"];
+            referencedRelation: "nba_players";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -485,6 +569,28 @@ export interface Database {
         };
         Relationships: [];
       };
+      // Season-explicit relabel of nba_contracts' wide salary columns, so
+      // consumers never have to remember salary_y2 = 2026-27 (migration
+      // 20260630000000_nba_roster).
+      nba_contract_seasons: {
+        Row: {
+          player_id: string | null;
+          player: string;
+          team: string | null;
+          salary_2025_26: number | null;
+          salary_2026_27: number | null;
+          salary_2027_28: number | null;
+          salary_2028_29: number | null;
+          salary_2029_30: number | null;
+          contract_note: string | null;
+          free_agent_year: number | null;
+          free_agent_status: string | null;
+          is_two_way: boolean | null;
+          salary_estimated: boolean | null;
+          salary_note: string | null;
+        };
+        Relationships: [];
+      };
       nba_trade_candidates: {
         Row: {
           player_id: string | null;
@@ -528,8 +634,11 @@ export type NbaTeam = Database["public"]["Tables"]["nba_teams"]["Row"];
 export type NbaPlayer = Database["public"]["Tables"]["nba_players"]["Row"];
 export type NbaPlayerGameLog = Database["public"]["Tables"]["nba_player_game_logs"]["Row"];
 export type NbaContract = Database["public"]["Tables"]["nba_contracts"]["Row"];
+export type NbaRoster = Database["public"]["Tables"]["nba_roster"]["Row"];
+export type NbaPlayerTrends = Database["public"]["Tables"]["nba_player_trends"]["Row"];
 export type NbaSeasonAverage = Database["public"]["Views"]["nba_season_averages"]["Row"];
 export type NbaFreeAgent = Database["public"]["Views"]["nba_free_agents"]["Row"];
+export type NbaContractSeasons = Database["public"]["Views"]["nba_contract_seasons"]["Row"];
 export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidates"]["Row"];
 
 // ── Seasonal rankings convenience aliases ───────────────────────────────────

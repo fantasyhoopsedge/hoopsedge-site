@@ -1,4 +1,10 @@
 export const dnStyles = `
+/* Offset for the fixed-left AppSidebar rail on desktop (PlatformSidebarNav);
+   mobile falls back to the top SiteNav, which needs no offset. Same simple
+   pattern as .draft-board-shell / .pa-shell. */
+.dn-page-shell { padding-left: 236px; }
+@media (max-width: 767px) { .dn-page-shell { padding-left: 0; } }
+
 .dn-wrap {
   max-width: 1100px; margin: 0 auto; padding: 104px 24px 96px;
 }

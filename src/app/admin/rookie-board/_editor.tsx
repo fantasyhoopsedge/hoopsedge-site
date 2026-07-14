@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import {
   CATS, CAT_LABELS, MAX_BOARD_SIZE, tierInfo, PROSPECT_POOL, ageFromBirthdate,
   type BoardPlayer, type BoardTier, type PoolProspect,
@@ -450,11 +451,18 @@ export function RookieBoardEditor() {
   }
 
   if (loading) {
-    return <div className="rb-shell"><div className="rb-loading">Loading board…</div><style>{STYLES}</style></div>;
+    return (
+      <div className="rb-shell">
+        <PlatformSidebarNav active="rookie-board" />
+        <div className="rb-loading">Loading board…</div>
+        <style>{STYLES}</style>
+      </div>
+    );
   }
 
   return (
     <div className="rb-shell">
+      <PlatformSidebarNav active="rookie-board" />
       {/* ── Header ── */}
       <header className="rb-head">
         <div>
@@ -831,14 +839,21 @@ function resolveColor(c: string): string {
 }
 
 const STYLES = `
-  .rb-shell { min-height: 100vh; background: #000; color: var(--text-secondary, #cbd5e1);
-    font-family: 'Inter', system-ui, sans-serif; padding: 28px 32px 80px; }
+  /* padding-left offsets the fixed-position left sidebar (PlatformSidebarNav
+     desktop rail, 236px) — same convention as .dr-rankings-shell /
+     .draft-board-shell in globals.css. Reverts to 0 under the sidebar's own
+     767px breakpoint, where it falls back to the top SiteNav instead. */
+  .rb-shell { min-height: 100vh; background: var(--bg-body, #000); color: var(--text-secondary, #cbd5e1);
+    font-family: 'Inter', system-ui, sans-serif; padding: 28px 32px 80px; padding-left: 268px; }
+  @media (max-width: 767px) {
+    .rb-shell { padding-left: 32px; padding-top: 80px; }
+  }
   .rb-loading { padding: 80px; text-align: center; color: var(--text-muted, #64748b); }
   .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px;
     flex-wrap: wrap; margin-bottom: 18px; }
   .rb-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 3px;
     color: var(--edge-orange, #f97316); margin-bottom: 6px; }
-  .rb-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px; color: #fff; margin: 0; text-transform: uppercase; letter-spacing: .5px; }
+  .rb-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px; color: var(--text-primary, #fff); margin: 0; text-transform: uppercase; letter-spacing: .5px; }
   .rb-sub { font-size: 13px; color: var(--text-muted, #94a3b8); margin-top: 6px; }
   .rb-dirty { color: var(--edge-orange, #f97316); font-weight: 600; }
   .rb-head-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -867,10 +882,10 @@ const STYLES = `
   .rb-draft-banner { display: flex; align-items: center; justify-content: space-between; gap: 14px;
     background: rgba(240,192,64,.1); border: 1px solid rgba(240,192,64,.35); color: #f5d77a;
     padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
-  .rb-draft-banner strong { color: #fff; }
+  .rb-draft-banner strong { color: var(--text-primary, #fff); }
   .rb-warn { background: rgba(249,115,22,.1); border: 1px solid rgba(249,115,22,.35); color: #fdba74;
     padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; }
-  .rb-warn code { font-family: 'JetBrains Mono', monospace; color: #fff; }
+  .rb-warn code { font-family: 'JetBrains Mono', monospace; color: var(--text-primary, #fff); }
 
   .rb-body { display: grid; grid-template-columns: minmax(340px, 1fr) minmax(380px, 1.1fr); gap: 22px; align-items: start; }
   @media (max-width: 900px) { .rb-body { grid-template-columns: 1fr; } }
@@ -885,7 +900,7 @@ const STYLES = `
   .rb-row.dragover { border-color: var(--blueprint-glow, #38bdf8); border-style: dashed; }
   .rb-grip { color: var(--text-muted, #475569); cursor: grab; font-size: 13px; letter-spacing: -2px; }
   .rb-rank { font-family: 'Oswald', sans-serif; font-weight: 800; font-size: 18px; min-width: 28px; text-align: center; }
-  .rb-row-name { font-weight: 600; color: #fff; font-size: 14px; flex: 0 0 auto; }
+  .rb-row-name { font-weight: 600; color: var(--text-primary, #fff); font-size: 14px; flex: 0 0 auto; }
   .rb-empty { color: var(--text-muted, #64748b); font-weight: 400; }
   .rb-row-meta { font-size: 11px; color: var(--text-muted, #64748b); margin-left: auto; white-space: nowrap; }
   .rb-row-del { background: none; border: none; color: var(--text-muted, #475569); cursor: pointer; font-size: 12px; padding: 2px 4px; }
@@ -901,7 +916,7 @@ const STYLES = `
   .rb-field-wide { grid-column: 1 / -1; }
   .rb-field > span { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--text-muted, #64748b); text-transform: uppercase; }
   .rb-input { background: var(--bg-card, #0b1018); border: 1px solid var(--border-main, #334155); border-radius: 7px;
-    color: #fff; padding: 8px 10px; font-size: 13px; font-family: inherit; width: 100%; }
+    color: var(--text-primary, #fff); padding: 8px 10px; font-size: 13px; font-family: inherit; width: 100%; }
   .rb-input:focus { outline: none; border-color: var(--edge-orange, #f97316); }
   .rb-section { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 2px; font-size: 12px;
     color: var(--edge-orange, #f97316); margin: 20px 0 12px; }
@@ -923,7 +938,7 @@ const STYLES = `
   .rb-range-steppers button { width: 22px; height: 24px; border-radius: 6px; cursor: pointer;
     background: var(--bg-card, #131a28); border: 1px solid var(--border-main, #334155);
     color: var(--text-secondary, #cbd5e1); font-size: 14px; line-height: 1; padding: 0; }
-  .rb-range-steppers button:hover:not(:disabled) { border-color: var(--edge-orange, #f97316); color: #fff; }
+  .rb-range-steppers button:hover:not(:disabled) { border-color: var(--edge-orange, #f97316); color: var(--text-primary, #fff); }
   .rb-range-steppers button:disabled { opacity: .3; cursor: not-allowed; }
   .rb-tier-empty { font-size: 11px; color: var(--text-muted, #64748b); font-style: italic; }
   .rb-tier-restore { background: rgba(240,192,64,.12); border: 1px solid rgba(240,192,64,.4); color: var(--dynasty-gold, #f0c040);
@@ -936,7 +951,7 @@ const STYLES = `
     background: var(--bg-card, #131a28); border: 1px solid var(--border-main, #1e293b); color: var(--text-secondary, #cbd5e1); font-size: 12px; }
   .rb-version:hover { border-color: var(--blueprint-glow, #38bdf8); }
   .rb-version.current { border-color: var(--green-elite, #22c55e); }
-  .rb-version strong { color: #fff; font-family: 'JetBrains Mono', monospace; }
+  .rb-version strong { color: var(--text-primary, #fff); font-family: 'JetBrains Mono', monospace; }
   .rb-version-meta { margin-left: auto; color: var(--text-muted, #64748b); }
 
   .rb-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 50;
@@ -954,14 +969,14 @@ const STYLES = `
   .rb-modal-sub { font-size: 12px; color: var(--text-muted, #64748b); margin-top: 4px; }
   .rb-pool-custom { text-align: left; background: var(--bg-card, #131a28); border: 1px dashed var(--border-main, #334155);
     color: var(--text-secondary, #cbd5e1); border-radius: 8px; padding: 9px 12px; font-size: 12px; cursor: pointer; }
-  .rb-pool-custom:hover { border-color: var(--edge-orange, #f97316); color: #fff; }
+  .rb-pool-custom:hover { border-color: var(--edge-orange, #f97316); color: var(--text-primary, #fff); }
   .rb-pool-list { display: flex; flex-direction: column; gap: 4px; max-height: 52vh; overflow-y: auto; }
   .rb-pool-row { display: flex; align-items: center; gap: 10px; text-align: left; width: 100%;
     background: var(--bg-card, #131a28); border: 1px solid var(--border-main, #1e293b); border-radius: 8px;
     padding: 8px 11px; cursor: pointer; color: var(--text-secondary, #cbd5e1); }
   .rb-pool-row:hover { border-color: var(--edge-orange, #f97316); }
   .rb-pool-rank { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-muted, #64748b); min-width: 34px; }
-  .rb-pool-name { font-weight: 600; color: #fff; font-size: 14px; }
+  .rb-pool-name { font-weight: 600; color: var(--text-primary, #fff); font-size: 14px; }
   .rb-pool-meta { font-size: 11px; color: var(--text-muted, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rb-pool-add { margin-left: auto; font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase;
     letter-spacing: 1px; color: var(--edge-orange, #f97316); white-space: nowrap; }

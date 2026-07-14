@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { activeRankForView, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
+import { activeRankForView, normalizePlayerName, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
 import { Footer } from "@/components/footer";
+import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
+import { shortenPlayerName } from "@/lib/shorten-name";
 
 const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wide?: boolean }[] = [
   { key: "dizzle", label: "DIZZLE" },
@@ -27,9 +29,34 @@ export type SortKey =
   | "expert:hashtag"
   | "expert:dynatyze";
 
-function teamPillClass(team: string) {
-  if (team === "2026 Rookie") return "dr-team-pill dr-team-pill-rookie";
-  return "dr-team-pill";
+// dynasty-rankings.json uses standard codes matching TEAM_LOGO's keys, except
+// New Orleans ("NOR" here vs. "NOP") and Phoenix ("PHO" vs. "PHX") — verified
+// empirically against the live data. "FA" (free agent, including undrafted
+// 2026 rookies with no NBA team yet) isn't a real team, so it stays as text.
+const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+const NON_TEAM_VALUES = new Set(["FA"]);
+
+function TeamCell({ team, size = 32 }: { team: string; size?: number }) {
+  const [ok, setOk] = useState(true);
+  if (NON_TEAM_VALUES.has(team)) {
+    return <span className="dr-team-pill">{team}</span>;
+  }
+  const abbr = DYNASTY_TEAM_ALIAS[team] ?? team;
+  const file = TEAM_LOGO[abbr];
+  if (!file || !ok) return <span className="dr-team-pill">{team}</span>;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
+    <img
+      src={`/images/nba%20team%20images/${file}`}
+      alt={team}
+      width={size}
+      height={size}
+      loading="lazy"
+      onError={() => setOk(false)}
+      className="dr-team-logo"
+      style={size !== 32 ? { width: size, height: size } : undefined}
+    />
+  );
 }
 
 const TIER_COLORS: Record<number, string> = {
@@ -58,38 +85,16 @@ function playerInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-const SUFFIXES = ["Jr.", "Sr.", "II", "III"];
 
-function mobilePlayerName(fullName: string): string {
-  const parts = fullName.trim().split(" ");
-  const suffix = SUFFIXES.includes(parts[parts.length - 1]) ? parts[parts.length - 1] : "";
-  const nameParts = suffix ? parts.slice(0, -1) : parts;
-
-  const nameWithoutSuffix = nameParts.join(" ");
-  if (nameWithoutSuffix.length <= 13) {
-    return suffix ? `${nameWithoutSuffix} ${suffix}` : nameWithoutSuffix;
-  }
-
-  const initial = nameParts[0][0] + ".";
-  const surname = nameParts.slice(1).join(" ");
-  const shortened = [initial, surname, suffix].filter(Boolean).join(" ");
-  return shortened;
-}
-
+// One accent family (rt-primary + its darker shade), not the old blue/orange/
+// gold rainbow — tier colors (TIER_COLORS above) are semantic and untouched.
 function mobilePositionBadgeStyle(position: string): CSSProperties {
   const normalized = position.toUpperCase();
-  let background = "#2563EB";
-  let color = "#ffffff";
+  let background = "var(--rt-primary)";
+  const color = "var(--rt-on-primary)";
 
-  if (normalized === "F") {
-    background = "#FF6B2B";
-  } else if (normalized === "C") {
-    background = "#F0C040";
-    color = "#1f2937";
-  } else if (normalized === "G/F") {
-    background = "linear-gradient(135deg, #2563EB 0 50%, #FF6B2B 50% 100%)";
-  } else if (normalized === "F/C") {
-    background = "linear-gradient(135deg, #FF6B2B 0 50%, #F0C040 50% 100%)";
+  if (normalized === "G/F" || normalized === "F/C") {
+    background = "linear-gradient(135deg, var(--rt-primary) 0 50%, var(--rt-primary-active) 50% 100%)";
   }
 
   return {
@@ -185,14 +190,23 @@ export function RankingsTable(props: {
   activeExpertKey: string;
   rankedByExpertLabel: string | null;
   versionLabel: string;
+  sophomoreNames: Set<string>;
+  onPlayerClick: (p: DynastyPlayer) => void;
 }) {
-  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, versionLabel } = props;
+  const { rows, sortKey, sortDir, onSort, activeExpertKey, rankedByExpertLabel, versionLabel, sophomoreNames, onPlayerClick } = props;
   const scrollRef = useRef<HTMLDivElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const loadingTimeoutRef = useRef<number | null>(null);
   const [visibleCount, setVisibleCount] = useState(50);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  // Phone in landscape (keyed on height + orientation, matching the
+  // @media (max-height: 480px) and (orientation: landscape) CSS block in
+  // globals.css) gets the full column set — Age/Tier/Vs Cons/all 5 expert
+  // panels — instead of the reduced portrait set, since there's horizontal
+  // room even though width alone (often >767px rotated) can't tell portrait
+  // and landscape apart.
+  const [isLandscape, setIsLandscape] = useState(false);
 
   const sorted = useMemo(() => {
     const out = [...rows];
@@ -212,6 +226,14 @@ export function RankingsTable(props: {
     updateIsMobile();
     window.addEventListener("resize", updateIsMobile);
     return () => window.removeEventListener("resize", updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-height: 480px) and (orientation: landscape)");
+    const sync = () => setIsLandscape(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
   }, []);
 
   const shown = useMemo(() => sorted.slice(0, visibleCount), [sorted, visibleCount]);
@@ -272,12 +294,17 @@ export function RankingsTable(props: {
   const mobileExpertMode = isMobile && expertMode;
 
   const showAvatarColumn = !isMobile;
-  const showTeamColumn = !isMobile;
+  // Position already shows inline next to the name on mobile (the small
+  // badge in the player cell), so its dedicated column stays desktop-only
+  // regardless of orientation — Age/Vs Cons/experts have no such inline
+  // fallback, so landscape restores them. Tier is deliberately left OUT of
+  // landscape (even though it has room like Age does) — dropping it gives
+  // the expert-rank columns more breathing room in an already-tight row.
   const showPosColumn = !isMobile;
-  const showAgeColumn = !isMobile;
-  const showTierColumn = !isMobile;
-  const showVsConsColumn = !isMobile || expertMode;
-  const showExpertColumns = !isMobile;
+  const showAgeColumn = !isMobile || isLandscape;
+  const showTierColumn = !isMobile && !isLandscape;
+  const showVsConsColumn = !isMobile || isLandscape || expertMode;
+  const showExpertColumns = !isMobile || isLandscape;
 
   const consensusAvgSortActive = !activeExpertKey && sortKey === "avgRank";
 
@@ -311,30 +338,39 @@ export function RankingsTable(props: {
             <col className="dr-col-cg-rank" style={{ width: 50 }} />
             {showAvatarColumn ? <col className="dr-col-cg-avatar" style={{ width: 44 }} /> : null}
             <col className="dr-col-cg-player" style={{ width: 180 }} />
-            {showTeamColumn ? <col className="dr-col-cg-team" style={{ width: 110 }} /> : null}
+            <col className="dr-col-cg-team" style={{ width: isMobile ? 30 : 110 }} />
             {showPosColumn ? <col className="dr-col-cg-pos" style={{ width: 55 }} /> : null}
             {showAgeColumn ? <col className="dr-col-cg-age" style={{ width: 60 }} /> : null}
             <col className="dr-col-cg-avg" style={{ width: 90 }} />
             {showTierColumn ? <col className="dr-col-cg-tier" style={{ width: 60 }} /> : null}
             {showVsConsColumn ? <col className="dr-col-cg-vscons" style={{ width: 80 }} /> : null}
             {showExpertColumns
-              ? EXPERT_ORDER.map((e) => <col key={e.key} style={{ width: e.wide ? 75 : 65 }} />)
+              ? EXPERT_ORDER.map((e) => (
+                  <col
+                    key={e.key}
+                    className={e.wide ? "dr-col-cg-expert-wide" : "dr-col-cg-expert"}
+                    style={{ width: e.wide ? 75 : 65 }}
+                  />
+                ))
               : null}
           </colgroup>
           <thead className="dr-table-head">
             <tr>
               <th scope="col" className="dr-th dr-th-sort dr-col-rank dr-th-rank-consensus">
                 <button type="button" className="dr-th-btn" onClick={() => onSort("consensusRank")}>
-                  <span>RANK</span>
+                  <span className="dr-th-rank-long">RANK</span>
+                  <span className="dr-th-rank-short">#</span>
                 </button>
               </th>
               {showAvatarColumn ? <th scope="col" className="dr-th dr-col-avatar dr-desktop-only" aria-label="Avatar" /> : null}
               <th scope="col" className="dr-th dr-th-sort dr-player-col">{sortHeaderBtn("player", "PLAYER")}</th>
-              {showTeamColumn ? (
-                <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric dr-desktop-only">
-                  {sortHeaderBtn("team", "TEAM")}
-                </th>
-              ) : null}
+              <th scope="col" className="dr-th dr-th-sort dr-col-team dr-th-numeric">
+                <button type="button" className="dr-th-btn" onClick={() => onSort("team")}>
+                  <span className="dr-th-team-long">TEAM</span>
+                  <span className="dr-th-team-short">TM</span>
+                  <SortArrow active={sortKey === "team"} dir={arrowDir} />
+                </button>
+              </th>
               {showPosColumn ? (
                 <th scope="col" className="dr-th dr-th-sort dr-col-pos dr-th-numeric">
                   {sortHeaderBtn("position", "POS")}
@@ -362,7 +398,11 @@ export function RankingsTable(props: {
               ) : null}
               {showVsConsColumn ? (
                 <th scope="col" className="dr-th dr-col-vscons dr-th-vscons-head">
-                  {mobileExpertMode ? "VS" : "VS CONS"}
+                  {/* Landscape shows this column at the same narrow width as
+                      mobile+expert mode (34px) — "VS CONS" only fits at the
+                      full desktop width, so use the same short form whenever
+                      the column itself is narrow, not just in that one case. */}
+                  {isMobile || isLandscape ? "VS" : "VS CONS"}
                 </th>
               ) : null}
               {showExpertColumns
@@ -389,9 +429,10 @@ export function RankingsTable(props: {
             {shown.map((p, i) => {
               const activeRank = activeRankForView(p, activeExpertKey);
               const rankStyle = { color: rankColorForTier(p.tier) };
+              const isSophomore = !p.isRookie && sophomoreNames.has(normalizePlayerName(p.player));
 
               return (
-                <tr key={`${p.consensusRank}-${p.player}-${i}`} className="dr-tr">
+                <tr key={`${p.consensusRank}-${p.player}-${i}`} className="dr-tr" onClick={() => onPlayerClick(p)}>
                   <td className="dr-td dr-col-rank">
                     {activeRank !== null ? (
                       <span className="dr-rank-num" style={rankStyle}>
@@ -457,25 +498,38 @@ export function RankingsTable(props: {
                           {isMobile ? (
                             <>
                               <span style={mobilePositionBadgeStyle(p.position)}>{p.position}</span>
-                              {mobilePlayerName(p.player)}
-                              {p.team === "2026 Rookie" ? (
-                                <span style={{ color: "#F0C040", fontSize: 11, marginLeft: 5 }}>Rookie</span>
-                              ) : (
-                                <span style={{ color: "#9a9aaa", fontSize: 11, marginLeft: 5 }}>({p.team})</span>
-                              )}
+                              <span title={p.player}>{shortenPlayerName(p.player)}</span>
+                              {p.isRookie ? (
+                                <span className="dr-rookie-badge" title="2026 Rookie">
+                                  R
+                                </span>
+                              ) : isSophomore ? (
+                                <span className="dr-soph-badge" title="Sophomore">
+                                  S
+                                </span>
+                              ) : null}
                             </>
                           ) : (
-                            p.player
+                            <>
+                              {p.player}
+                              {p.isRookie ? (
+                                <span className="dr-rookie-badge" title="2026 Rookie">
+                                  R
+                                </span>
+                              ) : isSophomore ? (
+                                <span className="dr-soph-badge" title="Sophomore">
+                                  S
+                                </span>
+                              ) : null}
+                            </>
                           )}
                         </div>
                       </div>
                     </div>
                   </td>
-                  {showTeamColumn ? (
-                    <td className="dr-td dr-col-team dr-desktop-only">
-                      <span className={teamPillClass(p.team)}>{p.team}</span>
-                    </td>
-                  ) : null}
+                  <td className="dr-td dr-col-team">
+                    <TeamCell team={p.team} size={isMobile ? 20 : 32} />
+                  </td>
                   {showPosColumn ? (
                     <td className="dr-td dr-col-pos">{isMobile ? p.position : <PositionBadge position={p.position} />}</td>
                   ) : null}

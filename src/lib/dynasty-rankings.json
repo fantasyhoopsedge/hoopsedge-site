@@ -3,6 +3,7 @@
     "consensusRank": 1,
     "player": "Victor Wembanyama",
     "team": "SAS",
+    "isRookie": false,
     "position": "F/C",
     "age": 22.4,
     "expertRanks": {
@@ -21,6 +22,7 @@
     "consensusRank": 2,
     "player": "Shai Gilgeous-Alexander",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 27.9,
     "expertRanks": {
@@ -39,6 +41,7 @@
     "consensusRank": 3,
     "player": "Luka Doncic",
     "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 27.3,
     "expertRanks": {
@@ -57,6 +60,7 @@
     "consensusRank": 4,
     "player": "Nikola Jokic",
     "team": "DEN",
+    "isRookie": false,
     "position": "C",
     "age": 31.3,
     "expertRanks": {
@@ -75,6 +79,7 @@
     "consensusRank": 5,
     "player": "Cade Cunningham",
     "team": "DET",
+    "isRookie": false,
     "position": "G",
     "age": 24.7,
     "expertRanks": {
@@ -93,6 +98,7 @@
     "consensusRank": 6,
     "player": "Cooper Flagg",
     "team": "DAL",
+    "isRookie": false,
     "position": "G/F",
     "age": 19.5,
     "expertRanks": {
@@ -111,6 +117,7 @@
     "consensusRank": 7,
     "player": "Tyrese Maxey",
     "team": "PHI",
+    "isRookie": false,
     "position": "G",
     "age": 25.6,
     "expertRanks": {
@@ -129,6 +136,7 @@
     "consensusRank": 8,
     "player": "Anthony Edwards",
     "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 24.8,
     "expertRanks": {
@@ -147,6 +155,7 @@
     "consensusRank": 9,
     "player": "Jalen Johnson",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 24.5,
     "expertRanks": {
@@ -165,6 +174,7 @@
     "consensusRank": 10,
     "player": "Jayson Tatum",
     "team": "BOS",
+    "isRookie": false,
     "position": "F",
     "age": 28.3,
     "expertRanks": {
@@ -182,7 +192,8 @@
   {
     "consensusRank": 11,
     "player": "Cameron Boozer",
-    "team": "2026 Rookie",
+    "team": "MEM",
+    "isRookie": true,
     "position": "F/C",
     "age": 18.5,
     "expertRanks": {
@@ -199,6 +210,7 @@
     "consensusRank": 12,
     "player": "Chet Holmgren",
     "team": "OKC",
+    "isRookie": false,
     "position": "F/C",
     "age": 24.1,
     "expertRanks": {
@@ -217,6 +229,7 @@
     "consensusRank": 13,
     "player": "Scottie Barnes",
     "team": "TOR",
+    "isRookie": false,
     "position": "F",
     "age": 24.8,
     "expertRanks": {
@@ -235,6 +248,7 @@
     "consensusRank": 14,
     "player": "Tyrese Haliburton",
     "team": "IND",
+    "isRookie": false,
     "position": "G",
     "age": 26.3,
     "expertRanks": {
@@ -253,6 +267,7 @@
     "consensusRank": 15,
     "player": "Alperen Sengun",
     "team": "HOU",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.9,
     "expertRanks": {
@@ -271,6 +286,7 @@
     "consensusRank": 16,
     "player": "Evan Mobley",
     "team": "CLE",
+    "isRookie": false,
     "position": "F/C",
     "age": 25,
     "expertRanks": {
@@ -288,7 +304,8 @@
   {
     "consensusRank": 17,
     "player": "Darryn Peterson",
-    "team": "2026 Rookie",
+    "team": "UTA",
+    "isRookie": true,
     "position": "G",
     "age": 19.1,
     "expertRanks": {
@@ -305,6 +322,7 @@
     "consensusRank": 18,
     "player": "Jalen Williams",
     "team": "OKC",
+    "isRookie": false,
     "position": "F",
     "age": 25.1,
     "expertRanks": {
@@ -323,6 +341,7 @@
     "consensusRank": 19,
     "player": "Amen Thompson",
     "team": "HOU",
+    "isRookie": false,
     "position": "G/F",
     "age": 23.4,
     "expertRanks": {
@@ -340,7 +359,8 @@
   {
     "consensusRank": 20,
     "player": "Giannis Antetokounmpo",
-    "team": "MIL",
+    "team": "MIA",
+    "isRookie": false,
     "position": "F/C",
     "age": 31.5,
     "expertRanks": {
@@ -359,6 +379,7 @@
     "consensusRank": 21,
     "player": "Donovan Mitchell",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 29.7,
     "expertRanks": {
@@ -377,6 +398,7 @@
     "consensusRank": 22,
     "player": "Trae Young",
     "team": "WAS",
+    "isRookie": false,
     "position": "G",
     "age": 27.7,
     "expertRanks": {
@@ -395,6 +417,7 @@
     "consensusRank": 23,
     "player": "Franz Wagner",
     "team": "ORL",
+    "isRookie": false,
     "position": "F",
     "age": 24.8,
     "expertRanks": {
@@ -413,6 +436,7 @@
     "consensusRank": 24,
     "player": "Deni Avdija",
     "team": "POR",
+    "isRookie": false,
     "position": "F",
     "age": 25.4,
     "expertRanks": {
@@ -431,6 +455,7 @@
     "consensusRank": 25,
     "player": "Austin Reaves",
     "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 28,
     "expertRanks": {
@@ -449,6 +474,7 @@
     "consensusRank": 26,
     "player": "Devin Booker",
     "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 29.6,
     "expertRanks": {
@@ -466,7 +492,8 @@
   {
     "consensusRank": 27,
     "player": "LaMelo Ball",
-    "team": "CHA",
+    "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 24.8,
     "expertRanks": {
@@ -485,6 +512,7 @@
     "consensusRank": 28,
     "player": "Jamal Murray",
     "team": "DEN",
+    "isRookie": false,
     "position": "G",
     "age": 29.3,
     "expertRanks": {
@@ -502,7 +530,8 @@
   {
     "consensusRank": 29,
     "player": "AJ Dybantsa",
-    "team": "2026 Rookie",
+    "team": "WAS",
+    "isRookie": true,
     "position": "G/F",
     "age": 19,
     "expertRanks": {
@@ -519,6 +548,7 @@
     "consensusRank": 30,
     "player": "Trey Murphy",
     "team": "NOR",
+    "isRookie": false,
     "position": "F",
     "age": 26,
     "expertRanks": {
@@ -537,6 +567,7 @@
     "consensusRank": 31,
     "player": "Dylan Harper",
     "team": "SAS",
+    "isRookie": false,
     "position": "G",
     "age": 20.3,
     "expertRanks": {
@@ -555,6 +586,7 @@
     "consensusRank": 32,
     "player": "Jalen Brunson",
     "team": "NYK",
+    "isRookie": false,
     "position": "G",
     "age": 29.8,
     "expertRanks": {
@@ -573,6 +605,7 @@
     "consensusRank": 33,
     "player": "Josh Giddey",
     "team": "CHI",
+    "isRookie": false,
     "position": "G",
     "age": 23.7,
     "expertRanks": {
@@ -591,6 +624,7 @@
     "consensusRank": 34,
     "player": "Karl-Anthony Towns",
     "team": "NYK",
+    "isRookie": false,
     "position": "F/C",
     "age": 30.6,
     "expertRanks": {
@@ -609,6 +643,7 @@
     "consensusRank": 35,
     "player": "Alex Sarr",
     "team": "WAS",
+    "isRookie": false,
     "position": "C",
     "age": 21,
     "expertRanks": {
@@ -627,6 +662,7 @@
     "consensusRank": 36,
     "player": "Jalen Duren",
     "team": "DET",
+    "isRookie": false,
     "position": "C",
     "age": 22.6,
     "expertRanks": {
@@ -645,6 +681,7 @@
     "consensusRank": 37,
     "player": "Kon Knueppel",
     "team": "CHA",
+    "isRookie": false,
     "position": "G/F",
     "age": 20.8,
     "expertRanks": {
@@ -663,6 +700,7 @@
     "consensusRank": 38,
     "player": "Darius Garland",
     "team": "LAC",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -681,6 +719,7 @@
     "consensusRank": 39,
     "player": "Jaren Jackson Jr.",
     "team": "UTA",
+    "isRookie": false,
     "position": "F/C",
     "age": 26.7,
     "expertRanks": {
@@ -698,7 +737,8 @@
   {
     "consensusRank": 40,
     "player": "Jaylen Brown",
-    "team": "BOS",
+    "team": "PHI",
+    "isRookie": false,
     "position": "G/F",
     "age": 29.6,
     "expertRanks": {
@@ -716,7 +756,8 @@
   {
     "consensusRank": 41,
     "player": "Caleb Wilson",
-    "team": "2026 Rookie",
+    "team": "CHI",
+    "isRookie": true,
     "position": "F",
     "age": 19.5,
     "expertRanks": {
@@ -733,6 +774,7 @@
     "consensusRank": 42,
     "player": "Paolo Banchero",
     "team": "ORL",
+    "isRookie": false,
     "position": "F",
     "age": 23.6,
     "expertRanks": {
@@ -751,6 +793,7 @@
     "consensusRank": 43,
     "player": "Bam Adebayo",
     "team": "MIA",
+    "isRookie": false,
     "position": "C",
     "age": 28.9,
     "expertRanks": {
@@ -769,6 +812,7 @@
     "consensusRank": 44,
     "player": "De'Aaron Fox",
     "team": "SAS",
+    "isRookie": false,
     "position": "G",
     "age": 28.5,
     "expertRanks": {
@@ -787,6 +831,7 @@
     "consensusRank": 45,
     "player": "VJ Edgecombe",
     "team": "PHI",
+    "isRookie": false,
     "position": "G",
     "age": 20.9,
     "expertRanks": {
@@ -805,6 +850,7 @@
     "consensusRank": 46,
     "player": "Lauri Markkanen",
     "team": "UTA",
+    "isRookie": false,
     "position": "F",
     "age": 29,
     "expertRanks": {
@@ -823,6 +869,7 @@
     "consensusRank": 47,
     "player": "Desmond Bane",
     "team": "ORL",
+    "isRookie": false,
     "position": "G",
     "age": 28,
     "expertRanks": {
@@ -841,6 +888,7 @@
     "consensusRank": 48,
     "player": "Domantas Sabonis",
     "team": "SAC",
+    "isRookie": false,
     "position": "F/C",
     "age": 30.1,
     "expertRanks": {
@@ -858,7 +906,8 @@
   {
     "consensusRank": 49,
     "player": "Tyler Herro",
-    "team": "MIA",
+    "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -877,6 +926,7 @@
     "consensusRank": 50,
     "player": "Brandon Miller",
     "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 23.5,
     "expertRanks": {
@@ -895,6 +945,7 @@
     "consensusRank": 51,
     "player": "Donovan Clingan",
     "team": "POR",
+    "isRookie": false,
     "position": "C",
     "age": 22.3,
     "expertRanks": {
@@ -913,6 +964,7 @@
     "consensusRank": 52,
     "player": "James Harden",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 36.8,
     "expertRanks": {
@@ -931,6 +983,7 @@
     "consensusRank": 53,
     "player": "Stephon Castle",
     "team": "SAS",
+    "isRookie": false,
     "position": "G",
     "age": 21.6,
     "expertRanks": {
@@ -949,6 +1002,7 @@
     "consensusRank": 54,
     "player": "Keyonte George",
     "team": "UTA",
+    "isRookie": false,
     "position": "G",
     "age": 22.6,
     "expertRanks": {
@@ -967,6 +1021,7 @@
     "consensusRank": 55,
     "player": "Anthony Davis",
     "team": "WAS",
+    "isRookie": false,
     "position": "F/C",
     "age": 33.2,
     "expertRanks": {
@@ -985,6 +1040,7 @@
     "consensusRank": 56,
     "player": "Stephen Curry",
     "team": "GSW",
+    "isRookie": false,
     "position": "G",
     "age": 38.2,
     "expertRanks": {
@@ -1003,6 +1059,7 @@
     "consensusRank": 57,
     "player": "Derrick White",
     "team": "BOS",
+    "isRookie": false,
     "position": "G",
     "age": 31.9,
     "expertRanks": {
@@ -1021,6 +1078,7 @@
     "consensusRank": 58,
     "player": "Pascal Siakam",
     "team": "IND",
+    "isRookie": false,
     "position": "F",
     "age": 32.2,
     "expertRanks": {
@@ -1039,6 +1097,7 @@
     "consensusRank": 59,
     "player": "Kevin Durant",
     "team": "HOU",
+    "isRookie": false,
     "position": "F",
     "age": 37.7,
     "expertRanks": {
@@ -1056,7 +1115,8 @@
   {
     "consensusRank": 60,
     "player": "Kingston Flemings",
-    "team": "2026 Rookie",
+    "team": "ATL",
+    "isRookie": true,
     "position": "G",
     "age": 19.1,
     "expertRanks": {
@@ -1073,6 +1133,7 @@
     "consensusRank": 61,
     "player": "Zach Edey",
     "team": "MEM",
+    "isRookie": false,
     "position": "C",
     "age": 24.1,
     "expertRanks": {
@@ -1091,6 +1152,7 @@
     "consensusRank": 62,
     "player": "Onyeka Okongwu",
     "team": "ATL",
+    "isRookie": false,
     "position": "F/C",
     "age": 25.5,
     "expertRanks": {
@@ -1109,6 +1171,7 @@
     "consensusRank": 63,
     "player": "Zion Williamson",
     "team": "NOR",
+    "isRookie": false,
     "position": "F",
     "age": 25.9,
     "expertRanks": {
@@ -1127,6 +1190,7 @@
     "consensusRank": 64,
     "player": "Ivica Zubac",
     "team": "IND",
+    "isRookie": false,
     "position": "C",
     "age": 29.2,
     "expertRanks": {
@@ -1144,7 +1208,8 @@
   {
     "consensusRank": 65,
     "player": "Walker Kessler",
-    "team": "UTA",
+    "team": "LAL",
+    "isRookie": false,
     "position": "C",
     "age": 24.9,
     "expertRanks": {
@@ -1163,6 +1228,7 @@
     "consensusRank": 66,
     "player": "Jalen Suggs",
     "team": "ORL",
+    "isRookie": false,
     "position": "G",
     "age": 25,
     "expertRanks": {
@@ -1181,6 +1247,7 @@
     "consensusRank": 67,
     "player": "OG Anunoby",
     "team": "NYK",
+    "isRookie": false,
     "position": "F",
     "age": 28.9,
     "expertRanks": {
@@ -1199,6 +1266,7 @@
     "consensusRank": 68,
     "player": "Michael Porter Jr.",
     "team": "BKN",
+    "isRookie": false,
     "position": "F",
     "age": 27.9,
     "expertRanks": {
@@ -1217,6 +1285,7 @@
     "consensusRank": 69,
     "player": "Matas Buzelis",
     "team": "CHI",
+    "isRookie": false,
     "position": "F",
     "age": 21.6,
     "expertRanks": {
@@ -1235,6 +1304,7 @@
     "consensusRank": 70,
     "player": "Dyson Daniels",
     "team": "ATL",
+    "isRookie": false,
     "position": "G",
     "age": 23.2,
     "expertRanks": {
@@ -1252,7 +1322,8 @@
   {
     "consensusRank": 71,
     "player": "Keaton Wagler",
-    "team": "2026 Rookie",
+    "team": "LAC",
+    "isRookie": true,
     "position": "G",
     "age": 19.3,
     "expertRanks": {
@@ -1268,7 +1339,8 @@
   {
     "consensusRank": 72,
     "player": "Ja Morant",
-    "team": "MEM",
+    "team": "POR",
+    "isRookie": false,
     "position": "G",
     "age": 26.8,
     "expertRanks": {
@@ -1287,6 +1359,7 @@
     "consensusRank": 73,
     "player": "Reed Sheppard",
     "team": "HOU",
+    "isRookie": false,
     "position": "G",
     "age": 22,
     "expertRanks": {
@@ -1305,6 +1378,7 @@
     "consensusRank": 74,
     "player": "Derik Queen",
     "team": "NOR",
+    "isRookie": false,
     "position": "F/C",
     "age": 21.4,
     "expertRanks": {
@@ -1322,7 +1396,8 @@
   {
     "consensusRank": 75,
     "player": "Brandon Ingram",
-    "team": "TOR",
+    "team": "LAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 28.8,
     "expertRanks": {
@@ -1341,6 +1416,7 @@
     "consensusRank": 76,
     "player": "Mikal Bridges",
     "team": "NYK",
+    "isRookie": false,
     "position": "G/F",
     "age": 29.8,
     "expertRanks": {
@@ -1358,7 +1434,8 @@
   {
     "consensusRank": 77,
     "player": "Kel'el Ware",
-    "team": "MIA",
+    "team": "MIL",
+    "isRookie": false,
     "position": "F/C",
     "age": 22.1,
     "expertRanks": {
@@ -1376,7 +1453,8 @@
   {
     "consensusRank": 78,
     "player": "Mikel Brown Jr.",
-    "team": "2026 Rookie",
+    "team": "BKN",
+    "isRookie": true,
     "position": "G",
     "age": 19.8,
     "expertRanks": {
@@ -1393,6 +1471,7 @@
     "consensusRank": 79,
     "player": "Kyrie Irving",
     "team": "DAL",
+    "isRookie": false,
     "position": "G",
     "age": 34.2,
     "expertRanks": {
@@ -1411,6 +1490,7 @@
     "consensusRank": 80,
     "player": "Ace Bailey",
     "team": "UTA",
+    "isRookie": false,
     "position": "F",
     "age": 19.8,
     "expertRanks": {
@@ -1429,6 +1509,7 @@
     "consensusRank": 81,
     "player": "Isaiah Hartenstein",
     "team": "OKC",
+    "isRookie": false,
     "position": "C",
     "age": 28.1,
     "expertRanks": {
@@ -1447,6 +1528,7 @@
     "consensusRank": 82,
     "player": "Kyshawn George",
     "team": "WAS",
+    "isRookie": false,
     "position": "G/F",
     "age": 22.5,
     "expertRanks": {
@@ -1465,6 +1547,7 @@
     "consensusRank": 83,
     "player": "Immanuel Quickley",
     "team": "TOR",
+    "isRookie": false,
     "position": "G",
     "age": 27,
     "expertRanks": {
@@ -1483,6 +1566,7 @@
     "consensusRank": 84,
     "player": "Jarrett Allen",
     "team": "CLE",
+    "isRookie": false,
     "position": "C",
     "age": 28.1,
     "expertRanks": {
@@ -1501,6 +1585,7 @@
     "consensusRank": 85,
     "player": "Collin Murray-Boyles",
     "team": "TOR",
+    "isRookie": false,
     "position": "F/C",
     "age": 21,
     "expertRanks": {
@@ -1519,6 +1604,7 @@
     "consensusRank": 86,
     "player": "Ausar Thompson",
     "team": "DET",
+    "isRookie": false,
     "position": "G/F",
     "age": 23.4,
     "expertRanks": {
@@ -1536,7 +1622,8 @@
   {
     "consensusRank": 87,
     "player": "Kawhi Leonard",
-    "team": "LAC",
+    "team": "TOR",
+    "isRookie": false,
     "position": "F",
     "age": 34.9,
     "expertRanks": {
@@ -1555,6 +1642,7 @@
     "consensusRank": 88,
     "player": "Joel Embiid",
     "team": "PHI",
+    "isRookie": false,
     "position": "C",
     "age": 32.2,
     "expertRanks": {
@@ -1573,6 +1661,7 @@
     "consensusRank": 89,
     "player": "Jaden McDaniels",
     "team": "MIN",
+    "isRookie": false,
     "position": "F",
     "age": 25.7,
     "expertRanks": {
@@ -1591,6 +1680,7 @@
     "consensusRank": 90,
     "player": "Nickeil Alexander-Walker",
     "team": "ATL",
+    "isRookie": false,
     "position": "G",
     "age": 27.8,
     "expertRanks": {
@@ -1608,7 +1698,8 @@
   {
     "consensusRank": 91,
     "player": "Julius Randle",
-    "team": "MIN",
+    "team": "BKN",
+    "isRookie": false,
     "position": "F/C",
     "age": 31.5,
     "expertRanks": {
@@ -1627,6 +1718,7 @@
     "consensusRank": 92,
     "player": "Cedric Coward",
     "team": "MEM",
+    "isRookie": false,
     "position": "G/F",
     "age": 22.7,
     "expertRanks": {
@@ -1645,6 +1737,7 @@
     "consensusRank": 93,
     "player": "Scoot Henderson",
     "team": "POR",
+    "isRookie": false,
     "position": "G",
     "age": 22.3,
     "expertRanks": {
@@ -1662,7 +1755,8 @@
   {
     "consensusRank": 94,
     "player": "Nic Claxton",
-    "team": "BKN",
+    "team": "CHI",
+    "isRookie": false,
     "position": "C",
     "age": 27,
     "expertRanks": {
@@ -1681,6 +1775,7 @@
     "consensusRank": 95,
     "player": "Jabari Smith Jr.",
     "team": "HOU",
+    "isRookie": false,
     "position": "F",
     "age": 23.1,
     "expertRanks": {
@@ -1699,6 +1794,7 @@
     "consensusRank": 96,
     "player": "Keegan Murray",
     "team": "SAC",
+    "isRookie": false,
     "position": "F",
     "age": 25.8,
     "expertRanks": {
@@ -1717,6 +1813,7 @@
     "consensusRank": 97,
     "player": "Mark Williams",
     "team": "PHO",
+    "isRookie": false,
     "position": "C",
     "age": 24.5,
     "expertRanks": {
@@ -1735,6 +1832,7 @@
     "consensusRank": 98,
     "player": "Jeremiah Fears",
     "team": "NOR",
+    "isRookie": false,
     "position": "G",
     "age": 19.6,
     "expertRanks": {
@@ -1753,6 +1851,7 @@
     "consensusRank": 99,
     "player": "Jalen Green",
     "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 24.3,
     "expertRanks": {
@@ -1771,6 +1870,7 @@
     "consensusRank": 100,
     "player": "Dejounte Murray",
     "team": "NOR",
+    "isRookie": false,
     "position": "G",
     "age": 29.7,
     "expertRanks": {
@@ -1789,6 +1889,7 @@
     "consensusRank": 101,
     "player": "Anthony Black",
     "team": "ORL",
+    "isRookie": false,
     "position": "G",
     "age": 22.4,
     "expertRanks": {
@@ -1806,7 +1907,8 @@
   {
     "consensusRank": 102,
     "player": "Aday Mara",
-    "team": "2026 Rookie",
+    "team": "OKC",
+    "isRookie": true,
     "position": "C",
     "age": 20.8,
     "expertRanks": {
@@ -1822,7 +1924,8 @@
   {
     "consensusRank": 103,
     "player": "Darius Acuff Jr.",
-    "team": "2026 Rookie",
+    "team": "SAC",
+    "isRookie": true,
     "position": "G",
     "age": 19.3,
     "expertRanks": {
@@ -1839,6 +1942,7 @@
     "consensusRank": 104,
     "player": "Myles Turner",
     "team": "MIL",
+    "isRookie": false,
     "position": "C",
     "age": 30.2,
     "expertRanks": {
@@ -1856,7 +1960,8 @@
   {
     "consensusRank": 105,
     "player": "Naz Reid",
-    "team": "MIN",
+    "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 26.8,
     "expertRanks": {
@@ -1875,6 +1980,7 @@
     "consensusRank": 106,
     "player": "Coby White",
     "team": "CHA",
+    "isRookie": false,
     "position": "G",
     "age": 26.3,
     "expertRanks": {
@@ -1893,6 +1999,7 @@
     "consensusRank": 107,
     "player": "Zach LaVine",
     "team": "SAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 31.2,
     "expertRanks": {
@@ -1911,6 +2018,7 @@
     "consensusRank": 108,
     "player": "Ajay Mitchell",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 24,
     "expertRanks": {
@@ -1929,6 +2037,7 @@
     "consensusRank": 109,
     "player": "Shaedon Sharpe",
     "team": "POR",
+    "isRookie": false,
     "position": "G",
     "age": 23,
     "expertRanks": {
@@ -1947,6 +2056,7 @@
     "consensusRank": 110,
     "player": "Tari Eason",
     "team": "HOU",
+    "isRookie": false,
     "position": "F",
     "age": 25.1,
     "expertRanks": {
@@ -1965,6 +2075,7 @@
     "consensusRank": 111,
     "player": "Payton Pritchard",
     "team": "BOS",
+    "isRookie": false,
     "position": "G",
     "age": 28.4,
     "expertRanks": {
@@ -1980,8 +2091,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 112,
     "player": "Ebuka Okorie",
-    "team": "2026 Rookie",
+    "team": "DET",
+    "isRookie": true,
     "position": "G",
     "age": 19.3,
     "expertRanks": {
@@ -1990,13 +2103,13 @@
     "avgRank": 111,
     "rankedByCount": 1,
     "tier": 4,
-    "trend": "flat",
-    "consensusRank": 112
+    "trend": "flat"
   },
   {
     "consensusRank": 113,
     "player": "Tre Johnson",
     "team": "WAS",
+    "isRookie": false,
     "position": "G",
     "age": 20.3,
     "expertRanks": {
@@ -2014,7 +2127,8 @@
   {
     "consensusRank": 114,
     "player": "Norman Powell",
-    "team": "MIA",
+    "team": "CHI",
+    "isRookie": false,
     "position": "G",
     "age": 33,
     "expertRanks": {
@@ -2031,7 +2145,8 @@
   {
     "consensusRank": 115,
     "player": "Hannes Steinbach",
-    "team": "2026 Rookie",
+    "team": "CHA",
+    "isRookie": true,
     "position": "C",
     "age": 19.7,
     "expertRanks": {
@@ -2045,7 +2160,8 @@
   {
     "consensusRank": 116,
     "player": "Brayden Burries",
-    "team": "2026 Rookie",
+    "team": "MIL",
+    "isRookie": true,
     "position": "G",
     "age": 20.4,
     "expertRanks": {
@@ -2061,7 +2177,8 @@
   {
     "consensusRank": 117,
     "player": "Jayden Quaintance",
-    "team": "2026 Rookie",
+    "team": "SAS",
+    "isRookie": true,
     "position": "F/C",
     "age": 18.5,
     "expertRanks": {
@@ -2078,6 +2195,7 @@
     "consensusRank": 118,
     "player": "Devin Vassell",
     "team": "SAS",
+    "isRookie": false,
     "position": "G",
     "age": 25.8,
     "expertRanks": {
@@ -2096,6 +2214,7 @@
     "consensusRank": 119,
     "player": "Ryan Rollins",
     "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 23.9,
     "expertRanks": {
@@ -2113,7 +2232,8 @@
   {
     "consensusRank": 120,
     "player": "Miles Bridges",
-    "team": "CHA",
+    "team": "PHO",
+    "isRookie": false,
     "position": "F",
     "age": 28.2,
     "expertRanks": {
@@ -2132,6 +2252,7 @@
     "consensusRank": 121,
     "player": "Peyton Watson",
     "team": "DEN",
+    "isRookie": false,
     "position": "F",
     "age": 23.7,
     "expertRanks": {
@@ -2150,6 +2271,7 @@
     "consensusRank": 122,
     "player": "Kristaps Porzingis",
     "team": "GSW",
+    "isRookie": false,
     "position": "F/C",
     "age": 30.8,
     "expertRanks": {
@@ -2168,6 +2290,7 @@
     "consensusRank": 123,
     "player": "Egor Demin",
     "team": "BKN",
+    "isRookie": false,
     "position": "G",
     "age": 20.3,
     "expertRanks": {
@@ -2185,7 +2308,8 @@
   {
     "consensusRank": 124,
     "player": "Dailyn Swain",
-    "team": "2026 Rookie",
+    "team": "CHI",
+    "isRookie": true,
     "position": "F",
     "age": 20.5,
     "expertRanks": {
@@ -2202,6 +2326,7 @@
     "consensusRank": 125,
     "player": "Josh Hart",
     "team": "NYK",
+    "isRookie": false,
     "position": "G/F",
     "age": 31.3,
     "expertRanks": {
@@ -2220,6 +2345,7 @@
     "consensusRank": 126,
     "player": "Andrew Nembhard",
     "team": "IND",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -2238,6 +2364,7 @@
     "consensusRank": 127,
     "player": "Rudy Gobert",
     "team": "MIN",
+    "isRookie": false,
     "position": "C",
     "age": 33.9,
     "expertRanks": {
@@ -2256,6 +2383,7 @@
     "consensusRank": 128,
     "player": "Bilal Coulibaly",
     "team": "WAS",
+    "isRookie": false,
     "position": "G/F",
     "age": 21.9,
     "expertRanks": {
@@ -2274,6 +2402,7 @@
     "consensusRank": 129,
     "player": "Jakob Poeltl",
     "team": "TOR",
+    "isRookie": false,
     "position": "C",
     "age": 30.6,
     "expertRanks": {
@@ -2292,6 +2421,7 @@
     "consensusRank": 130,
     "player": "Dereck Lively",
     "team": "DAL",
+    "isRookie": false,
     "position": "C",
     "age": 22.3,
     "expertRanks": {
@@ -2310,6 +2440,7 @@
     "consensusRank": 131,
     "player": "Cason Wallace",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 22.6,
     "expertRanks": {
@@ -2327,7 +2458,8 @@
   {
     "consensusRank": 132,
     "player": "Yaxel Lendeborg",
-    "team": "2026 Rookie",
+    "team": "GSW",
+    "isRookie": true,
     "position": "F",
     "age": 23.3,
     "expertRanks": {
@@ -2344,6 +2476,7 @@
     "consensusRank": 133,
     "player": "Toumani Camara",
     "team": "POR",
+    "isRookie": false,
     "position": "F",
     "age": 26.1,
     "expertRanks": {
@@ -2362,6 +2495,7 @@
     "consensusRank": 134,
     "player": "Brandin Podziemski",
     "team": "GSW",
+    "isRookie": false,
     "position": "G",
     "age": 23.3,
     "expertRanks": {
@@ -2379,7 +2513,8 @@
   {
     "consensusRank": 135,
     "player": "Labaron Philon Jr.",
-    "team": "2026 Rookie",
+    "team": "PHI",
+    "isRookie": true,
     "position": "G",
     "age": 20.2,
     "expertRanks": {
@@ -2395,7 +2530,8 @@
   {
     "consensusRank": 136,
     "player": "Deandre Ayton",
-    "team": "LAL",
+    "team": "WAS",
+    "isRookie": false,
     "position": "C",
     "age": 27.9,
     "expertRanks": {
@@ -2413,7 +2549,8 @@
   {
     "consensusRank": 137,
     "player": "Patrick Ngongba",
-    "team": "2026 Rookie",
+    "team": "FA",
+    "isRookie": true,
     "position": "C",
     "age": 20.2,
     "expertRanks": {
@@ -2428,6 +2565,7 @@
     "consensusRank": 138,
     "player": "Santi Aldama",
     "team": "MEM",
+    "isRookie": false,
     "position": "F/C",
     "age": 25.4,
     "expertRanks": {
@@ -2446,6 +2584,7 @@
     "consensusRank": 139,
     "player": "LeBron James",
     "team": "LAL",
+    "isRookie": false,
     "position": "F",
     "age": 41.4,
     "expertRanks": {
@@ -2464,6 +2603,7 @@
     "consensusRank": 140,
     "player": "RJ Barrett",
     "team": "TOR",
+    "isRookie": false,
     "position": "G/F",
     "age": 26,
     "expertRanks": {
@@ -2482,6 +2622,7 @@
     "consensusRank": 141,
     "player": "Kevin Porter Jr.",
     "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 26.1,
     "expertRanks": {
@@ -2498,7 +2639,8 @@
   {
     "consensusRank": 142,
     "player": "Jaime Jaquez Jr.",
-    "team": "MIA",
+    "team": "MIL",
+    "isRookie": false,
     "position": "G/F",
     "age": 25.3,
     "expertRanks": {
@@ -2516,6 +2658,7 @@
     "consensusRank": 143,
     "player": "Khaman Maluach",
     "team": "PHO",
+    "isRookie": false,
     "position": "C",
     "age": 19.7,
     "expertRanks": {
@@ -2534,6 +2677,7 @@
     "consensusRank": 144,
     "player": "P.J. Washington",
     "team": "DAL",
+    "isRookie": false,
     "position": "F",
     "age": 27.8,
     "expertRanks": {
@@ -2552,6 +2696,7 @@
     "consensusRank": 145,
     "player": "Moussa Diabate",
     "team": "CHA",
+    "isRookie": false,
     "position": "F/C",
     "age": 24.4,
     "expertRanks": {
@@ -2569,6 +2714,7 @@
     "consensusRank": 146,
     "player": "Jaylon Tyson",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 23.5,
     "expertRanks": {
@@ -2587,6 +2733,7 @@
     "consensusRank": 147,
     "player": "Christian Braun",
     "team": "DEN",
+    "isRookie": false,
     "position": "G/F",
     "age": 25.1,
     "expertRanks": {
@@ -2605,6 +2752,7 @@
     "consensusRank": 148,
     "player": "Fred VanVleet",
     "team": "HOU",
+    "isRookie": false,
     "position": "G",
     "age": 32.3,
     "expertRanks": {
@@ -2622,6 +2770,7 @@
     "consensusRank": 149,
     "player": "Ryan Kalkbrenner",
     "team": "CHA",
+    "isRookie": false,
     "position": "C",
     "age": 24.4,
     "expertRanks": {
@@ -2639,6 +2788,7 @@
     "consensusRank": 150,
     "player": "Aaron Gordon",
     "team": "DEN",
+    "isRookie": false,
     "position": "F",
     "age": 30.7,
     "expertRanks": {
@@ -2656,6 +2806,7 @@
     "consensusRank": 151,
     "player": "Bennedict Mathurin",
     "team": "LAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 24,
     "expertRanks": {
@@ -2672,7 +2823,8 @@
   {
     "consensusRank": 152,
     "player": "Paul George",
-    "team": "PHI",
+    "team": "BOS",
+    "isRookie": false,
     "position": "F",
     "age": 36.1,
     "expertRanks": {
@@ -2690,6 +2842,7 @@
     "consensusRank": 153,
     "player": "Wendell Carter Jr.",
     "team": "ORL",
+    "isRookie": false,
     "position": "C",
     "age": 27.1,
     "expertRanks": {
@@ -2706,7 +2859,8 @@
   {
     "consensusRank": 154,
     "player": "Nate Ament",
-    "team": "2026 Rookie",
+    "team": "MIL",
+    "isRookie": true,
     "position": "F",
     "age": 19.1,
     "expertRanks": {
@@ -2723,6 +2877,7 @@
     "consensusRank": 155,
     "player": "Jared McCain",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 22.3,
     "expertRanks": {
@@ -2741,6 +2896,7 @@
     "consensusRank": 156,
     "player": "Ayo Dosunmu",
     "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -2758,6 +2914,7 @@
     "consensusRank": 157,
     "player": "Maxime Raynaud",
     "team": "SAC",
+    "isRookie": false,
     "position": "C",
     "age": 23.2,
     "expertRanks": {
@@ -2773,8 +2930,9 @@
   },
   {
     "consensusRank": 158,
-    "player": "Cameron Johnson",
+    "player": "Cam Johnson",
     "team": "DEN",
+    "isRookie": false,
     "position": "F",
     "age": 30.3,
     "expertRanks": {
@@ -2792,6 +2950,7 @@
     "consensusRank": 159,
     "player": "Daniel Gafford",
     "team": "DAL",
+    "isRookie": false,
     "position": "C",
     "age": 27.7,
     "expertRanks": {
@@ -2809,6 +2968,7 @@
     "consensusRank": 160,
     "player": "Collin Gillespie",
     "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 27,
     "expertRanks": {
@@ -2824,8 +2984,9 @@
   },
   {
     "consensusRank": 161,
-    "player": "Herbert Jones",
+    "player": "Herb Jones",
     "team": "NOR",
+    "isRookie": false,
     "position": "G/F",
     "age": 27.7,
     "expertRanks": {
@@ -2842,7 +3003,8 @@
   {
     "consensusRank": 162,
     "player": "Allen Graves",
-    "team": "2026 Rookie",
+    "team": "TOR",
+    "isRookie": true,
     "position": "G",
     "age": 20.3,
     "expertRanks": {
@@ -2857,6 +3019,7 @@
     "consensusRank": 163,
     "player": "Damian Lillard",
     "team": "POR",
+    "isRookie": false,
     "position": "G",
     "age": 35.9,
     "expertRanks": {
@@ -2874,6 +3037,7 @@
     "consensusRank": 164,
     "player": "DeMar DeRozan",
     "team": "SAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 36.8,
     "expertRanks": {
@@ -2890,7 +3054,8 @@
   {
     "consensusRank": 165,
     "player": "Cameron Carr",
-    "team": "2026 Rookie",
+    "team": "LAL",
+    "isRookie": true,
     "position": "F",
     "age": 21.2,
     "expertRanks": {
@@ -2905,6 +3070,7 @@
     "consensusRank": 166,
     "player": "Jonathan Kuminga",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 23.7,
     "expertRanks": {
@@ -2922,7 +3088,8 @@
   {
     "consensusRank": 167,
     "player": "Bennett Stirtz",
-    "team": "2026 Rookie",
+    "team": "OKC",
+    "isRookie": true,
     "position": "G",
     "age": 22.3,
     "expertRanks": {
@@ -2936,7 +3103,8 @@
   {
     "consensusRank": 168,
     "player": "Christian Anderson Jr.",
-    "team": "2026 Rookie",
+    "team": "CHA",
+    "isRookie": true,
     "position": "G",
     "age": 19.8,
     "expertRanks": {
@@ -2950,7 +3118,8 @@
   {
     "consensusRank": 169,
     "player": "Morez Johnson Jr.",
-    "team": "2026 Rookie",
+    "team": "DAL",
+    "isRookie": true,
     "position": "F/C",
     "age": 20,
     "expertRanks": {
@@ -2964,7 +3133,8 @@
   {
     "consensusRank": 170,
     "player": "John Collins",
-    "team": "LAC",
+    "team": "DET",
+    "isRookie": false,
     "position": "F/C",
     "age": 28.7,
     "expertRanks": {
@@ -2980,8 +3150,9 @@
   },
   {
     "consensusRank": 171,
-    "player": "Ronald Holland",
+    "player": "Ron Holland II",
     "team": "DET",
+    "isRookie": false,
     "position": "F",
     "age": 20.8,
     "expertRanks": {
@@ -2999,7 +3170,8 @@
   {
     "consensusRank": 172,
     "player": "Zuby Ejiofor",
-    "team": "2026 Rookie",
+    "team": "ATL",
+    "isRookie": true,
     "position": "F/C",
     "age": 21.8,
     "expertRanks": {
@@ -3014,6 +3186,7 @@
     "consensusRank": 173,
     "player": "Neemias Queta",
     "team": "BOS",
+    "isRookie": false,
     "position": "C",
     "age": 26.9,
     "expertRanks": {
@@ -3031,6 +3204,7 @@
     "consensusRank": 174,
     "player": "Aaron Nesmith",
     "team": "IND",
+    "isRookie": false,
     "position": "G/F",
     "age": 26.6,
     "expertRanks": {
@@ -3047,7 +3221,8 @@
   {
     "consensusRank": 175,
     "player": "Karim Lopez",
-    "team": "2026 Rookie",
+    "team": "MEM",
+    "isRookie": true,
     "position": "F",
     "age": 19,
     "expertRanks": {
@@ -3062,6 +3237,7 @@
     "consensusRank": 176,
     "player": "Malik Monk",
     "team": "SAC",
+    "isRookie": false,
     "position": "G",
     "age": 28.3,
     "expertRanks": {
@@ -3078,7 +3254,8 @@
   {
     "consensusRank": 177,
     "player": "Isaiah Stewart",
-    "team": "DET",
+    "team": "MEM",
+    "isRookie": false,
     "position": "F/C",
     "age": 25,
     "expertRanks": {
@@ -3096,6 +3273,7 @@
     "consensusRank": 178,
     "player": "Jordan Poole",
     "team": "NOR",
+    "isRookie": false,
     "position": "G",
     "age": 27,
     "expertRanks": {
@@ -3110,8 +3288,10 @@
     "trend": "flat"
   },
   {
-    "player": "Taris Reed Jr.",
-    "team": "2026 Rookie",
+    "consensusRank": 179,
+    "player": "Tarris Reed Jr.",
+    "team": "SAS",
+    "isRookie": true,
     "position": "C",
     "age": 22.6,
     "expertRanks": {
@@ -3120,13 +3300,13 @@
     "avgRank": 169,
     "rankedByCount": 1,
     "tier": 5,
-    "trend": "flat",
-    "consensusRank": 179
+    "trend": "flat"
   },
   {
     "consensusRank": 180,
     "player": "Kyle Filipowski",
     "team": "UTA",
+    "isRookie": false,
     "position": "F/C",
     "age": 22.6,
     "expertRanks": {
@@ -3141,8 +3321,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 181,
     "player": "Meleek Thomas",
-    "team": "2026 Rookie",
+    "team": "CLE",
+    "isRookie": true,
     "position": "G",
     "age": 19.5,
     "expertRanks": {
@@ -3151,13 +3333,13 @@
     "avgRank": 170,
     "rankedByCount": 1,
     "tier": 5,
-    "trend": "flat",
-    "consensusRank": 181
+    "trend": "flat"
   },
   {
     "consensusRank": 182,
     "player": "Thomas Sorber",
     "team": "OKC",
+    "isRookie": false,
     "position": "C",
     "age": 20.4,
     "expertRanks": {
@@ -3172,8 +3354,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 183,
     "player": "Richie Saunders",
-    "team": "2026 Rookie",
+    "team": "MEM",
+    "isRookie": true,
     "position": "G",
     "age": 24.3,
     "expertRanks": {
@@ -3182,13 +3366,13 @@
     "avgRank": 171,
     "rankedByCount": 1,
     "tier": 5,
-    "trend": "flat",
-    "consensusRank": 183
+    "trend": "flat"
   },
   {
     "consensusRank": 184,
     "player": "Isaiah Evans",
-    "team": "2026 Rookie",
+    "team": "MIN",
+    "isRookie": true,
     "position": "G/F",
     "age": 20.1,
     "expertRanks": {
@@ -3202,7 +3386,8 @@
   {
     "consensusRank": 185,
     "player": "Koa Peat",
-    "team": "2026 Rookie",
+    "team": "PHO",
+    "isRookie": true,
     "position": "F",
     "age": 19,
     "expertRanks": {
@@ -3217,6 +3402,7 @@
     "consensusRank": 186,
     "player": "Ty Jerome",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 28.9,
     "expertRanks": {
@@ -3233,7 +3419,8 @@
   {
     "consensusRank": 187,
     "player": "Anfernee Simons",
-    "team": "CHI",
+    "team": "PHI",
+    "isRookie": false,
     "position": "G",
     "age": 27,
     "expertRanks": {
@@ -3248,8 +3435,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 188,
     "player": "Henri Veesaar",
-    "team": "2026 Rookie",
+    "team": "ATL",
+    "isRookie": true,
     "position": "C",
     "age": 22,
     "expertRanks": {
@@ -3258,13 +3447,13 @@
     "avgRank": 174,
     "rankedByCount": 1,
     "tier": 5,
-    "trend": "flat",
-    "consensusRank": 188
+    "trend": "flat"
   },
   {
     "consensusRank": 189,
     "player": "Jimmy Butler",
     "team": "GSW",
+    "isRookie": false,
     "position": "F",
     "age": 36.7,
     "expertRanks": {
@@ -3282,6 +3471,7 @@
     "consensusRank": 190,
     "player": "Jrue Holiday",
     "team": "POR",
+    "isRookie": false,
     "position": "G",
     "age": 36,
     "expertRanks": {
@@ -3299,6 +3489,7 @@
     "consensusRank": 191,
     "player": "Will Riley",
     "team": "WAS",
+    "isRookie": false,
     "position": "F",
     "age": 20.3,
     "expertRanks": {
@@ -3316,6 +3507,7 @@
     "consensusRank": 192,
     "player": "Andrew Wiggins",
     "team": "MIA",
+    "isRookie": false,
     "position": "F",
     "age": 31.3,
     "expertRanks": {
@@ -3332,7 +3524,8 @@
   {
     "consensusRank": 193,
     "player": "Nikola Vucevic",
-    "team": "BOS",
+    "team": "ORL",
+    "isRookie": false,
     "position": "C",
     "age": 35.6,
     "expertRanks": {
@@ -3350,6 +3543,7 @@
     "consensusRank": 194,
     "player": "CJ McCollum",
     "team": "ATL",
+    "isRookie": false,
     "position": "G",
     "age": 34.7,
     "expertRanks": {
@@ -3366,7 +3560,8 @@
   {
     "consensusRank": 195,
     "player": "Grayson Allen",
-    "team": "PHO",
+    "team": "CHA",
+    "isRookie": false,
     "position": "G/F",
     "age": 30.7,
     "expertRanks": {
@@ -3384,6 +3579,7 @@
     "consensusRank": 196,
     "player": "Jaylen Wells",
     "team": "MEM",
+    "isRookie": false,
     "position": "F",
     "age": 22.8,
     "expertRanks": {
@@ -3401,6 +3597,7 @@
     "consensusRank": 197,
     "player": "Zaccharie Risacher",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 21.2,
     "expertRanks": {
@@ -3418,6 +3615,7 @@
     "consensusRank": 198,
     "player": "Naji Marshall",
     "team": "DAL",
+    "isRookie": false,
     "position": "F",
     "age": 28.4,
     "expertRanks": {
@@ -3435,6 +3633,7 @@
     "consensusRank": 199,
     "player": "Bub Carrington",
     "team": "WAS",
+    "isRookie": false,
     "position": "G",
     "age": 20.8,
     "expertRanks": {
@@ -3452,6 +3651,7 @@
     "consensusRank": 200,
     "player": "Saddiq Bey",
     "team": "NOR",
+    "isRookie": false,
     "position": "F",
     "age": 27.2,
     "expertRanks": {
@@ -3469,6 +3669,7 @@
     "consensusRank": 201,
     "player": "Donte DiVincenzo",
     "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 29.3,
     "expertRanks": {
@@ -3486,6 +3687,7 @@
     "consensusRank": 202,
     "player": "Cam Spencer",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 26.2,
     "expertRanks": {
@@ -3503,6 +3705,7 @@
     "consensusRank": 203,
     "player": "Davion Mitchell",
     "team": "MIA",
+    "isRookie": false,
     "position": "G",
     "age": 27.8,
     "expertRanks": {
@@ -3519,7 +3722,8 @@
   {
     "consensusRank": 204,
     "player": "Collin Sexton",
-    "team": "CHI",
+    "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 27.4,
     "expertRanks": {
@@ -3536,7 +3740,8 @@
   {
     "consensusRank": 205,
     "player": "Kasparas Jakucionis",
-    "team": "MIA",
+    "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 20,
     "expertRanks": {
@@ -3553,7 +3758,8 @@
   {
     "consensusRank": 206,
     "player": "Quentin Grimes",
-    "team": "PHI",
+    "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 26.1,
     "expertRanks": {
@@ -3571,6 +3777,7 @@
     "consensusRank": 207,
     "player": "Isaiah Collier",
     "team": "UTA",
+    "isRookie": false,
     "position": "G",
     "age": 21.7,
     "expertRanks": {
@@ -3587,7 +3794,8 @@
   {
     "consensusRank": 208,
     "player": "Tobias Harris",
-    "team": "DET",
+    "team": "SAS",
+    "isRookie": false,
     "position": "F",
     "age": 33.9,
     "expertRanks": {
@@ -3605,6 +3813,7 @@
     "consensusRank": 209,
     "player": "Dillon Brooks",
     "team": "PHO",
+    "isRookie": false,
     "position": "F",
     "age": 30.4,
     "expertRanks": {
@@ -3622,6 +3831,7 @@
     "consensusRank": 210,
     "player": "Nikola Topic",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 20.8,
     "expertRanks": {
@@ -3640,6 +3850,7 @@
     "consensusRank": 211,
     "player": "Max Christie",
     "team": "DAL",
+    "isRookie": false,
     "position": "G",
     "age": 23.3,
     "expertRanks": {
@@ -3657,6 +3868,7 @@
     "consensusRank": 212,
     "player": "Noah Clowney",
     "team": "BKN",
+    "isRookie": false,
     "position": "F/C",
     "age": 21.9,
     "expertRanks": {
@@ -3674,6 +3886,7 @@
     "consensusRank": 213,
     "player": "Nique Clifford",
     "team": "SAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 24.3,
     "expertRanks": {
@@ -3691,6 +3904,7 @@
     "consensusRank": 214,
     "player": "Carter Bryant",
     "team": "SAS",
+    "isRookie": false,
     "position": "F",
     "age": 20.5,
     "expertRanks": {
@@ -3708,6 +3922,7 @@
     "consensusRank": 215,
     "player": "Daniss Jenkins",
     "team": "DET",
+    "isRookie": false,
     "position": "G",
     "age": 24.8,
     "expertRanks": {
@@ -3725,6 +3940,7 @@
     "consensusRank": 216,
     "player": "Joan Beringer",
     "team": "MIN",
+    "isRookie": false,
     "position": "C",
     "age": 19.6,
     "expertRanks": {
@@ -3742,6 +3958,7 @@
     "consensusRank": 217,
     "player": "Jarace Walker",
     "team": "IND",
+    "isRookie": false,
     "position": "F",
     "age": 22.8,
     "expertRanks": {
@@ -3759,6 +3976,7 @@
     "consensusRank": 218,
     "player": "Walter Clayton Jr.",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 23.3,
     "expertRanks": {
@@ -3775,7 +3993,8 @@
   {
     "consensusRank": 219,
     "player": "Jerami Grant",
-    "team": "POR",
+    "team": "MEM",
+    "isRookie": false,
     "position": "F",
     "age": 32.2,
     "expertRanks": {
@@ -3793,6 +4012,7 @@
     "consensusRank": 220,
     "player": "Brice Sensabaugh",
     "team": "UTA",
+    "isRookie": false,
     "position": "F",
     "age": 22.6,
     "expertRanks": {
@@ -3810,6 +4030,7 @@
     "consensusRank": 221,
     "player": "Noa Essengue",
     "team": "CHI",
+    "isRookie": false,
     "position": "F",
     "age": 19.5,
     "expertRanks": {
@@ -3826,7 +4047,8 @@
   {
     "consensusRank": 222,
     "player": "Keon Ellis",
-    "team": "CLE",
+    "team": "BKN",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -3843,7 +4065,8 @@
   {
     "consensusRank": 223,
     "player": "Mitchell Robinson",
-    "team": "NYK",
+    "team": "BOS",
+    "isRookie": false,
     "position": "C",
     "age": 28.2,
     "expertRanks": {
@@ -3861,6 +4084,7 @@
     "consensusRank": 224,
     "player": "De'Anthony Melton",
     "team": "GSW",
+    "isRookie": false,
     "position": "G",
     "age": 28,
     "expertRanks": {
@@ -3878,6 +4102,7 @@
     "consensusRank": 225,
     "player": "Gui Santos",
     "team": "GSW",
+    "isRookie": false,
     "position": "F",
     "age": 24,
     "expertRanks": {
@@ -3895,6 +4120,7 @@
     "consensusRank": 226,
     "player": "Draymond Green",
     "team": "GSW",
+    "isRookie": false,
     "position": "F/C",
     "age": 36.3,
     "expertRanks": {
@@ -3912,6 +4138,7 @@
     "consensusRank": 227,
     "player": "Scotty Pippen Jr.",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 25.6,
     "expertRanks": {
@@ -3929,6 +4156,7 @@
     "consensusRank": 228,
     "player": "Julian Champagnie",
     "team": "SAS",
+    "isRookie": false,
     "position": "F",
     "age": 24.9,
     "expertRanks": {
@@ -3945,7 +4173,8 @@
   {
     "consensusRank": 229,
     "player": "Kelly Oubre Jr.",
-    "team": "PHI",
+    "team": "IND",
+    "isRookie": false,
     "position": "F",
     "age": 30.5,
     "expertRanks": {
@@ -3962,7 +4191,8 @@
   {
     "consensusRank": 230,
     "player": "Rui Hachimura",
-    "team": "LAL",
+    "team": "LAC",
+    "isRookie": false,
     "position": "F",
     "age": 28.3,
     "expertRanks": {
@@ -3980,6 +4210,7 @@
     "consensusRank": 231,
     "player": "Keldon Johnson",
     "team": "SAS",
+    "isRookie": false,
     "position": "F",
     "age": 26.7,
     "expertRanks": {
@@ -3997,6 +4228,7 @@
     "consensusRank": 232,
     "player": "Tristan da Silva",
     "team": "ORL",
+    "isRookie": false,
     "position": "F",
     "age": 25.1,
     "expertRanks": {
@@ -4014,6 +4246,7 @@
     "consensusRank": 233,
     "player": "De'Andre Hunter",
     "team": "SAC",
+    "isRookie": false,
     "position": "F",
     "age": 28.5,
     "expertRanks": {
@@ -4031,6 +4264,7 @@
     "consensusRank": 234,
     "player": "Miles McBride",
     "team": "NYK",
+    "isRookie": false,
     "position": "G",
     "age": 25.7,
     "expertRanks": {
@@ -4048,6 +4282,7 @@
     "consensusRank": 235,
     "player": "Yang Hansen",
     "team": "POR",
+    "isRookie": false,
     "position": "C",
     "age": 20.9,
     "expertRanks": {
@@ -4065,6 +4300,7 @@
     "consensusRank": 236,
     "player": "Day'Ron Sharpe",
     "team": "BKN",
+    "isRookie": false,
     "position": "C",
     "age": 24.6,
     "expertRanks": {
@@ -4082,6 +4318,7 @@
     "consensusRank": 237,
     "player": "Taylor Hendricks",
     "team": "MEM",
+    "isRookie": false,
     "position": "F",
     "age": 22.5,
     "expertRanks": {
@@ -4099,6 +4336,7 @@
     "consensusRank": 238,
     "player": "Jay Huff",
     "team": "IND",
+    "isRookie": false,
     "position": "C",
     "age": 28.8,
     "expertRanks": {
@@ -4116,6 +4354,7 @@
     "consensusRank": 239,
     "player": "Nikola Jovic",
     "team": "MIA",
+    "isRookie": false,
     "position": "F",
     "age": 23,
     "expertRanks": {
@@ -4133,6 +4372,7 @@
     "consensusRank": 240,
     "player": "Jamal Shead",
     "team": "TOR",
+    "isRookie": false,
     "position": "G",
     "age": 23.9,
     "expertRanks": {
@@ -4147,8 +4387,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 241,
     "player": "Dillon Mitchell",
-    "team": "2026 Rookie",
+    "team": "BOS",
+    "isRookie": true,
     "position": "F",
     "age": 22,
     "expertRanks": {
@@ -4157,13 +4399,13 @@
     "avgRank": 228,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 241
+    "trend": "flat"
   },
   {
     "consensusRank": 242,
     "player": "Rob Dillingham",
     "team": "CHI",
+    "isRookie": false,
     "position": "G",
     "age": 21.4,
     "expertRanks": {
@@ -4178,8 +4420,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 243,
     "player": "Ja'Kobi Gillespie",
-    "team": "2026 Rookie",
+    "team": "SAS",
+    "isRookie": true,
     "position": "G",
     "age": 22.2,
     "expertRanks": {
@@ -4188,13 +4432,13 @@
     "avgRank": 229,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 243
+    "trend": "flat"
   },
   {
     "consensusRank": 244,
     "player": "Oso Ighodaro",
     "team": "PHO",
+    "isRookie": false,
     "position": "F",
     "age": 23.9,
     "expertRanks": {
@@ -4212,6 +4456,7 @@
     "consensusRank": 245,
     "player": "Ryan Dunn",
     "team": "PHO",
+    "isRookie": false,
     "position": "G/F",
     "age": 23.4,
     "expertRanks": {
@@ -4226,8 +4471,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 246,
     "player": "Ryan Conwell",
-    "team": "2026 Rookie",
+    "team": "MIA",
+    "isRookie": true,
     "position": "G",
     "age": 22,
     "expertRanks": {
@@ -4236,13 +4483,13 @@
     "avgRank": 230,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 246
+    "trend": "flat"
   },
   {
     "consensusRank": 247,
     "player": "Hugo Gonzalez",
     "team": "BOS",
+    "isRookie": false,
     "position": "G/F",
     "age": 20.3,
     "expertRanks": {
@@ -4260,6 +4507,7 @@
     "consensusRank": 248,
     "player": "GG Jackson",
     "team": "MEM",
+    "isRookie": false,
     "position": "F",
     "age": 21.5,
     "expertRanks": {
@@ -4277,6 +4525,7 @@
     "consensusRank": 249,
     "player": "Luke Kornet",
     "team": "SAS",
+    "isRookie": false,
     "position": "C",
     "age": 30.9,
     "expertRanks": {
@@ -4294,6 +4543,7 @@
     "consensusRank": 250,
     "player": "Danny Wolf",
     "team": "BKN",
+    "isRookie": false,
     "position": "F/C",
     "age": 22.1,
     "expertRanks": {
@@ -4308,8 +4558,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 251,
     "player": "Joshua Jefferson",
-    "team": "2026 Rookie",
+    "team": "BKN",
+    "isRookie": true,
     "position": "F",
     "age": 22.5,
     "expertRanks": {
@@ -4318,13 +4570,13 @@
     "avgRank": 231,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 251
+    "trend": "flat"
   },
   {
     "consensusRank": 252,
     "player": "Chris Cenac Jr.",
-    "team": "2026 Rookie",
+    "team": "BOS",
+    "isRookie": true,
     "position": "G",
     "age": 19.1,
     "expertRanks": {
@@ -4336,8 +4588,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 253,
     "player": "Luigi Suigo",
-    "team": "2026 Rookie",
+    "team": "FA",
+    "isRookie": true,
     "position": "F/C",
     "age": 19,
     "expertRanks": {
@@ -4346,13 +4600,13 @@
     "avgRank": 233,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 253
+    "trend": "flat"
   },
   {
     "consensusRank": 254,
     "player": "Pelle Larsson",
     "team": "MIA",
+    "isRookie": false,
     "position": "G/F",
     "age": 25.3,
     "expertRanks": {
@@ -4367,8 +4621,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 255,
     "player": "Baba Miller",
-    "team": "2026 Rookie",
+    "team": "LAC",
+    "isRookie": true,
     "position": "F",
     "age": 21.5,
     "expertRanks": {
@@ -4377,12 +4633,13 @@
     "avgRank": 234,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 255
+    "trend": "flat"
   },
   {
+    "consensusRank": 256,
     "player": "Jaden Bradley",
-    "team": "2026 Rookie",
+    "team": "TOR",
+    "isRookie": true,
     "position": "G",
     "age": 21,
     "expertRanks": {
@@ -4391,13 +4648,13 @@
     "avgRank": 235,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 256
+    "trend": "flat"
   },
   {
     "consensusRank": 257,
     "player": "Ousmane Dieng",
     "team": "MIL",
+    "isRookie": false,
     "position": "F",
     "age": 23,
     "expertRanks": {
@@ -4411,8 +4668,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 258,
     "player": "Braden Smith",
-    "team": "2026 Rookie",
+    "team": "IND",
+    "isRookie": true,
     "position": "G",
     "age": 22.5,
     "expertRanks": {
@@ -4421,13 +4680,13 @@
     "avgRank": 236,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 258
+    "trend": "flat"
   },
   {
     "consensusRank": 259,
     "player": "Goga Bitadze",
     "team": "ORL",
+    "isRookie": false,
     "position": "C",
     "age": 26.9,
     "expertRanks": {
@@ -4445,6 +4704,7 @@
     "consensusRank": 260,
     "player": "Jalen Smith",
     "team": "CHI",
+    "isRookie": false,
     "position": "F/C",
     "age": 26.2,
     "expertRanks": {
@@ -4459,8 +4719,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 261,
     "player": "Darrion Williams",
-    "team": "2026 Rookie",
+    "team": "FA",
+    "isRookie": true,
     "position": "F",
     "age": 22,
     "expertRanks": {
@@ -4469,13 +4731,13 @@
     "avgRank": 237,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 261
+    "trend": "flat"
   },
   {
     "consensusRank": 262,
     "player": "Nolan Traore",
     "team": "BKN",
+    "isRookie": false,
     "position": "G",
     "age": 20,
     "expertRanks": {
@@ -4493,6 +4755,7 @@
     "consensusRank": 263,
     "player": "Rasheer Fleming",
     "team": "PHO",
+    "isRookie": false,
     "position": "F",
     "age": 21.9,
     "expertRanks": {
@@ -4507,8 +4770,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 264,
     "player": "Bruce Thornton",
-    "team": "2026 Rookie",
+    "team": "HOU",
+    "isRookie": true,
     "position": "G",
     "age": 22,
     "expertRanks": {
@@ -4517,13 +4782,13 @@
     "avgRank": 238,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 264
+    "trend": "flat"
   },
   {
     "consensusRank": 265,
     "player": "Yanic Konan Niederhauser",
     "team": "LAC",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.2,
     "expertRanks": {
@@ -4541,6 +4806,7 @@
     "consensusRank": 266,
     "player": "Dylan Cardwell",
     "team": "SAC",
+    "isRookie": false,
     "position": "C",
     "age": 24.5,
     "expertRanks": {
@@ -4558,6 +4824,7 @@
     "consensusRank": 267,
     "player": "Max Strus",
     "team": "CLE",
+    "isRookie": false,
     "position": "F",
     "age": 30.2,
     "expertRanks": {
@@ -4572,8 +4839,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 268,
     "player": "Ugonna Onyenso",
-    "team": "2026 Rookie",
+    "team": "DET",
+    "isRookie": true,
     "position": "C",
     "age": 22,
     "expertRanks": {
@@ -4582,13 +4851,13 @@
     "avgRank": 239,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 268
+    "trend": "flat"
   },
   {
     "consensusRank": 269,
     "player": "Moses Moody",
     "team": "GSW",
+    "isRookie": false,
     "position": "G/F",
     "age": 24,
     "expertRanks": {
@@ -4603,8 +4872,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 270,
     "player": "Alex Karaban",
-    "team": "2026 Rookie",
+    "team": "SAC",
+    "isRookie": true,
     "position": "F",
     "age": 23.2,
     "expertRanks": {
@@ -4613,13 +4884,13 @@
     "avgRank": 240,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 270
+    "trend": "flat"
   },
   {
     "consensusRank": 271,
     "player": "Brandon Williams",
-    "team": "DAL",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 26.5,
     "expertRanks": {
@@ -4637,6 +4908,7 @@
     "consensusRank": 272,
     "player": "Yves Missi",
     "team": "NOR",
+    "isRookie": false,
     "position": "C",
     "age": 22.1,
     "expertRanks": {
@@ -4651,8 +4923,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 273,
     "player": "Trevon Brazile",
-    "team": "2026 Rookie",
+    "team": "DEN",
+    "isRookie": true,
     "position": "F/C",
     "age": 24,
     "expertRanks": {
@@ -4661,13 +4935,13 @@
     "avgRank": 241,
     "rankedByCount": 1,
     "tier": 6,
-    "trend": "flat",
-    "consensusRank": 273
+    "trend": "flat"
   },
   {
     "consensusRank": 274,
     "player": "Aaron Wiggins",
-    "team": "OKC",
+    "team": "ATL",
+    "isRookie": false,
     "position": "G/F",
     "age": 27.4,
     "expertRanks": {
@@ -4685,6 +4959,7 @@
     "consensusRank": 275,
     "player": "Josh Minott",
     "team": "BKN",
+    "isRookie": false,
     "position": "F",
     "age": 23.5,
     "expertRanks": {
@@ -4702,6 +4977,7 @@
     "consensusRank": 276,
     "player": "Obi Toppin",
     "team": "IND",
+    "isRookie": false,
     "position": "F",
     "age": 28.3,
     "expertRanks": {
@@ -4719,6 +4995,7 @@
     "consensusRank": 277,
     "player": "Isaiah Jackson",
     "team": "LAC",
+    "isRookie": false,
     "position": "F/C",
     "age": 24.4,
     "expertRanks": {
@@ -4736,6 +5013,7 @@
     "consensusRank": 278,
     "player": "Jase Richardson",
     "team": "ORL",
+    "isRookie": false,
     "position": "G",
     "age": 20.6,
     "expertRanks": {
@@ -4753,6 +5031,7 @@
     "consensusRank": 279,
     "player": "Jaylin Williams",
     "team": "OKC",
+    "isRookie": false,
     "position": "C",
     "age": 23.9,
     "expertRanks": {
@@ -4770,6 +5049,7 @@
     "consensusRank": 280,
     "player": "Jake LaRavia",
     "team": "LAL",
+    "isRookie": false,
     "position": "F",
     "age": 24.6,
     "expertRanks": {
@@ -4786,7 +5066,8 @@
   {
     "consensusRank": 281,
     "player": "Bobby Portis Jr.",
-    "team": "MIL",
+    "team": "MIA",
+    "isRookie": false,
     "position": "F",
     "age": 31.3,
     "expertRanks": {
@@ -4804,6 +5085,7 @@
     "consensusRank": 282,
     "player": "Tre Jones",
     "team": "CHI",
+    "isRookie": false,
     "position": "G",
     "age": 26.4,
     "expertRanks": {
@@ -4821,6 +5103,7 @@
     "consensusRank": 283,
     "player": "Bradley Beal",
     "team": "LAC",
+    "isRookie": false,
     "position": "G",
     "age": 32.9,
     "expertRanks": {
@@ -4836,7 +5119,8 @@
   {
     "consensusRank": 284,
     "player": "Isaiah Joe",
-    "team": "OKC",
+    "team": "DET",
+    "isRookie": false,
     "position": "G",
     "age": 26.9,
     "expertRanks": {
@@ -4854,6 +5138,7 @@
     "consensusRank": 285,
     "player": "Sam Merrill",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 30.1,
     "expertRanks": {
@@ -4870,7 +5155,8 @@
   {
     "consensusRank": 286,
     "player": "Sandro Mamukelashvili",
-    "team": "TOR",
+    "team": "LAL",
+    "isRookie": false,
     "position": "F/C",
     "age": 27,
     "expertRanks": {
@@ -4888,6 +5174,7 @@
     "consensusRank": 287,
     "player": "Jusuf Nurkic",
     "team": "UTA",
+    "isRookie": false,
     "position": "C",
     "age": 31.8,
     "expertRanks": {
@@ -4905,6 +5192,7 @@
     "consensusRank": 288,
     "player": "Kyle Kuzma",
     "team": "MIL",
+    "isRookie": false,
     "position": "F",
     "age": 30.9,
     "expertRanks": {
@@ -4922,6 +5210,7 @@
     "consensusRank": 289,
     "player": "Leonard Miller",
     "team": "CHI",
+    "isRookie": false,
     "position": "F",
     "age": 22.5,
     "expertRanks": {
@@ -4939,6 +5228,7 @@
     "consensusRank": 290,
     "player": "Alex Caruso",
     "team": "OKC",
+    "isRookie": false,
     "position": "G",
     "age": 32.3,
     "expertRanks": {
@@ -4956,6 +5246,7 @@
     "consensusRank": 291,
     "player": "Justin Champagnie",
     "team": "WAS",
+    "isRookie": false,
     "position": "F",
     "age": 24.9,
     "expertRanks": {
@@ -4972,7 +5263,8 @@
   {
     "consensusRank": 292,
     "player": "Luke Kennard",
-    "team": "LAL",
+    "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 30,
     "expertRanks": {
@@ -4990,6 +5282,7 @@
     "consensusRank": 293,
     "player": "Cody Williams",
     "team": "UTA",
+    "isRookie": false,
     "position": "G/F",
     "age": 21.5,
     "expertRanks": {
@@ -5007,6 +5300,7 @@
     "consensusRank": 294,
     "player": "Drake Powell",
     "team": "BKN",
+    "isRookie": false,
     "position": "G/F",
     "age": 20.7,
     "expertRanks": {
@@ -5024,6 +5318,7 @@
     "consensusRank": 295,
     "player": "DaRon Holmes",
     "team": "DEN",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.8,
     "expertRanks": {
@@ -5041,6 +5336,7 @@
     "consensusRank": 296,
     "player": "Kevin Huerter",
     "team": "DET",
+    "isRookie": false,
     "position": "G/F",
     "age": 27.8,
     "expertRanks": {
@@ -5058,6 +5354,7 @@
     "consensusRank": 297,
     "player": "AJ Green",
     "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 26.7,
     "expertRanks": {
@@ -5074,7 +5371,8 @@
   {
     "consensusRank": 298,
     "player": "Devin Carter",
-    "team": "SAC",
+    "team": "ATL",
+    "isRookie": false,
     "position": "G",
     "age": 24.2,
     "expertRanks": {
@@ -5092,6 +5390,7 @@
     "consensusRank": 299,
     "player": "Luguentz Dort",
     "team": "OKC",
+    "isRookie": false,
     "position": "G/F",
     "age": 27.1,
     "expertRanks": {
@@ -5109,6 +5408,7 @@
     "consensusRank": 300,
     "player": "Baylor Scheierman",
     "team": "BOS",
+    "isRookie": false,
     "position": "F",
     "age": 25.6,
     "expertRanks": {
@@ -5124,6 +5424,7 @@
     "consensusRank": 301,
     "player": "Dennis Schroder",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 32.7,
     "expertRanks": {
@@ -5140,6 +5441,7 @@
     "consensusRank": 302,
     "player": "Cam Whitmore",
     "team": "WAS",
+    "isRookie": false,
     "position": "F",
     "age": 21.9,
     "expertRanks": {
@@ -5155,7 +5457,8 @@
   {
     "consensusRank": 303,
     "player": "Marcus Smart",
-    "team": "LAL",
+    "team": "HOU",
+    "isRookie": false,
     "position": "G",
     "age": 32.3,
     "expertRanks": {
@@ -5171,6 +5474,7 @@
     "consensusRank": 304,
     "player": "Duncan Robinson",
     "team": "DET",
+    "isRookie": false,
     "position": "G/F",
     "age": 32.1,
     "expertRanks": {
@@ -5188,6 +5492,7 @@
     "consensusRank": 305,
     "player": "Jordan Miller",
     "team": "LAC",
+    "isRookie": false,
     "position": "F",
     "age": 26.4,
     "expertRanks": {
@@ -5205,6 +5510,7 @@
     "consensusRank": 306,
     "player": "Robert Williams",
     "team": "POR",
+    "isRookie": false,
     "position": "C",
     "age": 28.6,
     "expertRanks": {
@@ -5222,6 +5528,7 @@
     "consensusRank": 307,
     "player": "Jordan Walsh",
     "team": "BOS",
+    "isRookie": false,
     "position": "F",
     "age": 22.3,
     "expertRanks": {
@@ -5239,6 +5546,7 @@
     "consensusRank": 308,
     "player": "T.J. McConnell",
     "team": "IND",
+    "isRookie": false,
     "position": "G",
     "age": 34.2,
     "expertRanks": {
@@ -5255,7 +5563,8 @@
   {
     "consensusRank": 309,
     "player": "Gradey Dick",
-    "team": "TOR",
+    "team": "LAC",
+    "isRookie": false,
     "position": "G",
     "age": 22.5,
     "expertRanks": {
@@ -5273,6 +5582,7 @@
     "consensusRank": 310,
     "player": "Adem Bona",
     "team": "PHI",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.2,
     "expertRanks": {
@@ -5290,6 +5600,7 @@
     "consensusRank": 311,
     "player": "Sam Hauser",
     "team": "BOS",
+    "isRookie": false,
     "position": "F",
     "age": 28.5,
     "expertRanks": {
@@ -5307,6 +5618,7 @@
     "consensusRank": 312,
     "player": "Will Richard",
     "team": "GSW",
+    "isRookie": false,
     "position": "G",
     "age": 23.5,
     "expertRanks": {
@@ -5324,6 +5636,7 @@
     "consensusRank": 313,
     "player": "Jaden Ivey",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 24.3,
     "expertRanks": {
@@ -5339,6 +5652,7 @@
     "consensusRank": 314,
     "player": "Ryan Nembhard",
     "team": "DAL",
+    "isRookie": false,
     "position": "G",
     "age": 23.2,
     "expertRanks": {
@@ -5356,6 +5670,7 @@
     "consensusRank": 315,
     "player": "Javon Small",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 23.5,
     "expertRanks": {
@@ -5371,7 +5686,8 @@
   {
     "consensusRank": 316,
     "player": "Royce O'Neale",
-    "team": "PHO",
+    "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 33,
     "expertRanks": {
@@ -5389,6 +5705,7 @@
     "consensusRank": 317,
     "player": "Asa Newell",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 20.7,
     "expertRanks": {
@@ -5406,6 +5723,7 @@
     "consensusRank": 318,
     "player": "Kris Dunn",
     "team": "LAC",
+    "isRookie": false,
     "position": "G",
     "age": 32.2,
     "expertRanks": {
@@ -5422,7 +5740,8 @@
   {
     "consensusRank": 319,
     "player": "Russell Westbrook",
-    "team": "SAC",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 37.6,
     "expertRanks": {
@@ -5440,6 +5759,7 @@
     "consensusRank": 320,
     "player": "Al Horford",
     "team": "GSW",
+    "isRookie": false,
     "position": "C",
     "age": 39.9,
     "expertRanks": {
@@ -5455,6 +5775,7 @@
     "consensusRank": 321,
     "player": "Bones Hyland",
     "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 25.7,
     "expertRanks": {
@@ -5472,6 +5793,7 @@
     "consensusRank": 322,
     "player": "Kobe Sanders",
     "team": "LAC",
+    "isRookie": false,
     "position": "G/F",
     "age": 24,
     "expertRanks": {
@@ -5489,6 +5811,7 @@
     "consensusRank": 323,
     "player": "Dominick Barlow",
     "team": "PHI",
+    "isRookie": false,
     "position": "F",
     "age": 23,
     "expertRanks": {
@@ -5506,6 +5829,7 @@
     "consensusRank": 324,
     "player": "Sion James",
     "team": "CHA",
+    "isRookie": false,
     "position": "G",
     "age": 23.5,
     "expertRanks": {
@@ -5523,6 +5847,7 @@
     "consensusRank": 325,
     "player": "Derrick Jones Jr.",
     "team": "LAC",
+    "isRookie": false,
     "position": "F",
     "age": 29.3,
     "expertRanks": {
@@ -5540,6 +5865,7 @@
     "consensusRank": 326,
     "player": "Spencer Jones",
     "team": "DEN",
+    "isRookie": false,
     "position": "F",
     "age": 25,
     "expertRanks": {
@@ -5557,6 +5883,7 @@
     "consensusRank": 327,
     "player": "Quinten Post",
     "team": "GSW",
+    "isRookie": false,
     "position": "C",
     "age": 26.2,
     "expertRanks": {
@@ -5573,6 +5900,7 @@
     "consensusRank": 328,
     "player": "Terrence Shannon Jr.",
     "team": "MIN",
+    "isRookie": false,
     "position": "F",
     "age": 25.9,
     "expertRanks": {
@@ -5590,6 +5918,7 @@
     "consensusRank": 329,
     "player": "Tyrese Proctor",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 22.3,
     "expertRanks": {
@@ -5605,6 +5934,7 @@
     "consensusRank": 330,
     "player": "Mohamed Diawara",
     "team": "NYK",
+    "isRookie": false,
     "position": "F",
     "age": 21,
     "expertRanks": {
@@ -5619,6 +5949,7 @@
     "consensusRank": 331,
     "player": "Noah Penda",
     "team": "ORL",
+    "isRookie": false,
     "position": "F",
     "age": 21.4,
     "expertRanks": {
@@ -5635,6 +5966,7 @@
     "consensusRank": 332,
     "player": "Jose Alvarado",
     "team": "NYK",
+    "isRookie": false,
     "position": "G",
     "age": 28.2,
     "expertRanks": {
@@ -5651,7 +5983,8 @@
   {
     "consensusRank": 333,
     "player": "Cole Anthony",
-    "team": "ORL",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 26.1,
     "expertRanks": {
@@ -5665,7 +5998,8 @@
   {
     "consensusRank": 334,
     "player": "Jeremy Sochan",
-    "team": "NYK",
+    "team": "UFA",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.1,
     "expertRanks": {
@@ -5682,6 +6016,7 @@
     "consensusRank": 335,
     "player": "Moussa Cisse",
     "team": "DAL",
+    "isRookie": false,
     "position": "C",
     "age": 23.7,
     "expertRanks": {
@@ -5698,6 +6033,7 @@
     "consensusRank": 336,
     "player": "Jamir Watkins",
     "team": "WAS",
+    "isRookie": false,
     "position": "G",
     "age": 24.8,
     "expertRanks": {
@@ -5712,7 +6048,8 @@
   {
     "consensusRank": 337,
     "player": "Vince Williams Jr.",
-    "team": "UTA",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 25.8,
     "expertRanks": {
@@ -5729,6 +6066,7 @@
     "consensusRank": 338,
     "player": "D'Angelo Russell",
     "team": "WAS",
+    "isRookie": false,
     "position": "G",
     "age": 30.3,
     "expertRanks": {
@@ -5745,6 +6083,7 @@
     "consensusRank": 339,
     "player": "Ziaire Williams",
     "team": "BKN",
+    "isRookie": false,
     "position": "F",
     "age": 24.7,
     "expertRanks": {
@@ -5762,6 +6101,7 @@
     "consensusRank": 340,
     "player": "Julian Strawther",
     "team": "DEN",
+    "isRookie": false,
     "position": "G",
     "age": 24.1,
     "expertRanks": {
@@ -5778,6 +6118,7 @@
     "consensusRank": 341,
     "player": "Kam Jones",
     "team": "IND",
+    "isRookie": false,
     "position": "G",
     "age": 24.2,
     "expertRanks": {
@@ -5793,6 +6134,7 @@
     "consensusRank": 342,
     "player": "Justin Edwards",
     "team": "PHI",
+    "isRookie": false,
     "position": "G/F",
     "age": 22.4,
     "expertRanks": {
@@ -5809,6 +6151,7 @@
     "consensusRank": 343,
     "player": "Cam Thomas",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 24.6,
     "expertRanks": {
@@ -5824,7 +6167,8 @@
   {
     "consensusRank": 344,
     "player": "Bruce Brown Jr.",
-    "team": "DEN",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G/F",
     "age": 29.8,
     "expertRanks": {
@@ -5841,7 +6185,8 @@
   {
     "consensusRank": 345,
     "player": "Pat Spencer",
-    "team": "GSW",
+    "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 29.9,
     "expertRanks": {
@@ -5859,6 +6204,7 @@
     "consensusRank": 346,
     "player": "Amari Williams",
     "team": "BOS",
+    "isRookie": false,
     "position": "C",
     "age": 24.2,
     "expertRanks": {
@@ -5873,7 +6219,8 @@
   {
     "consensusRank": 347,
     "player": "Guerschon Yabusele",
-    "team": "CHI",
+    "team": "FA",
+    "isRookie": false,
     "position": "F",
     "age": 30.5,
     "expertRanks": {
@@ -5890,6 +6237,7 @@
     "consensusRank": 348,
     "player": "Mouhamed Gueye",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 23.6,
     "expertRanks": {
@@ -5906,6 +6254,7 @@
     "consensusRank": 349,
     "player": "Tyler Kolek",
     "team": "NYK",
+    "isRookie": false,
     "position": "G",
     "age": 25.2,
     "expertRanks": {
@@ -5923,6 +6272,7 @@
     "consensusRank": 350,
     "player": "Craig Porter Jr.",
     "team": "CLE",
+    "isRookie": false,
     "position": "G",
     "age": 26.2,
     "expertRanks": {
@@ -5938,6 +6288,7 @@
     "consensusRank": 351,
     "player": "Vit Krejci",
     "team": "POR",
+    "isRookie": false,
     "position": "G/F",
     "age": 26,
     "expertRanks": {
@@ -5955,6 +6306,7 @@
     "consensusRank": 352,
     "player": "Paul Reed",
     "team": "DET",
+    "isRookie": false,
     "position": "F",
     "age": 27,
     "expertRanks": {
@@ -5970,7 +6322,8 @@
   {
     "consensusRank": 353,
     "player": "Zach Collins",
-    "team": "SAS",
+    "team": "CHI",
+    "isRookie": false,
     "position": "C",
     "age": 28.6,
     "expertRanks": {
@@ -5985,6 +6338,7 @@
     "consensusRank": 354,
     "player": "Jordan Goodwin",
     "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 27.6,
     "expertRanks": {
@@ -5999,8 +6353,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 355,
     "player": "Jamaree Bouyea",
     "team": "PHO",
+    "isRookie": false,
     "position": "G",
     "age": 27,
     "expertRanks": {
@@ -6009,13 +6365,13 @@
     "avgRank": 316,
     "rankedByCount": 1,
     "tier": 7,
-    "trend": "flat",
-    "consensusRank": 355
+    "trend": "flat"
   },
   {
     "consensusRank": 356,
     "player": "Andre Drummond",
-    "team": "PHI",
+    "team": "NYK",
+    "isRookie": false,
     "position": "C",
     "age": 32.8,
     "expertRanks": {
@@ -6032,6 +6388,7 @@
     "consensusRank": 357,
     "player": "Ja'Kobe Walter",
     "team": "TOR",
+    "isRookie": false,
     "position": "G",
     "age": 21.8,
     "expertRanks": {
@@ -6049,6 +6406,7 @@
     "consensusRank": 358,
     "player": "Ben Saraf",
     "team": "BKN",
+    "isRookie": false,
     "position": "G",
     "age": 20.2,
     "expertRanks": {
@@ -6064,8 +6422,9 @@
   },
   {
     "consensusRank": 359,
-    "player": "Quentin Post",
+    "player": "Quinten Post",
     "team": "GSW",
+    "isRookie": false,
     "position": "F",
     "age": 26.1,
     "expertRanks": {
@@ -6079,7 +6438,8 @@
   {
     "consensusRank": 360,
     "player": "Marvin Bagley",
-    "team": "DAL",
+    "team": "DEN",
+    "isRookie": false,
     "position": "F/C",
     "age": 27.1,
     "expertRanks": {
@@ -6096,6 +6456,7 @@
     "consensusRank": 361,
     "player": "Adou Thiero",
     "team": "LAL",
+    "isRookie": false,
     "position": "G/F",
     "age": 22.1,
     "expertRanks": {
@@ -6112,6 +6473,7 @@
     "consensusRank": 362,
     "player": "Marcus Sasser",
     "team": "DET",
+    "isRookie": false,
     "position": "G",
     "age": 25.7,
     "expertRanks": {
@@ -6126,6 +6488,7 @@
     "consensusRank": 363,
     "player": "Precious Achiuwa",
     "team": "SAC",
+    "isRookie": false,
     "position": "F/C",
     "age": 26.7,
     "expertRanks": {
@@ -6142,7 +6505,8 @@
   {
     "consensusRank": 364,
     "player": "Cameron Payne",
-    "team": "MIL",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 31.8,
     "expertRanks": {
@@ -6157,6 +6521,7 @@
     "consensusRank": 365,
     "player": "Corey Kispert",
     "team": "ATL",
+    "isRookie": false,
     "position": "F",
     "age": 27.3,
     "expertRanks": {
@@ -6174,6 +6539,7 @@
     "consensusRank": 366,
     "player": "Tidjane Salaun",
     "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 20.8,
     "expertRanks": {
@@ -6191,6 +6557,7 @@
     "consensusRank": 367,
     "player": "Gary Trent Jr.",
     "team": "MIL",
+    "isRookie": false,
     "position": "G",
     "age": 27.4,
     "expertRanks": {
@@ -6206,8 +6573,9 @@
   },
   {
     "consensusRank": 368,
-    "player": "Liam McNeeley",
+    "player": "Liam McNeely",
     "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 20.7,
     "expertRanks": {
@@ -6225,6 +6593,7 @@
     "consensusRank": 369,
     "player": "Svi Mykhailiuk",
     "team": "UTA",
+    "isRookie": false,
     "position": "F",
     "age": 28.9,
     "expertRanks": {
@@ -6240,6 +6609,7 @@
     "consensusRank": 370,
     "player": "Rocco Zikarsky",
     "team": "MIN",
+    "isRookie": false,
     "position": "C",
     "age": 19.8,
     "expertRanks": {
@@ -6255,6 +6625,7 @@
     "consensusRank": 371,
     "player": "Killian Hayes",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 24.9,
     "expertRanks": {
@@ -6269,6 +6640,7 @@
     "consensusRank": 372,
     "player": "Tristan Vukcevic",
     "team": "WAS",
+    "isRookie": false,
     "position": "F/C",
     "age": 23.2,
     "expertRanks": {
@@ -6286,6 +6658,7 @@
     "consensusRank": 373,
     "player": "Harrison Barnes",
     "team": "SAS",
+    "isRookie": false,
     "position": "F",
     "age": 34,
     "expertRanks": {
@@ -6303,6 +6676,7 @@
     "consensusRank": 374,
     "player": "Grant Williams",
     "team": "CHA",
+    "isRookie": false,
     "position": "F",
     "age": 27.5,
     "expertRanks": {
@@ -6319,7 +6693,8 @@
   {
     "consensusRank": 375,
     "player": "Khris Middleton",
-    "team": "DAL",
+    "team": "WAS",
+    "isRookie": false,
     "position": "F",
     "age": 34.8,
     "expertRanks": {
@@ -6336,7 +6711,8 @@
   {
     "consensusRank": 376,
     "player": "Caleb Love",
-    "team": "POR",
+    "team": "PHI",
+    "isRookie": false,
     "position": "G",
     "age": 24.7,
     "expertRanks": {
@@ -6354,6 +6730,7 @@
     "consensusRank": 377,
     "player": "Karlo Matkovic",
     "team": "NOR",
+    "isRookie": false,
     "position": "C",
     "age": 25.2,
     "expertRanks": {
@@ -6370,6 +6747,7 @@
     "consensusRank": 378,
     "player": "Caris LeVert",
     "team": "DET",
+    "isRookie": false,
     "position": "G/F",
     "age": 31.8,
     "expertRanks": {
@@ -6383,8 +6761,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 379,
     "player": "Rayan Rupert",
-    "team": "MEM",
+    "team": "PHI",
+    "isRookie": false,
     "position": "G/F",
     "age": 22.9,
     "expertRanks": {
@@ -6393,13 +6773,13 @@
     "avgRank": 329,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 379
+    "trend": "flat"
   },
   {
     "consensusRank": 380,
     "player": "Tim Hardaway Jr.",
-    "team": "DEN",
+    "team": "MIA",
+    "isRookie": false,
     "position": "G/F",
     "age": 34.2,
     "expertRanks": {
@@ -6417,6 +6797,7 @@
     "consensusRank": 381,
     "player": "Johnny Furphy",
     "team": "IND",
+    "isRookie": false,
     "position": "G/F",
     "age": 21.5,
     "expertRanks": {
@@ -6431,8 +6812,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 382,
     "player": "Pacome Dadiet",
     "team": "NYK",
+    "isRookie": false,
     "position": "G/F",
     "age": 20.9,
     "expertRanks": {
@@ -6441,13 +6824,13 @@
     "avgRank": 332,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 382
+    "trend": "flat"
   },
   {
     "consensusRank": 383,
     "player": "Klay Thompson",
     "team": "DAL",
+    "isRookie": false,
     "position": "G/F",
     "age": 36.3,
     "expertRanks": {
@@ -6462,8 +6845,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 384,
     "player": "Pete Nance",
     "team": "MIL",
+    "isRookie": false,
     "position": "F/C",
     "age": 27.3,
     "expertRanks": {
@@ -6472,13 +6857,13 @@
     "avgRank": 335,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 384
+    "trend": "flat"
   },
   {
     "consensusRank": 385,
     "player": "Brook Lopez",
     "team": "LAC",
+    "isRookie": false,
     "position": "C",
     "age": 38.2,
     "expertRanks": {
@@ -6495,6 +6880,7 @@
     "consensusRank": 386,
     "player": "Simone Fontecchio",
     "team": "MIA",
+    "isRookie": false,
     "position": "F",
     "age": 30.4,
     "expertRanks": {
@@ -6511,6 +6897,7 @@
     "consensusRank": 387,
     "player": "Jordan Hawkins",
     "team": "NOR",
+    "isRookie": false,
     "position": "G",
     "age": 24.1,
     "expertRanks": {
@@ -6527,6 +6914,7 @@
     "consensusRank": 388,
     "player": "Nae'Qwan Tomlin",
     "team": "CLE",
+    "isRookie": false,
     "position": "F",
     "age": 25.5,
     "expertRanks": {
@@ -6543,6 +6931,7 @@
     "consensusRank": 389,
     "player": "Jock Landale",
     "team": "ATL",
+    "isRookie": false,
     "position": "C",
     "age": 30.6,
     "expertRanks": {
@@ -6559,7 +6948,8 @@
   {
     "consensusRank": 390,
     "player": "Jaxson Hayes",
-    "team": "LAL",
+    "team": "UTA",
+    "isRookie": false,
     "position": "C",
     "age": 26,
     "expertRanks": {
@@ -6574,8 +6964,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 391,
     "player": "Mike Conley",
-    "team": "MIN",
+    "team": "BOS",
+    "isRookie": false,
     "position": "G",
     "age": 38.7,
     "expertRanks": {
@@ -6584,13 +6976,13 @@
     "avgRank": 346,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 391
+    "trend": "flat"
   },
   {
     "consensusRank": 392,
     "player": "Luka Garza",
     "team": "BOS",
+    "isRookie": false,
     "position": "C",
     "age": 27.4,
     "expertRanks": {
@@ -6607,6 +6999,7 @@
     "consensusRank": 393,
     "player": "Dru Smith",
     "team": "MIA",
+    "isRookie": false,
     "position": "G",
     "age": 28.4,
     "expertRanks": {
@@ -6620,8 +7013,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 394,
     "player": "Landry Shamet",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 29.2,
     "expertRanks": {
@@ -6630,13 +7025,13 @@
     "avgRank": 347,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 394
+    "trend": "flat"
   },
   {
     "consensusRank": 395,
     "player": "Moritz Wagner",
-    "team": "ORL",
+    "team": "BKN",
+    "isRookie": false,
     "position": "C",
     "age": 29.1,
     "expertRanks": {
@@ -6653,7 +7048,8 @@
   {
     "consensusRank": 396,
     "player": "Bogdan Bogdanovic",
-    "team": "LAC",
+    "team": "HOU",
+    "isRookie": false,
     "position": "G",
     "age": 33.8,
     "expertRanks": {
@@ -6669,7 +7065,8 @@
   {
     "consensusRank": 397,
     "player": "Isaac Okoro",
-    "team": "ORL",
+    "team": "CHI",
+    "isRookie": false,
     "position": "F",
     "age": 25.4,
     "expertRanks": {
@@ -6684,6 +7081,7 @@
     "consensusRank": 398,
     "player": "Jaylen Clark",
     "team": "MIN",
+    "isRookie": false,
     "position": "G",
     "age": 24.5,
     "expertRanks": {
@@ -6698,7 +7096,8 @@
   {
     "consensusRank": 399,
     "player": "Elijah Harkless",
-    "team": "UTA",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G",
     "age": 26.2,
     "expertRanks": {
@@ -6715,6 +7114,7 @@
     "consensusRank": 400,
     "player": "Bronny James",
     "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 21.7,
     "expertRanks": {
@@ -6729,6 +7129,7 @@
     "consensusRank": 401,
     "player": "Jonas Valanciunas",
     "team": "DEN",
+    "isRookie": false,
     "position": "C",
     "age": 34.1,
     "expertRanks": {
@@ -6745,6 +7146,7 @@
     "consensusRank": 402,
     "player": "Steven Adams",
     "team": "HOU",
+    "isRookie": false,
     "position": "C",
     "age": 32.9,
     "expertRanks": {
@@ -6761,6 +7163,7 @@
     "consensusRank": 403,
     "player": "Ben Sheppard",
     "team": "IND",
+    "isRookie": false,
     "position": "G/F",
     "age": 24.9,
     "expertRanks": {
@@ -6777,6 +7180,7 @@
     "consensusRank": 404,
     "player": "Tyus Jones",
     "team": "DEN",
+    "isRookie": false,
     "position": "G",
     "age": 30.1,
     "expertRanks": {
@@ -6792,7 +7196,8 @@
   {
     "consensusRank": 405,
     "player": "Matisse Thybulle",
-    "team": "POR",
+    "team": "UFA",
+    "isRookie": false,
     "position": "G/F",
     "age": 29.1,
     "expertRanks": {
@@ -6807,7 +7212,8 @@
   {
     "consensusRank": 406,
     "player": "Jonathan Mogbo",
-    "team": "TOR",
+    "team": "SAC",
+    "isRookie": false,
     "position": "F",
     "age": 24.6,
     "expertRanks": {
@@ -6823,7 +7229,8 @@
   {
     "consensusRank": 407,
     "player": "Brandon Clarke",
-    "team": "MEM",
+    "team": "FA",
+    "isRookie": false,
     "position": "F",
     "age": 29.6,
     "expertRanks": {
@@ -6838,6 +7245,7 @@
     "consensusRank": 408,
     "player": "Lonzo Ball",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 28.6,
     "expertRanks": {
@@ -6852,6 +7260,7 @@
     "consensusRank": 409,
     "player": "Trayce Jackson-Davis",
     "team": "TOR",
+    "isRookie": false,
     "position": "C",
     "age": 26.3,
     "expertRanks": {
@@ -6868,6 +7277,7 @@
     "consensusRank": 410,
     "player": "Sidy Cissoko",
     "team": "POR",
+    "isRookie": false,
     "position": "F",
     "age": 22.1,
     "expertRanks": {
@@ -6883,7 +7293,8 @@
   {
     "consensusRank": 411,
     "player": "Micah Peavy",
-    "team": "ATL",
+    "team": "NOR",
+    "isRookie": false,
     "position": "G/F",
     "age": 24.9,
     "expertRanks": {
@@ -6898,6 +7309,7 @@
     "consensusRank": 412,
     "player": "Terance Mann",
     "team": "BKN",
+    "isRookie": false,
     "position": "G/F",
     "age": 29.6,
     "expertRanks": {
@@ -6912,8 +7324,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 413,
     "player": "John Konchar",
     "team": "UTA",
+    "isRookie": false,
     "position": "G/F",
     "age": 30.2,
     "expertRanks": {
@@ -6923,13 +7337,13 @@
     "avgRank": 360,
     "rankedByCount": 2,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 413
+    "trend": "flat"
   },
   {
     "consensusRank": 414,
     "player": "Patrick Williams",
     "team": "CHI",
+    "isRookie": false,
     "position": "F",
     "age": 24.8,
     "expertRanks": {
@@ -6945,7 +7359,8 @@
   {
     "consensusRank": 415,
     "player": "Nick Richards",
-    "team": "CHI",
+    "team": "UFA",
+    "isRookie": false,
     "position": "C",
     "age": 28.5,
     "expertRanks": {
@@ -6963,6 +7378,7 @@
     "consensusRank": 416,
     "player": "RayJ Dennis",
     "team": "FA",
+    "isRookie": false,
     "position": "G",
     "age": 25.2,
     "expertRanks": {
@@ -6976,7 +7392,8 @@
   {
     "consensusRank": 417,
     "player": "Trendon Watford",
-    "team": "PHI",
+    "team": "UFA",
+    "isRookie": false,
     "position": "F",
     "age": 25.6,
     "expertRanks": {
@@ -6991,8 +7408,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 418,
     "player": "Kevon Looney",
-    "team": "NOR",
+    "team": "LAL",
+    "isRookie": false,
     "position": "C",
     "age": 30.3,
     "expertRanks": {
@@ -7001,13 +7420,13 @@
     "avgRank": 363,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 418
+    "trend": "flat"
   },
   {
     "consensusRank": 419,
     "player": "Jarred Vanderbilt",
     "team": "LAL",
+    "isRookie": false,
     "position": "F",
     "age": 27.2,
     "expertRanks": {
@@ -7024,6 +7443,7 @@
     "consensusRank": 420,
     "player": "Alex Toohey",
     "team": "FA",
+    "isRookie": false,
     "position": "F",
     "age": 21.4,
     "expertRanks": {
@@ -7039,6 +7459,7 @@
     "consensusRank": 421,
     "player": "Tyrese Martin",
     "team": "FA",
+    "isRookie": false,
     "position": "G/F",
     "age": 27.3,
     "expertRanks": {
@@ -7053,6 +7474,7 @@
     "consensusRank": 422,
     "player": "Johni Broome",
     "team": "PHI",
+    "isRookie": false,
     "position": "C",
     "age": 23.9,
     "expertRanks": {
@@ -7069,6 +7491,7 @@
     "consensusRank": 423,
     "player": "Haywood Highsmith",
     "team": "PHO",
+    "isRookie": false,
     "position": "F",
     "age": 29.5,
     "expertRanks": {
@@ -7084,7 +7507,8 @@
   {
     "consensusRank": 424,
     "player": "Dean Wade",
-    "team": "CLE",
+    "team": "PHI",
+    "isRookie": false,
     "position": "F",
     "age": 29.5,
     "expertRanks": {
@@ -7100,7 +7524,8 @@
   {
     "consensusRank": 425,
     "player": "Jaden Hardy",
-    "team": "DAL",
+    "team": "LAL",
+    "isRookie": false,
     "position": "G",
     "age": 23.9,
     "expertRanks": {
@@ -7112,8 +7537,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 426,
     "player": "Olivier-Maxence Prosper",
     "team": "MEM",
+    "isRookie": false,
     "position": "F",
     "age": 23.9,
     "expertRanks": {
@@ -7123,12 +7550,13 @@
     "avgRank": 371,
     "rankedByCount": 2,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 426
+    "trend": "flat"
   },
   {
+    "consensusRank": 427,
     "player": "Jack Kayil",
-    "team": "2026 Rookie",
+    "team": "NYK",
+    "isRookie": true,
     "position": "G",
     "age": 20,
     "expertRanks": {
@@ -7137,12 +7565,13 @@
     "avgRank": 371,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 427
+    "trend": "flat"
   },
   {
+    "consensusRank": 428,
     "player": "Rafael Castro",
-    "team": "2026 Rookie",
+    "team": "MIL",
+    "isRookie": true,
     "position": "C",
     "age": 24,
     "expertRanks": {
@@ -7151,12 +7580,13 @@
     "avgRank": 372,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 428
+    "trend": "flat"
   },
   {
+    "consensusRank": 429,
     "player": "Sergio De Larrea",
-    "team": "2026 Rookie",
+    "team": "DAL",
+    "isRookie": true,
     "position": "G",
     "age": 20,
     "expertRanks": {
@@ -7165,13 +7595,13 @@
     "avgRank": 373,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 429
+    "trend": "flat"
   },
   {
     "consensusRank": 430,
     "player": "Jonathan Isaac",
     "team": "ORL",
+    "isRookie": false,
     "position": "F",
     "age": 28.7,
     "expertRanks": {
@@ -7185,8 +7615,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 431,
     "player": "Duke Miles",
-    "team": "2026 Rookie",
+    "team": "FA",
+    "isRookie": true,
     "position": "G",
     "age": 20,
     "expertRanks": {
@@ -7195,12 +7627,13 @@
     "avgRank": 374,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 431
+    "trend": "flat"
   },
   {
+    "consensusRank": 432,
     "player": "Quadir Copeland",
-    "team": "2026 Rookie",
+    "team": "HOU",
+    "isRookie": true,
     "position": "G",
     "age": 23,
     "expertRanks": {
@@ -7209,13 +7642,13 @@
     "avgRank": 375,
     "rankedByCount": 1,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 432
+    "trend": "flat"
   },
   {
     "consensusRank": 433,
-    "player": "Bogoljbub Markovic",
+    "player": "Bogoljub Markovic",
     "team": "MIL",
+    "isRookie": false,
     "position": "F",
     "age": 20.2,
     "expertRanks": {
@@ -7230,7 +7663,8 @@
   {
     "consensusRank": 434,
     "player": "Nick Martinelli",
-    "team": "2026 Rookie",
+    "team": "LAC",
+    "isRookie": true,
     "position": "F",
     "age": 22,
     "expertRanks": {
@@ -7245,6 +7679,7 @@
     "consensusRank": 435,
     "player": "Clint Capela",
     "team": "HOU",
+    "isRookie": false,
     "position": "C",
     "age": 32.1,
     "expertRanks": {
@@ -7260,7 +7695,8 @@
   {
     "consensusRank": 436,
     "player": "Buddy Hield",
-    "team": "GSW",
+    "team": "ATL",
+    "isRookie": false,
     "position": "G/F",
     "age": 33.5,
     "expertRanks": {
@@ -7275,6 +7711,7 @@
     "consensusRank": 437,
     "player": "Julian Reese",
     "team": "WAS",
+    "isRookie": false,
     "position": "F",
     "age": 22.8,
     "expertRanks": {
@@ -7290,6 +7727,7 @@
     "consensusRank": 438,
     "player": "Tre Mann",
     "team": "CHA",
+    "isRookie": false,
     "position": "G",
     "age": 25.3,
     "expertRanks": {
@@ -7304,6 +7742,7 @@
     "consensusRank": 439,
     "player": "Alijah Martin",
     "team": "TOR",
+    "isRookie": false,
     "position": "G",
     "age": 24.4,
     "expertRanks": {
@@ -7319,7 +7758,8 @@
   {
     "consensusRank": 440,
     "player": "Kelly Olynyk",
-    "team": "SAS",
+    "team": "UFA",
+    "isRookie": false,
     "position": "C",
     "age": 35.1,
     "expertRanks": {
@@ -7333,8 +7773,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 441,
     "player": "Koby Brea",
     "team": "PHO",
+    "isRookie": false,
     "position": "G/F",
     "age": 23.6,
     "expertRanks": {
@@ -7344,13 +7786,13 @@
     "avgRank": 383,
     "rankedByCount": 2,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 441
+    "trend": "flat"
   },
   {
     "consensusRank": 442,
     "player": "Jordan Clarkson",
     "team": "NYK",
+    "isRookie": false,
     "position": "G",
     "age": 34,
     "expertRanks": {
@@ -7367,6 +7809,7 @@
     "consensusRank": 443,
     "player": "Dalton Knecht",
     "team": "LAL",
+    "isRookie": false,
     "position": "G/F",
     "age": 25.1,
     "expertRanks": {
@@ -7381,6 +7824,7 @@
     "consensusRank": 444,
     "player": "Ochai Agbaji",
     "team": "BKN",
+    "isRookie": false,
     "position": "G/F",
     "age": 26.1,
     "expertRanks": {
@@ -7397,6 +7841,7 @@
     "consensusRank": 445,
     "player": "Kentavious Caldwell-Pope",
     "team": "MEM",
+    "isRookie": false,
     "position": "G",
     "age": 33.3,
     "expertRanks": {
@@ -7410,8 +7855,10 @@
     "trend": "flat"
   },
   {
+    "consensusRank": 446,
     "player": "Ron Harper Jr.",
     "team": "BOS",
+    "isRookie": false,
     "position": "G/F",
     "age": 26.2,
     "expertRanks": {
@@ -7421,7 +7868,6 @@
     "avgRank": 389.5,
     "rankedByCount": 2,
     "tier": 8,
-    "trend": "flat",
-    "consensusRank": 446
+    "trend": "flat"
   }
 ]
