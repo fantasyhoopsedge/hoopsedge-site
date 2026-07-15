@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { activeRankForView, normalizePlayerName, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
+import { TrendIcon } from "./trend-icon";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import { shortenPlayerName } from "@/lib/shorten-name";
@@ -428,19 +429,32 @@ export function RankingsTable(props: {
           <tbody>
             {shown.map((p, i) => {
               const activeRank = activeRankForView(p, activeExpertKey);
-              const rankStyle = { color: rankColorForTier(p.tier) };
+              // Tier coloring on the rank number clashes with the green/red trend
+              // badge now stacked underneath it on desktop — drop it there (plain
+              // ink color instead) and keep it on mobile, where the trend badge
+              // is hidden entirely (see the room-constrained breakpoints above).
+              const rankStyle = isMobile ? { color: rankColorForTier(p.tier) } : undefined;
               const isSophomore = !p.isRookie && sophomoreNames.has(normalizePlayerName(p.player));
 
               return (
                 <tr key={`${p.consensusRank}-${p.player}-${i}`} className="dr-tr" onClick={() => onPlayerClick(p)}>
                   <td className="dr-td dr-col-rank">
-                    {activeRank !== null ? (
-                      <span className="dr-rank-num" style={rankStyle}>
-                        {activeRank}
-                      </span>
-                    ) : (
-                      <span className="dr-rank-nr">N/R</span>
-                    )}
+                    <div className="dr-rank-cell">
+                      {activeRank !== null ? (
+                        <span className="dr-rank-num" style={rankStyle}>
+                          {activeRank}
+                        </span>
+                      ) : (
+                        <span className="dr-rank-nr">N/R</span>
+                      )}
+                      {/* Stacked below (never inline) so it can't wrap unpredictably,
+                          and hidden wherever the row is too tight to give it its own
+                          line cleanly (same room-constrained breakpoints that already
+                          hide the tier column). */}
+                      {!activeExpertKey && !isMobile && !isLandscape ? (
+                        <TrendIcon trend={p.trend} delta={p.trendDelta} />
+                      ) : null}
+                    </div>
                   </td>
                   {showAvatarColumn ? (
                     <td className="dr-td dr-col-avatar dr-desktop-only">

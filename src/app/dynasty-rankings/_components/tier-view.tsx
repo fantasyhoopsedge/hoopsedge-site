@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { activeRankForView, normalizePlayerName, playerHeadshotUrl, type DynastyPlayer } from "@/lib/dynasty-rankings";
 import { PositionBadge } from "./position-badge";
+import { TrendIcon } from "./trend-icon";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
 // Same alias/exception set as rankings-table.tsx's TeamCell — see its comment
@@ -149,7 +150,10 @@ export function TierView(props: {
                     onClick={() => onPlayerClick(p)}
                   >
                     <HeadshotImg player={p} />
-                    <div className="dr-tier-card-rank">{p.consensusRank}</div>
+                    <div className="dr-tier-card-rank">
+                      <span className="dr-tier-card-rank-num">{p.consensusRank}</span>
+                      {!activeExpertKey ? <TrendIcon trend={p.trend} delta={p.trendDelta} /> : null}
+                    </div>
                     <div className="dr-tier-card-body">
                       <div className="dr-tier-card-name">
                         {p.player}

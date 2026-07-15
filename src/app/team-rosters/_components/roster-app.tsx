@@ -899,7 +899,15 @@ export function RosterApp({
                       )}
                     </div>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{c.keyVal}</div>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+                        {c.keyVal}
+                        {sort === "dynasty" ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: c.changeColor }}>
+                            {c.caret}
+                            {c.change !== "—" ? c.change : ""}
+                          </span>
+                        ) : null}
+                      </div>
                       <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 5, textTransform: "uppercase", letterSpacing: "0.05em" }}>{c.keyLabel}</div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -1245,6 +1253,7 @@ export function RosterApp({
               priorPrior={spTrios.priorPrior}
               consensusRank={sp.consensus}
               consensusDir={sp.dir}
+              consensusDelta={sp.dirDelta}
               age={sp.age}
               isRookie={sp.tag === "soph"}
               mode={modeNow}

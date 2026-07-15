@@ -51,6 +51,8 @@ export type Player = {
   dynasty: number;
   change: string;
   dir: "up" | "down" | "flat";
+  /** Spots moved since the prior dynasty consensus version. null = no prior baseline. */
+  dirDelta: number | null;
   /** Dynasty consensus rank, 1 = best. */
   consensus: number;
   /** Dynasty consensus tier (1 = best), from dynasty-rankings.json. null when unranked. */

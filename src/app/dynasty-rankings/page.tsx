@@ -41,13 +41,26 @@ const VERSIONS: VersionMeta[] = [
     id: "1.0",
     label: "v1.0",
     date: "June 2026",
-    isCurrent: true,
+    isCurrent: false,
     expertDates: {
       dizzle:   "April 2026",
       mball:    "April 2026",
       angle:    "May 2026",
       dynatyze: "June 2026",
       hashtag:  "June 2026",
+    },
+  },
+  {
+    id: "1.1",
+    label: "v1.1",
+    date: "July 2026",
+    isCurrent: true,
+    expertDates: {
+      dizzle:   "July 2026",
+      mball:    "July 2026",
+      angle:    "May 2026",
+      dynatyze: "July 2026",
+      hashtag:  "July 2026",
     },
   },
 ];
