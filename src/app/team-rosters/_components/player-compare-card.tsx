@@ -136,6 +136,7 @@ export function PlayerCompareCard({
         priorPrior={trios.priorPrior}
         consensusRank={player.consensus}
         consensusDir={player.dir}
+        consensusDelta={player.dirDelta}
         age={player.age}
         isRookie={player.tag === "soph"}
         mode={mode}

@@ -1,21 +1,17 @@
-export function TrendIcon({ trend }: { trend: string }) {
-  if (trend === "up") {
+export function TrendIcon({ trend, delta }: { trend: string; delta: number | null }) {
+  if (trend === "up" && delta) {
     return (
-      <span className="dr-trend-up" aria-label="Trend up">
-        ↑
+      <span className="dr-trend-badge dr-trend-badge-up" aria-label={`Up ${delta} spots`}>
+        ↑{delta}
       </span>
     );
   }
-  if (trend === "down") {
+  if (trend === "down" && delta) {
     return (
-      <span className="dr-trend-down" aria-label="Trend down">
-        ↓
+      <span className="dr-trend-badge dr-trend-badge-down" aria-label={`Down ${delta} spots`}>
+        ↓{delta}
       </span>
     );
   }
-  return (
-    <span className="dr-trend-flat" aria-label="Trend flat">
-      —
-    </span>
-  );
+  return null;
 }

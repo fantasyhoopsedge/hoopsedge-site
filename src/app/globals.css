@@ -2602,17 +2602,40 @@ body:has(.dr-rankings-shell) {
 .dr-tier-t7 { background: rgba(0, 200, 224, 0.13);  color: #00c8e0; }
 .dr-tier-t8 { background: rgba(100, 116, 139, 0.15); color: #64748b; }
 
-.dr-trend-up {
-  color: var(--rt-primary);
+/* Small pill badge, not plain colored text — deliberately a distinct visual
+   weight from .dr-rank-num (which is already tier-colored) so the two don't
+   compete for attention next to each other. Stacked below the rank number by
+   the layout (.dr-rank-cell / .dr-tier-card-rank), never inline, so it can't
+   wrap unpredictably depending on digit count. */
+.dr-trend-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  font-family: var(--rt-font-mono);
+  font-size: 10px;
   font-weight: 700;
-  font-size: 15px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
-.dr-trend-down,
-.dr-trend-flat {
-  color: var(--text-muted);
-  font-weight: 700;
-  font-size: 15px;
+.dr-trend-badge-up {
+  color: var(--green-elite);
+  background: rgba(34, 197, 94, 0.14);
+}
+
+.dr-trend-badge-down {
+  color: var(--red-severe);
+  background: rgba(239, 68, 68, 0.14);
+}
+
+.dr-rank-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
 }
 
 .dr-player-inner {
@@ -2781,13 +2804,20 @@ body:has(.dr-rankings-shell) {
 }
 
 .dr-tier-card-rank {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--blueprint-glow);
+  min-width: 40px;
+  text-align: center;
+}
+
+.dr-tier-card-rank-num {
   font-family: var(--rt-font-sans);
   font-weight: 800;
   font-size: 26px;
-  color: var(--blueprint-glow);
   line-height: 1;
-  min-width: 40px;
-  text-align: center;
 }
 
 .dr-tier-card-name {

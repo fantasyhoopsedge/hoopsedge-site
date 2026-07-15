@@ -107,6 +107,7 @@ export function TrendHero({
   priorPrior,
   consensusRank,
   consensusDir,
+  consensusDelta,
   age,
   isRookie = false,
   compact = false,
@@ -126,11 +127,13 @@ export function TrendHero({
   /** Season-before-prior (2023-24) anchor — the arrow reference for Prior mode. */
   priorPrior: ModeStatInput;
   consensusRank: number | null;
-  /** Dynasty consensus movement (currently near-always "flat" until consensus
-   * rank v1.1 is published with real period-over-period deltas — see
+  /** Dynasty consensus movement vs the prior published version — see
    * dynasty-rankings.json's `trend` field, the same source roster-app.tsx's
-   * list/grid views already use for this). */
+   * list/grid views already use for this. */
   consensusDir: "up" | "down" | "flat";
+  /** Spots moved since the prior version (dynasty-rankings.json's `trendDelta`).
+   * null when the player has no prior-version baseline. */
+  consensusDelta: number | null;
   age: number | null;
   /** First-year player in the charted season (Player.tag === "soph" for the
    * completed 2025-26 season) — drives the rookie-aware DEVELOPING read (R15). */
@@ -285,7 +288,10 @@ export function TrendHero({
               <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
                 {consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
               </span>
-              <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 12 : undefined, fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>{caret(consensusDir)}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>
+                <span style={{ fontSize: 9 }}>{caret(consensusDir)}</span>
+                {consensusDir !== "flat" && consensusDelta ? consensusDelta : null}
+              </span>
             </div>
             <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? "Dynasty" : "Dynasty rank"}</div>
           </div>

@@ -140,6 +140,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,DAL,Tyler Smith,23,F,6'9,225,11/02/04,21.67,2,2024-33,USA,LA - New Orleans,G League Ignite,Dallas Mavericks,Two-Way,,
 2026-27,DAL,Klay Thompson,31,G,6'5,220,02/08/90,36.41,13,2011-11,USA,CA - Los Angeles,Washington State,Dallas Mavericks,3 yr / $50M,2027,17460317
 2026-27,DAL,PJ Washington,25,F,6'7,230,08/23/98,27.87,7,2019-12,USA,KY - Louisville,Kentucky,Dallas Mavericks,4 yr / $88.8M,2030,19813044
+2026-27,DAL,Tarik Biberovic,,F,,,01/28/01,25.50,R,,,,,,2 yr / $6M,2028,3000000
 2026-27,DEN,Marvin Bagley III,0,F,6'11,235,03/14/99,27.32,8,2018-02,USA,AZ - Tempe,Duke,Dallas Mavericks,1 yr / $3.5M,2027,3506659
 2026-27,DEN,Christian Braun,0,G,6'6,220,04/17/01,25.22,4,2022-21,USA,KS - Burlington,Kansas,Denver Nuggets,5 yr / $125M,2031,21551726
 2026-27,DEN,Trevon Brazile,7,F,6'9,225,01/07/03,23.49,R,2026-35,USA,MO - Springfield,Arkansas,Arkansas,2nd Rd Pick,,
@@ -201,6 +202,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,GSW,Will Richard,3,G,6'3,205,12/24/02,23.53,1,2025-56,USA,GA - Fairburn,Florida,Golden State Warriors,4 yr / $8.7M,2028 +1,2150917
 2026-27,GSW,Gui Santos,15,F,6'7,185,06/22/02,24.04,3,2022-55,BRA,Brazil - Brasilia,Minas (Brazil),Golden State Warriors,3 yr / $15M,2028 +1,4629630
 2026-27,GSW,Nate Williams,19,F,6'5,205,02/12/99,27.39,4,2022-ND,USA,NY - Rochester,Buffalo,Golden State Warriors,RFA,,
+2026-27,GSW,Charles Bassey,,C,,,10/28/00,25.70,,,,,,Memphis Grizzlies,1 yr / $2.845883M,2027,2845883
 2026-27,HOU,Steven Adams,12,C,6'11,265,07/20/93,32.96,12,2013-12,NZL,New Zealand - Rotorua,Pittsburgh,Houston Rockets,3 yr / $39M,2028,13000000
 2026-27,HOU,Bogdan Bogdanovic,,G,6'5,225,08/18/92,33.90,9,2014-27,SRB,Serbia - Belgrade,Fenerbahce (Turkey),Los Angeles Clippers,1 yr / $3.9M,2027,3876529
 2026-27,HOU,Clint Capela,30,C,6'10,255,05/18/94,32.14,12,2014-25,SUI,Switzerland - Geneva,Chalon (France),Houston Rockets,3 yr / $21.1M,2028,7035000
@@ -239,6 +241,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,IND,Obi Toppin,1,F,6'9,220,03/04/98,28.34,6,2020-08,USA,NY - Brooklyn,Dayton,Indiana Pacers,4 yr / $58M,2028,15000000
 2026-27,IND,Jarace Walker,5,F,6'7,235,09/04/03,22.83,3,2023-08,USA,MD - Baltimore,Houston,Indiana Pacers,4 yr / $27.6M,2027,8478542
 2026-27,IND,Ivica Zubac,40,C,7'0,240,03/18/97,29.30,10,2016-32,CRO,Bosnia - Mostar,Mega Basket (Serbia),Indiana Pacers,3 yr / $58.7M,2028,20342140
+2026-27,IND,Larry Nance Jr.,,F,,,01/01/93,33.50,,,,,,Cleveland Cavaliers,1 yr / $3.876529M,2027,3876529
 2026-27,LAC,Cam Christie,12,G,6'5,190,07/24/05,20.95,2,2024-46,USA,IL - Arlington Heights,Minnesota,Los Angeles Clippers,4 yr / $7.9M,2027 +1,2296271
 2026-27,LAC,Gradey Dick,,G,6'7,200,11/20/03,22.63,3,2023-13,USA,KS - Wichita,Kansas,Toronto Raptors,4 yr / $21.4M,2027,7131511
 2026-27,LAC,Kris Dunn,8,G,6'3,205,03/18/94,32.30,10,2016-05,USA,CT - New London,Providence,Los Angeles Clippers,3 yr / $16.3M,2027,5684800
@@ -565,6 +568,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,UTA,Darryn Peterson,22,G,6'4,200,01/17/07,19.46,R,2026-02,USA,OH - Canton,Kansas,Kansas,4 yr / $59.9M,2028 +2,13198440
 2026-27,UTA,Brice Sensabaugh,28,F,6'6,235,10/30/03,22.68,3,2023-28,USA,FL - Wilton Manors,Ohio State,Utah Jazz,4 yr / $12.6M,2027,4862237
 2026-27,UTA,Cody Williams,5,G,6'8,190,11/20/04,21.62,2,2024-10,USA,CA - San Luis Obispo,Colorado,Utah Jazz,4 yr / $24.9M,2027 +1,6015600
+2026-27,UTA,Josh Okogie,,G,,,09/01/98,24.80,,,,,,Houston Rockets,2 yr / $12M,2027,6000000
 2026-27,WAS,Deandre Ayton,,C,7'0,250,07/23/98,27.96,8,2018-01,BAH,Bahamas - Nassau,Arizona,Los Angeles Lakers,2 yr / $16.2M,2027,8104000
 2026-27,WAS,Bub Carrington,7,G,6'4,190,07/21/05,20.96,2,2024-14,USA,MD - Baltimore,Pittsburgh,Washington Wizards,4 yr / $21.3M,2027 +1,4900560
 2026-27,WAS,Justin Champagnie,9,F,6'6,205,06/29/01,25.02,5,2021-ND,USA,NY - New York City,Pittsburgh,Washington Wizards,4 yr / $9.8M,2027 +1,2667944
@@ -591,6 +595,8 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,UFA,Elijah Harkless,,G,,,,,,,USA,,,Utah Jazz,UFA,,
 2026-27,UFA,Kelly Olynyk,,F,6'11,238,04/19/91,35.23,12,2013-13,USA,BC - Kamloops,Gonzaga,San Antonio Spurs,UFA,,
 2026-27,UFA,Cameron Payne,,G,6'1,185,08/08/94,31.93,10,2015-14,USA,MI - Flint,Murray State,Philadelphia 76ers,UFA,,
+2026-27,UFA,Jett Howard,,G,,,09/14/03,22.80,,,,,,Orlando Magic,UFA,,
+2026-27,UFA,Gary Payton II,,G,,,12/01/92,33.60,,,,,,Golden State Warriors,UFA,,
 2026-27,UFA,Nick Richards,,C,6'11,240,11/28/98,27.62,5,2020-42,USA,NC - Chesapeake,Kentucky,Chicago Bulls,UFA,,
 2026-27,UFA,Jeremy Sochan,,F,6'8,230,05/20/04,22.14,3,2022-09,POL,USA - Oklahoma City,Baylor,San Antonio Spurs,UFA,,
 2026-27,UFA,Matisse Thybulle,,G,6'5,201,03/04/97,29.36,6,2019-20,USA,WA - Seattle,Washington,Portland Trail Blazers,UFA,,
@@ -598,3 +604,4 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,UFA,Russell Westbrook,,G,6'3,200,11/12/88,37.66,17,2008-04,USA,CA - Long Beach,UCLA,Sacramento Kings,UFA,,
 2026-27,UFA,Brandon Williams,,,,,,,,,,,,Dallas Mavericks,UFA,,
 2026-27,UFA,Vince Williams Jr.,,F,6'6,210,08/17/99,26.90,3,2022-47,USA,VA - Virginia Beach,Virginia Commonwealth,Utah Jazz,UFA,,
+2026-27,UFA,Jalen Wilson,,F,,,11/04/00,25.70,,,,,,Brooklyn Nets,UFA,,

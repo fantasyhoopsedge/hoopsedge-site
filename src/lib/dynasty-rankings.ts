@@ -75,6 +75,9 @@ export interface DynastyPlayer {
   rankedByCount: number;
   tier: number;
   trend: string;
+  /** Spots moved since the prior version (|old consensusRank - new consensusRank|).
+   * null when the player has no prior-version baseline (new to the board this cycle). */
+  trendDelta: number | null;
 }
 
 export const DYNASTY_RANKINGS = dynastyRankingsJson as DynastyPlayer[];
