@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
+import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -20,27 +21,6 @@ const DATASETS = [
   { season: 2026, type: "regular", label: "2025-26 Regular" },
   { season: 2026, type: "postseason", label: "2026 Playoffs" },
 ];
-
-// Map consensus abbreviation format → game-log/stats format
-const CONSENSUS_TO_STATS: Record<string, string> = {
-  SAS: "SA",
-  GSW: "GS",
-  NYK: "NY",
-  NOR: "NO",
-  PHO: "PHX",
-  WAS: "WSH",
-  UTA: "UTAH",
-};
-function normalizeTeam(t: string): string {
-  return CONSENSUS_TO_STATS[t] ?? t;
-}
-
-// Valid NBA team codes in stats format (skip FA, rookies, etc.)
-const NBA_TEAMS = new Set([
-  "ATL","BOS","BKN","CHA","CHI","CLE","DAL","DEN","DET","GS","HOU","IND",
-  "LAC","LAL","MEM","MIA","MIL","MIN","NO","NY","OKC","ORL","PHI","PHX",
-  "POR","SAC","SA","TOR","UTAH","WSH",
-]);
 
 const PAGE = 1000;
 
@@ -126,8 +106,8 @@ async function main(): Promise<void> {
       if (!entry) continue;
       matched++;
 
-      const cTeam = normalizeTeam(entry.team);
-      if (!NBA_TEAMS.has(cTeam)) continue; // skip FA, rookies, etc.
+      const cTeam = normalizeTeamAbbr(entry.team);
+      if (!cTeam || !isNbaTeam(cTeam)) continue; // skip FA, rookies, etc.
 
       if (cTeam !== s.team) {
         const lastGameTeam = lastGame.get(s.player_id)?.team ?? null;

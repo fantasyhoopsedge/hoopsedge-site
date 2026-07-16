@@ -140,19 +140,10 @@ function Headshot({ id, name }: { id: string | null; name: string }) {
   );
 }
 
-// season_player_stats.team uses hoopR's short codes for these 6 teams, which
-// diverge from the standard 3-letter codes TEAM_LOGO (team-rosters) keys by —
-// verified empirically against the live table (30 distinct codes, 24 already
-// match). Everything else passes through unchanged.
-const HOOPR_TEAM_ALIAS: Record<string, string> = {
-  GS: "GSW", NO: "NOP", NY: "NYK", SA: "SAS", UTAH: "UTA", WSH: "WAS",
-};
-
 function TeamLogo({ team }: { team: string | null }) {
   const [ok, setOk] = useState(true);
   if (!team) return <span className="sr-td-team-text">—</span>;
-  const abbr = HOOPR_TEAM_ALIAS[team] ?? team;
-  const file = TEAM_LOGO[abbr];
+  const file = TEAM_LOGO[team];
   if (file && ok) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/

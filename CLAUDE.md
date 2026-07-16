@@ -121,6 +121,25 @@ normalized name instead, page.tsx + seasonal-rankings-table.tsx). Any new
 feature joining live DB rows against `dynasty-rankings.json` must key on
 `normalizePlayerName()`, never on a persisted rank number.
 
+### NBA team abbreviations — one standard, one module
+
+`src/lib/nba-teams.ts` (`NBA_TEAM_ABBRS`, `normalizeTeamAbbr()`, `isNbaTeam()`)
+is the single source of truth for the 30 canonical codes
+(`docs/FHE_NBA_team_standard_abr.txt`; e.g. `NOR`/`PHO`, not `NOP`/`PHX`/`NO`/`PHX`).
+Before this file existed, six different places each hand-rolled their own
+alias map because three incompatible dialects had leaked into the ecosystem:
+dynasty-consensus data (`PHO`/`NOR`), stats.nba.com/HoopsHype/older CSV exports
+(`PHX`/`NOP`), and hoopR's raw parquet feed piped straight into Supabase
+(`GS`/`NO`/`NY`/`SA`/`UTAH`/`WSH`, plus `PHX` again for Phoenix). **Any code that
+reads or writes a team abbreviation must call `normalizeTeamAbbr()` — never
+add another local alias map.** Every ingestion script (`scripts/nba-data/*`,
+`scripts/build-seasonal-values.ts`, `scripts/sync-nba-players.js`) normalizes
+at the point raw data enters the pipeline, so a fresh backfill/refresh never
+reintroduces a non-canonical code; `scripts/backfill-team-codes.ts` is the
+one-time script that already fixed the legacy rows in `nba_players` /
+`nba_player_game_logs` (`nba_roster`/`nba_contracts` self-heal on their next
+normal CSV ingest instead, since those upsert on a stable natural key).
+
 ### NBA data pipeline
 
 `scripts/nba-data/` ingests hoopR/ESPN box-score parquet (sportsdataverse GitHub

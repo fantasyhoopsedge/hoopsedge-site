@@ -24,6 +24,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, normalizeName, loadEnv } from "./nba-data/client";
+import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
 import {
   computeAllLeagueSizes,
   type PlayerStats,
@@ -77,21 +78,10 @@ export type LogRow = {
   fta: number | null;
 };
 
-// The 30 NBA teams in this feed's ESPN-style abbreviations. We allowlist these
-// so All-Star / Rising Stars exhibition rows — whose "team" label changes every
+// isNbaTeam() allowlists the 30 real teams (any known dialect, normalized) so
+// All-Star / Rising Stars exhibition rows — whose "team" label changes every
 // year (2024: EAST/WEST, 2025: CHK/SHQ/KEN/CAN, 2026: STARS/STRIPES/WORLD) and
 // which the feed mislabels season_type='regular' — are dropped generically.
-export const NBA_TEAMS = new Set([
-  "ATL", "BOS", "BKN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET", "GS",
-  "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN", "NO", "NY",
-  "OKC", "ORL", "PHI", "PHX", "POR", "SAC", "SA", "TOR", "UTAH", "WSH",
-]);
-
-// dynasty-rankings.json uses different abbreviations for 7 teams. Map to the
-// ESPN-style abbreviations used everywhere else in this pipeline.
-const CONSENSUS_TEAM_MAP: Record<string, string> = {
-  SAS: "SA", GSW: "GS", NYK: "NY", NOR: "NO", PHO: "PHX", WAS: "WSH", UTA: "UTAH",
-};
 
 /**
  * The NBA Cup (In-Season Tournament) CHAMPIONSHIP game does not count toward
@@ -127,7 +117,7 @@ export function cupFinalGameIds(logs: LogRow[], ds: Dataset): Set<string> {
 
 /** Drop exhibition (non-NBA-team) rows + the Cup final from a season's logs. */
 export function filterRealGames(logs: LogRow[], ds: Dataset): LogRow[] {
-  const nba = logs.filter((r) => r.team != null && NBA_TEAMS.has(r.team));
+  const nba = logs.filter((r) => isNbaTeam(r.team));
   const drop = cupFinalGameIds(nba, ds);
   const kept = drop.size > 0 ? nba.filter((r) => !(r.game_id && drop.has(r.game_id))) : nba;
   const exhibition = logs.length - nba.length;
@@ -205,11 +195,11 @@ function loadConsensus(): Map<string, ConsensusInfo> {
   for (const p of players) {
     const key = normalizeName(p.player);
     if (!m.has(key)) {
-      const mapped = p.team ? (CONSENSUS_TEAM_MAP[p.team] ?? p.team) : null;
+      const mapped = normalizeTeamAbbr(p.team ?? null);
       m.set(key, {
         rank: p.consensusRank,
         position: pos5(p.position ?? null),
-        team: mapped && NBA_TEAMS.has(mapped) ? mapped : null,
+        team: mapped && isNbaTeam(mapped) ? mapped : null,
       });
     }
   }
@@ -575,8 +565,8 @@ async function main(): Promise<void> {
 }
 
 // Guard against running main() as a side effect of importing filterRealGames/
-// NBA_TEAMS/etc. into another script (e.g. build-player-trends.ts) — only run
-// the build when this file is the actual entrypoint.
+// etc. into another script (e.g. build-player-trends.ts) — only run the build
+// when this file is the actual entrypoint.
 const isEntrypoint = process.argv[1] != null && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
 if (isEntrypoint) {
   main().catch((e) => {

@@ -7,6 +7,23 @@ import type { NextConfig } from "next";
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Team abbreviation standardization (docs/FHE_NBA_team_standard_abr.txt):
+      // /team-rosters/[team] used to be keyed by NOP/PHX (stats.nba.com-style),
+      // now NOR/PHO (the FHE standard) — keep the old slugs resolving.
+      {
+        source: "/team-rosters/NOP",
+        destination: "/team-rosters/NOR",
+        permanent: true,
+      },
+      {
+        source: "/team-rosters/PHX",
+        destination: "/team-rosters/PHO",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

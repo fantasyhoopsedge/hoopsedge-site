@@ -30,11 +30,9 @@ export type SortKey =
   | "expert:hashtag"
   | "expert:dynatyze";
 
-// dynasty-rankings.json uses standard codes matching TEAM_LOGO's keys, except
-// New Orleans ("NOR" here vs. "NOP") and Phoenix ("PHO" vs. "PHX") — verified
-// empirically against the live data. "FA" (free agent, including undrafted
-// 2026 rookies with no NBA team yet) isn't a real team, so it stays as text.
-const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+// dynasty-rankings.json uses the same canonical codes as TEAM_LOGO's keys
+// (src/lib/nba-teams.ts). "FA" (free agent, including undrafted 2026 rookies
+// with no NBA team yet) isn't a real team, so it stays as text.
 const NON_TEAM_VALUES = new Set(["FA"]);
 
 function TeamCell({ team, size = 32 }: { team: string; size?: number }) {
@@ -42,8 +40,7 @@ function TeamCell({ team, size = 32 }: { team: string; size?: number }) {
   if (NON_TEAM_VALUES.has(team)) {
     return <span className="dr-team-pill">{team}</span>;
   }
-  const abbr = DYNASTY_TEAM_ALIAS[team] ?? team;
-  const file = TEAM_LOGO[abbr];
+  const file = TEAM_LOGO[team];
   if (!file || !ok) return <span className="dr-team-pill">{team}</span>;
   return (
     // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/

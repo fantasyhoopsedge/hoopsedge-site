@@ -33,6 +33,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { getServiceClient, normalizeName } from "./client";
+import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -62,8 +63,8 @@ const TEAM_FULL: Record<string, string> = {
   GSW: "Golden State Warriors", HOU: "Houston Rockets", IND: "Indiana Pacers",
   LAC: "Los Angeles Clippers", LAL: "Los Angeles Lakers", MEM: "Memphis Grizzlies",
   MIA: "Miami Heat", MIL: "Milwaukee Bucks", MIN: "Minnesota Timberwolves",
-  NOP: "New Orleans Pelicans", NYK: "New York Knicks", OKC: "Oklahoma City Thunder",
-  ORL: "Orlando Magic", PHI: "Philadelphia 76ers", PHX: "Phoenix Suns",
+  NOR: "New Orleans Pelicans", NYK: "New York Knicks", OKC: "Oklahoma City Thunder",
+  ORL: "Orlando Magic", PHI: "Philadelphia 76ers", PHO: "Phoenix Suns",
   POR: "Portland Trail Blazers", SAC: "Sacramento Kings", SAS: "San Antonio Spurs",
   TOR: "Toronto Raptors", UTA: "Utah Jazz", WAS: "Washington Wizards",
 };
@@ -259,11 +260,11 @@ async function main() {
   // surfaced today only through --audit-tsv.
   const qoByNorm = new Map<string, Set<string>>();
   for (const r of rows) {
-    if (onlyTeam && (r.team ?? "").toUpperCase() !== onlyTeam) continue;
+    const team = normalizeTeamAbbr(r.team) ?? "";
+    if (onlyTeam && team !== normalizeTeamAbbr(onlyTeam)) continue;
     const name = (r.player ?? "").trim();
     if (!name) continue;
     const norm = normalizeName(name);
-    const team = (r.team ?? "").trim().toUpperCase();
     const yos = (r.yos ?? "").trim();
     const draft = parseDraft(r.draft ?? "");
     const contract = parseContract(r.contract ?? "");

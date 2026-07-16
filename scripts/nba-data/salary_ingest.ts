@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { CURRENT_SEASON, getServiceClient, normalizeName } from "./client";
+import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -179,7 +180,7 @@ async function main() {
     const name = (row[playerIdx] ?? "").trim();
     if (!name) continue; // blank / spacer / totals row
     const norm = normalizeName(name);
-    const team = teamIdx >= 0 ? (row[teamIdx] ?? "").trim() || null : null;
+    const team = teamIdx >= 0 ? normalizeTeamAbbr(row[teamIdx]) : null;
     const sal = salaryIdxs.map((i) => parseMoney(row[i]));
     const note = noteIdx >= 0 ? (row[noteIdx] ?? "").trim() || null : null;
     const d = derive(sal.slice(1), note); // future = y2..y5
