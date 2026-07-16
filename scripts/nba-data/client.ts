@@ -21,6 +21,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -176,7 +177,7 @@ export function mapBoxRow(
   const season = toNum(row.season);
   if (!playerId || !gameId || !fullName || season == null) return null;
 
-  const team = toStr(row.team_abbreviation);
+  const team = normalizeTeamAbbr(toStr(row.team_abbreviation));
 
   const log: GameLog = {
     game_id: gameId,

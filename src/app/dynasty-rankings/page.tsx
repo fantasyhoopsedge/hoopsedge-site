@@ -10,10 +10,8 @@ import { PlayerQuickViewModal } from "@/app/team-rosters/_components/player-quic
 import { CompareModal } from "@/app/team-rosters/_components/compare-modal";
 import type { Player } from "@/app/team-rosters/_components/roster-data";
 
-// Same alias/exception set as rankings-table.tsx's/tier-view.tsx's TeamCell —
-// dynasty-rankings.json's team codes don't all match /api/team-rosters/[team]'s
-// TEAMS abbreviations ("NOR"/"PHO" vs "NOP"/"PHX"), and "FA" isn't a real team.
-const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+// "FA" (free agent) isn't a real team — dynasty-rankings.json's other codes
+// match /api/team-rosters/[team]'s TEAMS abbreviations directly (src/lib/nba-teams.ts).
 const NON_TEAM_VALUES = new Set(["FA"]);
 
 // Same shared compare tool as /team-rosters (up to 4 players, persisted in
@@ -192,7 +190,7 @@ export default function DynastyRankingsPage() {
       setQuickView({ open: true, loading: false, error: "No current NBA team on record for this player.", player: null });
       return;
     }
-    const team = DYNASTY_TEAM_ALIAS[p.team] ?? p.team;
+    const team = p.team;
     setQuickView({ open: true, loading: true, error: null, player: null });
     try {
       const res = await fetch(`/api/team-rosters/${team}`);

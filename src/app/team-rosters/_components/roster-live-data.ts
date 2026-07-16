@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
+import { nameKeyCandidates } from "@/lib/player-name-aliases";
 import { ROOKIE_BOARD, tierInfo } from "@/lib/rookie-board";
 import type { Player } from "./roster-data";
 import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "./trend-insight";
@@ -52,18 +53,15 @@ function createReadClient() {
 const DYN_BY_NORM = new Map(DYNASTY_RANKINGS.map((d) => [normalizePlayerName(d.player), d]));
 
 // R2 (trend-tag audit): the roster CSV and the dynasty list occasionally use
-// different name forms for the same player; a missed join silently demotes a
-// ranked player to the 999 fallback. Alias key (roster norm) → canonical key
-// (dynasty norm). Found by fuzzy-diffing the two name sets — re-run that check
-// when either source is refreshed.
-const DYN_NORM_ALIASES: Record<string, string> = {
-  "cam johnson": "cameron johnson",
-  "ron holland": "ronald holland",
-  "herb jones": "herbert jones",
-};
-for (const [alias, canonical] of Object.entries(DYN_NORM_ALIASES)) {
-  const row = DYN_BY_NORM.get(canonical);
-  if (row && !DYN_BY_NORM.has(alias)) DYN_BY_NORM.set(alias, row);
+// different name forms for the same player (nickname vs. legal name — see
+// src/lib/player-name-aliases.ts); a missed join silently demotes a ranked
+// player to the 999 fallback. Seed every known nickname/legal-name pair as an
+// extra key, in whichever direction dynasty-rankings.json happens to use, so
+// a lookup by either form succeeds regardless of which source changes first.
+for (const [norm, row] of [...DYN_BY_NORM.entries()]) {
+  for (const altKey of nameKeyCandidates(norm)) {
+    if (!DYN_BY_NORM.has(altKey)) DYN_BY_NORM.set(altKey, row);
+  }
 }
 
 // Rookie board projected star profile → per-category z (CATS order), indexed by name.

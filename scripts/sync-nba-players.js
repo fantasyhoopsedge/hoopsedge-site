@@ -28,6 +28,17 @@ const HEADERS = {
   Connection: "keep-alive",
 };
 
+// stats.nba.com uses NOP/PHX for New Orleans/Phoenix — the FHE standard
+// (docs/FHE_NBA_team_standard_abr.txt / src/lib/nba-teams.ts) is NOR/PHO.
+// This is a plain .js file run via `node`, not `tsx`, so it can't import the
+// TS module directly — keep this table in sync with nba-teams.ts by hand.
+const TEAM_ALIASES = { NOP: "NOR", PHX: "PHO" };
+function normalizeTeamAbbr(raw) {
+  if (!raw) return null;
+  const t = raw.trim().toUpperCase();
+  return TEAM_ALIASES[t] || t || null;
+}
+
 /** Normalize a player name to a stable key (lowercase, strip punctuation/suffixes). */
 function normalizeName(name) {
   return name
@@ -76,7 +87,7 @@ async function main() {
     out[key] = {
       id: String(id),
       name,
-      team: teamIdx != null ? row[teamIdx] || null : null,
+      team: teamIdx != null ? normalizeTeamAbbr(row[teamIdx]) : null,
       position: posIdx != null ? row[posIdx] || null : null,
     };
     count++;

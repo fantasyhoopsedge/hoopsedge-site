@@ -6,9 +6,9 @@ import { PositionBadge } from "./position-badge";
 import { TrendIcon } from "./trend-icon";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 
-// Same alias/exception set as rankings-table.tsx's TeamCell — see its comment
-// for the verified list of code mismatches ("NOR"/"PHO") and non-team values.
-const DYNASTY_TEAM_ALIAS: Record<string, string> = { NOR: "NOP", PHO: "PHX" };
+// "FA" (free agent, including undrafted 2026 rookies with no NBA team yet)
+// isn't a real team, so it stays as text — everything else is a canonical
+// code matching TEAM_LOGO's keys (src/lib/nba-teams.ts).
 const NON_TEAM_VALUES = new Set(["FA"]);
 
 function TeamCell({ team }: { team: string }) {
@@ -16,8 +16,7 @@ function TeamCell({ team }: { team: string }) {
   if (NON_TEAM_VALUES.has(team)) {
     return <span className="dr-team-pill">{team}</span>;
   }
-  const abbr = DYNASTY_TEAM_ALIAS[team] ?? team;
-  const file = TEAM_LOGO[abbr];
+  const file = TEAM_LOGO[team];
   if (!file || !ok) return <span className="dr-team-pill">{team}</span>;
   return (
     // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/

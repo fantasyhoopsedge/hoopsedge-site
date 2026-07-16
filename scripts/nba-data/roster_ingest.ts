@@ -33,6 +33,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { getServiceClient, normalizeName } from "./client";
+import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
+import { lookupWithNameAlias } from "../../src/lib/player-name-aliases";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -62,8 +64,8 @@ const TEAM_FULL: Record<string, string> = {
   GSW: "Golden State Warriors", HOU: "Houston Rockets", IND: "Indiana Pacers",
   LAC: "Los Angeles Clippers", LAL: "Los Angeles Lakers", MEM: "Memphis Grizzlies",
   MIA: "Miami Heat", MIL: "Milwaukee Bucks", MIN: "Minnesota Timberwolves",
-  NOP: "New Orleans Pelicans", NYK: "New York Knicks", OKC: "Oklahoma City Thunder",
-  ORL: "Orlando Magic", PHI: "Philadelphia 76ers", PHX: "Phoenix Suns",
+  NOR: "New Orleans Pelicans", NYK: "New York Knicks", OKC: "Oklahoma City Thunder",
+  ORL: "Orlando Magic", PHI: "Philadelphia 76ers", PHO: "Phoenix Suns",
   POR: "Portland Trail Blazers", SAC: "Sacramento Kings", SAS: "San Antonio Spurs",
   TOR: "Toronto Raptors", UTA: "Utah Jazz", WAS: "Washington Wizards",
 };
@@ -215,19 +217,10 @@ async function loadPlayerIndex(supabase: SupabaseClient) {
   }
   return index;
 }
-// Cap-sheet uses friendly names; nba_players (ESPN) uses formal names. Map the
-// friendly norm -> formal norm so they link without changing the display name.
-// (normalizeName already strips Jr/Sr/II/III suffixes, so no suffix here.)
-const NAME_ALIASES: Record<string, string> = {
-  "cam johnson": "cameron johnson",
-  "herb jones": "herbert jones",
-  "ron holland": "ronald holland",
-};
-
 function matchPlayer(
   index: Map<string, { id: string; team: string | null }[]>, norm: string, team: string,
 ): string | null {
-  const c = index.get(norm) ?? (NAME_ALIASES[norm] ? index.get(NAME_ALIASES[norm]) : undefined);
+  const c = lookupWithNameAlias(index, norm);
   if (!c?.length) return null;
   if (c.length === 1) return c[0].id;
   const byTeam = c.find((x) => x.team && x.team.toUpperCase() === team.toUpperCase());
@@ -259,11 +252,11 @@ async function main() {
   // surfaced today only through --audit-tsv.
   const qoByNorm = new Map<string, Set<string>>();
   for (const r of rows) {
-    if (onlyTeam && (r.team ?? "").toUpperCase() !== onlyTeam) continue;
+    const team = normalizeTeamAbbr(r.team) ?? "";
+    if (onlyTeam && team !== normalizeTeamAbbr(onlyTeam)) continue;
     const name = (r.player ?? "").trim();
     if (!name) continue;
     const norm = normalizeName(name);
-    const team = (r.team ?? "").trim().toUpperCase();
     const yos = (r.yos ?? "").trim();
     const draft = parseDraft(r.draft ?? "");
     const contract = parseContract(r.contract ?? "");

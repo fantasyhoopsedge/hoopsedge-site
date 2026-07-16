@@ -84,16 +84,10 @@ function ProspectHeadshot({ name, size = 48 }: { name: string; size?: number }) 
   );
 }
 
-// This board's nbaTeam field uses standard codes matching TEAM_LOGO's keys,
-// except Phoenix ("PHO" here vs. "PHX" in TEAM_LOGO) — verified empirically
-// against the live rookie-board.json data (28 distinct codes, 27 match).
-const ROOKIE_TEAM_ALIAS: Record<string, string> = { PHO: "PHX" };
-
 function RowTeamLogo({ team }: { team: string | null | undefined }) {
   const [ok, setOk] = useState(true);
   if (!team) return null;
-  const abbr = ROOKIE_TEAM_ALIAS[team] ?? team;
-  const file = TEAM_LOGO[abbr];
+  const file = TEAM_LOGO[team];
   if (!file || !ok) return <span className="db-team-logo-fallback">{team}</span>;
   return (
     // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
@@ -169,7 +163,7 @@ function ProspectDetailPanel({ player, onClose, age, tiers, movement }: { player
   }
 
   const { color: tierColor } = tierInfo(player.tier, tiers);
-  const heroLogo = player.nbaTeam ? TEAM_LOGO[ROOKIE_TEAM_ALIAS[player.nbaTeam] ?? player.nbaTeam] : undefined;
+  const heroLogo = player.nbaTeam ? TEAM_LOGO[player.nbaTeam] : undefined;
 
   return (
     <div

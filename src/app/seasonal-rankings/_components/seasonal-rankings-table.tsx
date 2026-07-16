@@ -140,19 +140,10 @@ function Headshot({ id, name }: { id: string | null; name: string }) {
   );
 }
 
-// season_player_stats.team uses hoopR's short codes for these 6 teams, which
-// diverge from the standard 3-letter codes TEAM_LOGO (team-rosters) keys by —
-// verified empirically against the live table (30 distinct codes, 24 already
-// match). Everything else passes through unchanged.
-const HOOPR_TEAM_ALIAS: Record<string, string> = {
-  GS: "GSW", NO: "NOP", NY: "NYK", SA: "SAS", UTAH: "UTA", WSH: "WAS",
-};
-
 function TeamLogo({ team }: { team: string | null }) {
   const [ok, setOk] = useState(true);
   if (!team) return <span className="sr-td-team-text">—</span>;
-  const abbr = HOOPR_TEAM_ALIAS[team] ?? team;
-  const file = TEAM_LOGO[abbr];
+  const file = TEAM_LOGO[team];
   if (file && ok) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/
@@ -203,18 +194,20 @@ export function SeasonalRankingsTable(props: {
   canonicalSize: number;
   seasons: SeasonOption[];
   activeSeason: string;
-  ageByRank: Record<number, number>;
+  ageByName: Record<string, number>;
   draftYearByName: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank, draftYearByName } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByName, draftYearByName } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
   // back one year per prior season so the displayed age is dynamic to the dataset.
+  // Keyed by normalized name, NOT consensus_rank — rank numbers get reassigned
+  // to a different player on every dynasty refresh, so joining on rank instead
+  // of name would silently attach a stale rank's *new* owner's age to this row.
   const seasonNum = parseInt(activeSeason, 10) || 2026;
   const ageOf = (s: SeasonPlayerStats): number | null => {
-    if (s.consensus_rank == null) return null;
-    const base = ageByRank[s.consensus_rank];
+    const base = ageByName[normalizePlayerName(s.name)];
     if (base == null) return null;
     return base - (2026 - seasonNum);
   };
