@@ -1,5 +1,6 @@
 import dynastyRankingsJson from "./dynasty-rankings.json";
 import nbaPlayerIds from "./nba-player-ids.json";
+import { nameKeyCandidates } from "./player-name-aliases";
 
 type NbaPlayerEntry = { id: string; name: string; team: string | null; position: string | null };
 const NBA_PLAYER_IDS = nbaPlayerIds as Record<string, NbaPlayerEntry>;
@@ -18,7 +19,11 @@ export function normalizePlayerName(name: string): string {
 /** Returns the NBA Stats player id for a given display name, or null. */
 export function nbaIdFor(playerName: string): string | null {
   const key = normalizePlayerName(playerName);
-  return NBA_PLAYER_IDS[key]?.id ?? null;
+  for (const candidate of nameKeyCandidates(key)) {
+    const id = NBA_PLAYER_IDS[candidate]?.id;
+    if (id) return id;
+  }
+  return null;
 }
 
 /** Returns the cdn.nba.com headshot URL for a display name, or null if no id mapping. */
