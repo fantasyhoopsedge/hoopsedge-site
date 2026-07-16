@@ -34,6 +34,7 @@ import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { getServiceClient, normalizeName } from "./client";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
+import { lookupWithNameAlias } from "../../src/lib/player-name-aliases";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -216,19 +217,10 @@ async function loadPlayerIndex(supabase: SupabaseClient) {
   }
   return index;
 }
-// Cap-sheet uses friendly names; nba_players (ESPN) uses formal names. Map the
-// friendly norm -> formal norm so they link without changing the display name.
-// (normalizeName already strips Jr/Sr/II/III suffixes, so no suffix here.)
-const NAME_ALIASES: Record<string, string> = {
-  "cam johnson": "cameron johnson",
-  "herb jones": "herbert jones",
-  "ron holland": "ronald holland",
-};
-
 function matchPlayer(
   index: Map<string, { id: string; team: string | null }[]>, norm: string, team: string,
 ): string | null {
-  const c = index.get(norm) ?? (NAME_ALIASES[norm] ? index.get(NAME_ALIASES[norm]) : undefined);
+  const c = lookupWithNameAlias(index, norm);
   if (!c?.length) return null;
   if (c.length === 1) return c[0].id;
   const byTeam = c.find((x) => x.team && x.team.toUpperCase() === team.toUpperCase());

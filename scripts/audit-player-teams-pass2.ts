@@ -11,6 +11,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
 import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
+import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -102,7 +103,7 @@ async function main(): Promise<void> {
 
     for (const s of stats) {
       const key = normalizeName(s.name);
-      const entry = consensus.get(key);
+      const entry = lookupWithNameAlias(consensus, key);
       if (!entry) continue;
       matched++;
 

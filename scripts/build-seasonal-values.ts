@@ -25,6 +25,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, normalizeName, loadEnv } from "./nba-data/client";
 import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
+import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import {
   computeAllLeagueSizes,
   type PlayerStats,
@@ -370,7 +371,7 @@ async function upsert(
     const a = agg.get(s.playerId)!;
     const meta = players.get(s.playerId);
     const name = meta?.name ?? s.playerId;
-    const cons = consensus.get(normalizeName(name)) ?? null;
+    const cons = lookupWithNameAlias(consensus, normalizeName(name)) ?? null;
     return {
       player_id: s.playerId,
       season: ds.season,
@@ -399,7 +400,7 @@ async function upsert(
       // for "current team" — this table is specifically the season's stats.
       team: lastGameTeam.get(s.playerId)
         ?? meta?.team
-        ?? (ds.season === GATE.season ? (consensus.get(normalizeName(name))?.team ?? null) : null),
+        ?? (ds.season === GATE.season ? (cons?.team ?? null) : null),
       // Consensus position wins when the player is ranked; else fall back to the
       // nba_players position. (Item 2.)
       position: cons?.position ?? pos5(meta?.position ?? null),
@@ -539,7 +540,7 @@ async function buildDataset(
     runValidationGate(stats, agg, players, values);
   }
 
-  const matched = stats.filter((s) => consensus.has(normalizeName(players.get(s.playerId)?.name ?? ""))).length;
+  const matched = stats.filter((s) => lookupWithNameAlias(consensus, normalizeName(players.get(s.playerId)?.name ?? "")) != null).length;
   console.log(`  consensus matched for ${matched}/${stats.length} players`);
 
   if (DRY_RUN) {
