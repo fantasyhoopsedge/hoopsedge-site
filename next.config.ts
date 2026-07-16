@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
         destination: "/team-rosters/PHO",
         permanent: true,
       },
+      // Free-agent bucket consolidation: "FA" and "UFA" used to be two
+      // separate (redundant) non-team categories — now just "FA".
+      {
+        source: "/team-rosters/UFA",
+        destination: "/team-rosters/FA",
+        permanent: true,
+      },
     ];
   },
   async headers() {

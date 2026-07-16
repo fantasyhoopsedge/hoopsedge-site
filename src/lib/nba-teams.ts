@@ -34,26 +34,33 @@ const TEAM_ALIASES: Record<string, NbaTeamAbbr> = {
   WSH: "WAS",
 };
 
-// Non-team placeholder values that legitimately appear in "team" columns —
-// pass through unchanged, never flagged as unknown.
-const NON_TEAM_VALUES = new Set(["FA", "UFA"]);
+// "FA" is the ONE non-team placeholder for a player with no current NBA
+// roster spot — do not reintroduce "UFA" as a second free-agent bucket. The
+// two used to coexist (dynasty-rankings.json had both; nobody could say what
+// distinguished them) and just fragmented the same real-world status into two
+// UI filter options. "UFA" is normalized to "FA" below rather than added
+// here, so it can never pass through unmapped again.
+const NON_TEAM_VALUES = new Set(["FA"]);
 
 /**
  * Normalizes any known team-code dialect to the canonical FHE abbreviation.
- * Passes non-team placeholders (FA, UFA) through unchanged. Returns the input
- * (trimmed/uppercased) unchanged if it isn't a known alias, so unrecognized
- * values (a genuine data error, or an exhibition-game label like "EAST")
- * surface rather than getting silently dropped. Returns null for null/empty.
+ * Passes the "FA" non-team placeholder through unchanged (and folds the
+ * legacy "UFA" placeholder into it — see NON_TEAM_VALUES above). Returns the
+ * input (trimmed/uppercased) unchanged if it isn't a known alias, so
+ * unrecognized values (a genuine data error, or an exhibition-game label like
+ * "EAST") surface rather than getting silently dropped. Returns null for
+ * null/empty.
  */
 export function normalizeTeamAbbr(raw: string | null | undefined): string | null {
   if (!raw) return null;
-  const t = raw.trim().toUpperCase();
+  let t = raw.trim().toUpperCase();
   if (!t) return null;
+  if (t === "UFA") t = "FA";
   if (NON_TEAM_VALUES.has(t)) return t;
   return TEAM_ALIASES[t] ?? t;
 }
 
-/** True if `raw` normalizes to one of the 30 real NBA teams (not FA/UFA/exhibition labels/junk). */
+/** True if `raw` normalizes to one of the 30 real NBA teams (not FA/exhibition labels/junk). */
 export function isNbaTeam(raw: string | null | undefined): boolean {
   const n = normalizeTeamAbbr(raw);
   return n != null && NBA_TEAM_SET.has(n);

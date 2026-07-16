@@ -1,15 +1,21 @@
 /**
- * One-time backfill: rewrite pre-standardization team codes in nba_players and
- * nba_player_game_logs to the FHE standard (docs/FHE_NBA_team_standard_abr.txt,
- * src/lib/nba-teams.ts). These two tables are fed straight from hoopR's raw
- * parquet feed (see scripts/nba-data/client.ts:mapBoxRow), which used its own
- * short codes (GS, NO, NY, SA, UTAH, WSH) for 6 teams — now normalized at
- * ingestion time going forward, but existing rows predate that fix.
- * (Phoenix's hoopR code, "PHX", happens to collide with the other legacy
- * dialect's code for the same team — still needs remapping to "PHO".)
+ * One-time backfill: rewrite pre-standardization team codes to the FHE
+ * standard (docs/FHE_NBA_team_standard_abr.txt, src/lib/nba-teams.ts).
  *
- * Only 7 old codes ever need remapping, so this is a handful of bulk
- * `UPDATE ... WHERE team = X` calls rather than a row-by-row rewrite.
+ * nba_players/nba_player_game_logs are fed straight from hoopR's raw parquet
+ * feed (see scripts/nba-data/client.ts:mapBoxRow), which used its own short
+ * codes (GS, NO, NY, SA, UTAH, WSH) for 6 teams — now normalized at ingestion
+ * time going forward, but existing rows predate that fix. (Phoenix's hoopR
+ * code, "PHX", happens to collide with the other legacy dialect's code for
+ * the same team — still needs remapping to "PHO".)
+ *
+ * nba_roster additionally had a "UFA" free-agent bucket alongside "FA" —
+ * folded into "FA" (the one non-team placeholder going forward, see
+ * src/lib/nba-teams.ts's normalizeTeamAbbr) — so it's included here too, even
+ * though it never used the 6 hoopR short codes above.
+ *
+ * Only a handful of old codes ever need remapping, so this is a handful of
+ * bulk `UPDATE ... WHERE team = X` calls rather than a row-by-row rewrite.
  *
  * Run: npx tsx scripts/backfill-team-codes.ts            # write
  *      npx tsx scripts/backfill-team-codes.ts --dry-run  # count only, no writes
@@ -24,9 +30,10 @@ const OLD_TO_NEW: Record<string, string> = {
   SA: "SAS",
   UTAH: "UTA",
   WSH: "WAS",
+  UFA: "FA",
 };
 
-const TABLES = ["nba_players", "nba_player_game_logs"] as const;
+const TABLES = ["nba_players", "nba_player_game_logs", "nba_roster"] as const;
 
 async function main() {
   loadEnv();

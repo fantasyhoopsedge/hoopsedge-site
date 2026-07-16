@@ -140,6 +140,14 @@ one-time script that already fixed the legacy rows in `nba_players` /
 `nba_player_game_logs` (`nba_roster`/`nba_contracts` self-heal on their next
 normal CSV ingest instead, since those upsert on a stable natural key).
 
+**"FA" is the only non-team placeholder — never reintroduce "UFA" as a second
+one.** Both used to coexist (`dynasty-rankings.json` had 17 "FA" rows and 15
+"UFA" rows with no real distinction) and just fragmented one real-world status
+— no current NBA roster spot — into two separate team-filter buckets across
+the UI. `normalizeTeamAbbr()` folds `"UFA"` into `"FA"`; any new ingestion or
+manual edit that sets a player's team/roster status to "no team" must write
+`"FA"`, never `"UFA"`.
+
 ### NBA data pipeline
 
 `scripts/nba-data/` ingests hoopR/ESPN box-score parquet (sportsdataverse GitHub
