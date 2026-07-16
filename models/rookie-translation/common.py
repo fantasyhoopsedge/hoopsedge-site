@@ -103,15 +103,16 @@ def name_candidates(norm: str) -> list[str]:
 
 
 # --- upstream draft-slot corrections -----------------------------------------
-# TEMPORARY. The root error is in data/nba-rosters/2026-27.csv, which records BOTH
-# Mikel Brown Jr. (BKN) and Aday Mara (OKC) as `2026-06` and has no `2026-12` row.
-# nba_roster.draft_pick faithfully ingests that, so every consumer inherits it.
-# Confirmed with Ash 2026-07-16: Mara is pick 12. log(pick) is the model's strongest
-# feature, so at pick 6 Mara was over-projected by roughly 20% on scoring.
+# Empty, and should stay that way: an entry here means nba_roster.draft_pick is
+# wrong at the source and every other consumer is still inheriting the error. Fix
+# data/nba-rosters/2026-27.csv and re-run `npm run nba:roster` instead; only add an
+# entry to unblock a run in the meantime, and delete it once upstream agrees
+# (predict.py reports an override as REDUNDANT when it does).
 #
-# Delete this entry once the CSV is fixed and `npm run nba:roster` has re-ingested —
-# validate_draft_slots() reports the override as REDUNDANT when upstream agrees.
-DRAFT_PICK_CORRECTIONS: dict[str, int] = {"aday mara": 12}
+# Precedent: the CSV recorded both Mikel Brown Jr. (BKN) and Aday Mara (OKC) as
+# `2026-06` with no `2026-12` row, and log(pick) is the model's strongest feature,
+# so Mara was over-projected by ~20% on scoring. Fixed at source 2026-07-16.
+DRAFT_PICK_CORRECTIONS: dict[str, int] = {}
 
 
 def validate_draft_slots(picks: dict[str, int], expect: int = 60) -> list[str]:
