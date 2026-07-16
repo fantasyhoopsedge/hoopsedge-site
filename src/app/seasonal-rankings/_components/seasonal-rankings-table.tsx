@@ -203,18 +203,20 @@ export function SeasonalRankingsTable(props: {
   canonicalSize: number;
   seasons: SeasonOption[];
   activeSeason: string;
-  ageByRank: Record<number, number>;
+  ageByName: Record<string, number>;
   draftYearByName: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByRank, draftYearByName } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByName, draftYearByName } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
   // back one year per prior season so the displayed age is dynamic to the dataset.
+  // Keyed by normalized name, NOT consensus_rank — rank numbers get reassigned
+  // to a different player on every dynasty refresh, so joining on rank instead
+  // of name would silently attach a stale rank's *new* owner's age to this row.
   const seasonNum = parseInt(activeSeason, 10) || 2026;
   const ageOf = (s: SeasonPlayerStats): number | null => {
-    if (s.consensus_rank == null) return null;
-    const base = ageByRank[s.consensus_rank];
+    const base = ageByName[normalizePlayerName(s.name)];
     if (base == null) return null;
     return base - (2026 - seasonNum);
   };

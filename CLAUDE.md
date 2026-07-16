@@ -33,6 +33,7 @@ npm run nba:roster       # ingest data/nba-rosters/<season>.csv into nba_roster
 npm run nba:staleness    # freshness alarm (emails via SendGrid if data is stale)
 npm run seasonal:build   # recompute season_player_values for all league sizes (validation-gated)
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
+npm run dynasty:sync     # seasonal:build + trends:build in order — run after ANY dynasty-rankings.json edit
 npm run rb:seed          # seed the rookie board into Supabase
 npm run launch:snapshot  # print the Draft Night signup/play funnel
 ```
@@ -104,7 +105,21 @@ engine (rolling windows re-sum raw game totals — never average z-scores — so
 `seasonAvg` at the final block reconciles exactly with `season_player_values`).
 Upserted into `nba_player_trends` (one jsonb payload per player), read by
 `/api/player-trends` and the `/team-rosters` tone/BUY-SELL-HOLD system. It reads
-`season_player_values`, so build order is: refresh → seasonal → trends.
+`season_player_values`, so build order is: refresh → seasonal → trends
+(`npm run dynasty:sync` runs the last two together).
+
+**Rerun `dynasty:sync` after every `dynasty-rankings.json` edit — not optional.**
+`season_player_stats.consensus_rank` is a snapshot written once, at build time,
+by joining `dynasty-rankings.json` on normalized name. A rank refresh reassigns
+rank numbers to different players; any code that re-joins consensus data by
+*rank number* instead of *name* will silently attach a stale row's new owner's
+data to the old player once the JSON changes and the DB hasn't caught up yet
+(this shipped once: `/seasonal-rankings`'s age column showed James Harden as
+19 because his rank moved 52→62 in the July 2026 refresh, rank 52 was reused,
+and `season_player_stats` hadn't been rebuilt — fixed by keying the age join on
+normalized name instead, page.tsx + seasonal-rankings-table.tsx). Any new
+feature joining live DB rows against `dynasty-rankings.json` must key on
+`normalizePlayerName()`, never on a persisted rank number.
 
 ### NBA data pipeline
 
