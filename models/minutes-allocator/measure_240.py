@@ -25,14 +25,14 @@ import numpy as np
 import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
-from common import HOOPR_NBA_TEAMS, PARQUET_CACHE, REGULAR_SEASON, SEASONS  # noqa: E402
+from common import HOOPR_NBA_TEAMS, REGULAR_SEASON, SEASONS, ensure_parquet  # noqa: E402
 
 
 def load_all() -> pd.DataFrame:
     frames = []
     for s in SEASONS:
         d = pd.read_parquet(
-            os.path.join(PARQUET_CACHE, f"pb_{s}.parquet"),
+            ensure_parquet(s),
             columns=["season", "season_type", "game_id", "team_abbreviation",
                      "athlete_id", "athlete_display_name", "minutes"],
         )

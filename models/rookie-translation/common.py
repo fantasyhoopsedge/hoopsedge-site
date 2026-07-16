@@ -10,23 +10,38 @@ from __future__ import annotations
 import os
 import re
 import unicodedata
+import urllib.request
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DRAFT_MODEL_CSV = os.path.join(REPO, "data", "draft-model", "draft_model_data.csv")
 TRAIN_TABLE = os.path.join(REPO, "data", "draft-model", "rookie_year_training.csv")
 OUTPUT_JSON = os.path.join(REPO, "output", "rookie-translations-2026.json")
 
-# Raw parquet is cached outside the repo — it is large and reproducible.
-PARQUET_CACHE = os.path.join(
-    os.environ.get("TEMP", "/tmp"),
-    "claude", "C--fantasyhoopsedge",
-    "193c504a-b2fd-4889-90cb-39c2d71eccbd", "scratchpad", "parquet",
+# Raw parquet is large and fully reproducible from HOOPR_URL, so it is cached on
+# disk and gitignored rather than committed. Defaults to a repo-local directory so
+# a fresh clone works with no setup; point FHE_PARQUET_CACHE at an existing cache
+# to reuse one across checkouts.
+PARQUET_CACHE = os.environ.get(
+    "FHE_PARQUET_CACHE", os.path.join(REPO, "data", "draft-model", "parquet")
 )
 
 HOOPR_URL = (
     "https://raw.githubusercontent.com/sportsdataverse/hoopR-nba-data/main"
     "/nba/player_box/parquet/player_box_{season}.parquet"
 )
+
+
+def ensure_parquet(season: int) -> str:
+    """Return the local path to a season's player-box parquet, downloading if absent.
+
+    Every reader goes through here so that no script depends on some *other* script
+    having been run first to populate the cache.
+    """
+    os.makedirs(PARQUET_CACHE, exist_ok=True)
+    path = os.path.join(PARQUET_CACHE, f"pb_{season}.parquet")
+    if not os.path.exists(path):
+        urllib.request.urlretrieve(HOOPR_URL.format(season=season), path)
+    return path
 
 # hoopR season numbering: 2026 == the 2025-26 season (matches scripts/nba-data/client.ts).
 # A draft class of year N has its first possible NBA season in N+1, so covering

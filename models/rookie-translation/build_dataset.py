@@ -14,13 +14,12 @@ Run: python models/rookie-translation/build_dataset.py
 from __future__ import annotations
 
 import os
-import urllib.request
 
 import pandas as pd
 
 from common import (
-    DRAFT_MODEL_CSV, HOOPR_NBA_TEAMS, HOOPR_URL, PARQUET_CACHE, REGULAR_SEASON,
-    SEASONS, TRAIN_TABLE, name_candidates, normalize_name,
+    DRAFT_MODEL_CSV, HOOPR_NBA_TEAMS, REGULAR_SEASON, SEASONS, TRAIN_TABLE,
+    ensure_parquet, name_candidates, normalize_name,
 )
 
 BOX = [
@@ -38,12 +37,8 @@ RENAME = {
 
 
 def load_season(season: int) -> pd.DataFrame:
-    os.makedirs(PARQUET_CACHE, exist_ok=True)
-    path = os.path.join(PARQUET_CACHE, f"pb_{season}.parquet")
-    if not os.path.exists(path):
-        urllib.request.urlretrieve(HOOPR_URL.format(season=season), path)
     df = pd.read_parquet(
-        path,
+        ensure_parquet(season),
         columns=["season", "season_type", "team_abbreviation", "athlete_id",
                  "athlete_display_name"] + BOX,
     )
