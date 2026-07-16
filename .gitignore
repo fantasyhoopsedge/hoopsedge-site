@@ -59,3 +59,8 @@ src/data/rookie-board.draft.json
 # player-trends now lives in the nba_player_trends table (trends:build pushes it);
 # the local JSON is a --file debug artifact only.
 /output/
+
+# Projection models (models/) are Python, run outside Next under their own venv.
+__pycache__/
+*.py[cod]
+.venv/
