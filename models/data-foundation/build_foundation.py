@@ -61,6 +61,7 @@ import sys
 import urllib.request
 
 import pandas as pd
+import pyarrow.parquet as pq
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
 from common import (  # noqa: E402
@@ -96,12 +97,22 @@ def ensure_team_box(season: int) -> str:
 
 
 def load_player_box(season: int) -> pd.DataFrame:
-    d = pd.read_parquet(
-        ensure_parquet(season),
-        columns=["season", "season_type", "game_id", "team_abbreviation", "athlete_id",
-                 "athlete_display_name", "minutes", "starter", "did_not_play", "reason"]
-        + list(BOX),
-    )
+    """`reason` does not exist in the 2011 and 2012 feeds (it does from 2013 on).
+
+    When it is absent the column is created as NA rather than filled with a
+    default: a missing reason means we DON'T KNOW why a player sat, and writing 0
+    injury-DNPs for those seasons would assert nobody got hurt in 2010-12 — a
+    claim the data never made. NA propagates; 0 lies.
+    """
+    path = ensure_parquet(season)
+    have = set(pq.ParquetFile(path).schema.names)
+    want = ["season", "season_type", "game_id", "team_abbreviation", "athlete_id",
+            "athlete_display_name", "minutes", "starter", "did_not_play", "reason"] + list(BOX)
+    d = pd.read_parquet(path, columns=[c for c in want if c in have])
+    for missing in (c for c in want if c not in have):
+        if missing != "reason":
+            raise SystemExit(f"season {season} player_box is missing required column {missing!r}")
+        d["reason"] = pd.NA
     d = d[(d["season_type"] == REGULAR_SEASON) & d["team_abbreviation"].isin(HOOPR_NBA_TEAMS)]
     return d.rename(columns=BOX)
 
@@ -113,7 +124,8 @@ def build_players(seasons: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
         played = d[d["minutes"].notna() & (d["minutes"] > 0)].copy()
         # A DNP is an inactive row; `reason` is only meaningful here (see module docstring).
         dnp = d[d["did_not_play"] == True]  # noqa: E712 — pandas mask, not a bool test
-        inj = dnp[dnp["reason"].fillna("") != "COACH'S DECISION"]
+        reason_known = d["reason"].notna().any()
+        inj = dnp[dnp["reason"] != "COACH'S DECISION"] if reason_known else dnp.iloc[:0]
 
         agg = played.groupby(["athlete_id", "season", "team_abbreviation"], as_index=False).agg(
             athlete_display_name=("athlete_display_name", "first"),
@@ -127,10 +139,16 @@ def build_players(seasons: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
                 **{label: ("game_id", "nunique")}
             )
             agg = agg.merge(c, on=["athlete_id", "season", "team_abbreviation"], how="left")
+        agg["reason_known"] = reason_known
         frames.append(agg)
 
     pts = pd.concat(frames, ignore_index=True)
-    pts[["dnp", "dnp_injury"]] = pts[["dnp", "dnp_injury"]].fillna(0).astype(int)
+    # A player with no DNP rows genuinely had 0 — that fillna is right. But where the
+    # feed carries no `reason` at all (2011-12), dnp_injury is UNKNOWN, and must stay
+    # NA: 0 there would read as "nobody was injured", which is a claim, not an absence.
+    pts["dnp"] = pts["dnp"].fillna(0).astype(int)
+    pts["dnp_injury"] = pts["dnp_injury"].fillna(0).astype("Int64")
+    pts.loc[~pts["reason_known"], "dnp_injury"] = pd.NA
     pts["gs"] = pts["gs"].astype(int)
     pts = pts.rename(columns={"team_abbreviation": "team"})
     pts["norm_name"] = pts["athlete_display_name"].map(normalize_name)
@@ -143,7 +161,12 @@ def build_players(seasons: list[int]) -> tuple[pd.DataFrame, pd.DataFrame]:
         athlete_display_name=("athlete_display_name", "first"),
         norm_name=("norm_name", "first"),
         gp=("gp", "sum"), gs=("gs", "sum"), min=("min", "sum"),
-        dnp=("dnp", "sum"), dnp_injury=("dnp_injury", "sum"),
+        dnp=("dnp", "sum"),
+        # min_count=1 so an all-NA season stays NA. pandas sums NA to 0 by default,
+        # which would quietly resurrect the "nobody was injured in 2011-12" claim
+        # that the NA in build_players() exists to prevent.
+        dnp_injury=("dnp_injury", lambda s: s.sum(min_count=1)),
+        reason_known=("reason_known", "first"),
         n_teams=("team", "nunique"),
         teams=("team", lambda s: ",".join(sorted(set(s)))),
         **{v: (v, "sum") for v in BOX.values()},
@@ -195,37 +218,85 @@ def build_teams(seasons: list[int]) -> pd.DataFrame:
     tb = tb.merge(opp, on="game_id", how="left")
 
     ts = tb.groupby(["team_abbreviation", "season"], as_index=False).agg(
-        team_games=("game_id", "nunique"),
+        tb_games=("game_id", "nunique"),
         poss=("game_poss", "sum"),
         game_min=("game_min", "sum"),
         pts=("team_score", "sum"),
     )
     ts = ts.rename(columns={"team_abbreviation": "team"})
-    ts["poss_per_game"] = ts["poss"] / ts["team_games"]
+
+    # team_games counts games the team has ACTUAL DATA for — game_ids where somebody
+    # logged minutes — not game_ids that merely exist.
+    #
+    # 2020-21 is why. 45 of its games are hollow: player_box carries the game_id rows
+    # but no minutes, and team_box omits them entirely (CHI has data for 49 games of
+    # 72, NO for 50). Every team played all 72 in reality, so counting 72 is "true"
+    # and useless: `gp` can only ever count games with data, so gp/72 would cap every
+    # CHI player at 0.68 availability and paint a whole roster as injury-prone. It
+    # also dragged the league minute budget to 231.45/game for 2021 against a
+    # rock-steady ~241.9 everywhere else — real minutes over imaginary games.
+    #
+    # Matching the denominator to the numerator restores it. The cost is that 2021
+    # availability means "of the games we can see", which is the honest claim the data
+    # supports.
+    frames = []
+    for s in seasons:
+        pb = load_player_box(s)
+        pb = pb[pb["minutes"].notna() & (pb["minutes"] > 0)]
+        frames.append(pb.groupby(["team_abbreviation", "season"], as_index=False)
+                        .agg(team_games=("game_id", "nunique")))
+    pbg = pd.concat(frames, ignore_index=True).rename(columns={"team_abbreviation": "team"})
+    ts = ts.merge(pbg, on=["team", "season"], how="outer")
+
+    ts["poss_per_game"] = ts["poss"] / ts["tb_games"]
     ts["pace48"] = 48 * ts["poss"] / ts["game_min"]
     ts["off_rtg"] = 100 * ts["pts"] / ts["poss"]
+    # Rate stats (pace/off_rtg) stay keyed to the games team_box actually has: they are
+    # per-possession averages, so a smaller sample is noisier but not biased. Only the
+    # COUNT needs the complete feed. Surfaced rather than hidden — a big gap means the
+    # season's pace rests on partial data.
+    ts["tb_coverage"] = ts["tb_games"] / ts["team_games"]
     return ts
 
 
-def validate_team_games(ts: pd.DataFrame) -> list[str]:
-    """Every team-season must be 82 games, or 83 for exactly the two Cup finalists.
+CUP_FIRST_SEASON = 2024  # the NBA Cup began in 2023-24; hoopR calls that season 2024.
 
-    Exists so the known 83 (see module docstring) can't camouflage an unknown one.
-    A silently-duplicated game or a leaked exhibition would land in this same shape
-    and is otherwise invisible — it just makes a team look marginally busier.
+
+def validate_team_games(ts: pd.DataFrame) -> list[str]:
+    """Check the invariants that actually hold, which is NOT "everyone plays 82".
+
+    An 82-game assumption is wrong across this range, and each exception is real
+    NBA history rather than bad data:
+      2012  66 games, all 30 teams          — the lockout
+      2020  64-75, wildly uneven            — COVID suspension; only the 22 bubble
+                                              teams played seeding games
+      2021  72 games, all 30                — the COVID-shortened season
+      2013  12 teams at 81 (1,224 games)    — six games absent from the feed
+      2011/2014/2017/2018/2019  2 at 81     — a cancelled game apiece
+    So team_games is simply read per team-season and used as the denominator it is.
+    What genuinely holds is the shape:
+      - 30 teams in every season
+      - 83 games happens ONLY from the Cup era, and only for the two finalists
+      - nobody exceeds 83, and nobody plays a fraction of a season
+    Those catch what matters: a duplicated game or a leaked exhibition (an All-Star
+    squad surviving the HOOPR_NBA_TEAMS filter would inflate a count here).
     """
     problems: list[str] = []
     for season, g in ts.groupby("season"):
         if len(g) != 30:
             problems.append(f"{season}: {len(g)} teams, expected 30")
-        odd = g[~g["team_games"].isin((82, 83))]
-        for _, r in odd.iterrows():
-            problems.append(f"{season}: {r['team']} has {r['team_games']} games (expect 82/83)")
-        extra = g[g["team_games"] == 83]["team"].tolist()
-        if len(extra) != 2:
+        hi = g[g["team_games"] > 83]
+        for _, r in hi.iterrows():
+            problems.append(f"{season}: {r['team']} has {r['team_games']} games — >83 is impossible")
+        # NOT a floor check. team_games counts games with data, and 2020-21 genuinely
+        # has only 49 for CHI / 50 for NO because 45 games are hollow in the feed.
+        # That is a coverage fact to report (see main()), not an error to reject.
+        extra = sorted(g[g["team_games"] == 83]["team"].tolist())
+        want = 2 if season >= CUP_FIRST_SEASON else 0
+        if len(extra) != want:
             problems.append(
-                f"{season}: {len(extra)} team(s) at 83 games {sorted(extra)} — expected exactly 2 "
-                f"(the NBA Cup finalists). Either the Cup format changed or a game leaked in."
+                f"{season}: {len(extra)} team(s) at 83 games {extra} — expected {want} "
+                + ("(the two NBA Cup finalists)" if want else "(the Cup did not exist yet)")
             )
     return problems
 
@@ -240,15 +311,26 @@ def attach_age(ps: pd.DataFrame) -> pd.DataFrame:
     provider that produced the box scores — it cannot drift, and none of the
     nickname/diacritic/suffix failure modes apply. See fetch_dob.py.
 
-    nba_roster is deliberately NOT used here, for two independent reasons:
-      1. It only holds CURRENTLY-rostered players, so coverage decayed the further
-         back you looked (55% in 2024) — and the missing were the ones who aged
-         out, i.e. exactly the players an aging curve needs to bend down.
-      2. Its DOBs are transcribed from cap-sheet screenshots and disagree with ESPN
-         on 26 of 476 shared players (5.5%), with the single-digit signature of a
-         transcription slip (SGA 07-12 -> 07-02, Hield 12-17 -> 12-12, Sochan 2003
-         -> 2004; ESPN matches reality in each). Screenshot OCR has an error path
-         that an integer-keyed API read does not.
+    nba_roster is not used here because it only holds CURRENTLY-rostered players, so
+    coverage decayed the further back you looked (55% in 2024) — and the missing were
+    the ones who aged out, i.e. exactly the players an aging curve needs to bend down.
+    ESPN is the only source in the stack that covers players after they leave, which
+    is what makes it usable here. That is the whole argument. It is NOT "ESPN is more
+    accurate".
+
+    ESPN IS NOT AUTHORITATIVE — it has real errors. Confirmed: Zach Edey
+    (athlete_id 4600663) returns 2002-03-14; his actual DOB is 2002-05-14, and the
+    hand-maintained roster CSV had it right. Of 28 checked disagreements with the
+    roster, ESPN was right in 23 — a rate high enough to make bulk-applying it look
+    safe, which is precisely the trap. Never propagate these DOBs onto the roster CSV
+    or any user-facing surface without per-player verification; see the
+    espn-dob-not-authoritative note.
+
+    Tolerable HERE, and only here, because age enters the model as a smooth feature:
+    an error of weeks-to-months moves a player fractionally along an aging curve and
+    is swamped by the alternative, which is 45% of player-seasons missing an age
+    entirely and biased toward survivors. Wrong-by-a-month beats absent-and-skewed
+    for curve fitting. It would NOT be tolerable for displaying a player's age.
     """
     d = pd.read_csv(DOB_CSV)
     d = d[d["dob"].notna() & (d["dob"].astype(str) != "")][["athlete_id", "dob"]]
@@ -294,8 +376,36 @@ def main() -> None:
             print(f"  !! {p}")
         raise SystemExit("team-game counts are not the expected shape — fix before building on this")
     cup = ts[ts["team_games"] == 83].groupby("season")["team"].apply(lambda s: "+".join(sorted(s)))
-    print(f"  team-seasons: {len(ts)} — all 82 games except the NBA Cup finalists at 83: "
-          f"{', '.join(f'{s} {v}' for s, v in cup.items())}")
+    print(f"  team-seasons: {len(ts)} across {ts['season'].nunique()} season(s)")
+    if len(cup):
+        print(f"  NBA Cup finalists at 83 games: {', '.join(f'{s} {v}' for s, v in cup.items())}")
+    short = ts[ts["team_games"] < 82].groupby("season")["team_games"].agg(["min", "max", "size"])
+    for s, r in short.iterrows():
+        print(f"  {s}: {int(r['size'])} team(s) under 82 ({int(r['min'])}-{int(r['max'])} games)"
+              f" — expected for lockout/COVID/cancelled games, see validate_team_games()")
+    gap = ts[ts["tb_coverage"] < 0.99]
+    if len(gap):
+        print(f"  team_box is missing games for {len(gap)} team-season(s) — pace/off_rtg there "
+              f"rest on partial data (worst: {gap['tb_coverage'].min():.0%} of games).")
+
+    # The real tripwire. Five players are on the floor for 48 minutes, so a team-game
+    # is ~240 minutes plus overtime — and the league mean has sat in 241.3-242.1 for
+    # fifteen straight seasons. That makes it the tightest invariant in the dataset and
+    # a far better canary than any game-count rule: it is what exposed 2020-21's hollow
+    # games (231.45 = real minutes divided by imaginary games) after the count checks
+    # had waved them through.
+    tm = pts.groupby(["season", "team"], as_index=False)["min"].sum().merge(
+        ts[["season", "team", "team_games"]], on=["season", "team"], how="left")
+    tm["per_game"] = tm["min"] / tm["team_games"]
+    budget = tm.groupby("season")["per_game"].mean()
+    bad = budget[(budget < 238) | (budget > 246)]
+    print(f"  league minutes/game: {budget.min():.1f}-{budget.max():.1f} across seasons"
+          f" (~241.9 expected: 240 regulation + overtime)")
+    if len(bad):
+        for s, v in bad.items():
+            print(f"  !! {s}: {v:.2f} min/game is outside 238-246 — minutes and team_games "
+                  f"disagree; suspect games present in the feed but carrying no data")
+        raise SystemExit("league minute budget is off — the panels are not trustworthy")
     # pace48 runs ~2 above Basketball-Reference's published pace (~98.5 in 2023-24)
     # because this is the SIMPLE possessions estimate: it subtracts every offensive
     # rebound, where BBR estimates the OREB share off missed shots. The bias is a
