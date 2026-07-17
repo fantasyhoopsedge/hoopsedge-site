@@ -3,7 +3,7 @@
 This is the Stage 3 gate question, and it is the exact analogue of Stage 1's
 measure_240.py — but for volume, not minutes. Minutes are zero-sum at 240/team-game
 and Stage 1 already enforces that; the open question is whether SHOT VOLUME and the
-other usage stats (FGA, FTA, 3PA, AST, TOV) are *also* team-conserved, and whether
+other usage stats (FGA, FTA, 3PM, AST, TOV) are *also* team-conserved, and whether
 projecting each player's rate in isolation then summing lands on the team total or
 drifts off it — the "130 team FGA when they took 90" failure the plan warns about.
 
@@ -48,7 +48,7 @@ FOUND = os.path.join(REPO, "output", "foundation")
 # are not team-conserved and must never be redistributed. REB is arguable (rebound
 # chances are opponent- and pace-driven, only loosely a team-personnel quantity), so
 # it is measured but held separate from the shoot/pass/turnover usage core.
-USAGE = ["fga", "fta", "fg3a", "ast", "tov"]
+USAGE = ["fga", "fta", "fg3m", "ast", "tov"]
 CONTEXT = ["reb"]
 STATS = USAGE + CONTEXT
 RECENCY = {1: 0.6, 2: 0.3, 3: 0.1}  # 60/30/10 by lag, x games — the model-wide weighting
@@ -237,7 +237,7 @@ def main() -> None:
 
     print(f"\n=== DECISION ===")
     print(f"  Rule: BUILD if the team anchor beats the bottom-up sum on the usage core")
-    print(f"  (FGA/FTA/3PA/AST/TOV) -- that means team totals carry information the")
+    print(f"  (FGA/FTA/3PM/AST/TOV) -- that means team totals carry information the")
     print(f"  isolated per-player projections structurally cannot reconstruct.")
     core_anchor_wins = sum(decisions[s][2] == "ANCHOR" for s in USAGE)
     for s in USAGE:

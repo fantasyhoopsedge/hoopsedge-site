@@ -143,25 +143,39 @@ def main() -> None:
     # --- tune strength on the training seasons (with the league trend on).
     print(f"\n  tuning reconciliation strength on train (per-player usage-core MAE):")
     grid = [0.0, 0.25, 0.5, 0.75, 1.0]
-    best, best_mae = 1.0, np.inf
+    curve, raw0 = {}, None
     for stg in grid:
         r = evaluate(bu, vol, lg, train, strength=stg, trend=True)
-        mark = ""
-        if r["_player_core"] < best_mae:
-            best_mae, best, mark = r["_player_core"], stg, "  <- best"
-        print(f"    strength {stg:.2f}: player-core MAE {r['_player_core']:.4f}"
-              f" (raw {r['_player_core_raw']:.4f}){mark}")
+        curve[stg] = r["_player_core"]
+        raw0 = r["_player_core_raw"]
+    argmin = min(curve, key=curve.get)
+    for stg in grid:
+        print(f"    strength {stg:.2f}: player-core MAE {curve[stg]:.4f} (raw {raw0:.4f})"
+              f"{'  <- argmin' if stg == argmin else ''}")
 
-    # --- ablate the league-trend term at the chosen strength.
-    print(f"\n  league-trend ablation at strength {best:.2f} (train):")
+    # We SHIP SHIP_STRENGTH, not the raw argmin. The 0.50-0.75 stretch is a flat plateau
+    # (they differ by ~1e-4 on train, pure noise), and the pooled usage-core MAE is
+    # dominated by FGA's scale -- so it happily trades 3PM per-player accuracy (-2.1% at
+    # 0.75, ~0 at 0.50) for a fraction of a percent on FGA. 3PM is a full 9-cat category
+    # the V-score engine standardizes on its own, so it must not be sacrificed to a
+    # pooled average. 0.50 is the lower, robust end of the plateau and keeps every
+    # category at worst neutral. Same pooled-metric trap as Stage 1's alpha.
+    from redistribute import SHIP_STRENGTH
+    ship = SHIP_STRENGTH
+    print(f"\n  argmin is {argmin:.2f}, but 0.50-0.75 is a flat plateau "
+          f"(delta {abs(curve[0.5]-curve[0.75]):.4f}); shipping SHIP_STRENGTH={ship:.2f} "
+          f"(robust end, protects the 3PM category).")
+
+    # --- ablate the league-trend term at the shipped strength.
+    print(f"\n  league-trend ablation at strength {ship:.2f} (train):")
     for trend in (False, True):
-        r = evaluate(bu, vol, lg, train, strength=best, trend=trend)
+        r = evaluate(bu, vol, lg, train, strength=ship, trend=trend)
         print(f"    trend {'ON ' if trend else 'OFF'}: player-core MAE {r['_player_core']:.4f}"
-              f"  | 3PA player MAE {r['fg3a']['rec']:.4f} team MAE {r['fg3a']['team_rec']:.4f}")
+              f"  | 3PM player MAE {r['fg3m']['rec']:.4f} team MAE {r['fg3m']['team_rec']:.4f}")
 
     # --- report ONCE on the held-out seasons.
-    print(f"\n=== HELD-OUT TEST ({test[0]}-{test[-1]}), strength {best:.2f}, trend ON ===")
-    r = evaluate(bu, vol, lg, test, strength=best, trend=True)
+    print(f"\n=== HELD-OUT TEST ({test[0]}-{test[-1]}), strength {ship:.2f}, trend ON ===")
+    r = evaluate(bu, vol, lg, test, strength=ship, trend=True)
     print(f"  {'stat':>5} | {'player MAE':>18} | {'team MAE':>18} | player gain")
     print(f"  {'':>5} | {'raw':>8} {'reconciled':>9} | {'raw':>8} {'reconciled':>9} |")
     print("  " + "-" * 68)
@@ -174,7 +188,7 @@ def main() -> None:
     print(f"\n  usage-core per-player MAE: raw {r['_player_core_raw']:.4f} -> "
           f"reconciled {r['_player_core']:.4f}  ({core_gain:+.1%})")
     print(f"  -> reconciliation {'IMPROVES' if core_gain > 0 else 'HURTS'} per-player "
-          f"accuracy; strength {best:.2f} ships.")
+          f"accuracy; strength {ship:.2f} ships.")
 
 
 if __name__ == "__main__":

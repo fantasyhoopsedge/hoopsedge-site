@@ -2,13 +2,13 @@
 
 Stage 3 owns two things: the reconcile() mechanism (redistribute.py, validated on 15
 seasons by backtest.py) and the ANCHORS it reconciles toward -- the per-team target
-V/game for FGA, FTA, 3PA, AST, TOV. This script produces the second for the real
+V/game for FGA, FTA, 3PM, AST, TOV. This script produces the second for the real
 2026-27 season. Stage 5, when it assembles each roster's bottom-up volume from Stage 1
 minutes x Stage 2/4 rates, will import reconcile() and pull those sums toward these
 anchors at SHIP_STRENGTH.
 
 The anchor is each team's own recency-weighted V/game (60/30/10 x games over 2024-2026),
-plus a league-trend term so the 3PA anchor is not permanently a year behind the league's
+plus a league-trend term so the 3PM anchor is not permanently a year behind the league's
 still-rising 3-point volume. The system/coaching-change adjustment the plan mentions is
 human input -- the team-total analogue of Stage 1's role-context -- and is left as a hook
 (team_system_mult, defaulting to 1.0) rather than guessed here; wire it in alongside
@@ -44,11 +44,11 @@ def main() -> None:
         raise SystemExit(f"expected 30 team anchors, got {len(anchors)}: "
                          f"{sorted(anchors['team'])}")
 
-    # sanity: anchors must sit in a plausible NBA band, and 3PA should ride ABOVE the
+    # sanity: anchors must sit in a plausible NBA band, and 3PM should ride ABOVE the
     # most recent season on the still-rising league trend (that is the term's whole job).
     last = vol[vol["season"] == TARGET - 1].set_index("team")
     a = anchors.set_index("team")
-    bands = {"fga": (80, 96), "fta": (16, 30), "fg3a": (25, 48), "ast": (18, 33), "tov": (10, 18)}
+    bands = {"fga": (80, 96), "fta": (16, 30), "fg3m": (8, 20), "ast": (18, 33), "tov": (10, 18)}
     problems = []
     for s in USAGE:
         lo, hi = bands[s]

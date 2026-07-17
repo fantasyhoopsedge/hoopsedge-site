@@ -1,7 +1,7 @@
 """Stage 3 engine: reconcile bottom-up player volume to team-total anchors.
 
 The gate check (measure_usage.py) established that team usage totals (FGA, FTA,
-3PA, AST, TOV) are team-conserved and better predicted by a team's own recency-
+3PM, AST, TOV) are team-conserved and better predicted by a team's own recency-
 weighted history than by summing each player's independently-projected rate --
 because a departed high-usage player's shots are re-absorbed by whoever remains,
 which no isolated per-player projection can know. This module does the re-absorbing.
@@ -16,7 +16,8 @@ proportion to how much they already shoot -- not split evenly.
 
 EFFICIENCY IS NEVER TOUCHED. The engine changes VOLUME only. When it scales a
 player's FGA by f it scales his FGM by the same f, holding his FG% exactly fixed;
-likewise FTA/FTM and 3PA/3PM. That is what keeps the V-score engine's volume-
+likewise FTA/FTM. 3PM is reconciled on its own (it is a category, not an attempt). That
+is what keeps the V-score engine's volume-
 weighted percentages correct downstream -- Stage 3 reallocates who takes the shots,
 never how well they go in. PTS falls out as 2*FGM + FTM + 3PM.
 
@@ -44,24 +45,34 @@ from common import REPO  # noqa: E402
 
 FOUND = os.path.join(REPO, "output", "foundation")
 
-# The team-conserved usage stats the engine reconciles. Order matters only for
-# printing. Each is an ATTEMPT/pass/turnover volume; the paired makes ride along.
-USAGE = ["fga", "fta", "fg3a", "ast", "tov"]
-# make paired to each attempt, so scaling volume preserves the shooting percentage.
-MAKE_OF = {"fga": "fgm", "fta": "ftm", "fg3a": "fg3m"}
+# The team-conserved usage volumes the engine reconciles -- exactly the 9-cat
+# quantities the artifact emits that are shared at the team level. FGA/FTA are
+# attempts (their makes ride along to hold FG%/FT% fixed); 3PM is a made-three,
+# which is itself a 9-cat category (there is no 3PA in the contract -- FG%/FT% come
+# from makes/attempts, but three-pointers are counted as MAKES), so it is reconciled
+# directly. AST/TOV are counts. STL/BLK/REB are NOT here (not usage-conserved).
+USAGE = ["fga", "fta", "fg3m", "ast", "tov"]
+# make paired to each ATTEMPT, so scaling volume preserves the shooting percentage.
+# 3PM is deliberately absent: it is a category in its own right, not an attempt with a
+# make riding it, so it is reconciled on its own line above.
+MAKE_OF = {"fga": "fgm", "fta": "ftm"}
 RECENCY = {1: 0.6, 2: 0.3, 3: 0.1}  # 60/30/10 by lag x games -- the model-wide weighting
 
 # HOW HARD to pull the bottom-up sum toward the anchor. 0 = untouched, 1 = team sums
-# hit the anchor exactly. backtest.py tunes this on 2014-2021 and reports on 2022-2026:
-# 0.50 is the minimum-per-player-error point, and it beats BOTH extremes (raw 0.318 ->
-# 0.307 at 0.50 -> back up to 0.312 at 1.00, train usage-core MAE). Full reconciliation
-# is worse because the anchor is itself a ~2-FGA-noisy estimate and vacated usage is
-# only PARTIALLY re-absorbed -- some of a departed star's shots genuinely evaporate.
-# Partial reconciliation is a shrink between two imperfect estimates, and unlike a
-# player-level shrink it is a pure team-level rescale, so it preserves the cross-player
-# spread the V-score engine standardizes (it moves team levels, not the star-vs-bench
-# gap). Do not "fix" it to 1.0 to make team totals tie out -- that trades player
-# accuracy for a cosmetic exact match to a number that is itself only approximate.
+# hit the anchor exactly. backtest.py tunes on 2014-2021, reports on 2022-2026. The
+# per-player usage-core MAE is a flat plateau over 0.50-0.75 (they differ by ~1e-4,
+# noise) and both beat the extremes; full reconciliation (1.0) is worse because the
+# anchor is itself ~2-FGA noisy and vacated usage is only PARTIALLY re-absorbed -- some
+# of a departed star's shots genuinely evaporate. We ship the LOWER end, 0.50, for two
+# reasons: (1) robustness -- pull less hard toward an approximate target; (2) it is the
+# only point that keeps the 3PM category at worst neutral per-player (-0.2% at 0.50 vs
+# -2.1% at 0.75). The pooled usage-core MAE is dominated by FGA's scale and will trade
+# 3PM accuracy for a fraction of a percent on FGA if you let argmin pick -- but 3PM is a
+# full 9-cat category standardized on its own, so it must not be sacrificed to a pooled
+# average. Same pooled-metric trap as Stage 1's alpha. Partial reconciliation is a shrink
+# between two imperfect estimates, and unlike a player-level shrink it is a pure team-
+# level rescale, so it preserves the cross-player spread the V-score engine standardizes
+# (it moves team levels, not the star-vs-bench gap).
 SHIP_STRENGTH = 0.5
 
 
@@ -192,12 +203,11 @@ def reconcile(players: pd.DataFrame, anchors: pd.DataFrame, strength: float = 1.
         if s in MAKE_OF:  # the make rides its attempt's factor -> FG%/FT%/3P% unchanged
             out[f"rec_{MAKE_OF[s]}"] = out[f"bu_{MAKE_OF[s]}"] * f
         factors.append(pd.Series(f, name=s))
-    # 3PA can never exceed FGA, nor 3PM exceed FGM: independent factors could nudge a
-    # heavy-3 shooter past it. Clamp the rare violation and let FGA/FGM stand.
-    over = out["rec_fg3a"] > out["rec_fga"]
-    out.loc[over, "rec_fg3a"] = out.loc[over, "rec_fga"]
-    over_m = out["rec_fg3m"] > out["rec_fgm"]
-    out.loc[over_m, "rec_fg3m"] = out.loc[over_m, "rec_fgm"]
+    # 3PM can never exceed FGM: FGA and 3PM carry independent factors, so a heavy-3
+    # shooter's made-threes could be nudged past his made-field-goals. Clamp the rare
+    # violation and let FGM (which rides the larger, better-anchored FGA) stand.
+    over = out["rec_fg3m"] > out["rec_fgm"]
+    out.loc[over, "rec_fg3m"] = out.loc[over, "rec_fgm"]
     return out
 
 
@@ -206,7 +216,7 @@ def validate(out: pd.DataFrame, anchors: pd.DataFrame, strength: float,
     """The assertion the stage rests on. At strength s the reconciled team sum is a
     convex blend (1-s)*bottom_up + s*anchor, NOT the anchor itself -- so the invariant
     is that each team's reconciled sum equals that blend (to tolerance; the factor clip
-    and the 3PA<=FGA clamp can hold a runaway team slightly off on purpose). Also: no
+    and the 3PM<=FGM clamp can hold a runaway team slightly off on purpose). Also: no
     negative volume."""
     problems: list[str] = []
     a = anchors.set_index("team")
