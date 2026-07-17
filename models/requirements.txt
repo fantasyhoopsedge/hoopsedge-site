@@ -16,4 +16,7 @@
 numpy>=2.5,<3
 pandas>=3.0,<4
 scikit-learn>=1.9,<2
+# scipy is a scikit-learn dependency already, but Stage 6 (models/validation) imports
+# scipy.stats.spearmanr directly, so it is declared here rather than relied on transitively.
+scipy>=1.13,<2
 pyarrow>=25.0,<26
