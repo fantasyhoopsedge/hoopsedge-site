@@ -42,8 +42,10 @@ from age_curves import (  # noqa: E402
 )
 
 # Within-position stabilization k, in GAMES, from measure_rates.py (the gate check).
-# Shooting percentages are handled in ATTEMPTS below, so they are not here.
-K_GAMES = {"PTS": 3, "REB": 3, "AST": 2, "STL": 15, "BLK": 6, "3PM": 3, "TOV": 7}
+# Shooting percentages are handled in ATTEMPTS below, so they are not here. FGA/FTA
+# are volume rates (stabilize fast like the other counting rates); k set alongside.
+K_GAMES = {"PTS": 3, "REB": 3, "AST": 2, "STL": 15, "BLK": 6, "3PM": 3, "TOV": 7,
+           "FGA": 3, "FTA": 5}
 # Shooting k in games from the gate check; converted to attempts via league volume.
 K_SHOOT_GAMES = {"FG%": 16, "FT%": 29}
 ATT_COL = {"FG%": ("fgm", "fga"), "FT%": ("ftm", "fta")}

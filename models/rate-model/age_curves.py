@@ -51,13 +51,16 @@ from common import HOOPR_NBA_TEAMS, REGULAR_SEASON, REPO, SEASONS, ensure_parque
 from minutes import load_panels  # noqa: E402
 
 # per-36 counting rates (multiplicative curve) and shooting percentages (additive).
+# FGA/FTA are volume rates carried so the projection can emit makes/attempts
+# separately (FGM = FGA x FG%): the V-score engine's volume-weighted percentages
+# require makes and attempts, never a bare percentage.
 COUNTING = ["per36_pts", "per36_reb", "per36_ast", "per36_stl", "per36_blk",
-            "per36_fg3m", "per36_tov"]
+            "per36_fg3m", "per36_tov", "per36_fga", "per36_fta"]
 SHOOTING = ["fg_pct", "ft_pct"]
 STATS = COUNTING + SHOOTING
 SHORT = {"per36_pts": "PTS", "per36_reb": "REB", "per36_ast": "AST", "per36_stl": "STL",
          "per36_blk": "BLK", "per36_fg3m": "3PM", "per36_tov": "TOV",
-         "fg_pct": "FG%", "ft_pct": "FT%"}
+         "per36_fga": "FGA", "per36_fta": "FTA", "fg_pct": "FG%", "ft_pct": "FT%"}
 POS_MAP = {"PG": "G", "SG": "G", "G": "G", "SF": "F", "PF": "F", "F": "F", "C": "C"}
 
 MIN_GP = 30          # a season's rate has to mean something to enter a delta
