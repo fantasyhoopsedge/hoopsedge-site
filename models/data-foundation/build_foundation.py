@@ -72,6 +72,7 @@ TEAM_BOX_URL = (
     "/nba/team_box/parquet/team_box_{season}.parquet"
 )
 OUT_DIR = os.path.join(REPO, "output", "foundation")
+DOB_CSV = os.path.join(REPO, "data", "draft-model", "athlete_dob.csv")
 
 BOX = {
     "points": "pts", "rebounds": "reb", "offensive_rebounds": "oreb",
@@ -230,25 +231,30 @@ def validate_team_games(ts: pd.DataFrame) -> list[str]:
 
 
 def attach_age(ps: pd.DataFrame) -> pd.DataFrame:
-    """Join DOB from nba_roster and compute age as of Feb 1 (Basketball-Reference's
-    convention — a season-long age needs one fixed reference date, and mid-season
-    is the least-wrong single choice).
+    """Join DOB from data/draft-model/athlete_dob.csv and compute age as of Feb 1
+    (Basketball-Reference's convention — a season-long age needs one fixed reference
+    date, and mid-season is the least-wrong single choice).
 
-    nba_roster is the only DOB source in the stack and only covers CURRENT rosters,
-    so coverage decays the further back you go. That is survivorship, and it points
-    one way: players missing a DOB are disproportionately those who aged out. Any
-    aging curve fit on the covered subset alone will read optimistic.
+    Joined on athlete_id, NOT name. The DOB cache is built from ESPN's athlete API
+    and hoopR's athlete_id IS ESPN's id, so this is an integer join against the same
+    provider that produced the box scores — it cannot drift, and none of the
+    nickname/diacritic/suffix failure modes apply. See fetch_dob.py.
+
+    nba_roster is deliberately NOT used here, for two independent reasons:
+      1. It only holds CURRENTLY-rostered players, so coverage decayed the further
+         back you looked (55% in 2024) — and the missing were the ones who aged
+         out, i.e. exactly the players an aging curve needs to bend down.
+      2. Its DOBs are transcribed from cap-sheet screenshots and disagree with ESPN
+         on 26 of 476 shared players (5.5%), with the single-digit signature of a
+         transcription slip (SGA 07-12 -> 07-02, Hield 12-17 -> 12-12, Sochan 2003
+         -> 2004; ESPN matches reality in each). Screenshot OCR has an error path
+         that an integer-keyed API read does not.
     """
-    csv_path = os.path.join(REPO, "data", "nba-rosters", "2026-27.csv")
-    r = pd.read_csv(csv_path, dtype=str).rename(columns={"player": "full_name"})
-    r["norm_name"] = r["full_name"].map(normalize_name)
-    r = r[r["dob"].notna()][["norm_name", "dob"]].drop_duplicates("norm_name")
-    r["dob"] = pd.to_datetime(r["dob"], format="%m/%d/%y", errors="coerce")
-    # 2-digit years: pandas maps 04/07/05 -> 2005, but a DOB of "68" is 1968, not 2068.
-    future = r["dob"] > pd.Timestamp("2026-01-01")
-    r.loc[future, "dob"] -= pd.DateOffset(years=100)
+    d = pd.read_csv(DOB_CSV)
+    d = d[d["dob"].notna() & (d["dob"].astype(str) != "")][["athlete_id", "dob"]]
+    d["dob"] = pd.to_datetime(d["dob"])
 
-    ps = ps.merge(r, on="norm_name", how="left")
+    ps = ps.merge(d, on="athlete_id", how="left")
     ref = pd.to_datetime(ps["season"].astype(str) + "-02-01")
     ps["age"] = (ref - ps["dob"]).dt.days / 365.25
     return ps
@@ -301,12 +307,18 @@ def main() -> None:
     print(f"  traded players (n_teams>1): {(ps['n_teams'] > 1).sum()}")
 
     cov = ps["age"].notna().mean()
-    print(f"\n  AGE COVERAGE {cov:.1%} of player-seasons — by season:")
+    print(f"\n  age coverage {cov:.1%} of player-seasons (ESPN, joined on athlete_id) — by season:")
     for s, g in ps.groupby("season"):
-        print(f"    {s}: {g['age'].notna().mean():6.1%}  ({g['age'].isna().sum()} missing)")
-    print("  ^ decays going back because nba_roster only holds CURRENT players' DOBs.")
-    print("    The missing are the ones who left the league, i.e. the decline cases.")
-    print("    Stage 2 must source DOB properly before fitting an aging curve on this.")
+        n = g["age"].isna().sum()
+        print(f"    {s}: {g['age'].notna().mean():6.1%}" + (f"  ({n} missing)" if n else ""))
+    print(f"    age range {ps['age'].min():.1f}-{ps['age'].max():.1f}")
+    # Coverage must be flat across seasons. If it starts sloping down as you go back,
+    # the DOB source has reverted to something that only knows current players — which
+    # is survivorship, and it silently biases any aging curve optimistic.
+    by_season = ps.groupby("season")["age"].apply(lambda s: s.notna().mean())
+    if by_season.min() < 0.98:
+        print(f"  !! coverage dipped to {by_season.min():.1%} — expected ~100% from the DOB cache."
+              f" Run: python models/data-foundation/fetch_dob.py --seasons {lo}-{hi}")
 
 
 if __name__ == "__main__":
