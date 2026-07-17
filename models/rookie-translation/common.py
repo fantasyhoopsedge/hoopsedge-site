@@ -96,9 +96,32 @@ DRAFT_NAME_TO_HOOPR: dict[str, str] = {
     "carlton carrington": "bub carrington",
 }
 
+# The roster CSV's nicknames -> hoopR's legal names. Same job as the map above
+# (an FHE-side name -> the name hoopR files him under), different source, so it is
+# kept separate to keep each one's provenance readable.
+#
+# MIRROR of NICKNAME_TO_LEGAL_NAME in src/lib/player-name-aliases.ts — same three
+# players, same normalized keys. It is duplicated only because TypeScript cannot be
+# imported here; it is NOT an independent map and must not drift. If you add a
+# player to one, add him to the other. That file documents the bug this class of
+# miss already caused once: these three players' consensus_rank silently stayed
+# null in season_player_stats because a join went straight across without
+# resolving the nickname.
+ROSTER_NAME_TO_HOOPR: dict[str, str] = {
+    "cam johnson": "cameron johnson",
+    "herb jones": "herbert jones",
+    "ron holland": "ronald holland",
+}
+
 
 def name_candidates(norm: str) -> list[str]:
-    alt = DRAFT_NAME_TO_HOOPR.get(norm)
+    """Normalized names worth trying for `norm`, best first.
+
+    Consults both alias maps: a caller joining against hoopR does not care whether
+    a given name came from the draft model or the roster CSV, only that the join
+    resolves.
+    """
+    alt = DRAFT_NAME_TO_HOOPR.get(norm) or ROSTER_NAME_TO_HOOPR.get(norm)
     return [norm, alt] if alt else [norm]
 
 
