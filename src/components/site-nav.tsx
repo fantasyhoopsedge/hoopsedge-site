@@ -285,6 +285,11 @@ export function SiteNav(props: {
             <a href="/admin/rookie-board" title="Rookie board editor (admins only)">✎ Board Editor</a>
           </li>
         )}
+        {showBoardEditor && (
+          <li className="nav-arena nav-admin-dev">
+            <a href="/admin/role-context" title="Role-context tier pass (admins only)">☰ Tier Pass</a>
+          </li>
+        )}
         <li className="nav-theme">
           <button type="button" className="theme-toggle" onClick={toggleTheme} title="Toggle light/dark theme" aria-label="Toggle theme">
             {theme === "dark" ? (
@@ -383,6 +388,11 @@ export function SiteNav(props: {
                 {showBoardEditor && (
                   <a href="/admin/rookie-board" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
                     Board Editor
+                  </a>
+                )}
+                {showBoardEditor && (
+                  <a href="/admin/role-context" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                    Tier Pass
                   </a>
                 )}
                 <button type="button" className="nav-mobile-panel-row" onClick={toggleTheme}>
