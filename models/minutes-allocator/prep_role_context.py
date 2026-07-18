@@ -39,6 +39,11 @@ from common import REPO, name_candidates, normalize_name  # noqa: E402
 ROLE_CSV = os.path.join(REPO, "data", "nba-rosters", "role-context-2026-27.csv")
 ROSTER_CSV = os.path.join(REPO, "data", "nba-rosters", "2026-27.csv")
 DYNASTY_JSON = os.path.join(REPO, "src", "lib", "dynasty-rankings.json")
+# Bundled roster reference the /admin/role-context editor imports. Production (Vercel)
+# has a read-only, un-traced filesystem, so the app cannot read this CSV at runtime --
+# it reads this JSON instead, overlaying live tiers from Supabase. Regenerated here so
+# the two never drift; the CSV stays the model's interface, the JSON the app's.
+BUNDLE_JSON = os.path.join(REPO, "src", "data", "role-context-2026-27.json")
 UNRANKED = 10_000            # sorts unranked players to the end of their team block
 
 
@@ -103,6 +108,17 @@ def main() -> None:
         w.writeheader()
         w.writerows(rows)
 
+    # bundled JSON for the app (roster reference + baseline tier; live tiers overlay from
+    # Supabase). camelCase to match the TS store; dynRank null when unranked.
+    bundle = [{
+        "team": r["team"], "player": r["player"], "class": r["class"],
+        "dynRank": int(r["dyn_rank"]) if str(r["dyn_rank"]).strip() else None,
+        "tier": r["tier"], "note": r["note"], "source": r["source"],
+    } for r in rows]
+    os.makedirs(os.path.dirname(BUNDLE_JSON), exist_ok=True)
+    with open(BUNDLE_JSON, "w", encoding="utf-8") as fh:
+        json.dump(bundle, fh, indent=2)
+
     print(f"prepped {len(rows)} role-context rows -> sorted by (team, dynasty rank, name)")
     print(f"  class:  rookie {counts['rookie']} | sophomore {counts['sophomore']} | "
           f"veteran {counts['veteran']}")
@@ -113,6 +129,7 @@ def main() -> None:
     if unmatched:
         print(f"  !! {len(unmatched)} not in roster CSV (name mismatch): {', '.join(unmatched[:8])}")
     print(f"  wrote {os.path.relpath(ROLE_CSV, REPO)} (tiers/notes preserved)")
+    print(f"  wrote {os.path.relpath(BUNDLE_JSON, REPO)} ({len(bundle)} rows, for the app)")
 
 
 if __name__ == "__main__":
