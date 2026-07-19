@@ -11,6 +11,7 @@
  * Idempotent: game-log upserts key on (game_id, player_id); player upserts on id.
  */
 import { asyncBufferFromUrl, parquetReadObjects } from "hyparquet";
+import { compressors } from "hyparquet-compressors";
 import {
   CURRENT_SEASON,
   boxScoreUrl,
@@ -53,7 +54,7 @@ async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 3): 
 async function loadSeason(season: number, now: string) {
   const rows = await withRetry(`download season ${season}`, async () => {
     const file = await asyncBufferFromUrl({ url: boxScoreUrl(season) });
-    return (await parquetReadObjects({ file })) as Record<string, unknown>[];
+    return (await parquetReadObjects({ file, compressors })) as Record<string, unknown>[];
   });
 
   const logs: GameLog[] = [];

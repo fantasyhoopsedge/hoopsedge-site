@@ -37,14 +37,16 @@ export default async function SeasonalRankingsPage({
   // instead of ~6,000 across all 10 sizes). Other sizes load on demand via
   // /api/seasonal-values when the Player Pool changes. This keeps the initial
   // payload ~10× smaller, which dominated both render and transfer time.
+  const canonicalSize = dataset.defaultSize ?? CANONICAL_SIZE;
+
   const [stats, canonicalValues, draftYears] = await Promise.all([
     getStats(dataset.season, dataset.type),
-    getValuesForSize(dataset.season, dataset.type, CANONICAL_SIZE),
+    getValuesForSize(dataset.season, dataset.type, canonicalSize),
     getDraftYears(),
   ]);
 
   const valuesBySize: Record<number, Record<string, SeasonPlayerValues>> = {
-    [CANONICAL_SIZE]: indexValuesById(canonicalValues),
+    [canonicalSize]: indexValuesById(canonicalValues),
   };
 
   return (
@@ -52,7 +54,7 @@ export default async function SeasonalRankingsPage({
       players={stats}
       valuesBySize={valuesBySize}
       leagueSizes={[...LEAGUE_SIZES]}
-      canonicalSize={CANONICAL_SIZE}
+      canonicalSize={canonicalSize}
       seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
       activeSeason={datasetKey(dataset.season, dataset.type)}
       ageByName={AGE_BY_NAME}

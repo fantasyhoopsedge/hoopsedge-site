@@ -189,7 +189,7 @@ async function fetchPlayers(): Promise<Map<string, { name: string; team: string 
 type ConsensusInfo = { rank: number; position: string | null; team: string | null };
 
 /** dynasty-rankings.json → normalized name → { consensus rank, position, team }. */
-function loadConsensus(): Map<string, ConsensusInfo> {
+export function loadConsensus(): Map<string, ConsensusInfo> {
   const raw = readFileSync(resolve(REPO_ROOT, "src/lib/dynasty-rankings.json"), "utf8");
   const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number; position?: string | null; team?: string | null }>;
   const m = new Map<string, ConsensusInfo>();
@@ -344,7 +344,7 @@ function runValidationGate(
   console.log(`\n✓ validation gate passed (league_size 400 within tolerance ${VALUE_TOLERANCE})`);
 }
 
-function pos5(position: string | null): string | null {
+export function pos5(position: string | null): string | null {
   if (!position) return null;
   const p = position.toUpperCase();
   if (["PG", "SG", "G"].includes(p)) return "G";
@@ -470,10 +470,10 @@ async function upsert(
   console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
 }
 
-const round1 = (x: number) => Math.round(x * 10) / 10;
-const round3 = (x: number) => Math.round(x * 1000) / 1000;
+export const round1 = (x: number) => Math.round(x * 10) / 10;
+export const round3 = (x: number) => Math.round(x * 1000) / 1000;
 
-async function batchUpsert(
+export async function batchUpsert(
   supabase: ReturnType<typeof getServiceClient>,
   table: string,
   rows: Record<string, unknown>[],
