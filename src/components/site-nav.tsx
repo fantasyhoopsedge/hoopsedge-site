@@ -147,10 +147,20 @@ export function SiteNav(props: {
   /** Compact single-line summary (e.g. dynasty rankings meta), shown left of Join CTA */
   infoStrip?: ReactNode;
   navClassName?: string;
+  /**
+   * Overrides which logo wordmark variant renders, for callers that wrap
+   * this nav in a bar whose background is pinned to a color regardless of
+   * the site-wide theme toggle (e.g. the home page's mobile nav sits on an
+   * always-black hero). Without this the logo still follows the toggle-driven
+   * `theme` state below, which can pick the dark-text wordmark against a
+   * pinned-black bar and render it invisible.
+   */
+  forceTheme?: "dark" | "light";
 }) {
-  const { active, joinFree, infoStrip, navClassName } = props;
+  const { active, joinFree, infoStrip, navClassName, forceTheme } = props;
   const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const logoTheme = forceTheme ?? theme;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileRankingsOpen, setMobileRankingsOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLLIElement>(null);
@@ -243,7 +253,7 @@ export function SiteNav(props: {
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
           <img
             className="nav-brand-full"
-            src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+            src={logoTheme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
             alt="Fantasy Hoops Edge"
             style={{ height: BRAND_LOGO_HEIGHT, width: "auto" }}
           />
@@ -339,7 +349,7 @@ export function SiteNav(props: {
               <div className="nav-mobile-panel-header">
                 {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
                 <img
-                  src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+                  src={logoTheme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
                   alt="Fantasy Hoops Edge"
                   style={{ height: 24, width: "auto" }}
                 />
