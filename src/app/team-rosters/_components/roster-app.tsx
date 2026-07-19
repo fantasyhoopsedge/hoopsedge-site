@@ -213,6 +213,12 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
   const isCompactViewport = isMobile || isTabletWidth || isLandscapeTabletWidth;
+  // Portrait + phone specifically (not landscape): the detail panel's
+  // full-screen takeover treatment. Landscape gets a centered pop-up over
+  // a dimmed backdrop instead — same pattern draft-board uses for its own
+  // 1024-1279px range (see .db-detail-modal-backdrop) — so it needs its
+  // own narrower flag rather than reusing isCompactViewport wholesale.
+  const isFullScreenOverlay = isMobile || isTabletWidth;
   // iPad portrait specifically (not landscape, and not phone — phone
   // already has its own separate compact card list below, gated on
   // isMobile). The sidebar is dropped for this whole range (see
@@ -902,13 +908,16 @@ export function RosterApp({
               (effectiveViewMode) and phone has its own separate compact
               card list further down, so this only ever renders on real
               desktop OR iPad landscape (both view modes stay available
-              there — see isLandscapeTabletWidth above). auto-fill still
-              settles at 3 narrower columns on landscape's reclaimed-but-
-              not-huge width, so the padding/avatar/gap trim below (same
-              values portrait used before it was forced to list-only) is
-              still needed there to keep names from truncating. */}
+              there — see isLandscapeTabletWidth above). Landscape is
+              pinned to exactly 2 columns (not auto-fill's 3 narrower
+              ones) — per explicit request, and it also fixes the name
+              truncation auto-fill's 3-up was causing there. 2 wide
+              columns has plenty of room even at 1024px (the low end of
+              that range), so no padding/avatar/gap trim is needed there
+              anymore either — reverted to the same static values desktop
+              always used. */}
           {!isMobile && effectiveViewMode === "grid" && (
-            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
+            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isLandscapeTabletWidth ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
@@ -920,12 +929,12 @@ export function RosterApp({
                     background: "var(--rt-canvas)",
                     border: `1px solid ${c.cardBorder}`,
                     borderRadius: 16,
-                    padding: isCompactViewport ? 14 : 18,
+                    padding: 18,
                     transition: "box-shadow 140ms ease, border-color 140ms ease",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: isCompactViewport ? 10 : 14 }}>
-                    <PlayerHeadshot name={c.name} size={isCompactViewport ? 44 : 52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <PlayerHeadshot name={c.name} size={52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                       <div style={{ fontSize: 13, color: "var(--rt-muted)", marginTop: 2 }}>{c.meta}</div>
@@ -1208,6 +1217,18 @@ export function RosterApp({
         </div>
       </div>
 
+      {/* iPad landscape only: dimmed backdrop behind the pop-up below,
+          click to dismiss — same mechanism as draft-board's
+          .db-detail-modal-backdrop. Portrait/phone don't get one (their
+          full-screen aside has nothing behind it to dim); desktop's
+          persistent rail obviously doesn't either. */}
+      {isLandscapeTabletWidth && mobileDetailOpen && (
+        <div
+          onClick={() => setMobileDetailOpen(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 255, background: "rgba(0,0,0,0.6)" }}
+        />
+      )}
+
       {/* ================= DETAIL PANEL ================= */}
       {/* Also always mounted on mobile now (display:none when closed) for the
           same reason as the main column above — and so its own scroll
@@ -1216,12 +1237,14 @@ export function RosterApp({
       <aside
         ref={detailPanelRef}
         style={
-          isCompactViewport
+          isFullScreenOverlay
             ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
-            : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
+            : isLandscapeTabletWidth
+              ? { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 260, width: "min(600px, 90vw)", maxHeight: "85vh", borderRadius: 16, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.45)", display: mobileDetailOpen ? "block" : "none" }
+              : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
-        {isCompactViewport && (
+        {isFullScreenOverlay && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--rt-hairline)", background: "var(--rt-canvas)", position: "sticky", top: 0, zIndex: 1 }}>
             <button
               type="button"
@@ -1238,6 +1261,17 @@ export function RosterApp({
         )}
         {/* Court hero — dark in dark mode, light in light mode, never forced dark */}
         <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: "26px 24px 24px" }}>
+          {/* iPad landscape's pop-up close button — matches draft-board's
+              ProspectDetailPanel close button (same position-on-hero
+              treatment, rt- tokens instead of the sitewide ones). */}
+          {isLandscapeTabletWidth && (
+            <button
+              type="button"
+              onClick={() => setMobileDetailOpen(false)}
+              aria-label="Close"
+              style={{ position: "absolute", top: 14, right: 14, zIndex: 10, background: "color-mix(in srgb, var(--rt-hero-ink) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--rt-hero-ink) 20%, transparent)", color: "var(--rt-hero-ink)", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+            >✕</button>
+          )}
           {TEAM_LOGO[sp.team] && (
             // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/, sized as a background flourish
             <img
