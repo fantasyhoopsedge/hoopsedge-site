@@ -7,7 +7,8 @@ import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import { shortenPlayerName } from "@/lib/shorten-name";
-import { normalizePlayerName } from "@/lib/dynasty-rankings";
+import { normalizePlayerName, prospectHeadshotUrl, nbaHeadshotUrl } from "@/lib/dynasty-rankings";
+import { initials } from "@/app/team-rosters/_components/roster-helpers";
 
 type SeasonOption = { key: string; label: string };
 
@@ -113,10 +114,25 @@ function espnHeadshot(id: string | null): string | null {
   return id ? `https://a.espncdn.com/i/headshots/nba/players/full/${id}.png` : null;
 }
 
-function Headshot({ id, name }: { id: string | null; name: string }) {
-  const [ok, setOk] = useState(true);
-  const url = espnHeadshot(id);
-  if (url && ok) {
+// prospectHeadshotUrl() slugifies the name AS GIVEN — it doesn't strip or add
+// a jr/sr/ii/iii/iv suffix the way normalizePlayerName() does. The Summer
+// League feed's PLAYER_NAME sometimes drops a suffix the seeded prospect art
+// filename carries (e.g. API "Morez Johnson" vs. file morez-johnson-jr.jpg),
+// so try the bare name plus each common suffix appended as separate fallback
+// stages rather than a single guess.
+const NAME_SUFFIXES = ["", " Jr.", " Sr.", " II", " III", " IV"];
+function prospectHeadshotCandidates(name: string): string[] {
+  return NAME_SUFFIXES.map((suffix) => prospectHeadshotUrl(`${name}${suffix}`));
+}
+
+function Headshot({ id, name, extraSources }: { id: string | null; name: string; extraSources?: (string | null)[] }) {
+  const [stage, setStage] = useState(0);
+  // ESPN first (the normal source, tied to this row's own identity), then any
+  // extra fallbacks the caller opts in (see is2026SummerLeague below) — same
+  // multi-stage cycling pattern as team-rosters' PlayerHeadshot.
+  const sources = [espnHeadshot(id), ...(extraSources ?? [])].filter((u): u is string => !!u);
+  const url = sources[stage] ?? null;
+  if (url) {
     return (
       <img
         src={url}
@@ -124,18 +140,15 @@ function Headshot({ id, name }: { id: string | null; name: string }) {
         width={40}
         height={40}
         loading="lazy"
-        onError={() => setOk(false)}
+        onError={() => setStage((s) => s + 1)}
         className="sr-headshot-img"
       />
     );
   }
-  // Silhouette fallback.
+  // Initials fallback — no image source resolved.
   return (
     <span className="sr-headshot-fallback" aria-hidden>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="8" r="4" fill="currentColor" />
-        <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="currentColor" />
-      </svg>
+      {initials(name)}
     </span>
   );
 }
@@ -218,11 +231,21 @@ export function SeasonalRankingsTable(props: {
   // SOPHOMORE on 2026-27, not "sophomore" on every season he's ever played. Draft
   // year is a fixed fact, so it works against any season in the picker (hoopR season
   // N = the draftYear+1/draftYear+2 year for a player's rookie/sophomore season).
+  //
+  // A Summer League dataset is the on-ramp to the FOLLOWING season, not a season
+  // of its own — July 2026 Vegas (season=2026, our calendar-year key) kicks off
+  // the 2026-27 season (hoopR season 2027), so it classifies like season 2027
+  // would: 2026 draftees are rookies, 2025 draftees are sophomores. This shift
+  // applies to every Summer League dataset, not just 2026 — the plain formula
+  // would otherwise mislabel (or blank-badge) the debuting draft class in ANY
+  // year's summer dataset the same way.
+  const isSummerDataset = activeSeason.split(":")[1] === "summer";
+  const classSeasonNum = isSummerDataset ? seasonNum + 1 : seasonNum;
   const classOf = (s: SeasonPlayerStats): "rookie" | "soph" | null => {
     const draftYear = draftYearByName[normalizePlayerName(s.name)];
     if (draftYear == null) return null;
-    if (seasonNum === draftYear + 1) return "rookie";
-    if (seasonNum === draftYear + 2) return "soph";
+    if (classSeasonNum === draftYear + 1) return "rookie";
+    if (classSeasonNum === draftYear + 2) return "soph";
     return null;
   };
 
@@ -251,6 +274,13 @@ export function SeasonalRankingsTable(props: {
   const [leagueSize, setLeagueSize] = useState<number>(
     leagueSizes.includes(canonicalSize) ? canonicalSize : leagueSizes[leagueSizes.length - 1],
   );
+  // Datasets can carry a different default pool (e.g. Summer League defaults to
+  // 250, not the usual 400) — resync when switching INTO one, not just on first
+  // load, so the Player Pool always starts at the new dataset's own default.
+  useEffect(() => {
+    setLeagueSize(leagueSizes.includes(canonicalSize) ? canonicalSize : leagueSizes[leagueSizes.length - 1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canonicalSize]);
 
   // Fetch a league size's values on demand when the Player Pool changes to a
   // size not yet loaded. When it arrives, loadedValues updates → this effect
@@ -292,7 +322,7 @@ export function SeasonalRankingsTable(props: {
     setClassFilter(next);
   };
   const [perGame, setPerGame] = useState(true);
-  const [minGames, setMinGames] = useState(0); // 0 = any; else strictly greater than
+  const [minGames, setMinGames] = useState(0); // 0 = any; else inclusive minimum (N+)
   const [minMins, setMinMins] = useState(0);
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "value", dir: "desc" });
   // CatV mode: which of the three values the CatV column shows + ranks by.
@@ -423,7 +453,7 @@ export function SeasonalRankingsTable(props: {
         const cls = classOf(s) ?? "vet";
         if (!classFilter.has(cls)) return false;
       }
-      if (minGames > 0 && (s.g ?? 0) <= minGames) return false;
+      if (minGames > 0 && (s.g ?? 0) < minGames) return false;
       if (minMins > 0 && (s.mpg ?? 0) <= minMins) return false;
       if (q && !s.name.toLowerCase().includes(q)) return false;
       return true;
@@ -443,6 +473,13 @@ export function SeasonalRankingsTable(props: {
 
   const empty = players.length === 0;
   const sizesAsc = useMemo(() => [...leagueSizes].sort((a, b) => a - b), [leagueSizes]);
+  // Headshot fallback below (prospect art / cdn.nba.com) is scoped strictly to
+  // THIS dataset — /images/prospects/ holds art for multiple draft classes
+  // (2025's Cooper Flagg sits next to 2026's Cameron Boozer), so enabling it
+  // broadly for older Summer League datasets risks a name-slug collision
+  // showing the wrong player's photo. 2026 is also the only year with a
+  // meaningful population of unmatched (no ESPN id yet) rookies to fix.
+  const is2026SummerLeague = activeSeason === "2026:summer";
 
   return (
     <div className="sr-shell">
@@ -676,8 +713,9 @@ export function SeasonalRankingsTable(props: {
               onChange={(e) => setMinGames(Number(e.target.value))}
             >
               <option value={0}>Any</option>
-              <option value={5}>GP &gt; 5</option>
-              <option value={10}>GP &gt; 10</option>
+              <option value={3}>Min 3+</option>
+              <option value={5}>Min 5+</option>
+              <option value={10}>Min 10+</option>
             </select>
           </div>
 
@@ -790,7 +828,11 @@ export function SeasonalRankingsTable(props: {
                       </td>
                       <td className="sr-td sr-num sr-td-rank">{rank}</td>
                       <td className="sr-td sr-td-shot">
-                        <Headshot id={s.headshot_id} name={s.name} />
+                        <Headshot
+                          id={s.headshot_id}
+                          name={s.name}
+                          extraSources={is2026SummerLeague ? [...prospectHeadshotCandidates(s.name), nbaHeadshotUrl(s.name)] : undefined}
+                        />
                       </td>
                       <td className="sr-td sr-td-player sr-sticky-col" title={s.name}>
                         {shortenPlayerName(s.name)}
@@ -847,6 +889,13 @@ export function SeasonalRankingsTable(props: {
         <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: "var(--text-secondary)" }}>
           About Player Category Values (CatV)
         </h2>
+        {isSummerDataset && (
+          <p style={{ marginBottom: 12, color: "var(--text-primary)" }}>
+            This dataset is Summer League (Vegas) production only, scored against its own standalone
+            baseline pool — small samples against non-NBA-caliber competition, so these values are
+            NOT comparable to regular-season or playoff CatV.
+          </p>
+        )}
         <p>
           Fantasy Hoops Edge Player Category Values (CatV) measure how much a player contributes
           above a league-baseline replacement in each of the nine standard roto categories: points,
@@ -1022,7 +1071,8 @@ export function SeasonalRankingsTable(props: {
         .sr-headshot-fallback {
           width: 34px; height: 34px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
-          background: var(--bg-card, #1a1a1a); color: var(--text-muted);
+          background: var(--bg-card, #1a1a1a); color: var(--text-secondary);
+          font-family: var(--rt-font-sans); font-size: 12px; font-weight: 600;
         }
         .sr-count {
           text-align: center; font-size: 11px; color: var(--text-muted);
@@ -1120,6 +1170,7 @@ export function SeasonalRankingsTable(props: {
           .sr-th-rank, .sr-td-rank { left: 30px; }
           .sr-team-logo { width: 20px; height: 20px; }
           .sr-headshot-img, .sr-headshot-fallback { width: 26px; height: 26px; }
+          .sr-headshot-fallback { font-size: 10px; }
           .sr-count { font-size: 10px; padding: 8px 0 18px; }
         }
 
@@ -1140,6 +1191,7 @@ export function SeasonalRankingsTable(props: {
           .sr-th-player, .sr-td-player { width: 92px; min-width: 92px; max-width: 92px; }
           .sr-team-logo { width: 18px; height: 18px; }
           .sr-headshot-img, .sr-headshot-fallback { width: 22px; height: 22px; }
+          .sr-headshot-fallback { font-size: 9px; }
         }
       `}</style>
     </div>

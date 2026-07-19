@@ -7,12 +7,14 @@
  * is played. Order here is the order the UI selector shows.
  */
 
-export type SeasonType = "regular" | "postseason";
+export type SeasonType = "regular" | "postseason" | "summer";
 
 export type SeasonDataset = {
   season: number;
   type: SeasonType;
   label: string;
+  /** Baseline pool size to default to on first load. Falls back to CANONICAL_SIZE when absent. */
+  defaultSize?: number;
 };
 
 export const SEASON_DATASETS: readonly SeasonDataset[] = [
@@ -22,6 +24,13 @@ export const SEASON_DATASETS: readonly SeasonDataset[] = [
   { season: 2026, type: "postseason", label: "Playoffs 26" },
   { season: 2025, type: "postseason", label: "Playoffs 25" },
   { season: 2024, type: "postseason", label: "Playoffs 24" },
+  // Vegas Summer League — standalone dataset, own (small) baseline pool. Values
+  // are NOT comparable to regular-season CatV (exhibition ball, tiny samples).
+  { season: 2026, type: "summer", label: "Summer League 2026", defaultSize: 250 },
+  { season: 2025, type: "summer", label: "Summer League 2025", defaultSize: 250 },
+  { season: 2024, type: "summer", label: "Summer League 2024", defaultSize: 250 },
+  { season: 2023, type: "summer", label: "Summer League 2023", defaultSize: 250 },
+  { season: 2022, type: "summer", label: "Summer League 2022", defaultSize: 250 },
 ] as const;
 
 /** Default dataset shown on first load. */
