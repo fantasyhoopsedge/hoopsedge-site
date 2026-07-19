@@ -6,8 +6,6 @@ import {
   CATS,
   DYNASTY_TIER_META,
   PRO_UNLOCKED,
-  STATSET_COLORS,
-  STATSET_DEFS,
   TEAM_LOGO,
   TEAMS,
   type FvMetric,
@@ -35,7 +33,6 @@ import {
   seasonTriosFor,
   shortName,
   singularTier,
-  starTier,
   tagBadge,
 } from "./roster-helpers";
 import { PlayerHeadshot } from "./roster-headshot";
@@ -368,11 +365,6 @@ export function RosterApp({
     const verdict = activeTagMeta?.label ?? null;
     const toneColor = activeTagMeta?.color ?? "var(--rt-muted)";
     const toneArrow = activeTagMeta?.emoji ?? "–";
-    const statSet = STATSET_DEFS.map((d) => {
-      const cat = CATS.find((c) => c.key === d.key)!;
-      const tier = starTier(catValCur(p, cat));
-      return { label: d.label, color: STATSET_COLORS[tier] };
-    });
     const tag = p.tag ? tagBadge(p.tag, dark) : null;
     // Rank shown when sorted by a fantasy metric = pool-wide rank for that metric.
     const cardMetric: FvMetric =
@@ -392,7 +384,6 @@ export function RosterApp({
       contractFull: p.contractYears
         ? p.contractYears + " yr" + (p.contractYears > 1 ? "s" : "") + " / " + money(p.contractTotal ?? 0)
         : "",
-      statSet,
       tag,
       tagShort: p.tag === "rookie" ? "R" : p.tag === "soph" ? "S" : "",
       salary: money(p.salary),
@@ -488,7 +479,7 @@ export function RosterApp({
   ];
 
   const noResults = cards.length === 0;
-  const listGridCols = "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr) minmax(262px,1.7fr)";
+  const listGridCols = "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr)";
 
   return (
     <>
@@ -1016,7 +1007,6 @@ export function RosterApp({
                       </button>
                     );
                   })}
-                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 10, fontWeight: 600, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat set</span>
                 </div>
                 {cards.map((c) => (
                   <div
@@ -1080,13 +1070,6 @@ export function RosterApp({
                         <span style={{ fontSize: 8 }}>{c.fvToneArrow}</span>
                         {c.fvVerdict}
                       </span>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
-                      {c.statSet.map((s, i) => (
-                        <span key={i} style={{ fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 600, color: s.color }}>
-                          {s.label}
-                        </span>
-                      ))}
                     </div>
                   </div>
                 ))}
