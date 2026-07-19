@@ -199,6 +199,15 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
   const isCompactViewport = isMobile || isTabletWidth;
+  // iPad portrait specifically (not phone — that already has its own
+  // separate compact card list below, gated on isMobile). The sidebar is
+  // now dropped for this whole range (see roster-tokens.css), which alone
+  // fixes most of the squeeze, but the grid view's cards still only got 2
+  // narrow columns there — the list view (a proper multi-column row, same
+  // pattern as every other data table on the site) uses that width far
+  // better than a squeezed card grid, so this range skips grid entirely.
+  const isTabletPortrait = isTabletWidth && !isMobile;
+  const effectiveViewMode = isTabletPortrait ? "list" : viewMode;
 
   // Compare modal: up to 4 players, persisted in sessionStorage (mirrors the
   // theme localStorage pattern in team-rosters-shell.tsx) so the list
@@ -840,7 +849,11 @@ export function RosterApp({
                   {cards.length} of {players.length} players
                 </span>
               )}
-              {!isMobile && (
+              {/* Toggle hidden (not just !isMobile) in tablet portrait — that
+                  range is forced to list-only below (effectiveViewMode), so
+                  a grid/list picker there would offer a choice that doesn't
+                  do anything. */}
+              {!isMobile && !isTabletPortrait && (
                 <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
                   <button
                     type="button"
@@ -874,14 +887,14 @@ export function RosterApp({
             )}
           </div>
 
-          {/* Player grid */}
-          {!isMobile && viewMode === "grid" && (
-            // auto-fill/minmax instead of a hardcoded repeat(3, 1fr): the
-            // detail rail no longer eats into this column's width on tablet
-            // (see isCompactViewport above), but a fixed 3-up grid still
-            // wouldn't fit iPad portrait's ~530px content width without
-            // cramming each card under 165px. This settles at 2 columns
-            // there and 3 on wider viewports without a separate breakpoint.
+          {/* Player grid. Real desktop only now — iPad portrait is forced to
+              list view above (effectiveViewMode), and phone has its own
+              separate compact card list further down, so isCompactViewport
+              can no longer be true whenever this actually renders; the
+              padding/avatar/gap here don't need a tablet-compact branch
+              anymore (that used to live here before the sidebar was
+              dropped for tablet portrait — see roster-tokens.css). */}
+          {!isMobile && effectiveViewMode === "grid" && (
             <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
               {cards.map((c) => (
                 <div
@@ -894,16 +907,12 @@ export function RosterApp({
                     background: "var(--rt-canvas)",
                     border: `1px solid ${c.cardBorder}`,
                     borderRadius: 16,
-                    padding: isCompactViewport ? 14 : 18,
+                    padding: 18,
                     transition: "box-shadow 140ms ease, border-color 140ms ease",
                   }}
                 >
-                  {/* Card padding/avatar/gap trimmed a bit at tablet width (2-up
-                      grid still only gives ~220px cards) — without it, a few
-                      longer names ("Mitchell Robinson", "Baylor Scheierman")
-                      ellipsis-truncated with only ~121px of name column left. */}
-                  <div style={{ display: "flex", alignItems: "center", gap: isCompactViewport ? 10 : 14 }}>
-                    <PlayerHeadshot name={c.name} size={isCompactViewport ? 44 : 52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    <PlayerHeadshot name={c.name} size={52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                       <div style={{ fontSize: 13, color: "var(--rt-muted)", marginTop: 2 }}>{c.meta}</div>
@@ -963,7 +972,7 @@ export function RosterApp({
           )}
 
           {/* Player list */}
-          {!isMobile && viewMode === "list" && (
+          {!isMobile && effectiveViewMode === "list" && (
             <div style={{ flexShrink: 0 }}>
               <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflowX: "auto" }}>
                 <div
