@@ -1079,6 +1079,23 @@ export function SeasonalRankingsTable(props: {
           padding: 10px 0 24px; font-family: var(--rt-font-sans);
         }
 
+        /* iPad portrait (768-1023px): PlatformSidebarNav drops its sidebar at
+           this same <=1023px breakpoint (see .platform-sidebar-desktop in
+           globals.css), so this shell needs the same top-nav clearance the
+           phone block below already has — without the phone block's OTHER
+           rules (the collapsible filter-toggle overlay), since
+           .sr-controls-inner is already flex-wrap:wrap on desktop and
+           should reflow fine at this width on its own. min-width-bounded so
+           it can't cascade-conflict with the phone block below. 64px (not
+           phone's 52px): SiteNav is only actually 52px tall right at 768px
+           itself (its own max-width:768px breakpoint) — this over-reserves
+           slightly at that one exact width rather than under-reserving
+           across the rest of the range. */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .sr-shell { padding-left: 0; padding-top: 64px; }
+          .sr-controls { top: 64px; }
+        }
+
         @media (max-width: 767px) {
           .sr-shell { padding-left: 0; padding-top: 52px; }
           .sr-controls { top: 52px; }

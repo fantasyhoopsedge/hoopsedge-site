@@ -220,15 +220,19 @@
   --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
-/* Sidebar-as-platform-nav: fixed left rail on desktop, hidden on mobile
- * (mobile falls back to the site's existing top <nav> — see PlatformSidebarNav). */
+/* Sidebar-as-platform-nav: fixed left rail on desktop AND iPad landscape,
+ * hidden at <=1023px — iPad portrait falls back to the site's existing top
+ * <nav> — see PlatformSidebarNav. (Was <=767px only; the 236px rail is a
+ * reasonable ~20% of a 1024px+ screen but ~30% of an iPad-portrait one, and
+ * every page using this rail visibly squeezed at that width — same finding
+ * and same fix as team-rosters' AppSidebar, see roster-tokens.css.) */
 .platform-sidebar-desktop {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 150;
   background: var(--rt-canvas);
   font-family: var(--rt-font-sans);
 }
 .platform-sidebar-mobile { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .platform-sidebar-desktop { display: none; }
   .platform-sidebar-mobile { display: block; }
 }
@@ -1102,6 +1106,33 @@ body:has(.dr-rankings-shell) {
 @media (max-width: 768px) {
   .dr-rankings-main {
     padding: 0 16px;
+  }
+}
+
+/* iPad portrait (768-1023px): PlatformSidebarNav drops its sidebar at this
+   same <=1023px breakpoint now (see .platform-sidebar-desktop above), so
+   this shell needs the same padding-left: 0 + fixed-nav top-clearance the
+   phone block below already has — just without the phone block's OTHER
+   rules (table column hiding, mobile filter overlay, etc. — those stay
+   keyed to the table's own JS isMobile check at <=767, a separate concern
+   this doesn't touch). min-width-bounded so it can't cascade-conflict with
+   the phone block's own --dr-nav-h override below. --dr-nav-h stays at the
+   :root default (64px, SiteNav's usual height) here rather than phone's
+   52px — SiteNav is only actually 52px tall right at 768px itself (its own
+   max-width:768px breakpoint), so this slightly over-reserves at that one
+   exact width rather than under-reserving across the rest of the range. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dr-rankings-shell,
+  .draft-board-shell {
+    padding-left: 0;
+  }
+
+  .dr-rankings-measured-top {
+    padding-top: var(--dr-nav-h);
+  }
+
+  .dr-sticky-controls {
+    top: var(--dr-nav-h);
   }
 }
 
