@@ -1880,11 +1880,15 @@ body:has(.dr-rankings-shell) {
   width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .dr-table-scroll {
-    overflow-x: hidden;
-  }
-}
+/* NOTE: no forced overflow-x:hidden above 1024px here (there used to be
+   one). The table (min-width:1120px, max-width:1200px) plus the 236px
+   fixed sidebar plus gutters only clears 1120px of content room past
+   ~1480px of viewport — every iPad in landscape (1024-1194px) sits well
+   under that, so forcing overflow-x:hidden at exactly 1024px silently
+   clipped the trailing expert columns with no way to reach them. auto
+   already collapses to no scrollbar/no scroll on viewports wide enough
+   that the table doesn't overflow, so there was nothing this bought
+   desktop that auto didn't already give it for free. */
 
 @media (max-width: 767px) {
   .dr-table-scroll {
@@ -3184,6 +3188,31 @@ body:has(.dr-rankings-shell) {
   }
 }
 
+/* iPad portrait (768-1023px): .db-player-main below is row-direction by
+   default (name + meta side by side on one line) and only stacks into a
+   column — giving the name its own full-width line — inside the <=767px
+   phone block further down. That left a gap: portrait tablets keep the
+   side-by-side layout while also carrying the full desktop .db-board-wrap
+   side padding (60px) and row chrome (rank number, avatar, age badge), so
+   longer names ran out of room and ellipsis-truncated. Pulling just the
+   stack (not the rest of the phone-specific compacting — hero, row
+   padding, badge sizes — which still has plenty of room at this width)
+   up to this range fixes that without shrinking anything else. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .draft-board-shell .db-player-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .draft-board-shell .db-player-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+}
+
 @media (max-width: 767px) {
   .draft-board-shell .db-hero {
     padding: 12px 16px;
@@ -3571,9 +3600,14 @@ body:has(.dr-rankings-shell) {
    hamburger + full-screen menu every other content page uses (see
    home-nav.tsx) — SiteNav's <nav> is position:fixed (an overlay, unlike
    the sticky header it replaces), so home-hero-grid gets matching top
-   padding on mobile to avoid sitting under the bar. */
+   padding on mobile to avoid sitting under the bar. Threshold matches
+   .home-nav-links' own hide-below-1024px breakpoint directly below —
+   these two used to disagree (this swap was gated at 767px while the
+   links vanished at 1023px), leaving 768-1023px viewports (iPad
+   portrait) with neither the desktop links nor the hamburger: no way to
+   reach any nav destination from the home page at all. */
 .home-nav-mobile { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .home-nav-desktop { display: none; }
   .home-nav-mobile { display: block; }
 }

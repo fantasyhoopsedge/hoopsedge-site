@@ -178,6 +178,25 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
+  // iPad portrait (768-1023px) isn't "mobile" (isMobile above stays false,
+  // so it keeps the desktop's compact header/grid sizing, which fits fine),
+  // but the fixed 236px sidebar plus a fixed 392px detail rail leaves as
+  // little as ~140px for the roster list itself — the list was effectively
+  // unusable. Reuses the exact same full-screen overlay the detail panel
+  // already has on phones (see isMobile ternaries below) rather than
+  // building a second treatment, and matches the <1024px breakpoint
+  // draft-board already uses for the identical list+detail-rail tradeoff
+  // (see .db-detail-col in globals.css).
+  const [isDetailOverlay, setIsDetailOverlay] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsDetailOverlay(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDetailOverlay(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  const detailIsOverlay = isMobile || isDetailOverlay;
+
   // Compare modal: up to 4 players, persisted in sessionStorage (mirrors the
   // theme localStorage pattern in team-rosters-shell.tsx) so the list
   // survives a full page navigation (e.g. switching teams), not just
@@ -214,7 +233,7 @@ export function RosterApp({
 
   const selectPlayer = (id: string) => {
     setSelectedId(id);
-    if (isMobile) setMobileDetailOpen(true);
+    if (detailIsOverlay) setMobileDetailOpen(true);
   };
 
   const modeNow: SeasonMode = mode ?? "cur";
@@ -468,7 +487,7 @@ export function RosterApp({
           list's scroll position lives on this DOM node's overflow:auto, so
           unmounting it on every player tap reset the scroll to the top on
           return. display:none preserves scrollTop across the toggle. */}
-      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: isMobile && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: detailIsOverlay && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
@@ -847,7 +866,13 @@ export function RosterApp({
 
           {/* Player grid */}
           {!isMobile && viewMode === "grid" && (
-            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+            // auto-fill/minmax instead of a hardcoded repeat(3, 1fr): the
+            // detail rail no longer eats into this column's width on tablet
+            // (see detailIsOverlay above), but a fixed 3-up grid still
+            // wouldn't fit iPad portrait's ~530px content width without
+            // cramming each card under 165px. This settles at 2 columns
+            // there and 3 on wider viewports without a separate breakpoint.
+            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
@@ -1163,12 +1188,12 @@ export function RosterApp({
       <aside
         ref={detailPanelRef}
         style={
-          isMobile
+          detailIsOverlay
             ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
             : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
-        {isMobile && (
+        {detailIsOverlay && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--rt-hairline)", background: "var(--rt-canvas)", position: "sticky", top: 0, zIndex: 1 }}>
             <button
               type="button"
