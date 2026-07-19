@@ -622,8 +622,15 @@ export function SiteNav(props: {
         .nav-mobile-panel-signin { background: none; border: 1px solid var(--border-main); color: var(--text-primary); }
         .nav-mobile-panel-join { background: var(--rt-primary); border: none; color: #ffffff; }
 
-        /* ── Mobile ──────────────────────────────────────────────────────── */
-        @media (max-width: 767px) {
+        /* ── Mobile/tablet-portrait ──────────────────────────────────────────
+           <=1023px (was <=767px): iPad portrait was showing the full inline
+           link row here (Rankings dropdown, Arena, Join, etc.) crammed next
+           to the brand — the same row that only really fits real desktop
+           width. Matches PlatformSidebarNav's own <=1023px breakpoint (this
+           IS its mobile fallback on 8+ pages — see platform-sidebar-nav.tsx)
+           and team-rosters' AppSidebar-drawer breakpoint, so the hamburger
+           pattern is now consistent everywhere it's used, not just on phone. */
+        @media (max-width: 1023px) {
           .nav-links > li.nav-theme,
           .nav-links > li.nav-mobile-opposite-link,
           .nav-links > li.nav-rankings,

@@ -739,6 +739,43 @@ nav {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1100px) { .hero-visual { display: none; } }
 @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+/* Hamburger-left, centered full wordmark — matches team-rosters'
+   .rt-mobile-topbar exactly, and now shared with iPad portrait too
+   (768-1023px), not just phone: SiteNav's own hamburger breakpoint below
+   extends to the same <=1023px range, so this needs to match or the nav
+   row would still be laid out for an inline link row that no longer
+   exists there. min-width-bounded (not folded into the <=768px block
+   below) because that block also carries a batch of home-page-only rules
+   (.hero, .features-grid, .cta-section, footer) that have nothing to do
+   with the nav and must stay phone-only. */
+@media (min-width: 769px) and (max-width: 1023px) {
+  nav { padding: 0 14px; height: 52px; }
+  .nav-brand-full { display: inline-flex; }
+  .nav-brand-mobile { display: none; }
+  .nav-brand { font-size: 17px; letter-spacing: 4px; white-space: nowrap; }
+  .nav-cta { padding: 7px 12px !important; font-size: 11px !important; white-space: nowrap; letter-spacing: 1px !important; }
+  nav > a {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  .nav-links {
+    order: -1;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .nav-links a,
+  .nav-links button.theme-toggle {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .nav-mobile-spacer {
+    display: block;
+    flex: 0 0 36px;
+  }
+}
+
 @media (max-width: 768px) {
   nav { padding: 0 14px; height: 52px; }
   /* Hamburger-left, centered full wordmark — matches team-rosters'
