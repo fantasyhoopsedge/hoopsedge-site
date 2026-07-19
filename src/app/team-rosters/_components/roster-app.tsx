@@ -195,14 +195,34 @@ export function RosterApp({
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-  const isCompactViewport = isMobile || isTabletWidth;
-  // iPad portrait specifically (not phone — that already has its own
-  // separate compact card list below, gated on isMobile). The sidebar is
-  // now dropped for this whole range (see roster-tokens.css), which alone
-  // fixes most of the squeeze, but the grid view's cards still only got 2
-  // narrow columns there — the list view (a proper multi-column row, same
-  // pattern as every other data table on the site) uses that width far
-  // better than a squeezed card grid, so this range skips grid entirely.
+  // iPad landscape (1024-1279px) keeps the sidebar (236px is a reasonable
+  // ~20% of that width, and it's not the thing squeezing this page) but
+  // still doesn't have room for BOTH the roster list and a persistent
+  // 392px detail rail at the same time — measured live, the summary-stat
+  // grid and filter pills were overflowing there too, same as portrait
+  // was before isCompactViewport covered it. Upper-bounded at 1279 (not
+  // open-ended) so real desktop windows keep the persistent rail — see
+  // .db-detail-col in globals.css, which uses the same 1280px cutoff for
+  // the identical tradeoff on draft-board.
+  const [isLandscapeTabletWidth, setIsLandscapeTabletWidth] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px) and (max-width: 1279px)");
+    setIsLandscapeTabletWidth(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLandscapeTabletWidth(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  const isCompactViewport = isMobile || isTabletWidth || isLandscapeTabletWidth;
+  // iPad portrait specifically (not landscape, and not phone — phone
+  // already has its own separate compact card list below, gated on
+  // isMobile). The sidebar is dropped for this whole range (see
+  // roster-tokens.css), which alone fixes most of the squeeze, but the
+  // grid view's cards still only got 2 narrow columns there — the list
+  // view (a proper multi-column row, same pattern as every other data
+  // table on the site) uses that width far better than a squeezed card
+  // grid, so this range skips grid entirely. Landscape keeps its sidebar
+  // AND both view modes — once the detail rail is an overlay there's
+  // plenty of room for either.
   const isTabletPortrait = isTabletWidth && !isMobile;
   const effectiveViewMode = isTabletPortrait ? "list" : viewMode;
 
@@ -878,13 +898,15 @@ export function RosterApp({
             )}
           </div>
 
-          {/* Player grid. Real desktop only now — iPad portrait is forced to
-              list view above (effectiveViewMode), and phone has its own
-              separate compact card list further down, so isCompactViewport
-              can no longer be true whenever this actually renders; the
-              padding/avatar/gap here don't need a tablet-compact branch
-              anymore (that used to live here before the sidebar was
-              dropped for tablet portrait — see roster-tokens.css). */}
+          {/* Player grid. iPad portrait is forced to list view above
+              (effectiveViewMode) and phone has its own separate compact
+              card list further down, so this only ever renders on real
+              desktop OR iPad landscape (both view modes stay available
+              there — see isLandscapeTabletWidth above). auto-fill still
+              settles at 3 narrower columns on landscape's reclaimed-but-
+              not-huge width, so the padding/avatar/gap trim below (same
+              values portrait used before it was forced to list-only) is
+              still needed there to keep names from truncating. */}
           {!isMobile && effectiveViewMode === "grid" && (
             <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
               {cards.map((c) => (
@@ -898,12 +920,12 @@ export function RosterApp({
                     background: "var(--rt-canvas)",
                     border: `1px solid ${c.cardBorder}`,
                     borderRadius: 16,
-                    padding: 18,
+                    padding: isCompactViewport ? 14 : 18,
                     transition: "box-shadow 140ms ease, border-color 140ms ease",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <PlayerHeadshot name={c.name} size={52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
+                  <div style={{ display: "flex", alignItems: "center", gap: isCompactViewport ? 10 : 14 }}>
+                    <PlayerHeadshot name={c.name} size={isCompactViewport ? 44 : 52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                       <div style={{ fontSize: 13, color: "var(--rt-muted)", marginTop: 2 }}>{c.meta}</div>
