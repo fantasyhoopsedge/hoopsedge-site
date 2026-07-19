@@ -140,10 +140,17 @@
   background: var(--rt-primary-active) !important;
 }
 
-/* ── Mobile shell (<=767px, matching the sitewide breakpoint) ──────────────
-   Desktop keeps the fixed-left AppSidebar rail; mobile swaps it for a
-   compact top bar + hamburger that opens AppSidebar as a slide-over drawer,
-   reusing the same component/theme state instead of a separate mobile nav. */
+/* ── Mobile/tablet-portrait shell (<=1023px) ────────────────────────────────
+   Desktop and iPad landscape keep the fixed-left AppSidebar rail (236px is a
+   reasonable ~20% of a 1024px+ screen and everything tests clean there).
+   iPad portrait (768-1023px) swaps to the same compact top bar + hamburger
+   phones use instead: at that width 236px is ~30% of the screen, and
+   RosterApp's own content (summary stats, filters, player list) was still
+   visibly squeezed even after tightening its internal spacing — dropping
+   the sidebar entirely reclaims far more room than any further internal
+   trimming could. Reuses the exact same AppSidebar-as-slide-over-drawer
+   treatment phones already had (see .rt-mobile-topbar below), just at a
+   wider threshold, rather than building a separate tablet nav. */
 .rt-sidebar-desktop {
   flex: 0 0 236px;
   height: 100%;
@@ -272,7 +279,7 @@
   color: var(--rt-on-primary);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .rt-shell {
     flex-direction: column;
   }

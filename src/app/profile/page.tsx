@@ -13,10 +13,10 @@ const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 // padding-left offsets the fixed-position left sidebar (PlatformSidebarNav
 // desktop rail, 236px) — same convention as .dr-rankings-shell /
 // .draft-board-shell in globals.css. Reverts to 0 under the sidebar's own
-// 767px breakpoint, where it falls back to the top SiteNav instead.
+// 1023px breakpoint, where it falls back to the top SiteNav instead.
 const PROFILE_SHELL_STYLES = `
   .profile-main { padding-left: 236px; }
-  @media (max-width: 767px) {
+  @media (max-width: 1023px) {
     .profile-main { padding-left: 0; }
   }
 `;

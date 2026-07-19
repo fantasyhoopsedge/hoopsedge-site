@@ -220,15 +220,19 @@
   --rt-font-mono: "Geist Mono", var(--font-geist-mono, "Geist Mono"), ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 
-/* Sidebar-as-platform-nav: fixed left rail on desktop, hidden on mobile
- * (mobile falls back to the site's existing top <nav> — see PlatformSidebarNav). */
+/* Sidebar-as-platform-nav: fixed left rail on desktop AND iPad landscape,
+ * hidden at <=1023px — iPad portrait falls back to the site's existing top
+ * <nav> — see PlatformSidebarNav. (Was <=767px only; the 236px rail is a
+ * reasonable ~20% of a 1024px+ screen but ~30% of an iPad-portrait one, and
+ * every page using this rail visibly squeezed at that width — same finding
+ * and same fix as team-rosters' AppSidebar, see roster-tokens.css.) */
 .platform-sidebar-desktop {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 150;
   background: var(--rt-canvas);
   font-family: var(--rt-font-sans);
 }
 .platform-sidebar-mobile { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .platform-sidebar-desktop { display: none; }
   .platform-sidebar-mobile { display: block; }
 }
@@ -735,6 +739,43 @@ nav {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1100px) { .hero-visual { display: none; } }
 @media (max-width: 900px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+/* Hamburger-left, centered full wordmark — matches team-rosters'
+   .rt-mobile-topbar exactly, and now shared with iPad portrait too
+   (768-1023px), not just phone: SiteNav's own hamburger breakpoint below
+   extends to the same <=1023px range, so this needs to match or the nav
+   row would still be laid out for an inline link row that no longer
+   exists there. min-width-bounded (not folded into the <=768px block
+   below) because that block also carries a batch of home-page-only rules
+   (.hero, .features-grid, .cta-section, footer) that have nothing to do
+   with the nav and must stay phone-only. */
+@media (min-width: 769px) and (max-width: 1023px) {
+  nav { padding: 0 14px; height: 52px; }
+  .nav-brand-full { display: inline-flex; }
+  .nav-brand-mobile { display: none; }
+  .nav-brand { font-size: 17px; letter-spacing: 4px; white-space: nowrap; }
+  .nav-cta { padding: 7px 12px !important; font-size: 11px !important; white-space: nowrap; letter-spacing: 1px !important; }
+  nav > a {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+  .nav-links {
+    order: -1;
+    gap: 8px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+  .nav-links a,
+  .nav-links button.theme-toggle {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .nav-mobile-spacer {
+    display: block;
+    flex: 0 0 36px;
+  }
+}
+
 @media (max-width: 768px) {
   nav { padding: 0 14px; height: 52px; }
   /* Hamburger-left, centered full wordmark — matches team-rosters'
@@ -1102,6 +1143,33 @@ body:has(.dr-rankings-shell) {
 @media (max-width: 768px) {
   .dr-rankings-main {
     padding: 0 16px;
+  }
+}
+
+/* iPad portrait (768-1023px): PlatformSidebarNav drops its sidebar at this
+   same <=1023px breakpoint now (see .platform-sidebar-desktop above), so
+   this shell needs the same padding-left: 0 + fixed-nav top-clearance the
+   phone block below already has — just without the phone block's OTHER
+   rules (table column hiding, mobile filter overlay, etc. — those stay
+   keyed to the table's own JS isMobile check at <=767, a separate concern
+   this doesn't touch). min-width-bounded so it can't cascade-conflict with
+   the phone block's own --dr-nav-h override below. --dr-nav-h stays at the
+   :root default (64px, SiteNav's usual height) here rather than phone's
+   52px — SiteNav is only actually 52px tall right at 768px itself (its own
+   max-width:768px breakpoint), so this slightly over-reserves at that one
+   exact width rather than under-reserving across the rest of the range. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dr-rankings-shell,
+  .draft-board-shell {
+    padding-left: 0;
+  }
+
+  .dr-rankings-measured-top {
+    padding-top: var(--dr-nav-h);
+  }
+
+  .dr-sticky-controls {
+    top: var(--dr-nav-h);
   }
 }
 
@@ -1880,11 +1948,15 @@ body:has(.dr-rankings-shell) {
   width: 100%;
 }
 
-@media (min-width: 1024px) {
-  .dr-table-scroll {
-    overflow-x: hidden;
-  }
-}
+/* NOTE: no forced overflow-x:hidden above 1024px here (there used to be
+   one). The table (min-width:1120px, max-width:1200px) plus the 236px
+   fixed sidebar plus gutters only clears 1120px of content room past
+   ~1480px of viewport — every iPad in landscape (1024-1194px) sits well
+   under that, so forcing overflow-x:hidden at exactly 1024px silently
+   clipped the trailing expert columns with no way to reach them. auto
+   already collapses to no scrollbar/no scroll on viewports wide enough
+   that the table doesn't overflow, so there was nothing this bought
+   desktop that auto didn't already give it for free. */
 
 @media (max-width: 767px) {
   .dr-table-scroll {
@@ -3184,6 +3256,60 @@ body:has(.dr-rankings-shell) {
   }
 }
 
+/* iPad portrait (768-1023px). .db-player-main below is row-direction by
+   default (name + meta side by side on one line) and only stacks into a
+   column — giving the name its own full-width line — inside the <=767px
+   phone block further down, so portrait tablets kept the side-by-side
+   layout. Measured live at 810px (236px sidebar + this page's own
+   60px-a-side .db-board-wrap padding + rank number/avatar/age-badge/arrow
+   chrome in .db-row): the name column was down to 143px — 17% of the
+   810px viewport — before this block existed. Stacking the row alone
+   wasn't enough at that width, so this also reclaims room from the
+   padding/chrome around it (~130px back), rather than just
+   truncating harder in the smaller box. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* align-items:stretch (the default — set explicitly for clarity), NOT
+     flex-start: flex-start leaves each column child's cross-size (width,
+     since this is a column-direction flex container) to shrink-fit its own
+     content, and percentage widths on descendants (.db-player-name-row /
+     .db-player-name below) don't reliably resolve back through that —
+     confirmed live: .db-player-name-row's width:100% silently no-opped and
+     the nowrap name kept its full natural width, overlapping the AGE badge
+     to its right in .db-row. stretch sizes children directly off the
+     already-laid-out parent box instead, with no percentage math involved,
+     which is what actually constrains the name to truncate correctly. */
+  .draft-board-shell .db-player-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .draft-board-shell .db-player-name-row {
+    width: 100%;
+  }
+
+  .draft-board-shell .db-player-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+  }
+
+  /* .db-board-wrap's 60px-a-side padding is an inline style (see
+     _board-client.tsx) sized for real desktop width — needs !important to
+     win, same trick the <=767px override below already uses. Reclaims 80px. */
+  .draft-board-shell .db-board-wrap {
+    padding: 64px 20px 60px !important;
+  }
+
+  /* Row chrome tightened (not down to phone's 10px 8px — there's more room
+     here) — reclaims another ~44px combined. */
+  .draft-board-shell .db-row {
+    gap: 10px;
+    padding: 14px 14px;
+  }
+}
+
 @media (max-width: 767px) {
   .draft-board-shell .db-hero {
     padding: 12px 16px;
@@ -3257,12 +3383,26 @@ body:has(.dr-rankings-shell) {
     text-align: center;
   }
 
+  /* align-items:stretch (default, set explicitly for clarity) — NOT
+     flex-start. flex-start shrink-fits each column child to its own
+     content instead of the parent's width, and percentage widths on
+     descendants (.db-player-name-row / .db-player-name below) don't
+     reliably resolve back through a flex-start-sized ancestor — confirmed
+     live at tablet width: width:100% silently no-op'd and the nowrap name
+     kept its full natural width, overlapping the AGE badge to its right in
+     .db-row. stretch sizes children off the already-laid-out parent box
+     directly, no percentage math involved, which is what actually
+     constrains the name to truncate correctly. */
   .draft-board-shell .db-player-main {
     flex: 1 1 auto;
     min-width: 0;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
+  }
+
+  .draft-board-shell .db-player-name-row {
+    width: 100%;
   }
 
   /* mobile rookie-board typography bump */
@@ -3571,9 +3711,14 @@ body:has(.dr-rankings-shell) {
    hamburger + full-screen menu every other content page uses (see
    home-nav.tsx) — SiteNav's <nav> is position:fixed (an overlay, unlike
    the sticky header it replaces), so home-hero-grid gets matching top
-   padding on mobile to avoid sitting under the bar. */
+   padding on mobile to avoid sitting under the bar. Threshold matches
+   .home-nav-links' own hide-below-1024px breakpoint directly below —
+   these two used to disagree (this swap was gated at 767px while the
+   links vanished at 1023px), leaving 768-1023px viewports (iPad
+   portrait) with neither the desktop links nor the hamburger: no way to
+   reach any nav destination from the home page at all. */
 .home-nav-mobile { display: none; }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .home-nav-desktop { display: none; }
   .home-nav-mobile { display: block; }
 }
