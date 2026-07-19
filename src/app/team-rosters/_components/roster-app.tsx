@@ -1240,7 +1240,7 @@ export function RosterApp({
           isFullScreenOverlay
             ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
             : isLandscapeTabletWidth
-              ? { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 260, width: "min(600px, 90vw)", maxHeight: "85vh", borderRadius: 16, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.45)", display: mobileDetailOpen ? "block" : "none" }
+              ? { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 260, width: "min(600px, 90vw)", maxHeight: "94vh", borderRadius: 16, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.45)", display: mobileDetailOpen ? "block" : "none" }
               : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
@@ -1260,7 +1260,7 @@ export function RosterApp({
           </div>
         )}
         {/* Court hero — dark in dark mode, light in light mode, never forced dark */}
-        <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: "26px 24px 24px" }}>
+        <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: isLandscapeTabletWidth ? "16px 18px 14px" : "26px 24px 24px" }}>
           {/* iPad landscape's pop-up close button — matches draft-board's
               ProspectDetailPanel close button (same position-on-hero
               treatment, rt- tokens instead of the sitewide ones). */}
@@ -1283,7 +1283,7 @@ export function RosterApp({
             />
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative" }}>
-            <PlayerHeadshot name={sp.name} size={62} initials={initials(sp.name)} background="var(--rt-primary)" color="var(--rt-on-primary)" fontSize={23} rookie={sp.tag === "rookie"} />
+            <PlayerHeadshot name={sp.name} size={isLandscapeTabletWidth ? 48 : 62} initials={initials(sp.name)} background="var(--rt-primary)" color="var(--rt-on-primary)" fontSize={isLandscapeTabletWidth ? 18 : 23} rookie={sp.tag === "rookie"} />
             <div style={{ minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <span style={{ fontSize: 23, fontWeight: 600, letterSpacing: "-0.4px", lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -1346,18 +1346,19 @@ export function RosterApp({
               mode={modeNow}
               prefetched={spTrend}
               tag={sp.tag}
+              compact={isLandscapeTabletWidth}
             />
           )}
         </div>
 
-        <div style={{ padding: "18px 18px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ padding: isLandscapeTabletWidth ? "12px 14px 16px" : "18px 18px 28px", display: "flex", flexDirection: "column", gap: isLandscapeTabletWidth ? 10 : 14 }}>
           {/* CTAs — sits between the trend chart above and the 9-cat profile below */}
           <div style={{ display: "flex", gap: 10 }}>
             <button
               type="button"
               className="rt-hover-primary"
               onClick={() => openCompare(sp)}
-              style={{ flex: 1, height: 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
+              style={{ flex: 1, height: isLandscapeTabletWidth ? 38 : 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: isLandscapeTabletWidth ? 14 : 15, fontWeight: 600 }}
             >
               Compare
             </button>
@@ -1404,14 +1405,14 @@ export function RosterApp({
           </div>
 
           {/* 9-category profile: ranked z-score, driven by the shared toggle above */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>
               {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
             {spMpgBar && (
-              <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 0 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, padding: isLandscapeTabletWidth ? "8px 0 0" : "12px 0 0" }}>
                 <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>MPG</span>
                 <span style={{ position: "relative", flex: 1, height: 8, background: "var(--rt-hairline-soft)", borderRadius: 999, overflow: "hidden" }}>
                   <span style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${spMpgBar.widthPct}%`, background: spMpgBar.color, borderRadius: 999 }} />
@@ -1427,7 +1428,7 @@ export function RosterApp({
                 {profile.reason}
               </div>
             ) : (
-              <div style={{ marginTop: 14 }}>
+              <div style={{ marginTop: isLandscapeTabletWidth ? 8 : 14 }}>
                 {profile.rows.map((row, i) => (
                   <div
                     key={row.key}
@@ -1435,7 +1436,7 @@ export function RosterApp({
                       display: "flex",
                       alignItems: "center",
                       gap: 11,
-                      padding: "8px 0",
+                      padding: isLandscapeTabletWidth ? "5px 0" : "8px 0",
                       borderBottom: i < profile.rows.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
                     }}
                   >
@@ -1472,7 +1473,7 @@ export function RosterApp({
           </div>
 
           {/* Salary & contract */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Salary &amp; contract</span>
               {contract.status && (
@@ -1499,7 +1500,7 @@ export function RosterApp({
               </div>
             ) : (
               <>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16 }}>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: isLandscapeTabletWidth ? 10 : 16 }}>
                   <div>
                     <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
@@ -1511,15 +1512,15 @@ export function RosterApp({
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>{money(contract.avg)}</div>
                   </div>
                 </div>
-                <div style={{ marginTop: 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "11px 0 9px" }}>
+                <div style={{ marginTop: isLandscapeTabletWidth ? 10 : 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "7px 0 5px" : "11px 0 9px" }}>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Year</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Team</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Age</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Salary</span>
                   </div>
                   {contract.rows.map((yr, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "5px 0" : "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{yr.year}</span>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-body)", fontVariantNumeric: "tabular-nums" }}>{yr.team}</span>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-muted)", fontVariantNumeric: "tabular-nums", textAlign: "center" }}>{yr.age}</span>
@@ -1541,7 +1542,7 @@ export function RosterApp({
 
           {/* Rookie draft — 2026 draft class only (sp.draft is null for everyone else) */}
           {sp.draft && (
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Rookie draft</span>
                 {sp.draft.boardTier != null && (
