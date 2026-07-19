@@ -178,24 +178,27 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // iPad portrait (768-1023px) isn't "mobile" (isMobile above stays false,
-  // so it keeps the desktop's compact header/grid sizing, which fits fine),
-  // but the fixed 236px sidebar plus a fixed 392px detail rail leaves as
-  // little as ~140px for the roster list itself — the list was effectively
-  // unusable. Reuses the exact same full-screen overlay the detail panel
-  // already has on phones (see isMobile ternaries below) rather than
-  // building a second treatment, and matches the <1024px breakpoint
+  // iPad portrait/landscape (768-1023px) isn't "mobile" (isMobile above
+  // stays false) — but measured live, several of the desktop-sized layout
+  // choices below don't actually fit that range: the fixed 236px sidebar
+  // plus a fixed 392px detail rail left as little as ~140px for the roster
+  // list itself, the 4-column summary-stat grid (repeat(3,1fr) 1.25fr)
+  // overflowed its row by ~164px, and the position/class filter pills
+  // (flexWrap:"nowrap") overflowed by ~404px — all three assumed real-
+  // desktop width that this range doesn't have. isCompactViewport below
+  // reuses the same "not enough room" signal for all three instead of
+  // building three separate treatments, and matches the <1024px breakpoint
   // draft-board already uses for the identical list+detail-rail tradeoff
   // (see .db-detail-col in globals.css).
-  const [isDetailOverlay, setIsDetailOverlay] = useState(false);
+  const [isTabletWidth, setIsTabletWidth] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
-    setIsDetailOverlay(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsDetailOverlay(e.matches);
+    setIsTabletWidth(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsTabletWidth(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-  const detailIsOverlay = isMobile || isDetailOverlay;
+  const isCompactViewport = isMobile || isTabletWidth;
 
   // Compare modal: up to 4 players, persisted in sessionStorage (mirrors the
   // theme localStorage pattern in team-rosters-shell.tsx) so the list
@@ -233,7 +236,7 @@ export function RosterApp({
 
   const selectPlayer = (id: string) => {
     setSelectedId(id);
-    if (detailIsOverlay) setMobileDetailOpen(true);
+    if (isCompactViewport) setMobileDetailOpen(true);
   };
 
   const modeNow: SeasonMode = mode ?? "cur";
@@ -487,7 +490,7 @@ export function RosterApp({
           list's scroll position lives on this DOM node's overflow:auto, so
           unmounting it on every player tap reset the scroll to the top on
           return. display:none preserves scrollTop across the toggle. */}
-      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: detailIsOverlay && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: isCompactViewport && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
@@ -704,8 +707,11 @@ export function RosterApp({
 
         {/* Scroll area */}
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px 16px 28px" : "24px 28px 36px", display: "flex", flexDirection: "column", gap: isMobile ? 16 : 22 }}>
-          {/* Summary cards */}
-          <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
+          {/* Summary cards. isCompactViewport (not isMobile): the 4-track
+              repeat(3,1fr) 1.25fr overflowed its row by ~164px at iPad
+              portrait width — measured live at 768px, where it's clearly
+              not "mobile" but still nowhere near enough room for 4 columns. */}
+          <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isCompactViewport ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
@@ -748,9 +754,12 @@ export function RosterApp({
             </div>
           </div>
 
-          {/* Position filters */}
+          {/* Position filters. isCompactViewport (not isMobile) on flexWrap:
+              nowrap forced the position pills + divider + class pills +
+              count text + view toggle onto one line that overflowed by
+              ~404px at iPad portrait width — measured live at 768px. */}
           <div style={{ flexShrink: 0, display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexWrap: isCompactViewport ? "wrap" : "nowrap" }}>
               <button
                 type="button"
                 onClick={clearAllFilters}
@@ -797,9 +806,10 @@ export function RosterApp({
               })}
               {/* Thin divider between the position group and the class group —
                   they're independent (ANDed) filters, not one flat list. Hidden
-                  on mobile, where the pills wrap onto their own rows anyway and
-                  a 1px bar reads as a stray mark rather than a separator. */}
-              {!isMobile && <span style={{ width: 1, alignSelf: "stretch", background: "var(--rt-hairline)", flexShrink: 0 }} />}
+                  whenever the pills can wrap onto their own rows (phone, and
+                  now tablet too), where a 1px bar reads as a stray mark
+                  rather than a separator. */}
+              {!isCompactViewport && <span style={{ width: 1, alignSelf: "stretch", background: "var(--rt-hairline)", flexShrink: 0 }} />}
               {classFilterDefs.map((cf) => {
                 const on = classFilters.has(cf.id);
                 return (
@@ -868,7 +878,7 @@ export function RosterApp({
           {!isMobile && viewMode === "grid" && (
             // auto-fill/minmax instead of a hardcoded repeat(3, 1fr): the
             // detail rail no longer eats into this column's width on tablet
-            // (see detailIsOverlay above), but a fixed 3-up grid still
+            // (see isCompactViewport above), but a fixed 3-up grid still
             // wouldn't fit iPad portrait's ~530px content width without
             // cramming each card under 165px. This settles at 2 columns
             // there and 3 on wider viewports without a separate breakpoint.
@@ -884,12 +894,16 @@ export function RosterApp({
                     background: "var(--rt-canvas)",
                     border: `1px solid ${c.cardBorder}`,
                     borderRadius: 16,
-                    padding: 18,
+                    padding: isCompactViewport ? 14 : 18,
                     transition: "box-shadow 140ms ease, border-color 140ms ease",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                    <PlayerHeadshot name={c.name} size={52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
+                  {/* Card padding/avatar/gap trimmed a bit at tablet width (2-up
+                      grid still only gives ~220px cards) — without it, a few
+                      longer names ("Mitchell Robinson", "Baylor Scheierman")
+                      ellipsis-truncated with only ~121px of name column left. */}
+                  <div style={{ display: "flex", alignItems: "center", gap: isCompactViewport ? 10 : 14 }}>
+                    <PlayerHeadshot name={c.name} size={isCompactViewport ? 44 : 52} initials={c.initials} background={c.plateBg} color={c.plateFg} fontSize={18} rookie={c.isRookie} />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 16, fontWeight: 600, color: "var(--rt-ink)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</div>
                       <div style={{ fontSize: 13, color: "var(--rt-muted)", marginTop: 2 }}>{c.meta}</div>
@@ -1188,12 +1202,12 @@ export function RosterApp({
       <aside
         ref={detailPanelRef}
         style={
-          detailIsOverlay
+          isCompactViewport
             ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
             : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
-        {detailIsOverlay && (
+        {isCompactViewport && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--rt-hairline)", background: "var(--rt-canvas)", position: "sticky", top: 0, zIndex: 1 }}>
             <button
               type="button"

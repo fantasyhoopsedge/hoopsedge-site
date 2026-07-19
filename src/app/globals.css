@@ -3188,21 +3188,36 @@ body:has(.dr-rankings-shell) {
   }
 }
 
-/* iPad portrait (768-1023px): .db-player-main below is row-direction by
+/* iPad portrait (768-1023px). .db-player-main below is row-direction by
    default (name + meta side by side on one line) and only stacks into a
    column — giving the name its own full-width line — inside the <=767px
-   phone block further down. That left a gap: portrait tablets keep the
-   side-by-side layout while also carrying the full desktop .db-board-wrap
-   side padding (60px) and row chrome (rank number, avatar, age badge), so
-   longer names ran out of room and ellipsis-truncated. Pulling just the
-   stack (not the rest of the phone-specific compacting — hero, row
-   padding, badge sizes — which still has plenty of room at this width)
-   up to this range fixes that without shrinking anything else. */
+   phone block further down, so portrait tablets kept the side-by-side
+   layout. Measured live at 810px (236px sidebar + this page's own
+   60px-a-side .db-board-wrap padding + rank number/avatar/age-badge/arrow
+   chrome in .db-row): the name column was down to 143px — 17% of the
+   810px viewport — before this block existed. Stacking the row alone
+   wasn't enough at that width, so this also reclaims room from the
+   padding/chrome around it (~130px back), rather than just
+   truncating harder in the smaller box. */
 @media (min-width: 768px) and (max-width: 1023px) {
+  /* align-items:stretch (the default — set explicitly for clarity), NOT
+     flex-start: flex-start leaves each column child's cross-size (width,
+     since this is a column-direction flex container) to shrink-fit its own
+     content, and percentage widths on descendants (.db-player-name-row /
+     .db-player-name below) don't reliably resolve back through that —
+     confirmed live: .db-player-name-row's width:100% silently no-opped and
+     the nowrap name kept its full natural width, overlapping the AGE badge
+     to its right in .db-row. stretch sizes children directly off the
+     already-laid-out parent box instead, with no percentage math involved,
+     which is what actually constrains the name to truncate correctly. */
   .draft-board-shell .db-player-main {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
+  }
+
+  .draft-board-shell .db-player-name-row {
+    width: 100%;
   }
 
   .draft-board-shell .db-player-name {
@@ -3210,6 +3225,20 @@ body:has(.dr-rankings-shell) {
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
+  }
+
+  /* .db-board-wrap's 60px-a-side padding is an inline style (see
+     _board-client.tsx) sized for real desktop width — needs !important to
+     win, same trick the <=767px override below already uses. Reclaims 80px. */
+  .draft-board-shell .db-board-wrap {
+    padding: 64px 20px 60px !important;
+  }
+
+  /* Row chrome tightened (not down to phone's 10px 8px — there's more room
+     here) — reclaims another ~44px combined. */
+  .draft-board-shell .db-row {
+    gap: 10px;
+    padding: 14px 14px;
   }
 }
 
@@ -3286,12 +3315,26 @@ body:has(.dr-rankings-shell) {
     text-align: center;
   }
 
+  /* align-items:stretch (default, set explicitly for clarity) — NOT
+     flex-start. flex-start shrink-fits each column child to its own
+     content instead of the parent's width, and percentage widths on
+     descendants (.db-player-name-row / .db-player-name below) don't
+     reliably resolve back through a flex-start-sized ancestor — confirmed
+     live at tablet width: width:100% silently no-op'd and the nowrap name
+     kept its full natural width, overlapping the AGE badge to its right in
+     .db-row. stretch sizes children off the already-laid-out parent box
+     directly, no percentage math involved, which is what actually
+     constrains the name to truncate correctly. */
   .draft-board-shell .db-player-main {
     flex: 1 1 auto;
     min-width: 0;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
+  }
+
+  .draft-board-shell .db-player-name-row {
+    width: 100%;
   }
 
   /* mobile rookie-board typography bump */

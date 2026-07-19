@@ -617,6 +617,14 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           .db-age-num { font-size: 18px; }
           .db-age-cap { font-size: 8px; letter-spacing: 1.5px; }
         }
+        /* iPad portrait: part of reclaiming room for the player name (see
+           the .db-board-wrap/.db-row tightening in globals.css) — shaves a
+           few px off this badge too rather than leaving it at full desktop
+           size. */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .db-age { min-width: 46px; padding: 3px 7px; margin-left: 6px; }
+          .db-age-num { font-size: 19px; }
+        }
 
         /* Team logo replacing the plain nbaTeam-code text (see RowTeamLogo). */
         .db-team-logo { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
