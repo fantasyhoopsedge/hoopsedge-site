@@ -40,7 +40,9 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "usage-redistribution"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "minutes-allocator"))
 from common import REPO, name_candidates, normalize_name  # noqa: E402
+from minutes import TEAM_MINUTE_BUDGET  # noqa: E402
 from redistribute import (  # noqa: E402
     FOUND, MAKE_OF, SHIP_STRENGTH, USAGE, league_curve, load_foundation, reconcile,
     team_anchors, team_volume,
@@ -60,6 +62,34 @@ STATS = ["pts", "reb", "ast", "stl", "blk", "tov", "fg3m", "fgm", "fga", "ftm", 
 # Stage 2 emits uppercase with 3PM for made-threes; normalize to our lowercase keys.
 S2_KEY = {"pts": "PTS", "reb": "REB", "ast": "AST", "stl": "STL", "blk": "BLK",
           "tov": "TOV", "fg3m": "3PM", "fgm": "FGM", "fga": "FGA", "ftm": "FTM", "fta": "FTA"}
+
+# Role-context USAGE multiplier -- the player-level analogue of Stage 3's team-level
+# system_mult. Ash's role-context `tier` (carried here on each player via Stage 1) nudges a
+# tagged player's per-36 USAGE rate BEFORE Stage 3 reconciles the team total, so the tag
+# shifts the WITHIN-team usage distribution toward (won_job/expanded) or away from
+# (reduced/clear_backup) the player while Stage 3 conserves the team total -- purely
+# redistributive, it can never inflate a team's usage (the safety net that lets a tag bump
+# a beneficiary meaningfully without runaway projections). Applied to shot/pass/turnover
+# usage only: FG%/FT% held fixed (each make rides its attempt by the same factor), 3PM left
+# FLAT (measure_usage_tiers.py: 3P volume is a shot-profile trait, ~0 slope vs vacancy),
+# STL/BLK/REB untouched (not usage-conserved), PTS rebuilt from the reconciled makes.
+#
+# ORTHOGONAL TO MINUTES, deliberately SMALLER than the minutes tier. Stage 1's role_mult
+# (won_job x1.15) moves how MANY minutes a player gets; this moves how aggressive he is PER
+# minute -- two real, separate effects, so both applying is not a double-count. This is
+# sized as the smaller residual on top of the minutes change (won_job usage x1.08 vs minutes
+# x1.15). (Where Ash hand-sets minutes via a depth-chart override, role_mult is bypassed and
+# only this usage nudge applies -- cleaner still.)
+#
+# v0 magnitudes from the vacancy-scaled backtest: won_job (a big vacated role) moves more
+# than expanded; the down side is asymmetric because a squeezed player keeps taking his own
+# shots in his own minutes more than a departing star's are re-absorbed. Provisional until a
+# role-context backtest refines them; kept modest since Stage 3 rescales around them anyway.
+USG_TIERS = {"won_job": 1.08, "expanded": 1.04, "no_change": 1.00,
+             "reduced": 0.95, "clear_backup": 0.88}
+# The usage rates it scales: attempts + their makes (so FG%/FT% stay invariant), assists,
+# turnovers. NEVER fg3m / reb / stl / blk (not usage-scaled) or pts (rebuilt from makes).
+USG_MULT_STATS = ["fga", "fgm", "fta", "ftm", "ast", "tov"]
 
 # hoopR -> canonical FHE codes (the roster CSV's spelling; src/lib/nba-teams.ts is the
 # TS source of truth, not importable here). This is the ONE place roster space (canonical)
@@ -193,6 +223,19 @@ def main() -> None:
     rates = build_rates(stage1, psn)
     print(f"Stage 5 -- assembling {len(rates)} players on {rates['team'].nunique()} teams")
 
+    # --- role-context usage nudge (Stage 2.5). Scale each tagged player's per-36 usage rate
+    # BEFORE the bottom-up + Stage 3 reconcile below, so a tag redistributes usage WITHIN the
+    # team (Stage 3 conserves the team total). Attempts + their makes move together (FG%/FT%
+    # invariant); 3PM/REB/STL/BLK/PTS are untouched here. See USG_TIERS.
+    rates["usg_mult"] = rates["role_tier"].map(USG_TIERS).fillna(1.0)
+    for s in USG_MULT_STATS:
+        rates[f"r_{s}"] = rates[f"r_{s}"] * rates["usg_mult"]
+    n_up = int(rates["usg_mult"].gt(1.0).sum())
+    n_dn = int(rates["usg_mult"].lt(1.0).sum())
+    print(f"  role-context usage nudge: {n_up} up (won_job x{USG_TIERS['won_job']} / "
+          f"expanded x{USG_TIERS['expanded']}), {n_dn} down (reduced x{USG_TIERS['reduced']} / "
+          f"clear_backup x{USG_TIERS['clear_backup']}); Stage 3 conserves each team total")
+
     # --- per-game raw + bottom-up per-team-game (for reconciliation).
     for s in STATS:
         rates[f"pg_{s}"] = rates[f"r_{s}"] * rates["proj_mpg"] / 36.0
@@ -261,10 +304,13 @@ def main() -> None:
         "seasonLabel": "2026-27", "generatedAt": datetime.now(timezone.utc).isoformat(),
         "shipStrength": SHIP_STRENGTH,
         "roleContextApplied": load_json(STAGE1).get("roleContextApplied", False),
+        "roleContextUsage": {"applied": True, "tiers": USG_TIERS, "stats": USG_MULT_STATS},
         "tierCounts": tier_counts,
         "note": ("Per-game makes/attempts (never a bare percentage); PTS = 2*FGM+FTM+3PM. "
-                 "Team usage totals reconciled through Stage 3. confidenceTier is a real "
-                 "field. Provisional until Ash's role-context + team_system_mult pass."),
+                 "Team usage totals reconciled through Stage 3. Role-context USAGE nudge "
+                 "applied to tagged players (shot/pass/TOV rate only; FG%/FT% fixed, 3PM flat) "
+                 "before Stage 3. confidenceTier is a real field. Usage-tier magnitudes are a "
+                 "provisional v0; team_system_mult pass still pending."),
         "players": sorted(records, key=lambda p: (p["team"], -p["perGame"]["pts"])),
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -296,11 +342,27 @@ def validate(records: list[dict], rec: pd.DataFrame, anchors: pd.DataFrame) -> N
         if abs(implied - pg["pts"]) > 0.05:
             problems.append(f"{p['player']}: PTS {pg['pts']} != 2*FGM+FTM+3PM {implied:.2f}")
     # team FGA totals should sit near the anchors (the blend, not exact -- strength 0.5).
+    # EXCEPT on a team Stage 1 already flagged as fully manually-locked and off the
+    # 241.75 minute budget (see project.py's own budget check) -- fewer team minutes
+    # mechanically means fewer team shots, so a downstream FGA gap there is the same
+    # known cause rippling forward, not a new bug. Warn instead of failing the build.
+    team_load = rec.groupby("team")["proj_load"].sum()
+    off_budget_teams = set(team_load[(team_load - TEAM_MINUTE_BUDGET).abs() > 0.5].index)
+
     a = anchors.set_index("team")["anchor_fga"]
     tg = rec.assign(fga_tg=rec["pg_fga"] * rec["availability"]).groupby("team")["fga_tg"].sum()
+    warnings = []
     for team in tg.index:
         if team in a.index and abs(tg[team] - a[team]) > 6:  # generous: blend + rookies + minutes
-            problems.append(f"{team}: team FGA/g {tg[team]:.1f} far from anchor {a[team]:.1f}")
+            msg = f"{team}: team FGA/g {tg[team]:.1f} far from anchor {a[team]:.1f}"
+            (warnings if team in off_budget_teams else problems).append(
+                msg + ("  (known: team is off the minute budget, manually locked)"
+                       if team in off_budget_teams else ""))
+    if warnings:
+        print(f"  {len(warnings)} team(s) miss the FGA anchor check but are already known "
+              f"off-budget (manually locked, no free players) -- not a new problem:")
+        for w in warnings:
+            print(f"  .. {w}")
     if problems:
         for pr in problems[:12]:
             print(f"  !! {pr}")

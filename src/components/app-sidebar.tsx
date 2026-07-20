@@ -8,7 +8,7 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 // "profile" doesn't match any NAV_ITEMS key by design — the account/settings
 // page isn't one of the main content sections, so nothing in the rail should
 // highlight while it's active.
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -76,6 +76,35 @@ const NAV_ITEMS: NavItem[] = [
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 3h5v5" /><path d="M21 3l-7 7" /><path d="M8 21H3v-5" /><path d="M3 21l7-7" />
+      </svg>
+    ),
+  },
+];
+
+// Localhost/admin-only authoring tools, shown below the main nav. Depth Chart
+// supersedes the old role-context "Tier Pass" editor (which never had its own
+// sidebar entry) — the tier/injury/minutes judgment calls that used to live in
+// role-context now happen here instead, so only this tool gets a link.
+const ADMIN_TOOL_LINKS: Array<{ key: AppSidebarActiveKey; href: string; label: string; title: string; icon: ReactNode }> = [
+  {
+    key: "board-editor",
+    href: "/admin/rookie-board",
+    label: "Board Editor",
+    title: "Rookie board editor (admins only)",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      </svg>
+    ),
+  },
+  {
+    key: "depth-chart",
+    href: "/admin/depth-chart",
+    label: "Depth Chart",
+    title: "Depth chart / tier planner (admins only)",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19V10" /><path d="M12 19V5" /><path d="M20 19v-7" />
       </svg>
     ),
   },
@@ -236,29 +265,31 @@ export function AppSidebar({
         );
       })}
 
-      {showBoardEditor && (
-        <Link href="/admin/rookie-board" style={{ textDecoration: "none" }} title="Rookie board editor (admins only)">
-          <div
-            className="rt-hover-surface"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "10px 12px",
-              borderRadius: 10,
-              color: "var(--rt-primary)",
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            </svg>
-            <span style={{ whiteSpace: "nowrap" }}>Board Editor</span>
-          </div>
-        </Link>
-      )}
+      {showBoardEditor && ADMIN_TOOL_LINKS.map((link) => {
+        const isActive = link.key === active;
+        return (
+          <Link key={link.key} href={link.href} style={{ textDecoration: "none" }} title={link.title}>
+            <div
+              className="rt-hover-surface"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: isActive ? "var(--rt-surface-strong)" : "transparent",
+                color: "var(--rt-primary)",
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 500,
+                cursor: "pointer",
+              }}
+            >
+              {link.icon}
+              <span style={{ whiteSpace: "nowrap" }}>{link.label}</span>
+            </div>
+          </Link>
+        );
+      })}
 
       <div style={{ marginTop: "auto", padding: "8px 6px 0" }}>
         <a

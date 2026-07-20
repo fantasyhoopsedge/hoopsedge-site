@@ -240,6 +240,7 @@ def allocate(
     mpg_cap: float = MPG_CAP,
     load_col: str = "raw_load",
     team_keys: tuple[str, ...] = ("target_season", "team"),
+    locked_col: str | None = None,
 ) -> pd.DataFrame:
     """Scale each team's projected loads onto the 240-minute budget.
 
@@ -300,6 +301,16 @@ def allocate(
     the freed minutes are re-tilted over the uncapped players — iterated, because
     redistribution can push the next player over the cap in turn. Without this the
     scale-up case (a team whose projections undershoot) hands 45 MPG to a star.
+
+    `locked_col`, if given, fixes a player's load at that exact number instead of
+    letting the tilt claim it — the depth-chart tool's manual GP/MPG overrides
+    (project.py's apply_depth_chart_corrections). This is not a new mechanism, only
+    a generalization of what the cap loop already does: a capped player already
+    gets pulled out of `free` and fixed at his cap; a locked player just starts
+    there instead of arriving at it via the cap check, and the remaining budget
+    retilts over whoever is left free exactly the same way. NaN in `locked_col`
+    means "not locked" for that player. Mirror of src/lib/allocate-team.ts's
+    client-side preview in the depth-chart tool — keep the two identical.
     """
     df = df.copy()
     df["proj_load"] = np.nan
@@ -318,8 +329,15 @@ def allocate(
         # 38 minutes of one.
         cap = mpg_cap * np.nan_to_num(avail, nan=0.0)
 
-        free = np.ones(len(load), dtype=bool)
-        fixed = np.zeros(len(load))
+        if locked_col is not None:
+            locked = df.loc[idx, locked_col].to_numpy(float)
+            is_locked = ~np.isnan(locked)
+        else:
+            is_locked = np.zeros(len(load), dtype=bool)
+            locked = np.zeros(len(load))
+
+        free = ~is_locked
+        fixed = np.where(is_locked, locked, 0.0)
         for _ in range(20):
             remaining = budget - fixed.sum()
             tilt = np.where(free, np.power(np.clip(load, 0, None), alpha), 0.0)

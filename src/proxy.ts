@@ -19,12 +19,15 @@ const PROTECTED_PREFIXES: string[] = [
 ];
 
 export async function proxy(request: NextRequest) {
-  // The rookie board editor is a dev-only local authoring tool: writes are
-  // dev-only and the page itself 404s in production. On localhost it needs no
-  // login — never bounce it through the auth gate.
+  // These admin tools are "localhost trusted" per their own page.tsx (dev
+  // convenience; production still gates on rb_admins) — never bounce them
+  // through the auth gate on localhost.
+  const DEV_TRUSTED_ADMIN_PREFIXES = ["/admin/rookie-board", "/admin/depth-chart"];
   if (
     process.env.NODE_ENV !== "production" &&
-    request.nextUrl.pathname.startsWith("/admin/rookie-board")
+    DEV_TRUSTED_ADMIN_PREFIXES.some((prefix) =>
+      request.nextUrl.pathname.startsWith(prefix),
+    )
   ) {
     return NextResponse.next({ request });
   }
