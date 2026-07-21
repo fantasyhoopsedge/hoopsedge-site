@@ -34,8 +34,9 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from common import (
-    DRAFT_MODEL_CSV, DRAFT_PICK_CORRECTIONS, OUTPUT_JSON, REPO, TRAIN_TABLE,
-    normalize_name, validate_draft_slots,
+    DRAFT_MODEL_CSV, DRAFT_PICK_CORRECTIONS, LATE_PICK_CUTOFF, LATE_RATE_CORRECTION,
+    MID_PICK_CUTOFF, MID_RATE_CORRECTION, OUTPUT_JSON, REPO, TOP5_PICK_CUTOFF,
+    TOP5_RATE_CORRECTION, TRAIN_TABLE, normalize_name, validate_draft_slots,
 )
 from features import FEATURES, feature_matrix
 from train import ALPHA, TARGETS
@@ -159,6 +160,7 @@ def main() -> None:
     fut_by_k = {r["k"]: r for _, r in fut.iterrows()}
     out = []
     projected = 0
+    corrected_counts = {"TOP5_RATE_CORRECTED": 0, "MID_RATE_CORRECTED": 0, "LATE_RATE_CORRECTED": 0}
 
     for p in players:
         k = normalize_name(p["name"])
@@ -199,11 +201,32 @@ def main() -> None:
         mpg_hat = float(mpg_model.predict(x)[0])
         mpg_draw = np.clip(RNG.normal(mpg_hat, sd_mpg, N_SIMS), 0.0, 40.0)
 
+        # Pick-range rate correction: Stage B (the per-36 skill model) has a
+        # confirmed, forward-chain-validated underprediction bias, independently
+        # measured and independently shaped in each of three pick-range buckets
+        # (scoring/shot-volume/playmaking rates only -- reb/stl/blk are close to
+        # unbiased everywhere). See common.py's TOP5_RATE_CORRECTION,
+        # MID_RATE_CORRECTION, and LATE_RATE_CORRECTION for full provenance --
+        # each bucket's correction is its own measurement, not a scaled copy of
+        # a neighboring one, and must not be extended past its own cutoff.
+        pick = row["pick"] if pd.notna(row["pick"]) else None
+        if pick is not None and pick <= TOP5_PICK_CUTOFF:
+            correction, flag = TOP5_RATE_CORRECTION, "TOP5_RATE_CORRECTED"
+        elif pick is not None and pick <= MID_PICK_CUTOFF:
+            correction, flag = MID_RATE_CORRECTION, "MID_RATE_CORRECTED"
+        elif pick is not None and pick <= LATE_PICK_CUTOFF:
+            correction, flag = LATE_RATE_CORRECTION, "LATE_RATE_CORRECTED"
+        else:
+            correction, flag = {}, None
+        if flag:
+            rec["flags"].append(flag)
+            corrected_counts[flag] += 1
+
         proj = {"mpg": {"p10": float(np.quantile(mpg_draw, .10)),
                         "p50": float(np.quantile(mpg_draw, .50)),
                         "p90": float(np.quantile(mpg_draw, .90))}}
         for t in TARGETS:
-            r36 = float(r36_models[t].predict(x)[0])
+            r36 = float(r36_models[t].predict(x)[0]) + correction.get(t, 0.0)
             draws = np.clip(r36 + RNG.normal(0, sd36[t], N_SIMS), 0, None) * mpg_draw / 36.0
             proj[t] = {"p10": round(float(np.quantile(draws, .10)), 2),
                        "p50": round(float(np.quantile(draws, .50)), 2),
@@ -222,13 +245,20 @@ def main() -> None:
         "trainingClasses": [int(c) for c in sorted(d["draft_class"].unique())],
         "targetBasis": "per-game, rookie season = first season with NBA minutes",
         "note": ("Counting stats only. FG%/FT% are intentionally absent: the V-score "
-                 "engine derives them from makes/attempts and must not be fed a percentage."),
+                 "engine derives them from makes/attempts and must not be fed a percentage. "
+                 "Every pick 1-30 carries a forward-chain-validated per-36 bias correction, "
+                 "independently measured per pick-range bucket (TOP5_RATE_CORRECTED / "
+                 "MID_RATE_CORRECTED / LATE_RATE_CORRECTED flags) -- see common.py's "
+                 "TOP5_RATE_CORRECTION / MID_RATE_CORRECTION / LATE_RATE_CORRECTION."),
         "players": out,
     }
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
     with open(OUTPUT_JSON, "w", encoding="utf-8") as fh:
         json.dump(doc, fh, indent=2)
-    print(f"\nprojected {projected} / {len(players)} board players")
+    print(f"\nprojected {projected} / {len(players)} board players "
+          f"({corrected_counts['TOP5_RATE_CORRECTED']} top5, "
+          f"{corrected_counts['MID_RATE_CORRECTED']} mid, "
+          f"{corrected_counts['LATE_RATE_CORRECTED']} late rate-corrected)")
     print(f"wrote {OUTPUT_JSON}")
 
 

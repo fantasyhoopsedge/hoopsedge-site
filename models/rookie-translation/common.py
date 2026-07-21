@@ -138,6 +138,104 @@ def name_candidates(norm: str) -> list[str]:
 DRAFT_PICK_CORRECTIONS: dict[str, int] = {}
 
 
+# --- top-5-pick rate-model bias correction -----------------------------------
+# Cross-validation (train.py's top5_bias_correction()) shows the per-36 SKILL
+# model (Stage B) has a genuine, systematic bias for picks 1-5 specifically: it
+# underpredicts scoring/shot-volume/playmaking rates, while Stage A (minutes)
+# and rebounding/stl/blk stay well-calibrated at every pick tier. Root-caused to
+# class imbalance in the training data (~60-70 top-5-pick player-seasons vs
+# ~310 picks-31-60 ones, a 5:1 ratio) — one shared linear fit is dominated by
+# the mid/late-pick relationship and has too little signal to learn a separate,
+# steeper slope for the small number of truly elite prospects. NOT primarily a
+# Ridge alpha artifact (sweeping alpha 10 -> 0.3 only moved the pts bias a
+# fraction); NOT a minutes-model problem (Stage A stays close to unbiased for
+# picks 1-5 in every backtest run).
+#
+# Two alternatives were tried and rejected: sample-weighting picks 1-14 (w=5)
+# cut the bias only partially while adding real cost elsewhere (higher overall
+# MAE, and it overcorrected picks 15-60 into a new negative bias); log_pick x
+# rate-feature interaction terms looked fine in aggregate but were unstable on
+# real out-of-distribution targets — they LOWERED top-pick projections despite
+# "fixing" the aggregate number, because products of already-extreme z-scores
+# extrapolate unpredictably exactly where OOD prospects live.
+#
+# This is a simple additive per-36 correction instead: add back the average
+# historical miss (true36 - predicted36) for picks 1-5.
+#
+# METHODOLOGY, v2 (2026-07-21): STRICT FORWARD-CHAIN, not nested-LOCO. For each
+# eligible draft class Y, the model is fit ONLY on classes strictly before Y
+# (the information a real deployment would have had), then judged against Y's
+# actual top-5 outcomes. A class only counts if >=4 of its top-5 picks played
+# NCAA ball (MIN_TOP5_YEAR_N in train.py) — years dominated by international/
+# G-League/Overtime Elite picks (2023: Wembanyama, Scoot Henderson, both
+# Thompson twins; 2024: Risacher, Sarr, Holland) have no feature row for those
+# players at all, so a 1-2-player "class average" isn't a fair read of that
+# class and would just add noise. That leaves 8 eligible classes — 2016-2022 +
+# 2025 (2015 and earlier excluded by the same 5-class warm-up forward_chain()
+# uses) — pooling to 36 top-5-pick player-seasons.
+#
+# v1 (nested-LOCO, computed 2026-07-20) put the pooled pts bias at only +0.55.
+# Backtesting v1 against the actual 2025 top-5 class (Flagg/Harper/Edgecombe/
+# Knueppel/Bailey) showed it undercorrected badly — and extending the same
+# backtest back to 2016 confirmed the underprediction is a persistent, ~decade-
+# long pattern (2018 and 2019 missed by MORE than 2022 or 2025 did), not a
+# one-off. Nested-LOCO had been too optimistic because a class's "held-out"
+# contribution could still be informed by classes that happened chronologically
+# LATER than it — information no real deployment would have had. Forward-chain
+# across those same 36 player-seasons puts the pooled pts bias at +1.88 —
+# consistent with 2016-2022 and 2025 individually, not just in aggregate.
+#
+# SCOPED TO PICKS 1-5 ONLY (TOP5_PICK_CUTOFF). An EARLIER version of this note
+# said picks 6-14 had a purely Stage-A (minutes) driven bias and that applying
+# this correction there made things worse — both true statements, but about a
+# single-split pooled-LOCO analysis that turned out not to be the full story.
+# The forward-chain, year-by-year backtest below (MID_RATE_CORRECTION /
+# LATE_RATE_CORRECTION) found a real, separate Stage-B bias in both lower
+# tiers too, smaller than the top-5 one AND a different shape (FTM/FTA come
+# out OVER-projected there, not under) — see that constant's comment. Each
+# bucket gets its own independently-derived correction; none of the three
+# should be inferred from another.
+#
+# Regenerate via train.py's top5_bias_correction() whenever a new draft class's
+# rookie-year data becomes available (it will add one more forward-chain year
+# once 2026's own rookie season is real, and may eventually make 2023/2024
+# usable if MIN_TOP5_YEAR_N's NCAA-coverage picture changes). Computed
+# 2026-07-21.
+TOP5_PICK_CUTOFF = 5
+TOP5_RATE_CORRECTION: dict[str, float] = {
+    "pts": 1.880, "reb": -0.000, "ast": 0.743, "stl": -0.056, "blk": -0.016,
+    "tov": 0.184, "fg3m": 0.311, "fgm": 0.604, "fga": 1.246, "ftm": 0.362, "fta": 0.451,
+}
+
+# --- picks 6-14 (lottery, non-top-5) and 15-30 (rest of round 1) --------------
+# Same forward-chain methodology and honesty standard as TOP5_RATE_CORRECTION,
+# run independently per bucket (2026-07-21, prompted by asking "if top-5 was
+# underbaked, are we sure the rest of round 1 isn't too?"). Answer: no, it
+# wasn't safe to assume that — both lower tiers show a real, smaller Stage-B
+# bias, pooled across every year 2015-2025 with adequate NCAA coverage
+# (MIN_MID_YEAR_N / MIN_LATE_YEAR_N — no year needed excluding this time,
+# unlike the top-5 bucket, because 9- and 16-slot buckets are far less likely
+# to be entirely swallowed by 2-3 international/G-League picks the way a
+# 5-slot bucket can be).
+#
+# Roughly a third (6-14) to a half (15-30) of the top-5 pts miss (+0.68 and
+# +0.90 vs +1.88), and NOT just a scaled-down copy of it: FTM/FTA are
+# UNDER-projected for picks 1-5 but OVER-projected for both lower tiers
+# (-0.28/-0.48 for 6-14, -0.15/-0.30 for 15-30) — a real sign flip, which is
+# exactly why each bucket needs its own independently-measured correction
+# rather than inheriting a scaled version of a neighboring one.
+MID_PICK_CUTOFF = 14
+LATE_PICK_CUTOFF = 30
+MID_RATE_CORRECTION: dict[str, float] = {
+    "pts": 0.677, "reb": 0.216, "ast": 0.139, "stl": -0.074, "blk": 0.002,
+    "tov": -0.236, "fg3m": 0.540, "fgm": 0.206, "fga": 0.110, "ftm": -0.275, "fta": -0.484,
+}
+LATE_RATE_CORRECTION: dict[str, float] = {
+    "pts": 0.898, "reb": 0.292, "ast": 0.162, "stl": 0.023, "blk": 0.078,
+    "tov": -0.121, "fg3m": 0.483, "fgm": 0.281, "fga": 0.128, "ftm": -0.153, "fta": -0.300,
+}
+
+
 def validate_draft_slots(picks: dict[str, int], expect: int = 60) -> list[str]:
     """Check a draft class's slots form a clean 1..expect permutation.
 

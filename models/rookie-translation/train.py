@@ -27,7 +27,10 @@ from sklearn.linear_model import Ridge
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from common import DRAFT_MODEL_CSV, TRAIN_TABLE
+from common import (
+    DRAFT_MODEL_CSV, LATE_PICK_CUTOFF, LATE_RATE_CORRECTION, MID_PICK_CUTOFF,
+    MID_RATE_CORRECTION, TOP5_PICK_CUTOFF, TOP5_RATE_CORRECTION, TRAIN_TABLE,
+)
 from features import FEATURES, feature_matrix
 
 TARGETS = ["pts", "reb", "ast", "stl", "blk", "tov", "fg3m", "fgm", "fga", "ftm", "fta"]
@@ -131,6 +134,112 @@ def report(d: pd.DataFrame, p: pd.DataFrame, label: str) -> pd.DataFrame:
     return r
 
 
+MIN_TOP5_YEAR_N = 4   # picks 1-5  (5 slots): need >=4 NCAA-eligible to count a year
+MIN_MID_YEAR_N = 5    # picks 6-14 (9 slots): need >=5
+MIN_LATE_YEAR_N = 9   # picks 15-30 (16 slots): need >=9
+# Below its threshold, a class isn't missing data at random -- it's missing
+# exactly the international/G-League/Overtime Elite prospects (Wembanyama,
+# Scoot Henderson, both Thompson twins in 2023; Risacher, Sarr, Holland in
+# 2024) that this NCAA-only model can never project, so a thin-year "class
+# average" is not a fair read of that class. The two lower buckets have more
+# slots than the top-5 one, so in practice every year 2015-2025 clears their
+# (proportionally similar, ~55-60%) thresholds -- only the top-5 bucket
+# actually loses years to this filter, because 2-3 missing players is a much
+# bigger fraction of 5 slots than of 9 or 16.
+
+# (bucket name, pick range, min-N threshold, shipped correction) -- the single
+# source of truth both bucket_bias_correction() and predict.py's pick-range
+# dispatch are built from.
+BUCKETS = [
+    ("top5", 1, TOP5_PICK_CUTOFF, MIN_TOP5_YEAR_N, TOP5_RATE_CORRECTION),
+    ("mid", TOP5_PICK_CUTOFF + 1, MID_PICK_CUTOFF, MIN_MID_YEAR_N, MID_RATE_CORRECTION),
+    ("late", MID_PICK_CUTOFF + 1, LATE_PICK_CUTOFF, MIN_LATE_YEAR_N, LATE_RATE_CORRECTION),
+]
+
+
+def bucket_bias_correction(d: pd.DataFrame, cols: list[str], lo: int, hi: int, min_n: int) -> dict[str, float]:
+    """Per-36 bias for picks [lo, hi], pooled across every historical draft
+    class with an adequate NCAA-eligible sample in that range -- the shared
+    engine behind TOP5_RATE_CORRECTION, MID_RATE_CORRECTION, and
+    LATE_RATE_CORRECTION (see common.py for each constant's full provenance).
+
+    STRICT FORWARD-CHAIN, not nested-LOCO: for each candidate year Y, the model
+    is fit ONLY on classes strictly before Y (train < Y, test == Y), exactly
+    the information a real deployment would have had at the time. An earlier
+    nested-LOCO version of the top-5 correction (each class's contribution
+    excluded only its own residual, but could still be informed by classes
+    that happened chronologically LATER than the one being scored) was
+    measurably too optimistic -- see TOP5_RATE_CORRECTION's comment for the
+    +0.55 vs +1.88 pts before/after switching methodology. Forward-chain is
+    the honest number because a correction can only ever be built from classes
+    that have ALREADY happened.
+
+    A 5-class warm-up (matching forward_chain()'s convention) is required
+    before any year is eligible, so the earliest classes never contribute --
+    there isn't enough training history to fit anything meaningful off of.
+    """
+    classes = sorted(d["draft_class"].unique())
+    warm_start = classes[5] if len(classes) > 5 else classes[0]
+    X_all = d[cols].to_numpy(float)
+
+    resid36 = {t: [] for t in TARGETS}
+    for year in [c for c in classes if c >= warm_start]:
+        tr = (d["draft_class"] < year).to_numpy()
+        te = ((d["draft_class"] == year) & (d["pick"] >= lo) & (d["pick"] <= hi)).to_numpy()
+        if te.sum() < min_n:
+            continue
+        Xtr, Xte = X_all[tr], X_all[te]
+        for t in TARGETS:
+            y36 = (d.loc[tr, "y_" + t] * 36.0 / d.loc[tr, "mpg"]).to_numpy()
+            p36 = _fit(Xtr, y36).predict(Xte).clip(0, None)
+            true36 = (d.loc[te, "y_" + t] * 36.0 / d.loc[te, "mpg"]).to_numpy()
+            resid36[t].extend((true36 - p36).tolist())
+
+    return {t: float(np.mean(vals)) for t, vals in resid36.items()}
+
+
+def top5_bias_correction(d: pd.DataFrame, cols: list[str]) -> dict[str, float]:
+    return bucket_bias_correction(d, cols, 1, TOP5_PICK_CUTOFF, MIN_TOP5_YEAR_N)
+
+
+def check_bucket_corrections(d: pd.DataFrame, cols: list[str]) -> None:
+    """Print current vs. shipped rate correction (forward-chain re-measure) for
+    ALL THREE pick-range buckets, plus the bias each removes under a broader
+    single-split LOCO (a different and intentionally less strict lens -- every
+    class informs every other class's prediction here, unlike the forward-chain
+    basis above). Two different validations of each constant, not the same
+    number twice.
+
+    Run whenever a new draft class's rookie-year data lands, so drift in any
+    of the three corrections (as their forward-chain-eligible year counts
+    grow) gets caught instead of silently going stale.
+    """
+    X_all = d[cols].to_numpy(float)
+    true36 = {t: (d["y_" + t] * 36.0 / d["mpg"]).to_numpy() for t in TARGETS}
+
+    for name, lo, hi, min_n, shipped in BUCKETS:
+        fresh = bucket_bias_correction(d, cols, lo, hi, min_n)
+        print(f"\n=== {name} (picks {lo}-{hi}) rate correction: shipped vs. freshly re-measured (forward-chain) ===")
+        for t in TARGETS:
+            print(f"  {t:5s}  shipped={shipped.get(t, 0.0):+.3f}  "
+                  f"fresh={fresh[t]:+.3f}  delta={fresh[t] - shipped.get(t, 0.0):+.3f}")
+
+        in_bucket = ((d["pick"] >= lo) & (d["pick"] <= hi)).to_numpy()
+        uncorrected_bias, corrected_bias = {}, {}
+        for t in TARGETS:
+            p36 = np.full(len(d), np.nan)
+            for cls in sorted(d["draft_class"].unique()):
+                te = (d["draft_class"] == cls).to_numpy()
+                tr = ~te
+                y36 = (d.loc[tr, "y_" + t] * 36.0 / d.loc[tr, "mpg"]).to_numpy()
+                p36[te] = _fit(d.loc[tr, cols].to_numpy(float), y36).predict(X_all[te]).clip(0, None)
+            uncorrected_bias[t] = float(np.mean((true36[t] - p36)[in_bucket]))
+            corrected_bias[t] = float(np.mean((true36[t] - p36 - shipped.get(t, 0.0))[in_bucket]))
+        print(f"\n  picks {lo}-{hi} bias, uncorrected vs. with shipped correction applied:")
+        for t in TARGETS:
+            print(f"  {t:5s}  uncorrected={uncorrected_bias[t]:+.3f}  corrected={corrected_bias[t]:+.3f}")
+
+
 def main() -> None:
     d, cols = load()
     print(f"training rows: {len(d)}  classes: {d['draft_class'].nunique()}"
@@ -157,6 +266,8 @@ def main() -> None:
     print(f"\n=== Stage A (rookie MPG) LOCO ===")
     print(f"  MAE={np.mean(np.abs(y-yh)):.2f} mpg | RMSE={np.sqrt(np.mean((y-yh)**2)):.2f}"
           f" | corr={np.corrcoef(y,yh)[0,1]:.3f} | baseline MAE={np.mean(np.abs(y-y.mean())):.2f}")
+
+    check_bucket_corrections(d, cols)
 
 
 if __name__ == "__main__":
