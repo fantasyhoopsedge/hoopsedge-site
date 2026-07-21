@@ -17,7 +17,7 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 // Every column the table can sort by. value/minus1v/fg_v/ft_v come from the
 // active value set; consensus from the stat row; the rest are raw stats.
 type SortKey =
-  | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg" | "usg"
+  | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg"
   | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov"
   | "fg_v" | "ft_v";
 type SortDir = "asc" | "desc";
@@ -431,7 +431,6 @@ export function SeasonalRankingsTable(props: {
       case "consensus": return s.consensus_rank ?? null;
       case "age": return ageOf(s);
       case "g": return s.g ?? null; // a count — never totalled
-      case "usg": return s.usg_pct ?? null; // already a rate — never totalled
       case "fg_pct": return s.fg_pct ?? null;
       case "ft_pct": return s.ft_pct ?? null;
       default: {
@@ -790,7 +789,6 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
-                  <SortTh label="USG" sortKey="usg" sort={sort} onSort={onSort} />
                   <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
                   <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
@@ -813,7 +811,6 @@ export function SeasonalRankingsTable(props: {
                     perGameVal == null ? null : perGameVal * g;
                   const cGP = s.g == null ? "—" : String(s.g);
                   const cMin = perGame ? f1(s.mpg) : fInt(tot(s.mpg));
-                  const cUsg = f1(s.usg_pct); // a rate — same value in both Per Game / Totals modes
                   const cP = perGame ? f1(s.pts) : fInt(tot(s.pts));
                   const c3 = perGame ? f1(s.fg3m) : fInt(tot(s.fg3m));
                   const cR = perGame ? f1(s.reb) : fInt(tot(s.reb));
@@ -869,7 +866,6 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
-                      <td className={`sr-td sr-num${bold("usg")}`}>{cUsg}</td>
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
                         {fVal(catValue(av))}
                       </td>
