@@ -2,12 +2,13 @@
  * The seasonal-rankings datasets — one source of truth shared by the build
  * script (scripts/build-seasonal-values.ts) and the page (/seasonal-rankings).
  *
- * Season N = the (N-1)/N NBA season in hoopR terms (2026 = 2025-26). Only
- * seasons with game logs are listed; 2026-27 (season 2027) is omitted until it
- * is played. Order here is the order the UI selector shows.
+ * Season N = the (N-1)/N NBA season in hoopR terms (2026 = 2025-26). Real
+ * (non-projection) datasets require game logs, so 2026-27 (season 2027) has
+ * only the "projection" entry below until it is actually played. Order here
+ * is the order the UI selector shows.
  */
 
-export type SeasonType = "regular" | "postseason" | "summer";
+export type SeasonType = "regular" | "postseason" | "summer" | "projection";
 
 export type SeasonDataset = {
   season: number;
@@ -31,6 +32,12 @@ export const SEASON_DATASETS: readonly SeasonDataset[] = [
   { season: 2024, type: "summer", label: "Summer League 2024", defaultSize: 250 },
   { season: 2023, type: "summer", label: "Summer League 2023", defaultSize: 250 },
   { season: 2022, type: "summer", label: "Summer League 2022", defaultSize: 250 },
+  // The projections model (models/, output/season-projections-2026-27.json) —
+  // built from projected per-game rates, not real game logs, so it has no
+  // validation-gate reference and is intentionally last in the selector rather
+  // than the default. Built by scripts/build-projection-values.ts, not the
+  // real-season build.
+  { season: 2027, type: "projection", label: "2026-27 Projections" },
 ] as const;
 
 /** Default dataset shown on first load. */

@@ -1,0 +1,658 @@
+{
+  "schemaVersion": 1,
+  "season": "2026-27",
+  "generatedAt": "2026-07-21T09:51:12.681473+00:00",
+  "thresholds": {
+    "vacMed": 22.0,
+    "vacLarge": 38.0,
+    "dipGp": 30,
+    "dipUsgMin": 17.0
+  },
+  "teams": {
+    "ATL": {
+      "net": -4.8,
+      "freed": 32.5,
+      "reclaimed": 37.3,
+      "severity": "small",
+      "flags": []
+    },
+    "BKN": {
+      "net": -9.8,
+      "freed": 86.2,
+      "reclaimed": 96.0,
+      "severity": "small",
+      "flags": []
+    },
+    "BOS": {
+      "net": 11.9,
+      "freed": 103.0,
+      "reclaimed": 91.1,
+      "severity": "small",
+      "flags": []
+    },
+    "CHA": {
+      "net": 29.0,
+      "freed": 129.0,
+      "reclaimed": 100.0,
+      "severity": "MED",
+      "flags": []
+    },
+    "CHI": {
+      "net": 34.0,
+      "freed": 117.3,
+      "reclaimed": 83.3,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 34 usage-vol freed, 3 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Josh Giddey (proj 33mpg, hist usg 21.0), Isaac Okoro (proj 27mpg, hist usg 11.8), Tre Jones (proj 24mpg, hist usg 16.6)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+        }
+      ]
+    },
+    "CLE": {
+      "net": 72.3,
+      "freed": 72.3,
+      "reclaimed": 0,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 72 usage-vol freed, 6 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Donovan Mitchell (proj 34mpg, hist usg 27.5), James Harden (proj 33mpg, hist usg 23.6), Evan Mobley (proj 33mpg, hist usg 19.2)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "DAL": {
+      "net": 28.1,
+      "freed": 91.7,
+      "reclaimed": 63.6,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 28 usage-vol freed, 4 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Cooper Flagg (proj 34mpg, hist usg 23.1), PJ Washington (proj 30mpg, hist usg 17.3), Max Christie (proj 29mpg, hist usg 14.2)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+        }
+      ]
+    },
+    "DEN": {
+      "net": 57.3,
+      "freed": 85.5,
+      "reclaimed": 28.2,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 57 usage-vol freed, 7 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Jamal Murray (proj 35mpg, hist usg 23.1), Nikola Jokic (proj 34mpg, hist usg 25.2), Christian Braun (proj 32mpg, hist usg 12.3)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "DET": {
+      "net": 22.9,
+      "freed": 75.6,
+      "reclaimed": 52.7,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 23 usage-vol freed, 4 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Cade Cunningham (proj 35mpg, hist usg 26.4), Jalen Duren (proj 28mpg, hist usg 20.4), Ausar Thompson (proj 28mpg, hist usg 14.6)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+        }
+      ]
+    },
+    "GSW": {
+      "net": 65.7,
+      "freed": 83.6,
+      "reclaimed": 17.9,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 66 usage-vol freed, 7 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Jimmy Butler (proj 32mpg, hist usg 19.7), Stephen Curry (proj 32mpg, hist usg 27.5), Brandin Podziemski (proj 31mpg, hist usg 17.0)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "HOU": {
+      "net": 5.3,
+      "freed": 34.6,
+      "reclaimed": 29.3,
+      "severity": "small",
+      "flags": []
+    },
+    "IND": {
+      "net": -45.3,
+      "freed": 47.4,
+      "reclaimed": 92.8,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNABSORBED INFLOW [LARGE] \u2014 45 usage-vol returning (Tyrese Haliburton (usg 18.0), Kelly Oubre Jr. (usg 15.5))",
+          "detail": "consider reduced/clear_backup for: Aaron Nesmith (hist usg 16.8)"
+        },
+        {
+          "priority": 1,
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -45 (usage returning, not freeing)",
+          "detail": "double-check up-tags hold given the inflow: Aaron Nesmith, Jalen Slawson"
+        }
+      ]
+    },
+    "LAC": {
+      "net": 51.3,
+      "freed": 163.2,
+      "reclaimed": 111.9,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 51 usage-vol freed, 3 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Darius Garland (proj 31mpg, hist usg 23.0), Jordan Miller (proj 25mpg, hist usg 14.7), Derrick Jones Jr. (proj 24mpg, hist usg 12.3)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "LAL": {
+      "net": 30.7,
+      "freed": 148.7,
+      "reclaimed": 118.0,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 31 usage-vol freed, 1 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Luka Doncic (proj 32mpg, hist usg 31.3)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+        }
+      ]
+    },
+    "MEM": {
+      "net": -20.5,
+      "freed": 108.0,
+      "reclaimed": 128.5,
+      "severity": "small",
+      "flags": []
+    },
+    "MIA": {
+      "net": 49.7,
+      "freed": 144.2,
+      "reclaimed": 94.5,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 50 usage-vol freed, 2 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Bam Adebayo (proj 33mpg, hist usg 22.1), Davion Mitchell (proj 29mpg, hist usg 12.1)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "MIL": {
+      "net": -3.4,
+      "freed": 99.5,
+      "reclaimed": 102.9,
+      "severity": "small",
+      "flags": []
+    },
+    "MIN": {
+      "net": 43.6,
+      "freed": 106.7,
+      "reclaimed": 63.1,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 44 usage-vol freed, 5 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Anthony Edwards (proj 35mpg, hist usg 26.9), Ayo Dosunmu (proj 32mpg, hist usg 17.3), Jaden McDaniels (proj 32mpg, hist usg 15.8)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "NOR": {
+      "net": -15.2,
+      "freed": 22.8,
+      "reclaimed": 38.0,
+      "severity": "small",
+      "flags": []
+    },
+    "NYK": {
+      "net": 15.1,
+      "freed": 30.7,
+      "reclaimed": 15.7,
+      "severity": "small",
+      "flags": []
+    },
+    "OKC": {
+      "net": 54.2,
+      "freed": 54.2,
+      "reclaimed": 0,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 54 usage-vol freed, 5 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Shai Gilgeous-Alexander (proj 33mpg, hist usg 27.7), Chet Holmgren (proj 29mpg, hist usg 18.2), Jalen Williams (proj 29mpg, hist usg 21.7)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "ORL": {
+      "net": -8.0,
+      "freed": 25.3,
+      "reclaimed": 33.3,
+      "severity": "small",
+      "flags": []
+    },
+    "PHI": {
+      "net": -36.6,
+      "freed": 121.2,
+      "reclaimed": 157.8,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNABSORBED INFLOW [MED] \u2014 37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))",
+          "detail": "consider reduced/clear_backup for: Tyrese Maxey (hist usg 25.1), VJ Edgecombe (hist usg 17.1)"
+        },
+        {
+          "priority": 1,
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -37 (usage returning, not freeing)",
+          "detail": "double-check up-tags hold given the inflow: Johni Broome"
+        }
+      ]
+    },
+    "PHO": {
+      "net": -27.8,
+      "freed": 56.5,
+      "reclaimed": 84.2,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNABSORBED INFLOW [MED] \u2014 28 usage-vol returning (Miles Bridges (usg 19.0), Pat Spencer (usg 16.0))",
+          "detail": "consider reduced/clear_backup for: Devin Booker (hist usg 27.3), Jalen Green (hist usg 27.0)"
+        },
+        {
+          "priority": 1,
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -28 (usage returning, not freeing)",
+          "detail": "double-check up-tags hold given the inflow: Oso Ighodaro, Khaman Maluach"
+        }
+      ]
+    },
+    "POR": {
+      "net": -50.5,
+      "freed": 81.6,
+      "reclaimed": 132.1,
+      "severity": "LARGE",
+      "flags": []
+    },
+    "SAC": {
+      "net": 101.7,
+      "freed": 149.6,
+      "reclaimed": 47.9,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 102 usage-vol freed, 3 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Zach Lavine (proj 30mpg, hist usg 20.1), Precious Achiuwa (proj 24mpg, hist usg 14.9), Maxime Raynaud (proj 24mpg, hist usg 15.3)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+        }
+      ]
+    },
+    "SAS": {
+      "net": -28.5,
+      "freed": 0,
+      "reclaimed": 28.5,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNABSORBED INFLOW [MED] \u2014 28 usage-vol returning (Tobias Harris (usg 16.3))",
+          "detail": "consider reduced/clear_backup for: Stephon Castle (hist usg 21.2), Victor Wembanyama (hist usg 27.6), Dylan Harper (hist usg 18.7)"
+        },
+        {
+          "priority": 1,
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -28 (usage returning, not freeing)",
+          "detail": "double-check up-tags hold given the inflow: Dylan Harper"
+        }
+      ]
+    },
+    "TOR": {
+      "net": 37.5,
+      "freed": 110.4,
+      "reclaimed": 72.9,
+      "severity": "MED",
+      "flags": [
+        {
+          "priority": 2,
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 37 usage-vol freed, 3 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Scottie Barnes (proj 34mpg, hist usg 19.7), RJ Barrett (proj 32mpg, hist usg 21.7), Immanuel Quickley (proj 31mpg, hist usg 17.7)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+        }
+      ]
+    },
+    "UTA": {
+      "net": -12.4,
+      "freed": 46.7,
+      "reclaimed": 59.0,
+      "severity": "small",
+      "flags": []
+    },
+    "WAS": {
+      "net": -60.0,
+      "freed": 71.1,
+      "reclaimed": 131.1,
+      "severity": "LARGE",
+      "flags": [
+        {
+          "priority": 1,
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -60 (usage returning, not freeing)",
+          "detail": "double-check up-tags hold given the inflow: Will Riley"
+        }
+      ]
+    }
+  },
+  "players": {
+    "BOS||Jayson Tatum": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 2380min) \u2014 re-enters at healthy usg 25.6 (~48 usage-vol)"
+    },
+    "CHI||Zach Collins": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2024, proj 880min) \u2014 re-enters at healthy usg 19.3 (~14 usage-vol)"
+    },
+    "CHI||Josh Giddey": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "CHI||Isaac Okoro": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "CHI||Tre Jones": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "CLE||Donovan Mitchell": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 72 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "CLE||James Harden": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 72 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "CLE||Evan Mobley": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 72 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "DAL||Kyrie Irving": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "injury return (healthy 2025, proj 1856min) \u2014 re-enters at healthy usg 23.0 (~43 usage-vol)"
+    },
+    "DAL||Cooper Flagg": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 28 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "DAL||PJ Washington": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 28 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "DAL||Max Christie": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 28 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "DEN||Jamal Murray": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "DEN||Nikola Jokic": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "DEN||Christian Braun": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "DET||Cade Cunningham": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 23 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "DET||Jalen Duren": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 23 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "DET||Ausar Thompson": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 23 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "GSW||Jimmy Butler": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 66 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "GSW||Stephen Curry": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 66 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "GSW||Brandin Podziemski": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 66 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "IND||Tyrese Haliburton": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "injury return (healthy 2025, proj 2244min) \u2014 re-enters at healthy usg 18.0 (~40 usage-vol)"
+    },
+    "IND||Aaron Nesmith": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -45 usage-vol (inflow, not a vacancy)"
+    },
+    "IND||Jalen Slawson": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -45 usage-vol (inflow, not a vacancy)"
+    },
+    "LAC||Darius Garland": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 51 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "LAC||Jordan Miller": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 51 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "LAC||Derrick Jones Jr.": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 51 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "LAL||Luka Doncic": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 31 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "MEM||Ty Jerome": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 2080min) \u2014 re-enters at healthy usg 20.1 (~32 usage-vol)"
+    },
+    "MEM||Scotty Pippen Jr.": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 1624min) \u2014 re-enters at healthy usg 17.3 (~23 usage-vol)"
+    },
+    "MIA||Bam Adebayo": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 50 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "MIA||Davion Mitchell": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 50 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "MIN||Anthony Edwards": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 44 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "MIN||Ayo Dosunmu": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 44 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "MIN||Jaden McDaniels": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 44 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "NOR||Dejounte Murray": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 2016min) \u2014 re-enters at healthy usg 23.3 (~38 usage-vol)"
+    },
+    "OKC||Shai Gilgeous-Alexander": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 54 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "OKC||Chet Holmgren": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 54 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "OKC||Jalen Williams": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 54 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "PHI||Tyrese Maxey": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))"
+    },
+    "PHI||VJ Edgecombe": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))"
+    },
+    "PHI||Johni Broome": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -37 usage-vol (inflow, not a vacancy)"
+    },
+    "PHO||Devin Booker": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "28 usage-vol returning (Miles Bridges (usg 19.0), Pat Spencer (usg 16.0))"
+    },
+    "PHO||Jalen Green": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "28 usage-vol returning (Miles Bridges (usg 19.0), Pat Spencer (usg 16.0))"
+    },
+    "PHO||Oso Ighodaro": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -28 usage-vol (inflow, not a vacancy)"
+    },
+    "PHO||Khaman Maluach": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -28 usage-vol (inflow, not a vacancy)"
+    },
+    "POR||Damian Lillard": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "injury return (healthy 2025, proj 2040min) \u2014 re-enters at healthy usg 22.8 (~46 usage-vol)"
+    },
+    "POR||Ja Morant": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "injury return (healthy 2025, proj 2088min) \u2014 re-enters at healthy usg 28.9 (~60 usage-vol)"
+    },
+    "SAC||Domantas Sabonis": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 1980min) \u2014 re-enters at healthy usg 18.1 (~25 usage-vol)"
+    },
+    "SAC||Zach Lavine": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "SAC||Precious Achiuwa": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "SAC||Maxime Raynaud": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+    },
+    "SAS||Stephon Castle": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "28 usage-vol returning (Tobias Harris (usg 16.3))"
+    },
+    "SAS||Victor Wembanyama": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "28 usage-vol returning (Tobias Harris (usg 16.3))"
+    },
+    "SAS||Dylan Harper": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -28 usage-vol (inflow, not a vacancy)"
+    },
+    "TOR||Scottie Barnes": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 37 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "TOR||RJ Barrett": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 37 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "TOR||Immanuel Quickley": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 37 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "WAS||Anthony Davis": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "injury return (healthy 2025, proj 2016min) \u2014 re-enters at healthy usg 25.0 (~50 usage-vol)"
+    },
+    "WAS||Trae Young": {
+      "badge": "return",
+      "label": "injury / health return",
+      "reason": "returning to health (healthy 2025, proj 2160min) \u2014 re-enters at healthy usg 26.0 (~54 usage-vol)"
+    },
+    "WAS||Will Riley": {
+      "badge": "check",
+      "label": "up-tagged (expanded) but usage is returning",
+      "reason": "team net -60 usage-vol (inflow, not a vacancy)"
+    }
+  }
+}
