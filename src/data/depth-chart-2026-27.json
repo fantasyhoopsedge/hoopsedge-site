@@ -13,7 +13,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15161800.0,
     "statusNext": "guaranteed",
-    "usg": 20.6
+    "usg": 20.5
   },
   {
     "team": "ATL",
@@ -29,7 +29,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7370896.0,
     "statusNext": "team_option",
-    "usg": 21.7
+    "usg": 22.6
   },
   {
     "team": "ATL",
@@ -61,7 +61,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "ATL",
@@ -173,7 +173,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13050000.0,
     "statusNext": "guaranteed",
-    "usg": 18.7
+    "usg": 17.7
   },
   {
     "team": "ATL",
@@ -221,7 +221,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 24.7
+    "usg": 24.6
   },
   {
     "team": "ATL",
@@ -253,7 +253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3560880.0,
     "statusNext": "team_option",
-    "usg": 18.0
+    "usg": 17.9
   },
   {
     "team": "ATL",
@@ -301,7 +301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 12.6
+    "usg": 12.5
   },
   {
     "team": "ATL",
@@ -317,7 +317,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.7
+    "usg": 16.6
   },
   {
     "team": "ATL",
@@ -333,7 +333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8168226.0,
     "statusNext": "guaranteed",
-    "usg": 19.3
+    "usg": 20.0
   },
   {
     "team": "BOS",
@@ -429,7 +429,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 56586670.0,
     "statusNext": "player_option",
-    "usg": 25.0
+    "usg": 25.1
   },
   {
     "team": "BOS",
@@ -509,7 +509,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8303571.0,
     "statusNext": "guaranteed",
-    "usg": 22.5
+    "usg": 22.6
   },
   {
     "team": "BOS",
@@ -557,7 +557,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4952992.0,
     "statusNext": "team_option",
-    "usg": 14.2
+    "usg": 13.7
   },
   {
     "team": "BOS",
@@ -573,7 +573,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62786682.0,
     "statusNext": "guaranteed",
-    "usg": 32.6
+    "usg": 32.7
   },
   {
     "team": "BOS",
@@ -637,7 +637,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 32596000.0,
     "statusNext": "guaranteed",
-    "usg": 22.3
+    "usg": 22.4
   },
   {
     "team": "BOS",
@@ -669,7 +669,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.0
+    "usg": 18.1
   },
   {
     "team": "BKN",
@@ -701,7 +701,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9226440.0,
     "statusNext": "guaranteed",
-    "usg": 19.7
+    "usg": 19.9
   },
   {
     "team": "BKN",
@@ -717,7 +717,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8342451.0,
     "statusNext": "restricted_fa",
-    "usg": 19.4
+    "usg": 19.5
   },
   {
     "team": "BKN",
@@ -733,7 +733,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7578240.0,
     "statusNext": "team_option",
-    "usg": 19.5
+    "usg": 18.9
   },
   {
     "team": "BKN",
@@ -749,7 +749,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9000000.0,
     "statusNext": "team_option",
-    "usg": 13.4
+    "usg": 13.5
   },
   {
     "team": "BKN",
@@ -781,7 +781,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3118560.0,
     "statusNext": "guaranteed",
-    "usg": 14.4
+    "usg": 14.5
   },
   {
     "team": "BKN",
@@ -797,7 +797,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "BKN",
@@ -813,7 +813,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 16000000.0,
     "statusNext": "guaranteed",
-    "usg": 13.3
+    "usg": 13.4
   },
   {
     "team": "BKN",
@@ -829,7 +829,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4500000.0,
     "statusNext": "team_option",
-    "usg": 17.1
+    "usg": 17.2
   },
   {
     "team": "BKN",
@@ -845,7 +845,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 24.5
+    "usg": 24.7
   },
   {
     "team": "BKN",
@@ -861,7 +861,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3709320.0,
     "statusNext": "team_option",
-    "usg": 15.4
+    "usg": 15.5
   },
   {
     "team": "BKN",
@@ -877,7 +877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 35802468.0,
     "statusNext": "player_option",
-    "usg": 25.0
+    "usg": 25.2
   },
   {
     "team": "BKN",
@@ -893,7 +893,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3172920.0,
     "statusNext": "team_option",
-    "usg": 19.9
+    "usg": 20.0
   },
   {
     "team": "BKN",
@@ -909,7 +909,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10000000.0,
     "statusNext": "team_option",
-    "usg": 21.1
+    "usg": 20.5
   },
   {
     "team": "BKN",
@@ -941,7 +941,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4193040.0,
     "statusNext": "team_option",
-    "usg": 21.5
+    "usg": 21.7
   },
   {
     "team": "BKN",
@@ -957,7 +957,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9500000.0,
     "statusNext": "team_option",
-    "usg": 23.9
+    "usg": 24.0
   },
   {
     "team": "BKN",
@@ -973,7 +973,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3081840.0,
     "statusNext": "team_option",
-    "usg": 19.7
+    "usg": 19.8
   },
   {
     "team": "CHA",
@@ -989,7 +989,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": 716081.0,
     "statusNext": "non_guaranteed",
-    "usg": 18.3
+    "usg": 18.5
   },
   {
     "team": "CHA",
@@ -1005,7 +1005,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 19375000.0,
     "statusNext": "player_option",
-    "usg": 18.7
+    "usg": 18.9
   },
   {
     "team": "CHA",
@@ -1021,7 +1021,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 17.1
+    "usg": 17.3
   },
   {
     "team": "CHA",
@@ -1037,7 +1037,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": 716081.0,
     "statusNext": "non_guaranteed",
-    "usg": 18.3
+    "usg": 18.5
   },
   {
     "team": "CHA",
@@ -1069,7 +1069,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 11.8
+    "usg": 12.0
   },
   {
     "team": "CHA",
@@ -1085,7 +1085,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13335000.0,
     "statusNext": "guaranteed",
-    "usg": 10.9
+    "usg": 11.0
   },
   {
     "team": "CHA",
@@ -1117,7 +1117,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.4
+    "usg": 18.6
   },
   {
     "team": "CHA",
@@ -1133,7 +1133,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 11.8
+    "usg": 11.9
   },
   {
     "team": "CHA",
@@ -1149,7 +1149,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 12.0
+    "usg": 12.2
   },
   {
     "team": "CHA",
@@ -1165,7 +1165,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11017560.0,
     "statusNext": "team_option",
-    "usg": 24.5
+    "usg": 23.8
   },
   {
     "team": "CHA",
@@ -1197,7 +1197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8000000.0,
     "statusNext": "team_option",
-    "usg": 21.6
+    "usg": 21.9
   },
   {
     "team": "CHA",
@@ -1213,7 +1213,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3040320.0,
     "statusNext": "team_option",
-    "usg": 16.4
+    "usg": 16.6
   },
   {
     "team": "CHA",
@@ -1229,7 +1229,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11625000.0,
     "statusNext": "guaranteed",
-    "usg": 14.3
+    "usg": 14.5
   },
   {
     "team": "CHA",
@@ -1245,7 +1245,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 21221290.0,
     "statusNext": "restricted_fa",
-    "usg": 29.1
+    "usg": 28.4
   },
   {
     "team": "CHA",
@@ -1277,7 +1277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 25000000.0,
     "statusNext": "guaranteed",
-    "usg": 23.7
+    "usg": 24.0
   },
   {
     "team": "CHA",
@@ -1293,7 +1293,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10445632.0,
     "statusNext": "team_option",
-    "usg": 15.3
+    "usg": 15.5
   },
   {
     "team": "CHA",
@@ -1309,7 +1309,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5488560.0,
     "statusNext": "guaranteed",
-    "usg": 15.5
+    "usg": 15.6
   },
   {
     "team": "CHA",
@@ -1325,7 +1325,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 24666667.0,
     "statusNext": "guaranteed",
-    "usg": 27.9
+    "usg": 28.2
   },
   {
     "team": "CHA",
@@ -1341,7 +1341,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.6
+    "usg": 14.8
   },
   {
     "team": "CHA",
@@ -1389,7 +1389,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "CHI",
@@ -1405,7 +1405,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7584283.0,
     "statusNext": "team_option",
-    "usg": 23.4
+    "usg": 23.3
   },
   {
     "team": "CHI",
@@ -1421,7 +1421,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 21099720.0,
     "statusNext": "guaranteed",
-    "usg": 17.4
+    "usg": 17.3
   },
   {
     "team": "CHI",
@@ -1437,7 +1437,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8500000.0,
     "statusNext": "team_option",
-    "usg": 18.1
+    "usg": 18.0
   },
   {
     "team": "CHI",
@@ -1453,7 +1453,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8763215.0,
     "statusNext": "team_option",
-    "usg": 22.9
+    "usg": 22.8
   },
   {
     "team": "CHI",
@@ -1469,7 +1469,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5972760.0,
     "statusNext": "team_option",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "CHI",
@@ -1485,7 +1485,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 25000000.0,
     "statusNext": "guaranteed",
-    "usg": 24.4
+    "usg": 24.3
   },
   {
     "team": "CHI",
@@ -1501,7 +1501,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8000000.0,
     "statusNext": "team_option",
-    "usg": 17.0
+    "usg": 16.9
   },
   {
     "team": "CHI",
@@ -1549,7 +1549,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "CHI",
@@ -1565,7 +1565,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.6
+    "usg": 13.5
   },
   {
     "team": "CHI",
@@ -1581,7 +1581,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 22500000.0,
     "statusNext": "team_option",
-    "usg": 25.7
+    "usg": 26.5
   },
   {
     "team": "CHI",
@@ -1597,7 +1597,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "CHI",
@@ -1613,7 +1613,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.0
+    "usg": 18.9
   },
   {
     "team": "CHI",
@@ -1629,7 +1629,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5213760.0,
     "statusNext": "guaranteed",
-    "usg": 16.3
+    "usg": 16.2
   },
   {
     "team": "CHI",
@@ -1645,7 +1645,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 18000000.0,
     "statusNext": "guaranteed",
-    "usg": 16.4
+    "usg": 16.3
   },
   {
     "team": "CHI",
@@ -1661,7 +1661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11217960.0,
     "statusNext": "guaranteed",
-    "usg": 20.4
+    "usg": 20.3
   },
   {
     "team": "CLE",
@@ -1981,7 +1981,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8857143.0,
     "statusNext": "player_option",
-    "usg": 16.2
+    "usg": 16.7
   },
   {
     "team": "DAL",
@@ -1997,7 +1997,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.2
+    "usg": 15.0
   },
   {
     "team": "DAL",
@@ -2013,7 +2013,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3341280.0,
     "statusNext": "guaranteed",
-    "usg": 17.8
+    "usg": 17.6
   },
   {
     "team": "DAL",
@@ -2029,7 +2029,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15208680.0,
     "statusNext": "team_option",
-    "usg": 28.2
+    "usg": 27.8
   },
   {
     "team": "DAL",
@@ -2045,7 +2045,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 18126763.0,
     "statusNext": "guaranteed",
-    "usg": 16.9
+    "usg": 16.7
   },
   {
     "team": "DAL",
@@ -2061,7 +2061,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 42416562.0,
     "statusNext": "player_option",
-    "usg": 25.9
+    "usg": 27.6
   },
   {
     "team": "DAL",
@@ -2077,7 +2077,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "MEM",
@@ -2109,7 +2109,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 16.2
+    "usg": 15.9
   },
   {
     "team": "DAL",
@@ -2125,7 +2125,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "DAL",
@@ -2141,7 +2141,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10684611.0,
     "statusNext": "restricted_fa",
-    "usg": 14.1
+    "usg": 14.0
   },
   {
     "team": "DAL",
@@ -2157,7 +2157,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.2
+    "usg": 18.9
   },
   {
     "team": "DAL",
@@ -2173,7 +2173,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9731351.0,
     "statusNext": "player_option",
-    "usg": 13.2
+    "usg": 13.1
   },
   {
     "team": "DAL",
@@ -2189,7 +2189,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 17.7
   },
   {
     "team": "DAL",
@@ -2205,7 +2205,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "DAL",
@@ -2221,7 +2221,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "DAL",
@@ -2237,7 +2237,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 22.2
+    "usg": 21.9
   },
   {
     "team": "DAL",
@@ -2253,7 +2253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 21398088.0,
     "statusNext": "guaranteed",
-    "usg": 20.1
+    "usg": 19.8
   },
   {
     "team": "DAL",
@@ -2269,7 +2269,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 18.0
+    "usg": 17.9
   },
   {
     "team": "DEN",
@@ -2637,7 +2637,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17000000.0,
     "statusNext": "guaranteed",
-    "usg": 20.6
+    "usg": 19.9
   },
   {
     "team": "DET",
@@ -2653,7 +2653,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 53817156.0,
     "statusNext": "guaranteed",
-    "usg": 31.4
+    "usg": 31.5
   },
   {
     "team": "DET",
@@ -2717,7 +2717,7 @@
     "statusNow": "team_option",
     "salaryNext": 11491183.0,
     "statusNext": "team_option",
-    "usg": 18.5
+    "usg": 18.6
   },
   {
     "team": "DET",
@@ -2733,7 +2733,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9000000.0,
     "statusNext": "guaranteed",
-    "usg": 16.8
+    "usg": 16.9
   },
   {
     "team": "DET",
@@ -2749,7 +2749,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.5
+    "usg": 21.6
   },
   {
     "team": "DET",
@@ -2765,7 +2765,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11323006.0,
     "statusNext": "team_option",
-    "usg": 17.0
+    "usg": 17.1
   },
   {
     "team": "DET",
@@ -2781,7 +2781,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.7
+    "usg": 15.8
   },
   {
     "team": "DET",
@@ -2845,7 +2845,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4705440.0,
     "statusNext": "guaranteed",
-    "usg": 18.7
+    "usg": 18.8
   },
   {
     "team": "DET",
@@ -2877,7 +2877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.7
+    "usg": 19.8
   },
   {
     "team": "DET",
@@ -2893,7 +2893,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15151222.0,
     "statusNext": "guaranteed",
-    "usg": 15.3
+    "usg": 15.4
   },
   {
     "team": "DET",
@@ -2957,7 +2957,7 @@
     "statusNow": "team_option",
     "salaryNext": 15854453.0,
     "statusNext": "restricted_fa",
-    "usg": 17.4
+    "usg": 17.5
   },
   {
     "team": "GSW",
@@ -3005,7 +3005,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.7
+    "usg": 18.8
   },
   {
     "team": "GSW",
@@ -3037,7 +3037,7 @@
     "statusNow": "player_option",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.2
+    "usg": 15.3
   },
   {
     "team": "GSW",
@@ -3117,7 +3117,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.7
+    "usg": 18.8
   },
   {
     "team": "GSW",
@@ -3133,7 +3133,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5750850.0,
     "statusNext": "player_option",
-    "usg": 25.0
+    "usg": 25.1
   },
   {
     "team": "GSW",
@@ -3149,7 +3149,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13425925.0,
     "statusNext": "guaranteed",
-    "usg": 18.9
+    "usg": 16.6
   },
   {
     "team": "GSW",
@@ -3165,7 +3165,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8666111.0,
     "statusNext": "restricted_fa",
-    "usg": 20.0
+    "usg": 20.1
   },
   {
     "team": "GSW",
@@ -3181,7 +3181,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20000000.0,
     "statusNext": "player_option",
-    "usg": 26.5
+    "usg": 26.6
   },
   {
     "team": "MEM",
@@ -3197,7 +3197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10000000.0,
     "statusNext": "guaranteed",
-    "usg": 18.8
+    "usg": 19.0
   },
   {
     "team": "GSW",
@@ -3277,7 +3277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11869566.0,
     "statusNext": "guaranteed",
-    "usg": 13.0
+    "usg": 12.9
   },
   {
     "team": "HOU",
@@ -3293,7 +3293,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.3
+    "usg": 16.2
   },
   {
     "team": "HOU",
@@ -3309,7 +3309,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7370000.0,
     "statusNext": "guaranteed",
-    "usg": 15.0
+    "usg": 14.9
   },
   {
     "team": "HOU",
@@ -3325,7 +3325,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "HOU",
@@ -3357,7 +3357,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "HOU",
@@ -3373,7 +3373,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 46097561.0,
     "statusNext": "player_option",
-    "usg": 24.7
+    "usg": 24.5
   },
   {
     "team": "HOU",
@@ -3389,7 +3389,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 14996000.0,
     "statusNext": "guaranteed",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "HOU",
@@ -3405,7 +3405,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "HOU",
@@ -3421,7 +3421,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 37339450.0,
     "statusNext": "guaranteed",
-    "usg": 27.0
+    "usg": 26.9
   },
   {
     "team": "HOU",
@@ -3437,7 +3437,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 14041624.0,
     "statusNext": "team_option",
-    "usg": 20.1
+    "usg": 21.0
   },
   {
     "team": "HOU",
@@ -3453,7 +3453,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6367200.0,
     "statusNext": "player_option",
-    "usg": 15.5
+    "usg": 15.4
   },
   {
     "team": "HOU",
@@ -3469,7 +3469,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 21751940.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "HOU",
@@ -3485,7 +3485,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17394270.0,
     "statusNext": "restricted_fa",
-    "usg": 19.8
+    "usg": 19.7
   },
   {
     "team": "HOU",
@@ -3501,7 +3501,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "HOU",
@@ -3517,7 +3517,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.0
+    "usg": 17.9
   },
   {
     "team": "IND",
@@ -3581,7 +3581,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2934742.0,
     "statusNext": "team_option",
-    "usg": 20.9
+    "usg": 20.8
   },
   {
     "team": "IND",
@@ -3645,7 +3645,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11800000.0,
     "statusNext": "guaranteed",
-    "usg": 21.7
+    "usg": 21.6
   },
   {
     "team": "IND",
@@ -3661,7 +3661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20998320.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "IND",
@@ -3677,7 +3677,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 19418000.0,
     "statusNext": "guaranteed",
-    "usg": 19.6
+    "usg": 19.5
   },
   {
     "team": "IND",
@@ -3693,7 +3693,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8450000.0,
     "statusNext": "guaranteed",
-    "usg": 17.4
+    "usg": 16.1
   },
   {
     "team": "IND",
@@ -3709,7 +3709,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.3
+    "usg": 17.2
   },
   {
     "team": "IND",
@@ -3757,7 +3757,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7930389.0,
     "statusNext": "restricted_fa",
-    "usg": 13.3
+    "usg": 13.2
   },
   {
     "team": "IND",
@@ -3773,7 +3773,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 52298736.0,
     "statusNext": "guaranteed",
-    "usg": 25.7
+    "usg": 27.0
   },
   {
     "team": "IND",
@@ -3789,7 +3789,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "IND",
@@ -3805,7 +3805,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 16.8
+    "usg": 16.7
   },
   {
     "team": "IND",
@@ -3821,7 +3821,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.1
+    "usg": 16.0
   },
   {
     "team": "IND",
@@ -3837,7 +3837,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 16025000.0,
     "statusNext": "guaranteed",
-    "usg": 19.0
+    "usg": 18.9
   },
   {
     "team": "IND",
@@ -4253,7 +4253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 55116288.0,
     "statusNext": "guaranteed",
-    "usg": 34.2
+    "usg": 34.4
   },
   {
     "team": "LAL",
@@ -4269,7 +4269,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 14651163.0,
     "statusNext": "guaranteed",
-    "usg": 19.9
+    "usg": 19.2
   },
   {
     "team": "LAL",
@@ -4279,13 +4279,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.8,
+    "projMpg": 13.6,
     "projGames": 47.0,
     "salaryNow": 6000000.0,
     "statusNow": "guaranteed",
     "salaryNext": 6000000.0,
     "statusNext": "team_option",
-    "usg": 24.1
+    "usg": 24.2
   },
   {
     "team": "LAL",
@@ -4295,7 +4295,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.8,
+    "projMpg": 10.7,
     "projGames": 40.4,
     "salaryNow": 2296271.0,
     "statusNow": "guaranteed",
@@ -4333,7 +4333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 31339286.0,
     "statusNext": "guaranteed",
-    "usg": 14.0
+    "usg": 13.6
   },
   {
     "team": "LAL",
@@ -4343,7 +4343,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.4,
+    "projMpg": 13.3,
     "projGames": 47.6,
     "salaryNow": 4201080.0,
     "statusNow": "guaranteed",
@@ -4375,13 +4375,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 26.2,
+    "projMpg": 25.8,
     "projGames": 71.4,
     "salaryNow": 6000000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.9
+    "usg": 15.0
   },
   {
     "team": "LAL",
@@ -4391,13 +4391,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.3,
+    "projMpg": 19.0,
     "projGames": 55.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.2
+    "usg": 12.3
   },
   {
     "team": "LAL",
@@ -4407,7 +4407,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.8,
+    "projMpg": 20.5,
     "projGames": 70.3,
     "salaryNow": 13000000.0,
     "statusNow": "guaranteed",
@@ -4423,13 +4423,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.6,
+    "projMpg": 5.5,
     "projGames": 11.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.4
+    "usg": 17.5
   },
   {
     "team": "LAL",
@@ -4455,13 +4455,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.6,
+    "projMpg": 6.5,
     "projGames": 12.8,
     "salaryNow": 678882.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.6
+    "usg": 17.7
   },
   {
     "team": "LAL",
@@ -4477,7 +4477,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 44550000.0,
     "statusNext": "guaranteed",
-    "usg": 23.9
+    "usg": 23.1
   },
   {
     "team": "LAL",
@@ -4503,13 +4503,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 25.2,
+    "projMpg": 26.9,
     "projGames": 68.6,
     "salaryNow": 9500000.0,
     "statusNow": "guaranteed",
     "salaryNext": 9500000.0,
     "statusNext": "player_option",
-    "usg": 25.5
+    "usg": 26.6
   },
   {
     "team": "LAL",
@@ -4519,13 +4519,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.6,
+    "projMpg": 6.5,
     "projGames": 12.8,
     "salaryNow": 678882.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.6
+    "usg": 17.7
   },
   {
     "team": "LAL",
@@ -4535,13 +4535,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.3,
+    "projMpg": 12.1,
     "projGames": 42.0,
     "salaryNow": 2150917.0,
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "team_option",
-    "usg": 17.5
+    "usg": 17.7
   },
   {
     "team": "LAL",
@@ -4567,13 +4567,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.6,
+    "projMpg": 20.3,
     "projGames": 60.5,
     "salaryNow": 12428571.0,
     "statusNow": "guaranteed",
     "salaryNext": 13285714.0,
     "statusNext": "player_option",
-    "usg": 11.7
+    "usg": 11.8
   },
   {
     "team": "DAL",
@@ -4589,7 +4589,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17007043.0,
     "statusNext": "team_option",
-    "usg": 19.1
+    "usg": 18.8
   },
   {
     "team": "MEM",
@@ -4605,7 +4605,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 12441840.0,
     "statusNext": "guaranteed",
-    "usg": 22.7
+    "usg": 22.1
   },
   {
     "team": "MEM",
@@ -4621,7 +4621,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.8
+    "usg": 15.0
   },
   {
     "team": "MEM",
@@ -4637,7 +4637,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4390320.0,
     "statusNext": "team_option",
-    "usg": 18.0
+    "usg": 18.2
   },
   {
     "team": "MEM",
@@ -4685,7 +4685,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6286920.0,
     "statusNext": "team_option",
-    "usg": 22.8
+    "usg": 23.1
   },
   {
     "team": "MEM",
@@ -4701,7 +4701,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8067936.0,
     "statusNext": "team_option",
-    "usg": 17.4
+    "usg": 17.6
   },
   {
     "team": "MEM",
@@ -4733,7 +4733,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11357175.0,
     "statusNext": "restricted_fa",
-    "usg": 16.6
+    "usg": 16.8
   },
   {
     "team": "MEM",
@@ -4749,7 +4749,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 24.6
+    "usg": 24.8
   },
   {
     "team": "MEM",
@@ -4765,7 +4765,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9659100.0,
     "statusNext": "player_option",
-    "usg": 23.9
+    "usg": 23.2
   },
   {
     "team": "MEM",
@@ -4781,7 +4781,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3934320.0,
     "statusNext": "guaranteed",
-    "usg": 15.5
+    "usg": 15.7
   },
   {
     "team": "MEM",
@@ -4797,7 +4797,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.9
+    "usg": 17.1
   },
   {
     "team": "MEM",
@@ -4813,7 +4813,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2789215.0,
     "statusNext": "team_option",
-    "usg": 21.4
+    "usg": 21.6
   },
   {
     "team": "MEM",
@@ -4829,7 +4829,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.1
+    "usg": 18.3
   },
   {
     "team": "MEM",
@@ -4861,7 +4861,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.6
+    "usg": 19.8
   },
   {
     "team": "MEM",
@@ -4877,7 +4877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2616754.0,
     "statusNext": "guaranteed",
-    "usg": 16.6
+    "usg": 16.8
   },
   {
     "team": "MEM",
@@ -4893,7 +4893,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15000000.0,
     "statusNext": "team_option",
-    "usg": 15.8
+    "usg": 16.0
   },
   {
     "team": "MEM",
@@ -4909,7 +4909,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2486995.0,
     "statusNext": "team_option",
-    "usg": 19.1
+    "usg": 19.3
   },
   {
     "team": "MEM",
@@ -4925,7 +4925,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 36413790.0,
     "statusNext": "player_option",
-    "usg": 21.7
+    "usg": 22.0
   },
   {
     "team": "MEM",
@@ -4957,7 +4957,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 53447364.0,
     "statusNext": "guaranteed",
-    "usg": 23.9
+    "usg": 23.0
   },
   {
     "team": "MIA",
@@ -4973,7 +4973,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62786682.0,
     "statusNext": "player_option",
-    "usg": 33.1
+    "usg": 33.5
   },
   {
     "team": "MIA",
@@ -4989,7 +4989,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 17.3
+    "usg": 17.6
   },
   {
     "team": "MIA",
@@ -5005,7 +5005,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 17.8
+    "usg": 18.0
   },
   {
     "team": "MIA",
@@ -5021,7 +5021,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.9
   },
   {
     "team": "MIA",
@@ -5037,7 +5037,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "team_option",
-    "usg": 15.4
+    "usg": 15.6
   },
   {
     "team": "MIA",
@@ -5053,7 +5053,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.8
+    "usg": 18.0
   },
   {
     "team": "MIA",
@@ -5101,7 +5101,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.2
+    "usg": 16.4
   },
   {
     "team": "MIA",
@@ -5133,7 +5133,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 14904000.0,
     "statusNext": "guaranteed",
-    "usg": 20.7
+    "usg": 20.9
   },
   {
     "team": "MIA",
@@ -5149,7 +5149,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.8
+    "usg": 18.0
   },
   {
     "team": "MIA",
@@ -5165,7 +5165,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.8
+    "usg": 17.0
   },
   {
     "team": "MIA",
@@ -5181,7 +5181,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.8
+    "usg": 13.9
   },
   {
     "team": "MIA",
@@ -5197,7 +5197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15597074.0,
     "statusNext": "player_option",
-    "usg": 20.7
+    "usg": 20.9
   },
   {
     "team": "MIA",
@@ -5213,7 +5213,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2934742.0,
     "statusNext": "guaranteed",
-    "usg": 15.4
+    "usg": 15.6
   },
   {
     "team": "MIA",
@@ -5245,7 +5245,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 16510000.0,
     "statusNext": "guaranteed",
-    "usg": 21.6
+    "usg": 21.0
   },
   {
     "team": "MIL",
@@ -5581,7 +5581,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 43582280.0,
     "statusNext": "guaranteed",
-    "usg": 32.2
+    "usg": 33.6
   },
   {
     "team": "MIN",
@@ -5597,7 +5597,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4621200.0,
     "statusNext": "team_option",
-    "usg": 17.7
+    "usg": 17.8
   },
   {
     "team": "MIN",
@@ -5645,7 +5645,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20608000.0,
     "statusNext": "guaranteed",
-    "usg": 19.4
+    "usg": 18.7
   },
   {
     "team": "MIN",
@@ -5661,7 +5661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 52298736.0,
     "statusNext": "guaranteed",
-    "usg": 31.0
+    "usg": 31.2
   },
   {
     "team": "MIN",
@@ -5677,7 +5677,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 16.9
+    "usg": 17.0
   },
   {
     "team": "MIN",
@@ -5693,7 +5693,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "MIN",
@@ -5709,7 +5709,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 38000000.0,
     "statusNext": "player_option",
-    "usg": 11.9
+    "usg": 12.0
   },
   {
     "team": "MIN",
@@ -5757,7 +5757,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.2
+    "usg": 20.5
   },
   {
     "team": "MIN",
@@ -5805,7 +5805,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 28006898.0,
     "statusNext": "guaranteed",
-    "usg": 17.7
+    "usg": 17.1
   },
   {
     "team": "MIN",
@@ -5821,7 +5821,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.6
+    "usg": 18.4
   },
   {
     "team": "MIN",
@@ -5837,7 +5837,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5054159.0,
     "statusNext": "team_option",
-    "usg": 18.0
+    "usg": 18.1
   },
   {
     "team": "MIN",
@@ -5853,7 +5853,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.8
   },
   {
     "team": "NOR",
@@ -7117,7 +7117,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 12219720.0,
     "statusNext": "team_option",
-    "usg": 18.8
+    "usg": 17.8
   },
   {
     "team": "PHI",
@@ -7149,7 +7149,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62355258.0,
     "statusNext": "guaranteed",
-    "usg": 29.8
+    "usg": 31.4
   },
   {
     "team": "PHI",
@@ -7341,7 +7341,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 61015192.0,
     "statusNext": "guaranteed",
-    "usg": 29.4
+    "usg": 29.3
   },
   {
     "team": "PHO",
@@ -7373,7 +7373,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.0
+    "usg": 17.9
   },
   {
     "team": "PHO",
@@ -7389,7 +7389,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 22.5
+    "usg": 22.4
   },
   {
     "team": "PHO",
@@ -7405,7 +7405,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 22.0
+    "usg": 23.1
   },
   {
     "team": "PHO",
@@ -7437,7 +7437,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5025553.0,
     "statusNext": "team_option",
-    "usg": 14.6
+    "usg": 13.9
   },
   {
     "team": "PHO",
@@ -7453,7 +7453,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 16.2
+    "usg": 16.1
   },
   {
     "team": "PHO",
@@ -7469,7 +7469,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11571429.0,
     "statusNext": "guaranteed",
-    "usg": 18.4
+    "usg": 18.3
   },
   {
     "team": "PHO",
@@ -7501,7 +7501,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 36000000.0,
     "statusNext": "player_option",
-    "usg": 29.6
+    "usg": 29.5
   },
   {
     "team": "PHO",
@@ -7549,7 +7549,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.4
+    "usg": 18.3
   },
   {
     "team": "PHO",
@@ -7661,7 +7661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 12666667.0,
     "statusNext": "guaranteed",
-    "usg": 17.8
+    "usg": 17.7
   },
   {
     "team": "POR",
@@ -8125,7 +8125,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": 716081.0,
     "statusNext": "non_guaranteed",
-    "usg": 15.1
+    "usg": 15.0
   },
   {
     "team": "SAC",
@@ -8157,7 +8157,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 26068965.0,
     "statusNext": "guaranteed",
-    "usg": 18.1
+    "usg": 17.4
   },
   {
     "team": "SAC",
@@ -8189,7 +8189,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "team_option",
-    "usg": 19.7
+    "usg": 19.6
   },
   {
     "team": "SAC",
@@ -8205,7 +8205,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 48608000.0,
     "statusNext": "guaranteed",
-    "usg": 22.9
+    "usg": 23.8
   },
   {
     "team": "SAC",
@@ -8253,7 +8253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.2
+    "usg": 14.1
   },
   {
     "team": "SAS",
@@ -8285,7 +8285,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5390640.0,
     "statusNext": "team_option",
-    "usg": 16.4
+    "usg": 16.3
   },
   {
     "team": "SAS",
@@ -8301,7 +8301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 12670139.0,
     "statusNext": "team_option",
-    "usg": 25.7
+    "usg": 25.5
   },
   {
     "team": "SAS",
@@ -8317,7 +8317,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15000000.0,
     "statusNext": "guaranteed",
-    "usg": 15.2
+    "usg": 15.1
   },
   {
     "team": "SAS",
@@ -8333,7 +8333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 53447364.0,
     "statusNext": "guaranteed",
-    "usg": 23.6
+    "usg": 24.7
   },
   {
     "team": "SAS",
@@ -8365,7 +8365,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13607760.0,
     "statusNext": "team_option",
-    "usg": 21.7
+    "usg": 21.5
   },
   {
     "team": "SAS",
@@ -8381,7 +8381,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15796200.0,
     "statusNext": "guaranteed",
-    "usg": 17.6
+    "usg": 17.5
   },
   {
     "team": "SAS",
@@ -8413,7 +8413,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "SAS",
@@ -8493,7 +8493,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3230520.0,
     "statusNext": "guaranteed",
-    "usg": 13.3
+    "usg": 13.2
   },
   {
     "team": "SAS",
@@ -8509,7 +8509,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 25108696.0,
     "statusNext": "guaranteed",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "SAS",
@@ -8525,7 +8525,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 23615218.0,
     "statusNext": "restricted_fa",
-    "usg": 30.9
+    "usg": 30.7
   },
   {
     "team": "TOR",
@@ -8541,7 +8541,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 11.8
+    "usg": 11.9
   },
   {
     "team": "TOR",
@@ -8557,7 +8557,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 44847572.0,
     "statusNext": "guaranteed",
-    "usg": 24.1
+    "usg": 24.2
   },
   {
     "team": "TOR",
@@ -8567,7 +8567,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 32.9,
+    "projMpg": 33.5,
     "projGames": 69.8,
     "salaryNow": 29616071.0,
     "statusNow": "guaranteed",
@@ -8589,7 +8589,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.4
+    "usg": 14.5
   },
   {
     "team": "TOR",
@@ -8621,7 +8621,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "TOR",
@@ -8669,7 +8669,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "TOR",
@@ -8685,7 +8685,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.9
+    "usg": 16.0
   },
   {
     "team": "TOR",
@@ -8701,7 +8701,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 29.0
+    "usg": 29.1
   },
   {
     "team": "TOR",
@@ -8717,7 +8717,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2571895.0,
     "statusNext": "guaranteed",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "TOR",
@@ -8733,7 +8733,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6966000.0,
     "statusNext": "team_option",
-    "usg": 16.3
+    "usg": 16.4
   },
   {
     "team": "TOR",
@@ -8743,7 +8743,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.1,
+    "projMpg": 23.6,
     "projGames": 57.0,
     "salaryNow": 19500000.0,
     "statusNow": "guaranteed",
@@ -8765,7 +8765,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 32500000.0,
     "statusNext": "guaranteed",
-    "usg": 21.6
+    "usg": 21.7
   },
   {
     "team": "TOR",
@@ -8775,13 +8775,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.5,
+    "projMpg": 23.9,
     "projGames": 68.1,
     "salaryNow": 2296271.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.4
+    "usg": 16.5
   },
   {
     "team": "TOR",
@@ -8791,13 +8791,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 25.2,
+    "projMpg": 23.8,
     "projGames": 65.9,
     "salaryNow": 3811800.0,
     "statusNow": "guaranteed",
     "salaryNext": 5870172.0,
     "statusNext": "team_option",
-    "usg": 16.5
+    "usg": 15.9
   },
   {
     "team": "UTA",
@@ -8813,7 +8813,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9976560.0,
     "statusNext": "team_option",
-    "usg": 21.8
+    "usg": 21.7
   },
   {
     "team": "UTA",
@@ -8845,7 +8845,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4988948.0,
     "statusNext": "team_option",
-    "usg": 18.5
+    "usg": 18.4
   },
   {
     "team": "UTA",
@@ -8861,7 +8861,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3000000.0,
     "statusNext": "team_option",
-    "usg": 19.5
+    "usg": 19.4
   },
   {
     "team": "UTA",
@@ -8877,7 +8877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9878230.0,
     "statusNext": "restricted_fa",
-    "usg": 26.4
+    "usg": 26.3
   },
   {
     "team": "UTA",
@@ -8941,7 +8941,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.3
+    "usg": 16.2
   },
   {
     "team": "UTA",
@@ -8957,7 +8957,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 50500000.0,
     "statusNext": "guaranteed",
-    "usg": 25.3
+    "usg": 25.2
   },
   {
     "team": "UTA",
@@ -9005,7 +9005,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 49824681.0,
     "statusNext": "guaranteed",
-    "usg": 24.0
+    "usg": 24.8
   },
   {
     "team": "UTA",
@@ -9021,7 +9021,7 @@
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.4
+    "usg": 16.3
   },
   {
     "team": "UTA",
@@ -9037,7 +9037,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4025000.0,
     "statusNext": "team_option",
-    "usg": 15.0
+    "usg": 14.9
   },
   {
     "team": "UTA",
@@ -9069,7 +9069,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13855320.0,
     "statusNext": "guaranteed",
-    "usg": 22.2
+    "usg": 22.1
   },
   {
     "team": "UTA",
@@ -9085,7 +9085,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7730095.0,
     "statusNext": "restricted_fa",
-    "usg": 21.5
+    "usg": 21.3
   },
   {
     "team": "UTA",
@@ -9101,7 +9101,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7669890.0,
     "statusNext": "team_option",
-    "usg": 14.6
+    "usg": 14.5
   },
   {
     "team": "UTA",
@@ -9117,7 +9117,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6000000.0,
     "statusNext": "team_option",
-    "usg": 11.1
+    "usg": 11.0
   },
   {
     "team": "WAS",
@@ -9133,7 +9133,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.0
+    "usg": 13.8
   },
   {
     "team": "WAS",
@@ -9149,7 +9149,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7257729.0,
     "statusNext": "team_option",
-    "usg": 16.4
+    "usg": 16.2
   },
   {
     "team": "WAS",
@@ -9165,7 +9165,7 @@
     "statusNow": "team_option",
     "salaryNext": 3005085.0,
     "statusNext": "team_option",
-    "usg": 15.4
+    "usg": 15.2
   },
   {
     "team": "WAS",
@@ -9197,7 +9197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13315007.0,
     "statusNext": "restricted_fa",
-    "usg": 16.8
+    "usg": 16.6
   },
   {
     "team": "WAS",
@@ -9213,7 +9213,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62786682.0,
     "statusNext": "player_option",
-    "usg": 24.7
+    "usg": 24.4
   },
   {
     "team": "WAS",
@@ -9229,7 +9229,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15485760.0,
     "statusNext": "guaranteed",
-    "usg": 22.7
+    "usg": 22.4
   },
   {
     "team": "WAS",
@@ -9245,7 +9245,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5435892.0,
     "statusNext": "team_option",
-    "usg": 18.3
+    "usg": 19.0
   },
   {
     "team": "WAS",
@@ -9261,7 +9261,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9061680.0,
     "statusNext": "team_option",
-    "usg": 19.8
+    "usg": 20.6
   },
   {
     "team": "WAS",
@@ -9277,7 +9277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5870678.0,
     "statusNext": "guaranteed",
-    "usg": 17.3
+    "usg": 17.1
   },
   {
     "team": "WAS",
@@ -9309,7 +9309,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.7
+    "usg": 16.5
   },
   {
     "team": "WAS",
@@ -9325,7 +9325,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.7
+    "usg": 16.5
   },
   {
     "team": "WAS",
@@ -9341,7 +9341,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3864000.0,
     "statusNext": "team_option",
-    "usg": 19.5
+    "usg": 19.2
   },
   {
     "team": "WAS",
@@ -9373,7 +9373,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15611798.0,
     "statusNext": "team_option",
-    "usg": 22.1
+    "usg": 22.9
   },
   {
     "team": "WAS",
@@ -9405,7 +9405,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3000000.0,
     "statusNext": "team_option",
-    "usg": 24.4
+    "usg": 24.1
   },
   {
     "team": "WAS",
@@ -9421,7 +9421,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.4
+    "usg": 14.2
   },
   {
     "team": "WAS",
@@ -9437,7 +9437,7 @@
     "statusNow": "team_option",
     "salaryNext": 8368099.0,
     "statusNext": "restricted_fa",
-    "usg": 23.9
+    "usg": 23.6
   },
   {
     "team": "WAS",
@@ -9453,6 +9453,6 @@
     "statusNow": "guaranteed",
     "salaryNext": 50478066.0,
     "statusNext": "guaranteed",
-    "usg": 28.9
+    "usg": 28.5
   }
 ]
