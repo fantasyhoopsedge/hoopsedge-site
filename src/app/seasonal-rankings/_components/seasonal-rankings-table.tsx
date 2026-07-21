@@ -146,8 +146,8 @@ function prospectHeadshotCandidates(name: string): string[] {
 function Headshot({ id, name, extraSources }: { id: string | null; name: string; extraSources?: (string | null)[] }) {
   const [stage, setStage] = useState(0);
   // ESPN first (the normal source, tied to this row's own identity), then any
-  // extra fallbacks the caller opts in (see is2026SummerLeague below) — same
-  // multi-stage cycling pattern as team-rosters' PlayerHeadshot.
+  // extra fallbacks the caller opts in (see isUnmatchedRookieDataset below) —
+  // same multi-stage cycling pattern as team-rosters' PlayerHeadshot.
   const sources = [espnHeadshot(id), ...(extraSources ?? [])].filter((u): u is string => !!u);
   const targetUrl = sources[stage] ?? null;
 
@@ -622,12 +622,16 @@ export function SeasonalRankingsTable(props: {
   const empty = players.length === 0;
   const sizesAsc = useMemo(() => [...leagueSizes].sort((a, b) => a - b), [leagueSizes]);
   // Headshot fallback below (prospect art / cdn.nba.com) is scoped strictly to
-  // THIS dataset — /images/prospects/ holds art for multiple draft classes
-  // (2025's Cooper Flagg sits next to 2026's Cameron Boozer), so enabling it
-  // broadly for older Summer League datasets risks a name-slug collision
-  // showing the wrong player's photo. 2026 is also the only year with a
-  // meaningful population of unmatched (no ESPN id yet) rookies to fix.
-  const is2026SummerLeague = activeSeason === "2026:summer";
+  // THESE two datasets — /images/prospects/ holds art for multiple draft
+  // classes (2025's Cooper Flagg sits next to 2026's Cameron Boozer), so
+  // enabling it broadly for older Summer League datasets risks a name-slug
+  // collision showing the wrong player's photo. Both datasets here are safe:
+  // Summer League 2026 and the 2026-27 Projections are the only two places
+  // the 2026 draft class appears with no real ESPN id yet (both resolve
+  // rookies to the same synthetic `sl-<nbaComId>`, per build-projection-
+  // values.ts's Summer League 2026 identity-fallback), so there's no other
+  // class's art to collide with.
+  const isUnmatchedRookieDataset = activeSeason === "2026:summer" || activeSeason === "2027:projection";
 
   return (
     <div className="sr-shell">
@@ -1051,7 +1055,7 @@ export function SeasonalRankingsTable(props: {
                         <Headshot
                           id={s.headshot_id}
                           name={s.name}
-                          extraSources={is2026SummerLeague ? [...prospectHeadshotCandidates(s.name), nbaHeadshotUrl(s.name)] : undefined}
+                          extraSources={isUnmatchedRookieDataset ? [...prospectHeadshotCandidates(s.name), nbaHeadshotUrl(s.name)] : undefined}
                         />
                       </td>
                       <td className="sr-td sr-td-player sr-sticky-col" title={s.name}>
