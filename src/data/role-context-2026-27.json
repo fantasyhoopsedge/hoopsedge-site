@@ -130,7 +130,7 @@
     "player": "Mouhamed Gueye",
     "class": "veteran",
     "dynRank": 405,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -148,7 +148,7 @@
     "player": "Buddy Hield",
     "class": "veteran",
     "dynRank": 428,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -220,7 +220,7 @@
     "player": "Egor Demin",
     "class": "sophomore",
     "dynRank": 112,
-    "tier": "expanded",
+    "tier": "won_job",
     "note": "PROPOSED expanded - TGFSL-2026 sophomore (Rucker); listed soph +5.0mpg vs +0.3 peers, 27% leap vs 9%; was 25.1mpg/10.3pg over 52gp in 2025-26",
     "source": "TGFSL-2026"
   },
@@ -229,7 +229,7 @@
     "player": "Day'Ron Sharpe",
     "class": "veteran",
     "dynRank": 148,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "",
     "source": ""
   },
@@ -265,7 +265,7 @@
     "player": "Keon Ellis",
     "class": "veteran",
     "dynRank": 230,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved CLE->BKN, 2 yr / $18M; was 20.5mpg/6.7pg over 72gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -391,7 +391,7 @@
     "player": "Payton Pritchard",
     "class": "veteran",
     "dynRank": 109,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -409,7 +409,7 @@
     "player": "Neemias Queta",
     "class": "veteran",
     "dynRank": 164,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -436,7 +436,7 @@
     "player": "Baylor Scheierman",
     "class": "veteran",
     "dynRank": 278,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -490,7 +490,7 @@
     "player": "Ron Harper Jr.",
     "class": "veteran",
     "dynRank": 408,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -499,7 +499,7 @@
     "player": "Luka Garza",
     "class": "veteran",
     "dynRank": 412,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -553,7 +553,7 @@
     "player": "Kon Knueppel",
     "class": "sophomore",
     "dynRank": 31,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -562,7 +562,7 @@
     "player": "Brandon Miller",
     "class": "veteran",
     "dynRank": 45,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -571,7 +571,7 @@
     "player": "Naz Reid",
     "class": "veteran",
     "dynRank": 85,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "REVIEW: moved MIN->CHA, 5 yr / $125M; was 26.1mpg/13.6pg over 77gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -580,7 +580,7 @@
     "player": "Coby White",
     "class": "veteran",
     "dynRank": 106,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -598,7 +598,7 @@
     "player": "Moussa Diabate",
     "class": "veteran",
     "dynRank": 143,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -625,7 +625,7 @@
     "player": "Grayson Allen",
     "class": "veteran",
     "dynRank": 183,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved PHO->CHA, 4 yr / $70M; was 28.8mpg/16.5pg over 51gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -670,7 +670,7 @@
     "player": "Tidjane Salaun",
     "class": "veteran",
     "dynRank": 369,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -688,7 +688,7 @@
     "player": "Dorian Finney-Smith",
     "class": "veteran",
     "dynRank": 385,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved HOU->CHA, 4 yr / $52.7M; was 16.7mpg/3.3pg over 37gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -697,7 +697,7 @@
     "player": "Tre Mann",
     "class": "veteran",
     "dynRank": 452,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -787,7 +787,7 @@
     "player": "Matas Buzelis",
     "class": "veteran",
     "dynRank": 67,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -796,7 +796,7 @@
     "player": "Nic Claxton",
     "class": "veteran",
     "dynRank": 98,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved BKN->CHI, 4 yr / $97M; was 27.8mpg/11.7pg over 69gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -832,7 +832,7 @@
     "player": "Jalen Smith",
     "class": "veteran",
     "dynRank": 216,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -841,7 +841,7 @@
     "player": "Tre Jones",
     "class": "veteran",
     "dynRank": 246,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -850,7 +850,7 @@
     "player": "Rob Dillingham",
     "class": "veteran",
     "dynRank": 248,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -886,7 +886,7 @@
     "player": "Patrick Williams",
     "class": "veteran",
     "dynRank": 406,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1003,7 +1003,7 @@
     "player": "Dennis Schroder",
     "class": "veteran",
     "dynRank": 308,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -1021,7 +1021,7 @@
     "player": "Craig Porter Jr.",
     "class": "veteran",
     "dynRank": 357,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1138,7 +1138,7 @@
     "player": "Santi Aldama",
     "class": "veteran",
     "dynRank": 130,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1174,7 +1174,7 @@
     "player": "Naji Marshall",
     "class": "veteran",
     "dynRank": 181,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1309,7 +1309,7 @@
     "player": "Aaron Gordon",
     "class": "veteran",
     "dynRank": 141,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1354,7 +1354,7 @@
     "player": "Marvin Bagley III",
     "class": "veteran",
     "dynRank": 331,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved DAL->DEN, 1 yr / $3.5M; was 20.1mpg/10.4pg over 60gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -1363,7 +1363,7 @@
     "player": "Spencer Jones",
     "class": "veteran",
     "dynRank": 347,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1399,7 +1399,7 @@
     "player": "Jonas Valanciunas",
     "class": "veteran",
     "dynRank": 431,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -1507,7 +1507,7 @@
     "player": "John Collins",
     "class": "veteran",
     "dynRank": 153,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "REVIEW: moved LAC->DET, 3 yr / $51M; was 27.1mpg/13.6pg over 69gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -1534,7 +1534,7 @@
     "player": "Paul Reed",
     "class": "veteran",
     "dynRank": 243,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -1552,7 +1552,7 @@
     "player": "Duncan Robinson",
     "class": "veteran",
     "dynRank": 315,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1561,7 +1561,7 @@
     "player": "Kevin Huerter",
     "class": "veteran",
     "dynRank": 325,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1579,7 +1579,7 @@
     "player": "Caris LeVert",
     "class": "veteran",
     "dynRank": 371,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1597,7 +1597,7 @@
     "player": "Chaz Lanier",
     "class": "sophomore",
     "dynRank": 450,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -1723,7 +1723,7 @@
     "player": "Draymond Green",
     "class": "veteran",
     "dynRank": 208,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1858,7 +1858,7 @@
     "player": "Reed Sheppard",
     "class": "veteran",
     "dynRank": 78,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1903,7 +1903,7 @@
     "player": "Marcus Smart",
     "class": "veteran",
     "dynRank": 306,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved LAL->HOU, 2 yr / $13M; was 28.5mpg/9.3pg over 62gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -1921,7 +1921,7 @@
     "player": "Bogdan Bogdanovic",
     "class": "veteran",
     "dynRank": 404,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved LAC->HOU, 1 yr / $3.9M; was 19.7mpg/7.4pg over 23gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -1984,7 +1984,7 @@
     "player": "Ivica Zubac",
     "class": "veteran",
     "dynRank": 59,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "",
     "source": ""
   },
@@ -1993,7 +1993,7 @@
     "player": "Pascal Siakam",
     "class": "veteran",
     "dynRank": 66,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2002,7 +2002,7 @@
     "player": "Andrew Nembhard",
     "class": "veteran",
     "dynRank": 123,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -2011,7 +2011,7 @@
     "player": "Aaron Nesmith",
     "class": "veteran",
     "dynRank": 173,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2020,7 +2020,7 @@
     "player": "Kelly Oubre Jr.",
     "class": "veteran",
     "dynRank": 221,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved PHI->IND, 2 yr / $17M; was 31.5mpg/14.1pg over 50gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2029,7 +2029,7 @@
     "player": "Jarace Walker",
     "class": "veteran",
     "dynRank": 226,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2038,7 +2038,7 @@
     "player": "Jay Huff",
     "class": "veteran",
     "dynRank": 244,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2056,7 +2056,7 @@
     "player": "T.J. McConnell",
     "class": "veteran",
     "dynRank": 309,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2128,7 +2128,7 @@
     "player": "Jalen Slawson",
     "class": "veteran",
     "dynRank": null,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2200,7 +2200,7 @@
     "player": "Brandon Ingram",
     "class": "veteran",
     "dynRank": 70,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved TOR->LAC, 3 yr / $120M; was 33.8mpg/21.5pg over 77gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2227,7 +2227,7 @@
     "player": "Yanic Konan Niederhauser",
     "class": "sophomore",
     "dynRank": 233,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2254,7 +2254,7 @@
     "player": "Kobe Sanders",
     "class": "sophomore",
     "dynRank": 279,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2299,7 +2299,7 @@
     "player": "Brook Lopez",
     "class": "veteran",
     "dynRank": 336,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2371,7 +2371,7 @@
     "player": "Austin Reaves",
     "class": "veteran",
     "dynRank": 24,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2380,7 +2380,7 @@
     "player": "Walker Kessler",
     "class": "veteran",
     "dynRank": 60,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved UTA->LAL, 4 yr / $130M; was 31.0mpg/14.4pg over 5gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2389,7 +2389,7 @@
     "player": "LeBron James",
     "class": "veteran",
     "dynRank": 142,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2398,7 +2398,7 @@
     "player": "Quentin Grimes",
     "class": "veteran",
     "dynRank": 185,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved PHI->LAL, 4 yr / $60M; was 29.5mpg/13.4pg over 75gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2434,7 +2434,7 @@
     "player": "Jake LaRavia",
     "class": "veteran",
     "dynRank": 277,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2569,7 +2569,7 @@
     "player": "Cameron Boozer",
     "class": "rookie",
     "dynRank": 11,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2596,7 +2596,7 @@
     "player": "Isaiah Stewart",
     "class": "veteran",
     "dynRank": 169,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved DET->MEM, 4 yr / $60M; was 22.7mpg/10.0pg over 58gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2605,7 +2605,7 @@
     "player": "Ty Jerome",
     "class": "veteran",
     "dynRank": 175,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2614,7 +2614,7 @@
     "player": "Cam Spencer",
     "class": "veteran",
     "dynRank": 182,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2632,7 +2632,7 @@
     "player": "Jerami Grant",
     "class": "veteran",
     "dynRank": 207,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved POR->MEM, 5 yr / $160M; was 29.8mpg/18.6pg over 57gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2641,7 +2641,7 @@
     "player": "Walter Clayton Jr.",
     "class": "sophomore",
     "dynRank": 222,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -2659,7 +2659,7 @@
     "player": "Scotty Pippen Jr.",
     "class": "veteran",
     "dynRank": 234,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2722,7 +2722,7 @@
     "player": "Kris Murray",
     "class": "veteran",
     "dynRank": 457,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved POR->MEM, 4 yr / $14.3M; was 23.5mpg/5.8pg over 57gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2785,7 +2785,7 @@
     "player": "Giannis Antetokounmpo",
     "class": "veteran",
     "dynRank": 16,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved MIL->MIA, 3 yr / $175M; was 28.9mpg/27.6pg over 36gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2803,7 +2803,7 @@
     "player": "Andrew Wiggins",
     "class": "veteran",
     "dynRank": 171,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2821,7 +2821,7 @@
     "player": "Pelle Larsson",
     "class": "veteran",
     "dynRank": 224,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2830,7 +2830,7 @@
     "player": "Nikola Jovic",
     "class": "veteran",
     "dynRank": 251,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -2839,7 +2839,7 @@
     "player": "Bobby Portis",
     "class": "veteran",
     "dynRank": 260,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved MIL->MIA, 3 yr / $43.6M; was 24.1mpg/13.7pg over 67gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2866,7 +2866,7 @@
     "player": "Tim Hardaway Jr.",
     "class": "veteran",
     "dynRank": 354,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved DEN->MIA, 1 yr / $6.5M; was 26.6mpg/13.5pg over 80gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2956,7 +2956,7 @@
     "player": "Tyler Herro",
     "class": "veteran",
     "dynRank": 57,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved MIA->MIL, 4 yr / $120M; was 31.2mpg/20.5pg over 33gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -2965,7 +2965,7 @@
     "player": "Kel'el Ware",
     "class": "veteran",
     "dynRank": 65,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "REVIEW: moved MIA->MIL, 4 yr / $20.5M; was 22.2mpg/11.1pg over 77gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -3001,7 +3001,7 @@
     "player": "Jaime Jaquez Jr.",
     "class": "veteran",
     "dynRank": 129,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved MIA->MIL, 4 yr / $17M; was 28.3mpg/15.4pg over 75gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -3010,7 +3010,7 @@
     "player": "Kevin Porter Jr.",
     "class": "veteran",
     "dynRank": 156,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3028,7 +3028,7 @@
     "player": "Kasparas Jakucionis",
     "class": "sophomore",
     "dynRank": 177,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved MIA->MIL, 4 yr / $17.7M; was 17.9mpg/6.2pg over 53gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -3082,7 +3082,7 @@
     "player": "Gary Trent Jr.",
     "class": "veteran",
     "dynRank": 360,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -3154,7 +3154,7 @@
     "player": "Jaden McDaniels",
     "class": "veteran",
     "dynRank": 81,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3163,7 +3163,7 @@
     "player": "Rudy Gobert",
     "class": "veteran",
     "dynRank": 125,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3172,7 +3172,7 @@
     "player": "Ayo Dosunmu",
     "class": "veteran",
     "dynRank": 147,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3181,7 +3181,7 @@
     "player": "Joan Beringer",
     "class": "sophomore",
     "dynRank": 154,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3199,7 +3199,7 @@
     "player": "Terrence Shannon Jr.",
     "class": "veteran",
     "dynRank": 264,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3217,7 +3217,7 @@
     "player": "Bones Hyland",
     "class": "veteran",
     "dynRank": 333,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3235,7 +3235,7 @@
     "player": "Josh Green",
     "class": "veteran",
     "dynRank": 425,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved CHA->MIN, 3 yr / $41M; was 15.7mpg/4.3pg over 58gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -3289,7 +3289,7 @@
     "player": "Zyon Pullin",
     "class": "veteran",
     "dynRank": null,
-    "tier": "expanded",
+    "tier": "no_change",
     "note": "PROPOSED expanded - TGFSL-2026 sophomore (Rucker); listed soph +5.0mpg vs +0.3 peers, 27% leap vs 9%; was 8.4mpg/4.6pg over 5gp in 2025-26",
     "source": "TGFSL-2026"
   },
@@ -3316,7 +3316,7 @@
     "player": "Derik Queen",
     "class": "sophomore",
     "dynRank": 76,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3334,7 +3334,7 @@
     "player": "Jeremiah Fears",
     "class": "sophomore",
     "dynRank": 105,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3352,7 +3352,7 @@
     "player": "Saddiq Bey",
     "class": "veteran",
     "dynRank": 193,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3361,7 +3361,7 @@
     "player": "Jordan Poole",
     "class": "veteran",
     "dynRank": 195,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -3424,7 +3424,7 @@
     "player": "DeAndre Jordan",
     "class": "veteran",
     "dynRank": null,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -3676,7 +3676,7 @@
     "player": "Jared McCain",
     "class": "veteran",
     "dynRank": 159,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3703,7 +3703,7 @@
     "player": "Nikola Topic",
     "class": "sophomore",
     "dynRank": 218,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3730,7 +3730,7 @@
     "player": "Luguentz Dort",
     "class": "veteran",
     "dynRank": 295,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3847,7 +3847,7 @@
     "player": "Nikola Vucevic",
     "class": "veteran",
     "dynRank": 201,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved BOS->ORL, 1 yr / $3.9M; was 28.4mpg/15.1pg over 64gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -3865,7 +3865,7 @@
     "player": "Goga Bitadze",
     "class": "veteran",
     "dynRank": 268,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3892,7 +3892,7 @@
     "player": "Noah Penda",
     "class": "sophomore",
     "dynRank": 332,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3982,7 +3982,7 @@
     "player": "Joel Embiid",
     "class": "veteran",
     "dynRank": 86,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3991,7 +3991,7 @@
     "player": "Anfernee Simons",
     "class": "veteran",
     "dynRank": 190,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved CHI->PHI, 2 yr / $12.3M; was 24.9mpg/14.3pg over 55gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4018,7 +4018,7 @@
     "player": "Dominick Barlow",
     "class": "veteran",
     "dynRank": 318,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4036,7 +4036,7 @@
     "player": "Caleb Love",
     "class": "sophomore",
     "dynRank": 348,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved POR->PHI, Two-Way; was 20.7mpg/10.4pg over 49gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4063,7 +4063,7 @@
     "player": "Rayan Rupert",
     "class": "veteran",
     "dynRank": 426,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved MEM->PHI, Two-Way; was 16.8mpg/5.2pg over 64gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4072,7 +4072,7 @@
     "player": "Johni Broome",
     "class": "sophomore",
     "dynRank": 432,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4144,7 +4144,7 @@
     "player": "Mark Williams",
     "class": "veteran",
     "dynRank": 103,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4153,7 +4153,7 @@
     "player": "Miles Bridges",
     "class": "veteran",
     "dynRank": 113,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved CHA->PHO, 3 yr / $75M; was 31.0mpg/17.1pg over 77gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4180,7 +4180,7 @@
     "player": "Dillon Brooks",
     "class": "veteran",
     "dynRank": 186,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4189,7 +4189,7 @@
     "player": "Oso Ighodaro",
     "class": "veteran",
     "dynRank": 232,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4315,7 +4315,7 @@
     "player": "Deni Avdija",
     "class": "veteran",
     "dynRank": 25,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4351,7 +4351,7 @@
     "player": "Shaedon Sharpe",
     "class": "veteran",
     "dynRank": 120,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4360,7 +4360,7 @@
     "player": "Toumani Camara",
     "class": "veteran",
     "dynRank": 126,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4378,7 +4378,7 @@
     "player": "Jrue Holiday",
     "class": "veteran",
     "dynRank": 188,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4405,7 +4405,7 @@
     "player": "Sidy Cissoko",
     "class": "veteran",
     "dynRank": 300,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4477,7 +4477,7 @@
     "player": "Keegan Murray",
     "class": "veteran",
     "dynRank": 97,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4486,7 +4486,7 @@
     "player": "Zach Lavine",
     "class": "veteran",
     "dynRank": 118,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4504,7 +4504,7 @@
     "player": "Malik Monk",
     "class": "veteran",
     "dynRank": 176,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -4513,7 +4513,7 @@
     "player": "DeMar DeRozan",
     "class": "veteran",
     "dynRank": 189,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -4522,7 +4522,7 @@
     "player": "Nique Clifford",
     "class": "sophomore",
     "dynRank": 197,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4567,7 +4567,7 @@
     "player": "Killian Hayes",
     "class": "veteran",
     "dynRank": 355,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "",
     "source": ""
   },
@@ -4576,7 +4576,7 @@
     "player": "Precious Achiuwa",
     "class": "veteran",
     "dynRank": 356,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4594,7 +4594,7 @@
     "player": "Jonathan Mogbo",
     "class": "veteran",
     "dynRank": 460,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "REVIEW: moved TOR->SAC, Two-Way; was 6.6mpg/1.6pg over 38gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4648,7 +4648,7 @@
     "player": "Dylan Harper",
     "class": "sophomore",
     "dynRank": 22,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4666,7 +4666,7 @@
     "player": "De'Aaron Fox",
     "class": "veteran",
     "dynRank": 53,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4729,7 +4729,7 @@
     "player": "Keldon Johnson",
     "class": "veteran",
     "dynRank": 239,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4810,7 +4810,7 @@
     "player": "Collin Murray-Boyles",
     "class": "sophomore",
     "dynRank": 74,
-    "tier": "no_change",
+    "tier": "won_job",
     "note": "",
     "source": ""
   },
@@ -4846,7 +4846,7 @@
     "player": "Jakob Poeltl",
     "class": "veteran",
     "dynRank": 139,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -4873,7 +4873,7 @@
     "player": "Ja'Kobe Walter",
     "class": "veteran",
     "dynRank": 339,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4891,7 +4891,7 @@
     "player": "Kyle Anderson",
     "class": "veteran",
     "dynRank": 448,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved MIN->TOR, 1 yr / $3.9M; was 19.9mpg/6.2pg over 43gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4972,7 +4972,7 @@
     "player": "Keyonte George",
     "class": "veteran",
     "dynRank": 47,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4990,7 +4990,7 @@
     "player": "Ace Bailey",
     "class": "sophomore",
     "dynRank": 94,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4999,7 +4999,7 @@
     "player": "Kyle Filipowski",
     "class": "veteran",
     "dynRank": 178,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -5008,7 +5008,7 @@
     "player": "Isaiah Collier",
     "class": "veteran",
     "dynRank": 215,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5017,7 +5017,7 @@
     "player": "Jusuf Nurkic",
     "class": "veteran",
     "dynRank": 237,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5026,7 +5026,7 @@
     "player": "Brice Sensabaugh",
     "class": "veteran",
     "dynRank": 240,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5044,7 +5044,7 @@
     "player": "Jaxson Hayes",
     "class": "veteran",
     "dynRank": 374,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved LAL->UTA, 2 yr / $12M; was 18.3mpg/7.5pg over 66gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -5053,7 +5053,7 @@
     "player": "Josh Okogie",
     "class": "veteran",
     "dynRank": 434,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved HOU->UTA, 2 yr / $12M; was 17.4mpg/4.5pg over 78gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -5062,7 +5062,7 @@
     "player": "John Konchar",
     "class": "veteran",
     "dynRank": 480,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5143,7 +5143,7 @@
     "player": "Trae Young",
     "class": "veteran",
     "dynRank": 32,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -5152,7 +5152,7 @@
     "player": "Alex Sarr",
     "class": "veteran",
     "dynRank": 40,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5170,7 +5170,7 @@
     "player": "Kyshawn George",
     "class": "veteran",
     "dynRank": 84,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5179,7 +5179,7 @@
     "player": "Tre Johnson",
     "class": "sophomore",
     "dynRank": 122,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5188,7 +5188,7 @@
     "player": "Deandre Ayton",
     "class": "veteran",
     "dynRank": 131,
-    "tier": "no_change",
+    "tier": "clear_backup",
     "note": "REVIEW: moved LAL->WAS, 2 yr / $16.2M; was 27.3mpg/12.5pg over 72gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -5197,7 +5197,7 @@
     "player": "Bilal Coulibaly",
     "class": "veteran",
     "dynRank": 136,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -5251,7 +5251,7 @@
     "player": "Khris Middleton",
     "class": "veteran",
     "dynRank": 346,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved MIL->WAS, 3 yr / $17.6M; was 22.8mpg/10.2pg over 63gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },

@@ -379,6 +379,9 @@ export interface Database {
           fg_pct: number | null;
           ft_pct: number | null;
           consensus_rank: number | null;
+          // Standard usage rate (needs TEAM totals; only build-projection-values.ts
+          // populates it today — NULL for real/summer-league datasets so far).
+          usg_pct: number | null;
           updated_at: string;
         };
         Insert: never;

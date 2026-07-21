@@ -14,6 +14,7 @@
     "nba:staleness": "tsx scripts/nba-data/staleness_check.ts",
     "seasonal:build": "tsx scripts/build-seasonal-values.ts",
     "summerleague:build": "tsx scripts/build-summer-league-values.ts",
+    "projections:build": "tsx scripts/build-projection-values.ts",
     "trends:build": "tsx scripts/build-player-trends.ts",
     "dynasty:sync": "npm run seasonal:build && npm run trends:build",
     "rb:seed": "tsx scripts/seed-rookie-board-supabase.ts",

@@ -282,7 +282,7 @@ function buildTotalsStats(agg: Map<string, Aggregate>): PlayerStats[] {
   return out;
 }
 
-function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
+export function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
   for (const [size, rows] of values) {
     for (const r of rows) {
       for (const [k, v] of Object.entries(r)) {

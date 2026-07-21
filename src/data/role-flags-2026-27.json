@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "season": "2026-27",
-  "generatedAt": "2026-07-20T16:34:36.675033+00:00",
+  "generatedAt": "2026-07-21T09:51:12.681473+00:00",
   "thresholds": {
     "vacMed": 22.0,
     "vacLarge": 38.0,
@@ -45,8 +45,8 @@
       "flags": [
         {
           "priority": 2,
-          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 34 usage-vol freed, 2 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Josh Giddey (proj 32mpg, hist usg 21.0), Isaac Okoro (proj 27mpg, hist usg 11.8)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 34 usage-vol freed, 3 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Josh Giddey (proj 33mpg, hist usg 21.0), Isaac Okoro (proj 27mpg, hist usg 11.8), Tre Jones (proj 24mpg, hist usg 16.6)\n       backtest expectation: +0.2\u20130.4 FGA/36"
         }
       ]
     },
@@ -249,7 +249,7 @@
         {
           "priority": 2,
           "headline": "UNABSORBED INFLOW [MED] \u2014 37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))",
-          "detail": "consider reduced/clear_backup for: Tyrese Maxey (hist usg 25.1)"
+          "detail": "consider reduced/clear_backup for: Tyrese Maxey (hist usg 25.1), VJ Edgecombe (hist usg 17.1)"
         },
         {
           "priority": 1,
@@ -292,7 +292,7 @@
         {
           "priority": 3,
           "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 102 usage-vol freed, 3 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Zach Lavine (proj 28mpg, hist usg 20.1), Maxime Raynaud (proj 25mpg, hist usg 15.3), Precious Achiuwa (proj 24mpg, hist usg 14.9)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+          "detail": "consider expanded/won_job for: Zach Lavine (proj 30mpg, hist usg 20.1), Precious Achiuwa (proj 24mpg, hist usg 14.9), Maxime Raynaud (proj 24mpg, hist usg 15.3)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
         }
       ]
     },
@@ -365,6 +365,11 @@
       "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
     },
     "CHI||Isaac Okoro": {
+      "badge": "up",
+      "label": "consider expanded / won_job",
+      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+    },
+    "CHI||Tre Jones": {
       "badge": "up",
       "label": "consider expanded / won_job",
       "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
@@ -544,6 +549,11 @@
       "label": "consider reduced / clear_backup",
       "reason": "37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))"
     },
+    "PHI||VJ Edgecombe": {
+      "badge": "down",
+      "label": "consider reduced / clear_backup",
+      "reason": "37 usage-vol returning (Jaylen Brown (usg 30.0), Anfernee Simons (usg 19.7))"
+    },
     "PHI||Johni Broome": {
       "badge": "check",
       "label": "up-tagged (expanded) but usage is returning",
@@ -589,12 +599,12 @@
       "label": "consider expanded / won_job",
       "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
-    "SAC||Maxime Raynaud": {
+    "SAC||Precious Achiuwa": {
       "badge": "up",
       "label": "consider expanded / won_job",
       "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
-    "SAC||Precious Achiuwa": {
+    "SAC||Maxime Raynaud": {
       "badge": "up",
       "label": "consider expanded / won_job",
       "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
