@@ -135,6 +135,29 @@ function fileApply(edits: TierEdit[]): { raws: RawRow[]; changed: number } {
   return { raws, changed };
 }
 
+// Read-only accessor for public pages (e.g. team-rosters' depth-chart pop-up) —
+// PUBLISHED only, never the WIP draft, no admin auth required. Mirrors
+// loadForEditor's overlay logic but always resolves against doc.published /
+// CANONICAL, matching what a visitor sees on the actual site right now.
+export async function loadPublishedRows(): Promise<RoleRow[]> {
+  if (RC_SUPABASE_ENABLED) {
+    const doc = await readDoc();
+    const seeded = Object.keys(doc.published).length > 0;
+    return ROSTER.map((b) => {
+      const r = rosterRow(b);
+      r.tier = seeded ? (doc.published[keyOf(b.team, b.player)] ?? DEFAULT_TIER) : b.tier;
+      return r;
+    });
+  }
+  const byKey = new Map(readRaw(CANONICAL).map((r) => [keyOf(r.team, r.player), r.tier]));
+  return ROSTER.map((b) => {
+    const r = rosterRow(b);
+    const raw = byKey.get(keyOf(b.team, b.player));
+    r.tier = raw && TIER_VALUES.includes(raw) ? raw : b.tier;
+    return r;
+  });
+}
+
 // ── public API (async; the route awaits) ─────────────────────────────────────
 export async function loadForEditor(): Promise<{ rows: RoleRow[]; isDraft: boolean; supabase: boolean }> {
   if (RC_SUPABASE_ENABLED) {

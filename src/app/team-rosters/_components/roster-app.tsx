@@ -42,6 +42,7 @@ import { PlayerHeadshot } from "./roster-headshot";
 import { TrendHero, usePlayerTrend, type TrendMetric } from "./player-trend-chart";
 import { TAG_META, type TrendTag } from "./trend-insight";
 import { CompareModal } from "./compare-modal";
+import { DepthChartModal } from "./depth-chart-modal";
 
 // hoopR stat season for the trend chart (2026 = the 2025-26 season) — matches
 // roster-live-data.ts's STATS_SEASON; this page has no season switcher yet.
@@ -268,6 +269,8 @@ export function RosterApp({
     updateCompareList([...compareList, player]);
   };
   const removeFromCompare = (id: string) => updateCompareList(compareList.filter((p) => p.id !== id));
+
+  const [depthChartOpen, setDepthChartOpen] = useState(false);
 
   const selectPlayer = (id: string) => {
     setSelectedId(id);
@@ -697,6 +700,33 @@ export function RosterApp({
             )}
           </div>
           <div style={{ marginLeft: isMobile ? 0 : "auto", width: isMobile ? "100%" : "auto", display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              type="button"
+              className="rt-hover-surface"
+              onClick={() => setDepthChartOpen(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                height: 42,
+                padding: isMobile ? "0 14px" : "0 18px",
+                border: "none",
+                cursor: "pointer",
+                borderRadius: 999,
+                background: "var(--rt-surface-strong)",
+                color: "var(--rt-body)",
+                fontFamily: "var(--rt-font-sans)",
+                fontSize: 13,
+                fontWeight: 600,
+                flexShrink: 0,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="4" rx="1" /><rect x="3" y="10" width="12" height="4" rx="1" /><rect x="3" y="16" width="7" height="4" rx="1" />
+              </svg>
+              {!isMobile && "Depth Chart"}
+            </button>
             <div
               style={{
                 display: "inline-flex",
@@ -1620,6 +1650,15 @@ export function RosterApp({
         onAdd={addToCompare}
         onRemove={removeFromCompare}
         onClose={() => setCompareOpen(false)}
+        isMobile={isMobile}
+      />
+    )}
+    {depthChartOpen && (
+      <DepthChartModal
+        team={curTeam.abbr}
+        teamName={curTeam.name}
+        players={players}
+        onClose={() => setDepthChartOpen(false)}
         isMobile={isMobile}
       />
     )}

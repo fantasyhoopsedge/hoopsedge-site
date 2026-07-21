@@ -214,6 +214,34 @@ function fileApply(edits: TierEdit[]): { raws: RawRow[]; changed: number } {
   return { raws, changed };
 }
 
+// Read-only accessor for public pages (e.g. team-rosters' depth-chart pop-up) —
+// PUBLISHED only, never the WIP draft, and no admin auth required. Mirrors
+// loadForEditor's overlay logic but always resolves against doc.published /
+// CANONICAL, matching what a visitor sees on the actual site right now.
+export async function loadPublishedRows(): Promise<DepthRow[]> {
+  if (DC_SUPABASE_ENABLED) {
+    const doc = await readDoc();
+    const seeded = Object.keys(doc.published).length > 0;
+    return ROSTER.map((b) => {
+      const ov = seeded ? doc.published[keyOf(b)] : undefined;
+      return {
+        ...b, tier: ov?.tier ?? b.tier, injury: ov?.injury ?? b.injury ?? DEFAULT_INJURY,
+        overrideGames: ov?.overrideGames ?? b.overrideGames ?? null,
+        overrideMpg: ov?.overrideMpg ?? b.overrideMpg ?? null,
+      };
+    });
+  }
+  const byKey = new Map(readRaw(CANONICAL).map((r) => [keyOf({ team: r.team, player: r.player }), r]));
+  return ROSTER.map((b) => {
+    const raw = byKey.get(keyOf(b));
+    const tier = raw && TIER_VALUES.includes(raw.tier) ? raw.tier : b.tier;
+    const injury = raw && INJURY_VALUES.includes(raw.injury) ? raw.injury : (b.injury || DEFAULT_INJURY);
+    const overrideGames = raw ? parseNum(raw.override_games) : (b.overrideGames ?? null);
+    const overrideMpg = raw ? parseNum(raw.override_mpg) : (b.overrideMpg ?? null);
+    return { ...b, tier, injury, overrideGames, overrideMpg };
+  });
+}
+
 // ── public API (async; the route awaits) ─────────────────────────────────────
 export async function loadForEditor(): Promise<{ rows: DepthRow[]; isDraft: boolean; supabase: boolean }> {
   if (DC_SUPABASE_ENABLED) {
