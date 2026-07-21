@@ -102,6 +102,24 @@ function vBg(v: number | null | undefined, posAnchor: number, negAnchor: number)
 const statBg = (v: number | null | undefined) => vBg(v, 2.0, 2.0);
 const valueBg = (v: number | null | undefined) => vBg(v, 1.0, 0.6);
 
+// USG/FGA/FTA aren't part of the 9-cat value engine (compute-values.ts only
+// scores the 9 roto categories), so there's no backend V-score to color them
+// by. Approximate the same "diverging off a standardized score" treatment
+// with a z-score computed client-side against this dataset's own player pool
+// (population mean/σ, ALL players — not just the visible/filtered rows, same
+// "stable baseline regardless of filters" idea the real CatV baseline uses),
+// then feed it through the same statBg() every 9-cat cell uses.
+function meanStd(values: number[]): { mu: number; sigma: number } {
+  if (values.length === 0) return { mu: 0, sigma: 0 };
+  const mu = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mu) ** 2, 0) / values.length;
+  return { mu, sigma: Math.sqrt(variance) };
+}
+function zOf(raw: number | null | undefined, ms: { mu: number; sigma: number }): number | null {
+  if (raw == null || !Number.isFinite(raw) || ms.sigma === 0) return null;
+  return (raw - ms.mu) / ms.sigma;
+}
+
 // ── number formatting (matches dynasty-rankings precision) ────────────────────
 const f1 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(1));
 const fInt = (x: number | null | undefined) => (x == null ? "—" : String(Math.round(x)));
@@ -402,6 +420,19 @@ export function SeasonalRankingsTable(props: {
     const vmap = loadedValues[leagueSize] ?? {};
     return players.map((s) => ({ s, v: vmap[s.player_id] ?? null }));
   }, [players, loadedValues, leagueSize]);
+
+  // Population mean/σ for the USG/FGA/FTA heatmap (see meanStd/zOf above).
+  // Mode-matched to Per Game vs Totals so the coloring never disagrees with
+  // the number the cell displays (totals scales FGA/FTA by games played).
+  const rateStats = useMemo(() => {
+    const totOf = (perGameVal: number | null, gp: number | null) =>
+      perGameVal == null ? null : perGameVal * (gp ?? 0);
+    const nums = (vals: (number | null)[]) => vals.filter((v): v is number => v != null);
+    const fga = nums(players.map((s) => (perGame ? s.fga : totOf(s.fga, s.g))));
+    const fta = nums(players.map((s) => (perGame ? s.fta : totOf(s.fta, s.g))));
+    const usg = nums(players.map((s) => s.usg_pct));
+    return { fga: meanStd(fga), fta: meanStd(fta), usg: meanStd(usg) };
+  }, [players, perGame]);
 
   // The CatV value a row displays/sorts by. `value` is the AVERAGE of the 9
   // category z-scores (sum/9) and `minus1v` the average of the best 8, so 8CatV
@@ -826,6 +857,13 @@ export function SeasonalRankingsTable(props: {
                   const cFta = perGame ? f1(s.fta) : fInt(tot(s.fta));
                   const cTo = perGame ? f1(s.tov) : fInt(tot(s.tov));
 
+                  // Heatmap z-scores for USG/FGA/FTA (see rateStats/zOf above) —
+                  // these three have no backend V-score, so the DISPLAYED number
+                  // itself is z-scored against the dataset's own population.
+                  const zUsg = zOf(s.usg_pct, rateStats.usg);
+                  const zFga = zOf(perGame ? s.fga : tot(s.fga), rateStats.fga);
+                  const zFta = zOf(perGame ? s.fta : tot(s.fta), rateStats.fta);
+
                   // Mode-resolved value set drives the summary/value cells + heatmap.
                   const av = pickV(v, perGame);
                   // Minus1V mode: thin blue outline on the one category dropped
@@ -873,7 +911,7 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
-                      <td className={`sr-td sr-num${bold("usg")}`}>{cUsg}</td>
+                      <td className={`sr-td sr-num${bold("usg")}`} style={{ background: statBg(zUsg) }}>{cUsg}</td>
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
                         {fVal(catValue(av))}
                       </td>
@@ -886,9 +924,9 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
                       <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
                       <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
-                      <td className={`sr-td sr-num${bold("fga")}`}>{cFga}</td>
+                      <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
                       <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
-                      <td className={`sr-td sr-num${bold("fta")}`}>{cFta}</td>
+                      <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
                       <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
                       <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
                       <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>

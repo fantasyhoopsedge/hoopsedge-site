@@ -208,6 +208,46 @@ function buildTotalsStats(rows: ResolvedRow[]): PlayerStats[] {
   }));
 }
 
+type TeamTotals = { mp: number; fga: number; fta: number; tov: number };
+
+/**
+ * Team totals for USG%, summed directly from this event's own resolved rows —
+ * unlike build-seasonal-values.ts there's no separate game-log table here, but
+ * the stats.nba.com feed already gives one season(-event)-totals row per
+ * player, so summing by `team` is equivalent.
+ */
+function computeTeamTotals(rows: ResolvedRow[]): Map<string, TeamTotals> {
+  const teams = new Map<string, TeamTotals>();
+  for (const r of rows) {
+    if (!r.team) continue;
+    const cur = teams.get(r.team) ?? { mp: 0, fga: 0, fta: 0, tov: 0 };
+    cur.mp += r.min;
+    cur.fga += r.fga;
+    cur.fta += r.fta;
+    cur.tov += r.tov;
+    teams.set(r.team, cur);
+  }
+  return teams;
+}
+
+/**
+ * Standard NBA usage rate — same formula as build-seasonal-values.ts and
+ * build-projection-values.ts, so all three never drift:
+ *   USG% = 100 * (FGA + 0.44*FTA + TOV) * (TeamMP/5) / (MP * (TeamFGA + 0.44*TeamFTA + TeamTOV))
+ */
+function computeUsgById(rows: ResolvedRow[], teamTotals: Map<string, TeamTotals>): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const r of rows) {
+    const t = r.team ? teamTotals.get(r.team) : undefined;
+    if (!t || r.min <= 0) continue;
+    const denom = t.fga + 0.44 * t.fta + t.tov;
+    if (denom <= 0) continue;
+    const num = r.fga + 0.44 * r.fta + r.tov;
+    out.set(r.playerIdResolved, round1((100 * num * (t.mp / 5)) / (r.min * denom)));
+  }
+  return out;
+}
+
 function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
   for (const [size, rows] of values) {
     for (const r of rows) {
@@ -228,6 +268,7 @@ async function upsert(
   values: Map<number, RankedPlayerValues[]>,
   totals: Map<number, RankedPlayerValues[]>,
   consensus: Map<string, { rank: number; position: string | null; team: string | null }>,
+  usgById: Map<string, number>,
 ): Promise<void> {
   const supabase = getServiceClient();
   const now = new Date().toISOString();
@@ -256,6 +297,7 @@ async function upsert(
       fta: round1(r.fta / r.gp),
       fg_pct: round3(r.fga === 0 ? 0 : r.fgm / r.fga),
       ft_pct: round3(r.fta === 0 ? 0 : r.ftm / r.fta),
+      usg_pct: usgById.get(r.playerIdResolved) ?? null,
       consensus_rank: cons?.rank ?? null,
       updated_at: now,
     };
@@ -327,11 +369,14 @@ async function buildYear(
     console.log(`  ${String(r.valueRank).padStart(2)}. ${(nameOf.get(r.playerId) ?? r.playerId).padEnd(26)} value=${r.value.toFixed(3)}`);
   }
 
+  const teamTotals = computeTeamTotals(resolved);
+  const usgById = computeUsgById(resolved, teamTotals);
+
   if (DRY_RUN) {
     console.log("  [DRY RUN] skipping upsert.");
     return;
   }
-  await upsert(year, resolved, values, totals, consensus);
+  await upsert(year, resolved, values, totals, consensus, usgById);
 }
 
 async function main(): Promise<void> {
