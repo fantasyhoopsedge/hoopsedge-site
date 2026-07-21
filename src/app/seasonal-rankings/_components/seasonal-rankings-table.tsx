@@ -131,21 +131,36 @@ function Headshot({ id, name, extraSources }: { id: string | null; name: string;
   // extra fallbacks the caller opts in (see is2026SummerLeague below) — same
   // multi-stage cycling pattern as team-rosters' PlayerHeadshot.
   const sources = [espnHeadshot(id), ...(extraSources ?? [])].filter((u): u is string => !!u);
-  const url = sources[stage] ?? null;
-  if (url) {
+  const targetUrl = sources[stage] ?? null;
+
+  // Render the <img src> one tick AFTER mount rather than in the same pass.
+  // load/error don't bubble, so React attaches onError directly on the node
+  // during commit — but an <img> rendered with src already set can start
+  // (and finish) a fast failure, e.g. a local 404, in that SAME commit,
+  // before that listener is live. The event is then simply lost (nothing was
+  // listening yet) and the row is stuck on a broken image forever, unable to
+  // ever reach the next candidate or the initials fallback. Deferring src to
+  // a follow-up render via useEffect guarantees the listener already exists
+  // before the browser starts the request, at the cost of a one-frame delay
+  // before any headshot (including ones that resolve immediately) appears.
+  const [renderedUrl, setRenderedUrl] = useState<string | null>(null);
+  useEffect(() => {
+    setRenderedUrl(targetUrl);
+  }, [targetUrl]);
+
+  if (renderedUrl) {
     return (
       <img
-        src={url}
+        src={renderedUrl}
         alt=""
         width={40}
         height={40}
-        loading="lazy"
         onError={() => setStage((s) => s + 1)}
         className="sr-headshot-img"
       />
     );
   }
-  // Initials fallback — no image source resolved.
+  // Initials fallback — no image source resolved (or not rendered yet).
   return (
     <span className="sr-headshot-fallback" aria-hidden>
       {initials(name)}
