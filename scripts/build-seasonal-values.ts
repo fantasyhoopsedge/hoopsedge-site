@@ -282,6 +282,57 @@ function buildTotalsStats(agg: Map<string, Aggregate>): PlayerStats[] {
   return out;
 }
 
+type TeamTotals = { mp: number; fga: number; fta: number; tov: number };
+
+/**
+ * Team totals for USG%, summed directly from this dataset's raw game logs —
+ * each row already carries the team the player actually suited up for in that
+ * game, so a mid-season trade is handled correctly on the team side for free
+ * (unlike build-projection-values.ts, which has no game logs to sum from and
+ * has to fall back to one fixed team per player).
+ */
+function computeTeamTotals(logs: LogRow[]): Map<string, TeamTotals> {
+  const teams = new Map<string, TeamTotals>();
+  for (const r of logs) {
+    if (!r.team) continue;
+    const cur = teams.get(r.team) ?? { mp: 0, fga: 0, fta: 0, tov: 0 };
+    cur.mp += n(r.min);
+    cur.fga += n(r.fga);
+    cur.fta += n(r.fta);
+    cur.tov += n(r.tov);
+    teams.set(r.team, cur);
+  }
+  return teams;
+}
+
+/**
+ * Standard NBA usage rate, mirroring models/minutes-allocator/prep_depth_chart.py
+ * and build-projection-values.ts's exact formula so all three never drift:
+ *   USG% = 100 * (FGA + 0.44*FTA + TOV) * (TeamMP/5) / (MP * (TeamFGA + 0.44*TeamFTA + TeamTOV))
+ * Player side uses this dataset's season totals (agg, already gp-filtered);
+ * team side uses whichever team the stat row itself resolves to (teamOf —
+ * same lastGameTeam-first fallback the upsert's own `team` column uses), so
+ * the USG% column and the TEAM column on screen never disagree about which
+ * team a player's usage is measured against.
+ */
+function computeUsgById(
+  agg: Map<string, Aggregate>,
+  teamTotals: Map<string, TeamTotals>,
+  teamOf: (playerId: string) => string | null,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const [playerId, a] of agg) {
+    const team = teamOf(playerId);
+    const t = team ? teamTotals.get(team) : undefined;
+    if (!t || a.sumMin <= 0) continue;
+    const denom = t.fga + 0.44 * t.fta + t.tov;
+    if (denom <= 0) continue;
+    const num = a.sumFga + 0.44 * a.sumFta + a.sumTov;
+    out.set(playerId, round1((100 * num * (t.mp / 5)) / (a.sumMin * denom)));
+  }
+  return out;
+}
+
 function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
   for (const [size, rows] of values) {
     for (const r of rows) {
@@ -363,6 +414,7 @@ async function upsert(
   lastGameTeam: Map<string, string>,
   values: Map<number, RankedPlayerValues[]>,
   totals: Map<number, RankedPlayerValues[]>,
+  usgById: Map<string, number>,
 ): Promise<void> {
   const supabase = getServiceClient();
   const now = new Date().toISOString();
@@ -418,6 +470,7 @@ async function upsert(
       fta: round1(s.fta),
       fg_pct: round3(s.fgPct),
       ft_pct: round3(s.ftPct),
+      usg_pct: usgById.get(s.playerId) ?? null,
       consensus_rank: cons?.rank ?? null,
       updated_at: now,
     };
@@ -543,11 +596,18 @@ async function buildDataset(
   const matched = stats.filter((s) => lookupWithNameAlias(consensus, normalizeName(players.get(s.playerId)?.name ?? "")) != null).length;
   console.log(`  consensus matched for ${matched}/${stats.length} players`);
 
+  // USG% — team totals summed from this dataset's own logs; player's team
+  // resolved the same way the stat row's own TEAM column is (lastGameTeam
+  // first, falling back to the nba_players snapshot).
+  const teamTotals = computeTeamTotals(logs);
+  const teamOf = (playerId: string) => lastGameTeam.get(playerId) ?? players.get(playerId)?.team ?? null;
+  const usgById = computeUsgById(agg, teamTotals, teamOf);
+
   if (DRY_RUN) {
     console.log("  [DRY RUN] skipping upsert.");
     return;
   }
-  await upsert(ds, stats, agg, players, consensus, lastGameTeam, values, totals);
+  await upsert(ds, stats, agg, players, consensus, lastGameTeam, values, totals, usgById);
 }
 
 async function main(): Promise<void> {

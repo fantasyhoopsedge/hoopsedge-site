@@ -379,6 +379,10 @@ export interface Database {
           fg_pct: number | null;
           ft_pct: number | null;
           consensus_rank: number | null;
+          // Standard usage rate — needs TEAM totals (TeamMP/TeamFGA/TeamFTA/TeamTOV)
+          // per season+season_type+team, computed by build-seasonal-values.ts for
+          // every dataset (regular/playoffs/summer league, all seasons).
+          usg_pct: number | null;
           updated_at: string;
         };
         Insert: never;
