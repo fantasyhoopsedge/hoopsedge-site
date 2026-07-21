@@ -14,7 +14,7 @@ import bundledRoster from "@/data/depth-chart-2026-27.json";
  *     directly.
  *
  * The ROSTER reference (team, player, pos, projected minutes, contract/salary status) is
- * prepared by models/minutes-allocator/prep_depth_chart.py and ships as a bundled JSON
+ * prepared by models/projections-adjuster/prep_depth_chart.py and ships as a bundled JSON
  * import so it renders in prod without runtime fs. Only the `tier` column is ever
  * written by this store — everything else is read-only reference data.
  *

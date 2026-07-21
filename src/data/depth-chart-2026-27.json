@@ -1382,14 +1382,14 @@
     "tier": "fringe",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 38.0,
+    "overrideMpg": 9.0,
+    "projMpg": 9.0,
     "projGames": 8.6,
     "salaryNow": 678882.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.1
+    "usg": 18.0
   },
   {
     "team": "CHI",
@@ -1397,15 +1397,15 @@
     "pos": "F",
     "tier": "starter",
     "injury": "none",
-    "overrideGames": 78.0,
-    "overrideMpg": 32.0,
-    "projMpg": 32.0,
-    "projGames": 78.0,
+    "overrideGames": null,
+    "overrideMpg": 31.0,
+    "projMpg": 31.0,
+    "projGames": 69.9,
     "salaryNow": 5715360.0,
     "statusNow": "guaranteed",
     "salaryNext": 7584283.0,
     "statusNext": "team_option",
-    "usg": 23.3
+    "usg": 23.2
   },
   {
     "team": "CHI",
@@ -1421,7 +1421,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 21099720.0,
     "statusNext": "guaranteed",
-    "usg": 17.3
+    "usg": 17.2
   },
   {
     "team": "CHI",
@@ -1430,8 +1430,8 @@
     "tier": "rotation",
     "injury": "none",
     "overrideGames": 40.0,
-    "overrideMpg": null,
-    "projMpg": 20.0,
+    "overrideMpg": 23.0,
+    "projMpg": 23.0,
     "projGames": 40.0,
     "salaryNow": 8500000.0,
     "statusNow": "guaranteed",
@@ -1446,14 +1446,14 @@
     "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": 14.0,
-    "projMpg": 14.0,
+    "overrideMpg": 17.0,
+    "projMpg": 17.0,
     "projGames": 42.9,
     "salaryNow": 6889320.0,
     "statusNow": "guaranteed",
     "salaryNext": 8763215.0,
     "statusNext": "team_option",
-    "usg": 22.8
+    "usg": 22.7
   },
   {
     "team": "CHI",
@@ -1462,14 +1462,14 @@
     "tier": "fringe",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 34.9,
+    "overrideMpg": 11.0,
+    "projMpg": 11.0,
     "projGames": 6.6,
     "salaryNow": 5701200.0,
     "statusNow": "guaranteed",
     "salaryNext": 5972760.0,
     "statusNext": "team_option",
-    "usg": 18.1
+    "usg": 18.0
   },
   {
     "team": "CHI",
@@ -1477,15 +1477,15 @@
     "pos": "G",
     "tier": "starter",
     "injury": "none",
-    "overrideGames": 65.0,
+    "overrideGames": 69.0,
     "overrideMpg": 33.0,
     "projMpg": 33.0,
-    "projGames": 65.0,
+    "projGames": 69.0,
     "salaryNow": 25000000.0,
     "statusNow": "guaranteed",
     "salaryNext": 25000000.0,
     "statusNext": "guaranteed",
-    "usg": 24.3
+    "usg": 24.2
   },
   {
     "team": "CHI",
@@ -1494,14 +1494,14 @@
     "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": 24.0,
-    "projMpg": 24.0,
+    "overrideMpg": 26.0,
+    "projMpg": 26.0,
     "projGames": 61.8,
     "salaryNow": 8000000.0,
     "statusNow": "guaranteed",
     "salaryNext": 8000000.0,
     "statusNext": "team_option",
-    "usg": 16.9
+    "usg": 16.8
   },
   {
     "team": "CHI",
@@ -1542,14 +1542,14 @@
     "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": 13.0,
-    "projMpg": 13.0,
+    "overrideMpg": 14.0,
+    "projMpg": 14.0,
     "projGames": 36.2,
     "salaryNow": 2406205.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.2
+    "usg": 19.1
   },
   {
     "team": "CHI",
@@ -1558,8 +1558,8 @@
     "tier": "rotation",
     "injury": "none",
     "overrideGames": 62.0,
-    "overrideMpg": 27.0,
-    "projMpg": 27.0,
+    "overrideMpg": 29.0,
+    "projMpg": 29.0,
     "projGames": 62.0,
     "salaryNow": 11814814.0,
     "statusNow": "guaranteed",
@@ -1573,10 +1573,10 @@
     "pos": "G",
     "tier": "starter",
     "injury": "none",
-    "overrideGames": 65.0,
-    "overrideMpg": 32.0,
-    "projMpg": 32.0,
-    "projGames": 65.0,
+    "overrideGames": 68.0,
+    "overrideMpg": null,
+    "projMpg": 33.4,
+    "projGames": 68.0,
     "salaryNow": 22500000.0,
     "statusNow": "guaranteed",
     "salaryNext": 22500000.0,
@@ -1590,14 +1590,14 @@
     "tier": "fringe",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 38.0,
+    "overrideMpg": 8.0,
+    "projMpg": 8.0,
     "projGames": 8.6,
     "salaryNow": 678882.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.1
+    "usg": 18.0
   },
   {
     "team": "CHI",
@@ -1661,7 +1661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11217960.0,
     "statusNext": "guaranteed",
-    "usg": 20.3
+    "usg": 20.2
   },
   {
     "team": "CLE",

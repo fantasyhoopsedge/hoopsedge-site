@@ -35,7 +35,7 @@ ROLE-TYPICAL baseline (not the player's own history, and not the population mean
 what a player at that MPG tier typically plays league-wide: starters .81 avail
 median .88, rotation .74/.80, bench .41/.39) and leaves chronic cases alone.
 
-Run: python models/minutes-allocator/measure_availability.py
+Run: python models/projections-adjuster/measure_availability.py
 """
 
 from __future__ import annotations

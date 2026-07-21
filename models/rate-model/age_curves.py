@@ -45,7 +45,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "minutes-allocator"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "projections-adjuster"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
 from common import HOOPR_NBA_TEAMS, REGULAR_SEASON, REPO, SEASONS, ensure_parquet  # noqa: E402
 from minutes import load_panels  # noqa: E402

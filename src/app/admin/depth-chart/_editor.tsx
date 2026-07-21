@@ -685,7 +685,7 @@ export function DepthChartEditor() {
                         // Live usage preview: projected USG% x the selected role's usage factor.
                         // Directionally exact; the model's Stage 3 does a small (<1%) team-total
                         // reconcile on the real run, so this slightly overstates -- a preview,
-                        // exactly like Live MPG approximates the Python minutes allocator.
+                        // exactly like Live MPG approximates the Python projections adjuster.
                         const rcTier = rcEdited.get(k) ?? RC_DEFAULT_TIER;
                         const usgMult = USG_MULT[rcTier] ?? 1;
                         const liveUsg = r.usg != null && usgMult !== 1 ? r.usg * usgMult : null;

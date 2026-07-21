@@ -33,7 +33,7 @@ judgement this mechanism exists to capture (a 2026 mid-tier team could be this y
 playoff_bubble OR safe_middle team, and only someone tracking actual roster/trade/
 tanking behavior can tell which). See team-category-2026-27.csv.
 
-Run: python models/minutes-allocator/team_category_baseline.py
+Run: python models/projections-adjuster/team_category_baseline.py
 """
 
 from __future__ import annotations

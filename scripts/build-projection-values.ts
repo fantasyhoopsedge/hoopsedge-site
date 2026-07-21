@@ -149,7 +149,7 @@ function toTotalsStats(p: ResolvedPlayer): PlayerStats {
 }
 
 /**
- * Standard NBA usage rate, mirroring models/minutes-allocator/prep_depth_chart.py's
+ * Standard NBA usage rate, mirroring models/projections-adjuster/prep_depth_chart.py's
  * exact formula (the depth-chart tool's own USG% column) so the two never drift:
  *   USG% = 100 * (FGA + 0.44*FTA + TOV) * (TeamMP/5) / (MP * (TeamFGA + 0.44*TeamFTA + TeamTOV))
  *

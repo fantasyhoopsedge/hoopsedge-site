@@ -1,5 +1,5 @@
 /**
- * Client-side port of models/minutes-allocator/minutes.py's allocate() -- the same
+ * Client-side port of models/projections-adjuster/minutes.py's allocate() -- the same
  * tilted-proportional-with-cap-enforcement rescaling that keeps every team's
  * minutes summing to the 241.75 budget, ported here so the /admin/depth-chart tool
  * can show LIVE redistribution as Ash manually overrides one player's GP/MPG,

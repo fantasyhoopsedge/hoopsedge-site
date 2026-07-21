@@ -14,7 +14,7 @@
 -- ║ "TEAM||Player" -- this is a per-team assignment, not per-roster-spot).    ║
 -- ║ draft is NULL when there is no work-in-progress. The team list/notes ship ║
 -- ║ as a bundled JSON (src/data/team-category-2026-27.json) built by          ║
--- ║ models/minutes-allocator/team_category_baseline.py; only the category     ║
+-- ║ models/projections-adjuster/team_category_baseline.py; only the category  ║
 -- ║ decisions live in the DB.                                                 ║
 -- ║                                                                            ║
 -- ║ Access: admin-only, same allowlist as the rookie board (rb_admins). All   ║
