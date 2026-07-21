@@ -18,7 +18,7 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 // active value set; consensus from the stat row; the rest are raw stats.
 type SortKey =
   | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg" | "usg"
-  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov"
+  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fga" | "fg_pct" | "fta" | "ft_pct" | "tov"
   | "fg_v" | "ft_v";
 type SortDir = "asc" | "desc";
 
@@ -799,7 +799,9 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="AST" sortKey="ast" sort={sort} onSort={onSort} />
                   <SortTh label="STL" sortKey="stl" sort={sort} onSort={onSort} />
                   <SortTh label="BLK" sortKey="blk" sort={sort} onSort={onSort} />
+                  <SortTh label="FGA" sortKey="fga" sort={sort} onSort={onSort} />
                   <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
+                  <SortTh label="FTA" sortKey="fta" sort={sort} onSort={onSort} />
                   <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
                   <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
                   <SortTh label="FG%V" sortKey="fg_v" sort={sort} onSort={onSort} />
@@ -820,6 +822,8 @@ export function SeasonalRankingsTable(props: {
                   const cA = perGame ? f1(s.ast) : fInt(tot(s.ast));
                   const cS = perGame ? f1(s.stl) : fInt(tot(s.stl));
                   const cB = perGame ? f1(s.blk) : fInt(tot(s.blk));
+                  const cFga = perGame ? f1(s.fga) : fInt(tot(s.fga));
+                  const cFta = perGame ? f1(s.fta) : fInt(tot(s.fta));
                   const cTo = perGame ? f1(s.tov) : fInt(tot(s.tov));
 
                   // Mode-resolved value set drives the summary/value cells + heatmap.
@@ -882,7 +886,9 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
                       <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
                       <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
+                      <td className={`sr-td sr-num${bold("fga")}`}>{cFga}</td>
                       <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
+                      <td className={`sr-td sr-num${bold("fta")}`}>{cFta}</td>
                       <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
                       <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
                       <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
