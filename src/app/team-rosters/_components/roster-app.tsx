@@ -178,6 +178,63 @@ export function RosterApp({
     return () => mq.removeEventListener("change", handler);
   }, []);
 
+  // iPad portrait/landscape (768-1023px) isn't "mobile" (isMobile above
+  // stays false) — but measured live, several of the desktop-sized layout
+  // choices below don't actually fit that range: the fixed 236px sidebar
+  // plus a fixed 392px detail rail left as little as ~140px for the roster
+  // list itself, the 4-column summary-stat grid (repeat(3,1fr) 1.25fr)
+  // overflowed its row by ~164px, and the position/class filter pills
+  // (flexWrap:"nowrap") overflowed by ~404px — all three assumed real-
+  // desktop width that this range doesn't have. isCompactViewport below
+  // reuses the same "not enough room" signal for all three instead of
+  // building three separate treatments, and matches the <1024px breakpoint
+  // draft-board already uses for the identical list+detail-rail tradeoff
+  // (see .db-detail-col in globals.css).
+  const [isTabletWidth, setIsTabletWidth] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    setIsTabletWidth(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsTabletWidth(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  // iPad landscape (1024-1279px) keeps the sidebar (236px is a reasonable
+  // ~20% of that width, and it's not the thing squeezing this page) but
+  // still doesn't have room for BOTH the roster list and a persistent
+  // 392px detail rail at the same time — measured live, the summary-stat
+  // grid and filter pills were overflowing there too, same as portrait
+  // was before isCompactViewport covered it. Upper-bounded at 1279 (not
+  // open-ended) so real desktop windows keep the persistent rail — see
+  // .db-detail-col in globals.css, which uses the same 1280px cutoff for
+  // the identical tradeoff on draft-board.
+  const [isLandscapeTabletWidth, setIsLandscapeTabletWidth] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px) and (max-width: 1279px)");
+    setIsLandscapeTabletWidth(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsLandscapeTabletWidth(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  const isCompactViewport = isMobile || isTabletWidth || isLandscapeTabletWidth;
+  // Portrait + phone specifically (not landscape): the detail panel's
+  // full-screen takeover treatment. Landscape gets a centered pop-up over
+  // a dimmed backdrop instead — same pattern draft-board uses for its own
+  // 1024-1279px range (see .db-detail-modal-backdrop) — so it needs its
+  // own narrower flag rather than reusing isCompactViewport wholesale.
+  const isFullScreenOverlay = isMobile || isTabletWidth;
+  // iPad portrait specifically (not landscape, and not phone — phone
+  // already has its own separate compact card list below, gated on
+  // isMobile). The sidebar is dropped for this whole range (see
+  // roster-tokens.css), which alone fixes most of the squeeze, but the
+  // grid view's cards still only got 2 narrow columns there — the list
+  // view (a proper multi-column row, same pattern as every other data
+  // table on the site) uses that width far better than a squeezed card
+  // grid, so this range skips grid entirely. Landscape keeps its sidebar
+  // AND both view modes — once the detail rail is an overlay there's
+  // plenty of room for either.
+  const isTabletPortrait = isTabletWidth && !isMobile;
+  const effectiveViewMode = isTabletPortrait ? "list" : viewMode;
+
   // Compare modal: up to 4 players, persisted in sessionStorage (mirrors the
   // theme localStorage pattern in team-rosters-shell.tsx) so the list
   // survives a full page navigation (e.g. switching teams), not just
@@ -214,7 +271,7 @@ export function RosterApp({
 
   const selectPlayer = (id: string) => {
     setSelectedId(id);
-    if (isMobile) setMobileDetailOpen(true);
+    if (isCompactViewport) setMobileDetailOpen(true);
   };
 
   const modeNow: SeasonMode = mode ?? "cur";
@@ -457,7 +514,9 @@ export function RosterApp({
   ];
 
   const noResults = cards.length === 0;
-  const listGridCols = "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr) minmax(262px,1.7fr)";
+  const listGridCols = isCompactViewport
+    ? "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr)"
+    : "minmax(210px,1.4fr) 40px 36px minmax(80px,0.95fr) minmax(90px,1fr) minmax(90px,1fr) minmax(262px,1.7fr)";
 
   return (
     <>
@@ -468,7 +527,7 @@ export function RosterApp({
           list's scroll position lives on this DOM node's overflow:auto, so
           unmounting it on every player tap reset the scroll to the top on
           return. display:none preserves scrollTop across the toggle. */}
-      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: isMobile && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, minWidth: 0, minHeight: 0, display: isCompactViewport && mobileDetailOpen ? "none" : "flex", flexDirection: "column" }}>
         {/* Topbar */}
         <div
           style={{
@@ -685,8 +744,11 @@ export function RosterApp({
 
         {/* Scroll area */}
         <div style={{ flex: 1, overflow: "auto", padding: isMobile ? "16px 16px 28px" : "24px 28px 36px", display: "flex", flexDirection: "column", gap: isMobile ? 16 : 22 }}>
-          {/* Summary cards */}
-          <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
+          {/* Summary cards. isCompactViewport (not isMobile): the 4-track
+              repeat(3,1fr) 1.25fr overflowed its row by ~164px at iPad
+              portrait width — measured live at 768px, where it's clearly
+              not "mobile" but still nowhere near enough room for 4 columns. */}
+          <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isCompactViewport ? "repeat(2, 1fr)" : "repeat(3, 1fr) 1.25fr", gap: isMobile ? 12 : 16 }}>
             <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isMobile ? "14px 16px" : "20px 22px" }}>
               <div style={{ fontSize: 13, color: "var(--rt-muted)" }}>Active roster</div>
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: isMobile ? 26 : 38, fontWeight: 500, letterSpacing: "-1px", color: "var(--rt-ink)", marginTop: 6, fontVariantNumeric: "tabular-nums" }}>
@@ -729,9 +791,12 @@ export function RosterApp({
             </div>
           </div>
 
-          {/* Position filters */}
+          {/* Position filters. isCompactViewport (not isMobile) on flexWrap:
+              nowrap forced the position pills + divider + class pills +
+              count text + view toggle onto one line that overflowed by
+              ~404px at iPad portrait width — measured live at 768px. */}
           <div style={{ flexShrink: 0, display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center", gap: isMobile ? 10 : 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexWrap: isMobile ? "wrap" : "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexWrap: isCompactViewport ? "wrap" : "nowrap" }}>
               <button
                 type="button"
                 onClick={clearAllFilters}
@@ -778,9 +843,10 @@ export function RosterApp({
               })}
               {/* Thin divider between the position group and the class group —
                   they're independent (ANDed) filters, not one flat list. Hidden
-                  on mobile, where the pills wrap onto their own rows anyway and
-                  a 1px bar reads as a stray mark rather than a separator. */}
-              {!isMobile && <span style={{ width: 1, alignSelf: "stretch", background: "var(--rt-hairline)", flexShrink: 0 }} />}
+                  whenever the pills can wrap onto their own rows (phone, and
+                  now tablet too), where a 1px bar reads as a stray mark
+                  rather than a separator. */}
+              {!isCompactViewport && <span style={{ width: 1, alignSelf: "stretch", background: "var(--rt-hairline)", flexShrink: 0 }} />}
               {classFilterDefs.map((cf) => {
                 const on = classFilters.has(cf.id);
                 return (
@@ -811,7 +877,11 @@ export function RosterApp({
                   {cards.length} of {players.length} players
                 </span>
               )}
-              {!isMobile && (
+              {/* Toggle hidden (not just !isMobile) in tablet portrait — that
+                  range is forced to list-only below (effectiveViewMode), so
+                  a grid/list picker there would offer a choice that doesn't
+                  do anything. */}
+              {!isMobile && !isTabletPortrait && (
                 <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
                   <button
                     type="button"
@@ -845,9 +915,20 @@ export function RosterApp({
             )}
           </div>
 
-          {/* Player grid */}
-          {!isMobile && viewMode === "grid" && (
-            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+          {/* Player grid. iPad portrait is forced to list view above
+              (effectiveViewMode) and phone has its own separate compact
+              card list further down, so this only ever renders on real
+              desktop OR iPad landscape (both view modes stay available
+              there — see isLandscapeTabletWidth above). Landscape is
+              pinned to exactly 2 columns (not auto-fill's 3 narrower
+              ones) — per explicit request, and it also fixes the name
+              truncation auto-fill's 3-up was causing there. 2 wide
+              columns has plenty of room even at 1024px (the low end of
+              that range), so no padding/avatar/gap trim is needed there
+              anymore either — reverted to the same static values desktop
+              always used. */}
+          {!isMobile && effectiveViewMode === "grid" && (
+            <div style={{ flexShrink: 0, display: "grid", gridTemplateColumns: isLandscapeTabletWidth ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 18 }}>
               {cards.map((c) => (
                 <div
                   key={c.id}
@@ -924,7 +1005,7 @@ export function RosterApp({
           )}
 
           {/* Player list */}
-          {!isMobile && viewMode === "list" && (
+          {!isMobile && effectiveViewMode === "list" && (
             <div style={{ flexShrink: 0 }}>
               <div style={{ border: "1px solid var(--rt-hairline)", borderRadius: 16, overflowX: "auto" }}>
                 <div
@@ -968,7 +1049,9 @@ export function RosterApp({
                       </button>
                     );
                   })}
-                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 10, fontWeight: 600, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat set</span>
+                  {!isCompactViewport && (
+                    <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 10, fontWeight: 600, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Stat set</span>
+                  )}
                 </div>
                 {cards.map((c) => (
                   <div
@@ -1033,13 +1116,15 @@ export function RosterApp({
                         {c.fvVerdict}
                       </span>
                     </div>
-                    <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
-                      {c.statSet.map((s, i) => (
-                        <span key={i} style={{ fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 600, color: s.color }}>
-                          {s.label}
-                        </span>
-                      ))}
-                    </div>
+                    {!isCompactViewport && (
+                      <div style={{ display: "flex", flexWrap: "nowrap", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}>
+                        {c.statSet.map((s, i) => (
+                          <span key={i} style={{ fontFamily: "var(--rt-font-mono)", fontSize: 12, fontWeight: 600, color: s.color }}>
+                            {s.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1155,6 +1240,18 @@ export function RosterApp({
         </div>
       </div>
 
+      {/* iPad landscape only: dimmed backdrop behind the pop-up below,
+          click to dismiss — same mechanism as draft-board's
+          .db-detail-modal-backdrop. Portrait/phone don't get one (their
+          full-screen aside has nothing behind it to dim); desktop's
+          persistent rail obviously doesn't either. */}
+      {isLandscapeTabletWidth && mobileDetailOpen && (
+        <div
+          onClick={() => setMobileDetailOpen(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 255, background: "rgba(0,0,0,0.6)" }}
+        />
+      )}
+
       {/* ================= DETAIL PANEL ================= */}
       {/* Also always mounted on mobile now (display:none when closed) for the
           same reason as the main column above — and so its own scroll
@@ -1163,12 +1260,14 @@ export function RosterApp({
       <aside
         ref={detailPanelRef}
         style={
-          isMobile
+          isFullScreenOverlay
             ? { position: "fixed", inset: 0, zIndex: 250, width: "100%", height: "100%", background: "var(--rt-surface-soft)", overflow: "auto", display: mobileDetailOpen ? "block" : "none" }
-            : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
+            : isLandscapeTabletWidth
+              ? { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 260, width: "min(600px, 90vw)", maxHeight: "94vh", borderRadius: 16, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.45)", display: mobileDetailOpen ? "block" : "none" }
+              : { width: 392, flex: "0 0 392px", height: "100%", borderLeft: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", overflow: "auto" }
         }
       >
-        {isMobile && (
+        {isFullScreenOverlay && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 16px", borderBottom: "1px solid var(--rt-hairline)", background: "var(--rt-canvas)", position: "sticky", top: 0, zIndex: 1 }}>
             <button
               type="button"
@@ -1184,7 +1283,18 @@ export function RosterApp({
           </div>
         )}
         {/* Court hero — dark in dark mode, light in light mode, never forced dark */}
-        <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: "26px 24px 24px" }}>
+        <div style={{ position: "relative", overflow: "hidden", background: "var(--rt-hero-bg)", color: "var(--rt-hero-ink)", borderBottom: "1px solid var(--rt-hero-hairline)", padding: isLandscapeTabletWidth ? "16px 18px 14px" : "26px 24px 24px" }}>
+          {/* iPad landscape's pop-up close button — matches draft-board's
+              ProspectDetailPanel close button (same position-on-hero
+              treatment, rt- tokens instead of the sitewide ones). */}
+          {isLandscapeTabletWidth && (
+            <button
+              type="button"
+              onClick={() => setMobileDetailOpen(false)}
+              aria-label="Close"
+              style={{ position: "absolute", top: 14, right: 14, zIndex: 10, background: "color-mix(in srgb, var(--rt-hero-ink) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--rt-hero-ink) 20%, transparent)", color: "var(--rt-hero-ink)", borderRadius: "50%", width: 30, height: 30, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}
+            >✕</button>
+          )}
           {TEAM_LOGO[sp.team] && (
             // eslint-disable-next-line @next/next/no-img-element -- static team wordmark from public/, sized as a background flourish
             <img
@@ -1196,7 +1306,7 @@ export function RosterApp({
             />
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative" }}>
-            <PlayerHeadshot name={sp.name} size={62} initials={initials(sp.name)} background="var(--rt-primary)" color="var(--rt-on-primary)" fontSize={23} rookie={sp.tag === "rookie"} />
+            <PlayerHeadshot name={sp.name} size={isLandscapeTabletWidth ? 48 : 62} initials={initials(sp.name)} background="var(--rt-primary)" color="var(--rt-on-primary)" fontSize={isLandscapeTabletWidth ? 18 : 23} rookie={sp.tag === "rookie"} />
             <div style={{ minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
                 <span style={{ fontSize: 23, fontWeight: 600, letterSpacing: "-0.4px", lineHeight: 1.1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -1259,18 +1369,19 @@ export function RosterApp({
               mode={modeNow}
               prefetched={spTrend}
               tag={sp.tag}
+              compact={isLandscapeTabletWidth}
             />
           )}
         </div>
 
-        <div style={{ padding: "18px 18px 28px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ padding: isLandscapeTabletWidth ? "12px 14px 16px" : "18px 18px 28px", display: "flex", flexDirection: "column", gap: isLandscapeTabletWidth ? 10 : 14 }}>
           {/* CTAs — sits between the trend chart above and the 9-cat profile below */}
           <div style={{ display: "flex", gap: 10 }}>
             <button
               type="button"
               className="rt-hover-primary"
               onClick={() => openCompare(sp)}
-              style={{ flex: 1, height: 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: 15, fontWeight: 600 }}
+              style={{ flex: 1, height: isLandscapeTabletWidth ? 38 : 44, border: "none", cursor: "pointer", borderRadius: 999, background: "var(--rt-primary)", color: "var(--rt-on-primary)", fontFamily: "var(--rt-font-sans)", fontSize: isLandscapeTabletWidth ? 14 : 15, fontWeight: 600 }}
             >
               Compare
             </button>
@@ -1317,14 +1428,14 @@ export function RosterApp({
           </div>
 
           {/* 9-category profile: ranked z-score, driven by the shared toggle above */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
             <div style={{ fontSize: 12, color: "var(--rt-muted)", marginTop: 6 }}>
               {projLocked ? "2026–27 model projection · Edge Pro" : "Ranked high to low · z-score vs league"}
             </div>
 
             {spMpgBar && (
-              <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 0 0" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, padding: isLandscapeTabletWidth ? "8px 0 0" : "12px 0 0" }}>
                 <span style={{ width: 34, fontSize: 12, fontWeight: 600, color: "var(--rt-ink)" }}>MPG</span>
                 <span style={{ position: "relative", flex: 1, height: 8, background: "var(--rt-hairline-soft)", borderRadius: 999, overflow: "hidden" }}>
                   <span style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${spMpgBar.widthPct}%`, background: spMpgBar.color, borderRadius: 999 }} />
@@ -1340,7 +1451,7 @@ export function RosterApp({
                 {profile.reason}
               </div>
             ) : (
-              <div style={{ marginTop: 14 }}>
+              <div style={{ marginTop: isLandscapeTabletWidth ? 8 : 14 }}>
                 {profile.rows.map((row, i) => (
                   <div
                     key={row.key}
@@ -1348,7 +1459,7 @@ export function RosterApp({
                       display: "flex",
                       alignItems: "center",
                       gap: 11,
-                      padding: "8px 0",
+                      padding: isLandscapeTabletWidth ? "5px 0" : "8px 0",
                       borderBottom: i < profile.rows.length - 1 ? "1px solid var(--rt-hairline-soft)" : "none",
                     }}
                   >
@@ -1385,7 +1496,7 @@ export function RosterApp({
           </div>
 
           {/* Salary & contract */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Salary &amp; contract</span>
               {contract.status && (
@@ -1412,7 +1523,7 @@ export function RosterApp({
               </div>
             ) : (
               <>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16 }}>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: isLandscapeTabletWidth ? 10 : 16 }}>
                   <div>
                     <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
@@ -1424,15 +1535,15 @@ export function RosterApp({
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>{money(contract.avg)}</div>
                   </div>
                 </div>
-                <div style={{ marginTop: 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "11px 0 9px" }}>
+                <div style={{ marginTop: isLandscapeTabletWidth ? 10 : 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "7px 0 5px" : "11px 0 9px" }}>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Year</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Team</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Age</span>
                     <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Salary</span>
                   </div>
                   {contract.rows.map((yr, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
+                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "5px 0" : "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{yr.year}</span>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-body)", fontVariantNumeric: "tabular-nums" }}>{yr.team}</span>
                       <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-muted)", fontVariantNumeric: "tabular-nums", textAlign: "center" }}>{yr.age}</span>
@@ -1454,7 +1565,7 @@ export function RosterApp({
 
           {/* Rookie draft — 2026 draft class only (sp.draft is null for everyone else) */}
           {sp.draft && (
-            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: 20 }}>
+            <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Rookie draft</span>
                 {sp.draft.boardTier != null && (

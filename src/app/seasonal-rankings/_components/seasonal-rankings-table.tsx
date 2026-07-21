@@ -17,8 +17,8 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 // Every column the table can sort by. value/minus1v/fg_v/ft_v come from the
 // active value set; consensus from the stat row; the rest are raw stats.
 type SortKey =
-  | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg"
-  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fg_pct" | "ft_pct" | "tov"
+  | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg" | "usg"
+  | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fga" | "fg_pct" | "fta" | "ft_pct" | "tov"
   | "fg_v" | "ft_v";
 type SortDir = "asc" | "desc";
 
@@ -101,6 +101,24 @@ function vBg(v: number | null | undefined, posAnchor: number, negAnchor: number)
 
 const statBg = (v: number | null | undefined) => vBg(v, 2.0, 2.0);
 const valueBg = (v: number | null | undefined) => vBg(v, 1.0, 0.6);
+
+// USG/FGA/FTA aren't part of the 9-cat value engine (compute-values.ts only
+// scores the 9 roto categories), so there's no backend V-score to color them
+// by. Approximate the same "diverging off a standardized score" treatment
+// with a z-score computed client-side against this dataset's own player pool
+// (population mean/σ, ALL players — not just the visible/filtered rows, same
+// "stable baseline regardless of filters" idea the real CatV baseline uses),
+// then feed it through the same statBg() every 9-cat cell uses.
+function meanStd(values: number[]): { mu: number; sigma: number } {
+  if (values.length === 0) return { mu: 0, sigma: 0 };
+  const mu = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((a, b) => a + (b - mu) ** 2, 0) / values.length;
+  return { mu, sigma: Math.sqrt(variance) };
+}
+function zOf(raw: number | null | undefined, ms: { mu: number; sigma: number }): number | null {
+  if (raw == null || !Number.isFinite(raw) || ms.sigma === 0) return null;
+  return (raw - ms.mu) / ms.sigma;
+}
 
 // ── number formatting (matches dynasty-rankings precision) ────────────────────
 const f1 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(1));
@@ -390,6 +408,26 @@ export function SeasonalRankingsTable(props: {
     };
   }, []);
 
+  // Measures the column-header row's own rendered height so the ticked-summary
+  // row (see tickedSummary below) can stick directly beneath it — sr-th cells
+  // are themselves sticky at top:0, so this second sticky row needs a dynamic
+  // top offset rather than a hardcoded one (font/padding shrink on mobile).
+  const headerRowRef = useRef<HTMLTableRowElement>(null);
+  const [headerRowH, setHeaderRowH] = useState(38);
+  useEffect(() => {
+    const el = headerRowRef.current;
+    if (!el) return;
+    const compute = () => setHeaderRowH(el.getBoundingClientRect().height);
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    window.addEventListener("resize", compute);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", compute);
+    };
+  }, []);
+
   const teams = useMemo(() => {
     const set = new Set<string>();
     for (const p of players) if (p.team) set.add(p.team);
@@ -402,6 +440,19 @@ export function SeasonalRankingsTable(props: {
     const vmap = loadedValues[leagueSize] ?? {};
     return players.map((s) => ({ s, v: vmap[s.player_id] ?? null }));
   }, [players, loadedValues, leagueSize]);
+
+  // Population mean/σ for the USG/FGA/FTA heatmap (see meanStd/zOf above).
+  // Mode-matched to Per Game vs Totals so the coloring never disagrees with
+  // the number the cell displays (totals scales FGA/FTA by games played).
+  const rateStats = useMemo(() => {
+    const totOf = (perGameVal: number | null, gp: number | null) =>
+      perGameVal == null ? null : perGameVal * (gp ?? 0);
+    const nums = (vals: (number | null)[]) => vals.filter((v): v is number => v != null);
+    const fga = nums(players.map((s) => (perGame ? s.fga : totOf(s.fga, s.g))));
+    const fta = nums(players.map((s) => (perGame ? s.fta : totOf(s.fta, s.g))));
+    const usg = nums(players.map((s) => s.usg_pct));
+    return { fga: meanStd(fga), fta: meanStd(fta), usg: meanStd(usg) };
+  }, [players, perGame]);
 
   // The CatV value a row displays/sorts by. `value` is the AVERAGE of the 9
   // category z-scores (sum/9) and `minus1v` the average of the best 8, so 8CatV
@@ -431,6 +482,7 @@ export function SeasonalRankingsTable(props: {
       case "consensus": return s.consensus_rank ?? null;
       case "age": return ageOf(s);
       case "g": return s.g ?? null; // a count — never totalled
+      case "usg": return s.usg_pct ?? null; // already a rate — never totalled
       case "fg_pct": return s.fg_pct ?? null;
       case "ft_pct": return s.ft_pct ?? null;
       default: {
@@ -475,6 +527,87 @@ export function SeasonalRankingsTable(props: {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rankedAll, tickedOnly, checked, teamFilter, posFilter, classFilter, minGames, minMins, search]);
+
+  /**
+   * Combined stat line for whatever's ticked AND currently visible (a ticked
+   * player hidden by a filter drops out, same as "Ticked Only" elsewhere).
+   * Counting stats sum their season TOTALS (mpg/pts/etc. × g) regardless of
+   * the Per Game/Totals toggle — that raw total is the one true number;
+   * per-game display just divides it by combined GP afterward, so a
+   * plain average of two players' per-game lines never has to happen (that
+   * would silently give a 10-game player the same weight as an 82-game one).
+   * FG%/FT% are combined FGM/FTM over combined FGA/FTA (attempt-weighted,
+   * not attempt-count-weighted-by-games), and USG% is weighted by total
+   * minutes played — the same three ratios either mode displays, exactly
+   * like a single player's own FG%/FT%/USG% cell never changes with the
+   * Per Game/Totals toggle.
+   *
+   * Conditional-formatting scores (v*) reuse each ticked player's OWN
+   * backend V-score (av.pts/av.fg3/etc. from pickV) rather than inventing a
+   * parallel scoring system — combined via the exact same weight basis as
+   * the raw stat next to it (GP for counting cats, FGA/FTA for FG%/FT%), so
+   * the color a cell shows is directly traceable to the number it displays.
+   * Minus1V/CatV/FG%V/FT%V still read "—": those are baseline-pool
+   * aggregates a client-side reweighting can't reproduce.
+   */
+  const tickedSummary = useMemo(() => {
+    const rows = visible.filter(({ s }) => checked.has(s.player_id));
+    if (rows.length === 0) return null;
+    let g = 0, min = 0, pts = 0, fg3m = 0, reb = 0, ast = 0, stl = 0, blk = 0, tov = 0;
+    let fga = 0, fta = 0, fgm = 0, ftm = 0, usgWeighted = 0;
+    let gpV = 0, fgaV = 0, ftaV = 0;
+    let vPtsS = 0, vFg3S = 0, vRebS = 0, vAstS = 0, vStlS = 0, vBlkS = 0, vToS = 0, vFgS = 0, vFtS = 0;
+    for (const { s, v } of rows) {
+      const gp = s.g ?? 0;
+      g += gp;
+      min += (s.mpg ?? 0) * gp;
+      pts += (s.pts ?? 0) * gp;
+      fg3m += (s.fg3m ?? 0) * gp;
+      reb += (s.reb ?? 0) * gp;
+      ast += (s.ast ?? 0) * gp;
+      stl += (s.stl ?? 0) * gp;
+      blk += (s.blk ?? 0) * gp;
+      tov += (s.tov ?? 0) * gp;
+      const fgaTot = (s.fga ?? 0) * gp;
+      const ftaTot = (s.fta ?? 0) * gp;
+      fga += fgaTot;
+      fta += ftaTot;
+      fgm += fgaTot * (s.fg_pct ?? 0);
+      ftm += ftaTot * (s.ft_pct ?? 0);
+      if (s.usg_pct != null) usgWeighted += s.usg_pct * ((s.mpg ?? 0) * gp);
+
+      const av = pickV(v, perGame);
+      if (av) {
+        gpV += gp;
+        if (av.pts != null) vPtsS += av.pts * gp;
+        if (av.fg3 != null) vFg3S += av.fg3 * gp;
+        if (av.reb != null) vRebS += av.reb * gp;
+        if (av.ast != null) vAstS += av.ast * gp;
+        if (av.stl != null) vStlS += av.stl * gp;
+        if (av.blk != null) vBlkS += av.blk * gp;
+        if (av.to != null) vToS += av.to * gp;
+        fgaV += fgaTot;
+        ftaV += ftaTot;
+        if (av.fg != null) vFgS += av.fg * fgaTot;
+        if (av.ft != null) vFtS += av.ft * ftaTot;
+      }
+    }
+    return {
+      n: rows.length, g, min, pts, fg3m, reb, ast, stl, blk, tov, fga, fta,
+      fgPct: fga > 0 ? fgm / fga : null,
+      ftPct: fta > 0 ? ftm / fta : null,
+      usgPct: min > 0 ? usgWeighted / min : null,
+      vPts: gpV > 0 ? vPtsS / gpV : null,
+      vFg3: gpV > 0 ? vFg3S / gpV : null,
+      vReb: gpV > 0 ? vRebS / gpV : null,
+      vAst: gpV > 0 ? vAstS / gpV : null,
+      vStl: gpV > 0 ? vStlS / gpV : null,
+      vBlk: gpV > 0 ? vBlkS / gpV : null,
+      vTo: gpV > 0 ? vToS / gpV : null,
+      vFg: fgaV > 0 ? vFgS / fgaV : null,
+      vFt: ftaV > 0 ? vFtS / ftaV : null,
+    };
+  }, [visible, checked, perGame]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -778,7 +911,7 @@ export function SeasonalRankingsTable(props: {
           >
             <table className="sr-table">
               <thead>
-                <tr>
+                <tr ref={headerRowRef}>
                   <th className="sr-th sr-th-pick" aria-label="Tick" />
                   <th className="sr-th sr-num-h sr-th-rank">RANK</th>
                   <th className="sr-th sr-th-shot" aria-label="Headshot" />
@@ -789,6 +922,7 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
+                  <SortTh label="USG" sortKey="usg" sort={sort} onSort={onSort} />
                   <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
                   <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
                   <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
@@ -797,7 +931,9 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="AST" sortKey="ast" sort={sort} onSort={onSort} />
                   <SortTh label="STL" sortKey="stl" sort={sort} onSort={onSort} />
                   <SortTh label="BLK" sortKey="blk" sort={sort} onSort={onSort} />
+                  <SortTh label="FGA" sortKey="fga" sort={sort} onSort={onSort} />
                   <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
+                  <SortTh label="FTA" sortKey="fta" sort={sort} onSort={onSort} />
                   <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
                   <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
                   <SortTh label="FG%V" sortKey="fg_v" sort={sort} onSort={onSort} />
@@ -805,19 +941,88 @@ export function SeasonalRankingsTable(props: {
                 </tr>
               </thead>
               <tbody>
+                {tickedSummary && (() => {
+                  const ts = tickedSummary;
+                  const per = (total: number) => (ts.g > 0 ? total / ts.g : null);
+                  const cellStyle = { top: headerRowH };
+                  // left is NOT set here — it comes from sr-td-pick/sr-td-rank/
+                  // sr-td-shot/sr-sticky-col, whose left offset (and, for shot,
+                  // display:none) already changes correctly per breakpoint (the
+                  // headshot column disappears and PLAYER shifts left on mobile).
+                  // An inline left here would override that responsive CSS with a
+                  // fixed desktop value at every viewport width.
+                  // USG/FGA/FTA have no backend V-score to reuse (see rateStats/
+                  // zOf above), so the combined NUMBER itself is z-scored against
+                  // the same population every individual row's USG/FGA/FTA cell
+                  // uses — mode-matched, exactly like those per-row cells.
+                  const zUsgTs = zOf(ts.usgPct, rateStats.usg);
+                  const zFgaTs = zOf(perGame ? per(ts.fga) : ts.fga, rateStats.fga);
+                  const zFtaTs = zOf(perGame ? per(ts.fta) : ts.fta, rateStats.fta);
+                  // Layer the tint over a guaranteed-OPAQUE base in one declaration
+                  // (rather than replacing the background outright, as the plain
+                  // per-row cells do) — this row is position:sticky, and a
+                  // semi-transparent inline background on a sticky cell lets
+                  // whatever the browser composites underneath (stale scrolled
+                  // content) bleed through. A flat layered gradient has no such
+                  // gap: the opaque var(--bg-card) is always the bottom layer.
+                  const bg = (v: number | null | undefined) => {
+                    const tint = statBg(v);
+                    return { ...cellStyle, background: `linear-gradient(${tint}, ${tint}), var(--bg-card, #1a1a1a)` };
+                  };
+                  return (
+                    <tr className="sr-summary-tr">
+                      <td className="sr-td sr-summary-cell sr-summary-frozen sr-td-pick" style={cellStyle} />
+                      <td className="sr-td sr-num sr-summary-cell sr-summary-frozen sr-td-rank" style={cellStyle}>Σ</td>
+                      <td className="sr-td sr-summary-cell sr-summary-frozen sr-td-shot" style={cellStyle} />
+                      <td className="sr-td sr-td-player sr-summary-cell sr-summary-frozen sr-sticky-col" style={cellStyle}>
+                        {ts.n} TICKED
+                      </td>
+                      <td className="sr-td sr-summary-cell" style={cellStyle} />
+                      <td className="sr-td sr-summary-cell" style={cellStyle} />
+                      <td className="sr-td sr-summary-cell" style={cellStyle} />
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{ts.g}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.min)) : fInt(ts.min)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(zUsgTs)}>{f1(ts.usgPct)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                      <td className="sr-td sr-num sr-num-wide sr-summary-cell" style={cellStyle}>—</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vPts)}>{perGame ? f1(per(ts.pts)) : fInt(ts.pts)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg3)}>{perGame ? f1(per(ts.fg3m)) : fInt(ts.fg3m)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vReb)}>{perGame ? f1(per(ts.reb)) : fInt(ts.reb)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vAst)}>{perGame ? f1(per(ts.ast)) : fInt(ts.ast)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vStl)}>{perGame ? f1(per(ts.stl)) : fInt(ts.stl)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vBlk)}>{perGame ? f1(per(ts.blk)) : fInt(ts.blk)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(zFgaTs)}>{perGame ? f1(per(ts.fga)) : fInt(ts.fga)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg)}>{fPct(ts.fgPct)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(zFtaTs)}>{perGame ? f1(per(ts.fta)) : fInt(ts.fta)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFt)}>{fPct(ts.ftPct)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vTo)}>{perGame ? f1(per(ts.tov)) : fInt(ts.tov)}</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                    </tr>
+                  );
+                })()}
                 {visible.map(({ s, v, rank }) => {
                   const g = s.g ?? 0;
                   const tot = (perGameVal: number | null | undefined) =>
                     perGameVal == null ? null : perGameVal * g;
                   const cGP = s.g == null ? "—" : String(s.g);
                   const cMin = perGame ? f1(s.mpg) : fInt(tot(s.mpg));
+                  const cUsg = f1(s.usg_pct); // a rate — same value in both Per Game / Totals modes
                   const cP = perGame ? f1(s.pts) : fInt(tot(s.pts));
                   const c3 = perGame ? f1(s.fg3m) : fInt(tot(s.fg3m));
                   const cR = perGame ? f1(s.reb) : fInt(tot(s.reb));
                   const cA = perGame ? f1(s.ast) : fInt(tot(s.ast));
                   const cS = perGame ? f1(s.stl) : fInt(tot(s.stl));
                   const cB = perGame ? f1(s.blk) : fInt(tot(s.blk));
+                  const cFga = perGame ? f1(s.fga) : fInt(tot(s.fga));
+                  const cFta = perGame ? f1(s.fta) : fInt(tot(s.fta));
                   const cTo = perGame ? f1(s.tov) : fInt(tot(s.tov));
+                  // Heatmap z-scores for USG/FGA/FTA (see rateStats/zOf above) —
+                  // mode-matched to the same raw number the cell displays.
+                  const zUsg = zOf(s.usg_pct, rateStats.usg);
+                  const zFga = zOf(perGame ? s.fga : tot(s.fga), rateStats.fga);
+                  const zFta = zOf(perGame ? s.fta : tot(s.fta), rateStats.fta);
 
                   // Mode-resolved value set drives the summary/value cells + heatmap.
                   const av = pickV(v, perGame);
@@ -866,6 +1071,7 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("age")}`}>{fAge(ageOf(s))}</td>
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
+                      <td className={`sr-td sr-num${bold("usg")}`} style={{ background: statBg(zUsg) }}>{cUsg}</td>
                       <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
                         {fVal(catValue(av))}
                       </td>
@@ -878,7 +1084,9 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
                       <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
                       <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
+                      <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
                       <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
+                      <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
                       <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
                       <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
                       <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
@@ -1078,6 +1286,25 @@ export function SeasonalRankingsTable(props: {
         .sr-sticky-col { position: sticky; left: 126px; z-index: 5; background: var(--bg-body); }
         .sr-tr:hover .sr-sticky-col { background: var(--bg-card-hover, #1c1c1c); }
 
+        /* Ticked-players combined stat line (tickedSummary) — a second sticky
+           row living inside <thead>, right below the column-header row (its
+           top offset is measured dynamically via headerRowH, since header
+           height varies by breakpoint). Non-frozen cells only stick vertically;
+           the leading pick/rank/shot/player cells reuse the header's own
+           left-offsets (0/30/86/126) via sr-td-pick/sr-td-rank/sr-td-shot/
+           sr-sticky-col, but need a higher z-index (16) than normal body rows'
+           frozen columns (5) so they stay on top while the table scrolls,
+           while still losing to the actual header row (20) if they ever overlap.
+           Declared after sr-sticky-col/sr-td-pick etc. so it wins their z-index/
+           background on the ties (equal specificity, later source wins). */
+        .sr-summary-cell {
+          position: sticky; z-index: 9;
+          background: var(--bg-card, #1a1a1a); color: var(--text-primary);
+          font-weight: 700; border-top: 1px solid var(--border-main);
+          border-bottom: 2px solid var(--rt-primary);
+        }
+        .sr-summary-frozen { z-index: 16; }
+
         .sr-headshot-img {
           width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
           object-position: center top; background: var(--bg-card, #1a1a1a);
@@ -1092,6 +1319,23 @@ export function SeasonalRankingsTable(props: {
         .sr-count {
           text-align: center; font-size: 11px; color: var(--text-muted);
           padding: 10px 0 24px; font-family: var(--rt-font-sans);
+        }
+
+        /* iPad portrait (768-1023px): PlatformSidebarNav drops its sidebar at
+           this same <=1023px breakpoint (see .platform-sidebar-desktop in
+           globals.css), so this shell needs the same top-nav clearance the
+           phone block below already has — without the phone block's OTHER
+           rules (the collapsible filter-toggle overlay), since
+           .sr-controls-inner is already flex-wrap:wrap on desktop and
+           should reflow fine at this width on its own. min-width-bounded so
+           it can't cascade-conflict with the phone block below. 64px (not
+           phone's 52px): SiteNav is only actually 52px tall right at 768px
+           itself (its own max-width:768px breakpoint) — this over-reserves
+           slightly at that one exact width rather than under-reserving
+           across the rest of the range. */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .sr-shell { padding-left: 0; padding-top: 64px; }
+          .sr-controls { top: 64px; }
         }
 
         @media (max-width: 767px) {

@@ -485,13 +485,28 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
         })}
       </div>
 
-      {/* Prospect detail panel — desktop only, docked to the right */}
+      {/* Prospect detail panel — real desktop (>=1280px) only, docked to the right. */}
       <div className="db-detail-col">
         <div className="db-detail-sticky">
           <ProspectDetailPanel player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={selectedPlayer ? liveAges[selectedPlayer.name] : undefined} tiers={tiers} movement={selectedPlayer ? movementFor(selectedPlayer.name) : undefined} />
         </div>
       </div>
       </div>
+
+      {/* Same detail panel, iPad landscape (1024-1279px) only — a centered
+          popup instead of the docked rail above (see .db-detail-modal-
+          backdrop's media query). Row clicks already call
+          setSelectedPlayer at this width (the onClick above only branches
+          to the inline-expand below 1024px), so this needs no separate
+          state or click-handler change — just a different place to render
+          the same selectedPlayer. */}
+      {selectedPlayer && (
+        <div className="db-detail-modal-backdrop" onClick={() => setSelectedPlayer(null)}>
+          <div className="db-detail-modal-inner" onClick={(e) => e.stopPropagation()}>
+            <ProspectDetailPanel player={selectedPlayer} onClose={() => setSelectedPlayer(null)} age={liveAges[selectedPlayer.name]} tiers={tiers} movement={movementFor(selectedPlayer.name)} />
+          </div>
+        </div>
+      )}
       </div>
 
       <style>{`
@@ -534,7 +549,17 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
         .db-list-col { width: 100%; }
         .db-detail-col { display: none; }
 
-        @media (min-width: 1024px) {
+        /* Real desktop only (was >=1024px) — the persistent 480px docked
+           side panel needs real width to not squeeze the list. iPad
+           landscape (1024-1279px) has room for the list alone but not
+           list + a 480px rail at the same time (measured live, the same
+           list+detail-rail squeeze team-rosters had — see
+           isLandscapeTabletWidth in roster-app.tsx), so that range instead
+           gets the row click opening .db-detail-modal-backdrop below —
+           same ProspectDetailPanel content, shown as a centered popup
+           instead of a permanent rail. <=1023px is untouched: still the
+           tap-to-expand-inline-stars row (.db-mobile-stars below). */
+        @media (min-width: 1280px) {
           .db-layout {
             display: flex;
             align-items: flex-start;
@@ -562,6 +587,32 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           color: var(--text-muted);
           font-size: 13px;
           line-height: 1.6;
+        }
+
+        /* iPad landscape popup — mounted only while a player is selected
+           (see {selectedPlayer && (...)} below); the display:none default
+           here is a second guard against it lingering visible through a
+           resize down to a width where a stale selectedPlayer wouldn't
+           otherwise matter (<1024 never sets it — see the row onClick —
+           but a resize *from* >=1024 with a player already open could
+           otherwise leave this showing at a width it doesn't belong to). */
+        .db-detail-modal-backdrop { display: none; }
+        @media (min-width: 1024px) and (max-width: 1279px) {
+          .db-detail-modal-backdrop {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: rgba(0, 0, 0, 0.6);
+            align-items: flex-start;
+            justify-content: center;
+            padding: 60px 24px;
+            overflow-y: auto;
+          }
+          .db-detail-modal-inner {
+            max-width: 500px;
+            width: 100%;
+          }
         }
 
         .db-mobile-stars { display: none; }
@@ -616,6 +667,14 @@ export function DraftBoardClient({ board, ageByName, movement = {} }: { board: R
           .db-age { min-width: 44px; padding: 3px 6px; margin-left: 6px; }
           .db-age-num { font-size: 18px; }
           .db-age-cap { font-size: 8px; letter-spacing: 1.5px; }
+        }
+        /* iPad portrait: part of reclaiming room for the player name (see
+           the .db-board-wrap/.db-row tightening in globals.css) — shaves a
+           few px off this badge too rather than leaving it at full desktop
+           size. */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .db-age { min-width: 46px; padding: 3px 7px; margin-left: 6px; }
+          .db-age-num { font-size: 19px; }
         }
 
         /* Team logo replacing the plain nbaTeam-code text (see RowTeamLogo). */

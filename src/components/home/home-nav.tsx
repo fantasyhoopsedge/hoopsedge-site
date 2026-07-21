@@ -27,7 +27,7 @@ export function HomeNav() {
         page.tsx) so this menu renders dark like every other page's,
         instead of inheriting the homepage's always-light styling. */}
     <div className="home-nav-mobile" data-theme="dark">
-      <SiteNav />
+      <SiteNav forceTheme="dark" />
     </div>
     <header
       className="home-nav-desktop"

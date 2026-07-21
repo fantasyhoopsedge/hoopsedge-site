@@ -147,10 +147,20 @@ export function SiteNav(props: {
   /** Compact single-line summary (e.g. dynasty rankings meta), shown left of Join CTA */
   infoStrip?: ReactNode;
   navClassName?: string;
+  /**
+   * Overrides which logo wordmark variant renders, for callers that wrap
+   * this nav in a bar whose background is pinned to a color regardless of
+   * the site-wide theme toggle (e.g. the home page's mobile nav sits on an
+   * always-black hero). Without this the logo still follows the toggle-driven
+   * `theme` state below, which can pick the dark-text wordmark against a
+   * pinned-black bar and render it invisible.
+   */
+  forceTheme?: "dark" | "light";
 }) {
-  const { active, joinFree, infoStrip, navClassName } = props;
+  const { active, joinFree, infoStrip, navClassName, forceTheme } = props;
   const { user, profile, openSignUp, signOut, supabase } = useAuth();
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const logoTheme = forceTheme ?? theme;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileRankingsOpen, setMobileRankingsOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLLIElement>(null);
@@ -243,7 +253,7 @@ export function SiteNav(props: {
           {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
           <img
             className="nav-brand-full"
-            src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+            src={logoTheme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
             alt="Fantasy Hoops Edge"
             style={{ height: BRAND_LOGO_HEIGHT, width: "auto" }}
           />
@@ -283,6 +293,11 @@ export function SiteNav(props: {
         {showBoardEditor && (
           <li className="nav-arena nav-admin-dev">
             <a href="/admin/rookie-board" title="Rookie board editor (admins only)">✎ Board Editor</a>
+          </li>
+        )}
+        {showBoardEditor && (
+          <li className="nav-arena nav-admin-dev">
+            <a href="/admin/role-context" title="Role-context tier pass (admins only)">☰ Tier Pass</a>
           </li>
         )}
         <li className="nav-theme">
@@ -334,7 +349,7 @@ export function SiteNav(props: {
               <div className="nav-mobile-panel-header">
                 {/* eslint-disable-next-line @next/next/no-img-element -- brand SVG lockup, no next/image config needed */}
                 <img
-                  src={theme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
+                  src={logoTheme === "dark" ? "/brand/logo-wordmark-on-dark.svg" : "/brand/logo-wordmark.svg"}
                   alt="Fantasy Hoops Edge"
                   style={{ height: 24, width: "auto" }}
                 />
@@ -383,6 +398,11 @@ export function SiteNav(props: {
                 {showBoardEditor && (
                   <a href="/admin/rookie-board" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
                     Board Editor
+                  </a>
+                )}
+                {showBoardEditor && (
+                  <a href="/admin/role-context" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                    Tier Pass
                   </a>
                 )}
                 <button type="button" className="nav-mobile-panel-row" onClick={toggleTheme}>
@@ -602,8 +622,15 @@ export function SiteNav(props: {
         .nav-mobile-panel-signin { background: none; border: 1px solid var(--border-main); color: var(--text-primary); }
         .nav-mobile-panel-join { background: var(--rt-primary); border: none; color: #ffffff; }
 
-        /* ── Mobile ──────────────────────────────────────────────────────── */
-        @media (max-width: 767px) {
+        /* ── Mobile/tablet-portrait ──────────────────────────────────────────
+           <=1023px (was <=767px): iPad portrait was showing the full inline
+           link row here (Rankings dropdown, Arena, Join, etc.) crammed next
+           to the brand — the same row that only really fits real desktop
+           width. Matches PlatformSidebarNav's own <=1023px breakpoint (this
+           IS its mobile fallback on 8+ pages — see platform-sidebar-nav.tsx)
+           and team-rosters' AppSidebar-drawer breakpoint, so the hamburger
+           pattern is now consistent everywhere it's used, not just on phone. */
+        @media (max-width: 1023px) {
           .nav-links > li.nav-theme,
           .nav-links > li.nav-mobile-opposite-link,
           .nav-links > li.nav-rankings,

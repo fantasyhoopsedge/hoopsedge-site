@@ -842,10 +842,12 @@ const STYLES = `
   /* padding-left offsets the fixed-position left sidebar (PlatformSidebarNav
      desktop rail, 236px) — same convention as .dr-rankings-shell /
      .draft-board-shell in globals.css. Reverts to 0 under the sidebar's own
-     767px breakpoint, where it falls back to the top SiteNav instead. */
+     1023px breakpoint, where it falls back to the top SiteNav instead
+     (80px top padding already comfortably covers SiteNav at either of its
+     52px/64px heights, so no separate tablet-portrait value is needed here). */
   .rb-shell { min-height: 100vh; background: var(--bg-body, #000); color: var(--text-secondary, #cbd5e1);
     font-family: 'Inter', system-ui, sans-serif; padding: 28px 32px 80px; padding-left: 268px; }
-  @media (max-width: 767px) {
+  @media (max-width: 1023px) {
     .rb-shell { padding-left: 32px; padding-top: 80px; }
   }
   .rb-loading { padding: 80px; text-align: center; color: var(--text-muted, #64748b); }
