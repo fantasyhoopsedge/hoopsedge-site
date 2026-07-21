@@ -15,7 +15,7 @@ import bundledRoster from "@/data/role-context-2026-27.json";
  *     directly, so a local model run picks up an edit immediately with no round-trip.
  *
  * The ROSTER itself (team, player, class, dynasty rank, note) is reference data prepared
- * by models/minutes-allocator/prep_role_context.py. It ships as a bundled JSON import so
+ * by models/projections-adjuster/prep_role_context.py. It ships as a bundled JSON import so
  * it renders in prod without runtime fs; only the TIER decisions ever hit the DB. When
  * the owner publishes in prod, scripts/sync-role-context.ts pulls those tiers back into
  * the CSV before the model runs. Only the `tier` column is ever written — class/dynRank/
@@ -28,7 +28,7 @@ const DATA_DIR = join(process.cwd(), "data", "nba-rosters");
 const CANONICAL = join(DATA_DIR, "role-context-2026-27.csv");
 const DRAFT = join(DATA_DIR, "role-context-2026-27.draft.csv");
 
-// Mirror of ROLE_TIERS in models/minutes-allocator/minutes.py — keep values/multipliers
+// Mirror of ROLE_TIERS in models/projections-adjuster/minutes.py — keep values/multipliers
 // byte-identical. The allocator reads a tier RELATIVE to team-mates, so "no_change" is
 // the correct default for the large majority.
 export const TIER_OPTIONS = [

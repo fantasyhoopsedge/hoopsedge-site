@@ -18,7 +18,7 @@ narrative actually claims: top-8 rotation's share of total team minutes, rotatio
 size (players with genuine run), and the starter-vs-bench games-played gap. If these
 don't differ by category, the whole team-category mechanism isn't worth building.
 
-Run: python models/minutes-allocator/measure_team_tiers.py
+Run: python models/projections-adjuster/measure_team_tiers.py
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
 from common import HOOPR_NBA_TEAMS, PARQUET_CACHE, REGULAR_SEASON, REPO  # noqa: E402
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "minutes-allocator"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "projections-adjuster"))
 from minutes import load_panels  # noqa: E402
 
 SEASONS = list(range(2011, 2027))

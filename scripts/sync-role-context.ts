@@ -8,7 +8,7 @@
  *   npm run role-context:sync -- --dry-run
  *
  * PULL is the everyday direction: after editing tiers on the road, this writes them into
- * data/nba-rosters/role-context-2026-27.csv so `python models/minutes-allocator/project.py`
+ * data/nba-rosters/role-context-2026-27.csv so `python models/projections-adjuster/project.py`
  * picks them up. Only the `tier` column changes; class/dyn_rank/note/source are preserved,
  * and the file is written CRLF to match prep_role_context.py so the diff stays minimal.
  *

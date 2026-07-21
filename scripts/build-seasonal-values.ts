@@ -306,7 +306,7 @@ function computeTeamTotals(logs: LogRow[]): Map<string, TeamTotals> {
 }
 
 /**
- * Standard NBA usage rate, mirroring models/minutes-allocator/prep_depth_chart.py
+ * Standard NBA usage rate, mirroring models/projections-adjuster/prep_depth_chart.py
  * and build-projection-values.ts's exact formula so all three never drift:
  *   USG% = 100 * (FGA + 0.44*FTA + TOV) * (TeamMP/5) / (MP * (TeamFGA + 0.44*TeamFTA + TeamTOV))
  * Player side uses this dataset's season totals (agg, already gp-filtered);

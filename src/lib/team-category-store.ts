@@ -21,7 +21,7 @@ const DATA_DIR = join(process.cwd(), "data", "nba-rosters");
 const CANONICAL = join(DATA_DIR, "team-category-2026-27.csv");
 const DRAFT = join(DATA_DIR, "team-category-2026-27.draft.csv");
 
-// Mirror in models/minutes-allocator/team_category_baseline.py's CATEGORY_OPTIONS --
+// Mirror in models/projections-adjuster/team_category_baseline.py's CATEGORY_OPTIONS --
 // keep values/labels byte-identical.
 export const CATEGORY_OPTIONS = [
   { value: "unset", label: "Unset", hint: "not yet assessed" },

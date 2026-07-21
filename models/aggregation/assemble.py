@@ -40,7 +40,7 @@ import pandas as pd
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "usage-redistribution"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "rookie-translation"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "minutes-allocator"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "projections-adjuster"))
 from common import REPO, name_candidates, normalize_name  # noqa: E402
 from minutes import TEAM_MINUTE_BUDGET  # noqa: E402
 from redistribute import (  # noqa: E402

@@ -43,7 +43,7 @@ seeds `class` from `yos`. It is meant to be overridden by hand in the editor; th
 itself is not wired to read it back (this is a standalone tool, not a Stage 1 input, by
 design -- see the availability-chronicity conversation this was built alongside).
 
-Run: python models/minutes-allocator/prep_depth_chart.py
+Run: python models/projections-adjuster/prep_depth_chart.py
 """
 
 from __future__ import annotations

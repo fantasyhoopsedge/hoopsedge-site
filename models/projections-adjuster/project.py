@@ -12,7 +12,7 @@ and load (minutes per team game), with every team summing to the 240 budget.
 hoopR season numbering: 2027 == the 2026-27 season, so the priors are 2024-2026
 (i.e. 2023-24 through 2025-26). Run build_foundation.py first.
 
-Run: python models/minutes-allocator/project.py [--write-role-template]
+Run: python models/projections-adjuster/project.py [--write-role-template]
 """
 
 from __future__ import annotations

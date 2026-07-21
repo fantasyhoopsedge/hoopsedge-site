@@ -13,7 +13,7 @@ NBA franchises — hoopR files All-Star and Rising Stars games under
 season_type == 2, and those exhibition squads show up as 50-65 minute "teams"
 that would corrupt every team-level aggregate here.
 
-Run: python models/minutes-allocator/measure_240.py
+Run: python models/projections-adjuster/measure_240.py
 """
 
 from __future__ import annotations

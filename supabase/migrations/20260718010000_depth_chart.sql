@@ -12,7 +12,7 @@
 -- ║ NULL when there is no work-in-progress. The roster reference (position,   ║
 -- ║ projected minutes, contract/salary status) is NOT stored here -- it ships ║
 -- ║ as a bundled JSON (src/data/depth-chart-2026-27.json) built by            ║
--- ║ models/minutes-allocator/prep_depth_chart.py; only the tier decisions     ║
+-- ║ models/projections-adjuster/prep_depth_chart.py; only the tier decisions  ║
 -- ║ live in the DB.                                                           ║
 -- ║                                                                            ║
 -- ║ Access: admin-only, same allowlist as the rookie board (rb_admins). All   ║

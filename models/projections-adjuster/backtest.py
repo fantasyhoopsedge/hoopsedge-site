@@ -19,7 +19,7 @@ Rookies are carried in the allocation (they take real minutes, and leaving them
 out would hand their share to the veterans) but excluded from the error, because
 projecting a player with no NBA history is Stage 4's job, not Stage 1's.
 
-Run: python models/minutes-allocator/backtest.py
+Run: python models/projections-adjuster/backtest.py
 """
 
 from __future__ import annotations

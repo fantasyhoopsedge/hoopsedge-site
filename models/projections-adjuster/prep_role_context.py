@@ -23,7 +23,7 @@ Rows are sorted by (team, dyn_rank, player): within each team the highest-value 
 assets come first, and the unranked deep-bench/two-way players fall to the bottom of the
 team block. Idempotent: preserves every existing tier / note / source.
 
-Run: python models/minutes-allocator/prep_role_context.py
+Run: python models/projections-adjuster/prep_role_context.py
 """
 
 from __future__ import annotations
