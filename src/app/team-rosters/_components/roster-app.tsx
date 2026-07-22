@@ -952,17 +952,6 @@ export function RosterApp({
             )}
           </div>
 
-          {/* TEMP DEBUG — remove once the iPhone "depth chart loads then goes
-              blank" report (PR #23 follow-up) is resolved. Prints exactly
-              which of the four mutually-exclusive branches below (mobile
-              depth-chart / mobile list / desktop grid / desktop list) is
-              actually active, unconditionally, so it's readable straight off
-              a phone screen with no devtools. */}
-          <div style={{ padding: "4px", fontSize: 10, fontFamily: "monospace", color: "var(--rt-primary)" }}>
-            DEBUG: isMobile={String(isMobile)} depthChartView={String(depthChartView)} isCompactViewport={String(isCompactViewport)}{" "}
-            effectiveViewMode={effectiveViewMode} listLength={list.length}
-          </div>
-
           {/* Player grid. iPad portrait is forced to list view above
               (effectiveViewMode) and phone has its own separate compact
               card list further down, so this only ever renders on real
