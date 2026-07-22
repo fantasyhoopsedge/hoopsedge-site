@@ -149,12 +149,20 @@ export function DepthChartBody({
   // separately from the depth-chart rows and failed-open (an empty map just
   // means no tags render) since it's a supplementary signal, not core data.
   const [roleTagMap, setRoleTagMap] = useState<Record<string, string>>({});
+  // TEMP DEBUG (remove once the iPhone "loads then goes blank" report is
+  // resolved — see PR #23 follow-up): every code path below already renders
+  // visible text, and the route-level error.tsx isn't firing either, so a
+  // render crash doesn't explain a silent blank. This is a plain on-screen
+  // trace of fetch outcomes so it can be read directly off a phone screen
+  // with no devtools access, instead of guessing further.
+  const [debugTrace, setDebugTrace] = useState("mounted, fetch pending");
 
   useEffect(() => {
     let cancelled = false;
     setRows(null);
     setError(false);
     setRoleTagMap({});
+    setDebugTrace(`effect ran for team=${team}`);
 
     fetch(`/api/nba/depth-chart?team=${team}`)
       .then((r) => {
@@ -163,6 +171,7 @@ export function DepthChartBody({
         // isn't JSON — .json() would throw with no useful detail. Logging the
         // actual status here is what makes that failure mode diagnosable
         // instead of just reading as "nothing happened".
+        if (!cancelled) setDebugTrace(`depth-chart HTTP ${r.status}${r.redirected ? ` (redirected to ${r.url})` : ""}`);
         if (!r.ok) {
           console.error(`/api/nba/depth-chart -> ${r.status}${r.redirected ? ` (redirected to ${r.url})` : ""}`);
         }
@@ -171,14 +180,19 @@ export function DepthChartBody({
       .then((d) => {
         if (cancelled) return;
         if (d.error) {
+          setDebugTrace(`depth-chart API returned error: ${d.error}`);
           setError(true);
           return;
         }
+        setDebugTrace(`depth-chart OK, ${(d.rows ?? []).length} rows`);
         setRows(d.rows ?? []);
       })
       .catch((err) => {
         console.error("Failed to load depth chart:", err);
-        if (!cancelled) setError(true);
+        if (!cancelled) {
+          setDebugTrace(`fetch threw: ${err instanceof Error ? err.message : String(err)}`);
+          setError(true);
+        }
       });
 
     fetch(`/api/nba/role-context?team=${team}`)
@@ -216,11 +230,31 @@ export function DepthChartBody({
   const logoFile = TEAM_LOGO[team];
   const logoSrc = logoFile ? `/images/nba%20team%20images/${logoFile}` : null;
 
+  // TEMP DEBUG — see the note by setDebugTrace above. Renders unconditionally,
+  // above every other branch, so it's visible even if something below it were
+  // to somehow produce nothing: proof-of-mount plus the exact fetch outcome,
+  // readable straight off a phone screen.
+  const debugBanner = (
+    <div style={{ padding: "6px 4px", fontSize: 10, fontFamily: "monospace", color: "var(--rt-primary)", wordBreak: "break-word" }}>
+      DEBUG: {debugTrace}
+    </div>
+  );
+
   if (rows === null && !error) {
-    return <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-muted)" }}>Loading depth chart…</div>;
+    return (
+      <>
+        {debugBanner}
+        <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-muted)" }}>Loading depth chart…</div>
+      </>
+    );
   }
   if (error) {
-    return <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-down)" }}>Couldn&apos;t load the depth chart.</div>;
+    return (
+      <>
+        {debugBanner}
+        <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-down)" }}>Couldn&apos;t load the depth chart.</div>
+      </>
+    );
   }
 
   const colHeader = (key: ColKey, label: string) => (
@@ -244,6 +278,7 @@ export function DepthChartBody({
 
   return (
     <>
+      {debugBanner}
       {grouped.length === 0 && (
         <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-muted)" }}>
           {(rows ?? []).length === 0 ? `No published depth chart yet for ${teamName}.` : "No players match the current filters."}
