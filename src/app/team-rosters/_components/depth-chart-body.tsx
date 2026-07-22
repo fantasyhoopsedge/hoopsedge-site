@@ -236,7 +236,8 @@ export function DepthChartBody({
   // readable straight off a phone screen.
   const debugBanner = (
     <div style={{ padding: "6px 4px", fontSize: 10, fontFamily: "monospace", color: "var(--rt-primary)", wordBreak: "break-word" }}>
-      DEBUG: {debugTrace}
+      DEBUG: {debugTrace} · filteredRows={filteredRows.length} · grouped={grouped.length} · groupTiers=
+      {grouped.map((g) => `${g.tier}:${g.rows.length}`).join(",") || "none"}
     </div>
   );
 
