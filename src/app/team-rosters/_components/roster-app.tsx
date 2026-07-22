@@ -43,6 +43,7 @@ import { TrendHero, usePlayerTrend, type TrendMetric } from "./player-trend-char
 import { TAG_META, type TrendTag } from "./trend-insight";
 import { CompareModal } from "./compare-modal";
 import { DepthChartModal } from "./depth-chart-modal";
+import { DepthChartInline } from "./depth-chart-inline";
 
 // hoopR stat season for the trend chart (2026 = the 2025-26 season) — matches
 // roster-live-data.ts's STATS_SEASON; this page has no season switcher yet.
@@ -271,6 +272,12 @@ export function RosterApp({
   const removeFromCompare = (id: string) => updateCompareList(compareList.filter((p) => p.id !== id));
 
   const [depthChartOpen, setDepthChartOpen] = useState(false);
+  // Mobile (phone) swaps the roster list for an inline depth chart instead of
+  // opening the pop-up — desktop/tablet keep the modal (see DepthChartModal
+  // vs DepthChartInline below). No reset-on-team-change effect needed: this
+  // page remounts fresh on every team navigation, same as every other filter
+  // state here.
+  const [depthChartView, setDepthChartView] = useState(false);
 
   const selectPlayer = (id: string) => {
     setSelectedId(id);
@@ -703,7 +710,7 @@ export function RosterApp({
             <button
               type="button"
               className="rt-hover-surface"
-              onClick={() => setDepthChartOpen(true)}
+              onClick={() => (isMobile ? setDepthChartView((v) => !v) : setDepthChartOpen(true))}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -713,8 +720,8 @@ export function RosterApp({
                 border: "none",
                 cursor: "pointer",
                 borderRadius: 999,
-                background: "var(--rt-surface-strong)",
-                color: "var(--rt-body)",
+                background: isMobile && depthChartView ? "var(--rt-primary)" : "var(--rt-surface-strong)",
+                color: isMobile && depthChartView ? "var(--rt-on-primary)" : "var(--rt-body)",
                 fontFamily: "var(--rt-font-sans)",
                 fontSize: 13,
                 fontWeight: 600,
@@ -1161,11 +1168,24 @@ export function RosterApp({
             </div>
           )}
 
+          {/* Depth Chart toggle (mobile only) swaps this list for the inline
+             depth chart — see the "Depth Chart" topbar button above, which
+             flips depthChartView instead of opening the pop-up on a phone. */}
+          {isMobile && depthChartView && (
+            // Passing the already-filtered `list` (not the full roster) is
+            // what makes the page's own All/Guards/Forwards/Centers/Rookies/
+            // Sophomores/Veterans pills apply to the depth chart too —
+            // DepthChartBody only shows rows whose player is present in
+            // whatever it's handed, so this is the entire wiring needed. No
+            // second, duplicate filter row inside the depth chart itself.
+            <DepthChartInline team={team} teamName={curTeam.name} players={list} />
+          )}
+
           {/* Mobile: one compact row layout regardless of the desktop grid/list
              toggle — the full list-view columns need ~800px minimum, and grid
              cards don't fit 2-3 up on a 375px screen. Tapping a row opens the
              full-screen detail view (see selectPlayer / the aside below). */}
-          {isMobile && (
+          {isMobile && !depthChartView && (
             <div style={{ flexShrink: 0, border: "1px solid var(--rt-hairline)", borderRadius: 16, overflow: "hidden" }}>
               {cards.map((c) => (
                 <div
@@ -1235,7 +1255,7 @@ export function RosterApp({
             </div>
           )}
 
-          {noResults && (
+          {noResults && !(isMobile && depthChartView) && (
             <div style={{ flexShrink: 0, padding: 48, textAlign: "center", color: "var(--rt-muted)", fontSize: 15 }}>
               No players match your filter. Clear the search to see the full roster.
             </div>
