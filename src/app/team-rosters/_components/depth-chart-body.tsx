@@ -1,10 +1,41 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { Component, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { normalizePlayerName } from "@/lib/dynasty-rankings";
 import { TEAM_LOGO, type Player } from "./roster-data";
 import { initials, shortName } from "./roster-helpers";
 import { PlayerHeadshot } from "./roster-headshot";
+
+/**
+ * A render-time throw anywhere in DepthChartBody would otherwise be caught
+ * by the ROUTE-level error.tsx (see src/app/error.tsx), which takes over the
+ * entire page with a full-screen "Something went wrong" card — not a silent
+ * gap where the chart used to be. If that's not what users are seeing, this
+ * boundary is what would tell us: it confines the failure to just this
+ * component and prints the real error message instead of nothing.
+ */
+export class DepthChartErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error) {
+    console.error("Depth chart render error:", error);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: "32px 4px", fontSize: 14, color: "var(--rt-down)" }}>
+          Depth chart failed to render: {this.state.error.message || String(this.state.error)}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type DepthChartRow = {
   player: string;
@@ -126,7 +157,17 @@ export function DepthChartBody({
     setRoleTagMap({});
 
     fetch(`/api/nba/depth-chart?team=${team}`)
-      .then((r) => r.json())
+      .then((r) => {
+        // A redirected/non-OK response (e.g. Vercel Deployment Protection
+        // bouncing an unauthenticated preview session to vercel.com/sso-api)
+        // isn't JSON — .json() would throw with no useful detail. Logging the
+        // actual status here is what makes that failure mode diagnosable
+        // instead of just reading as "nothing happened".
+        if (!r.ok) {
+          console.error(`/api/nba/depth-chart -> ${r.status}${r.redirected ? ` (redirected to ${r.url})` : ""}`);
+        }
+        return r.json();
+      })
       .then((d) => {
         if (cancelled) return;
         if (d.error) {
@@ -135,7 +176,8 @@ export function DepthChartBody({
         }
         setRows(d.rows ?? []);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Failed to load depth chart:", err);
         if (!cancelled) setError(true);
       });
 

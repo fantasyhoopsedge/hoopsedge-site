@@ -1,7 +1,7 @@
 "use client";
 
 import type { Player } from "./roster-data";
-import { DepthChartBody } from "./depth-chart-body";
+import { DepthChartBody, DepthChartErrorBoundary } from "./depth-chart-body";
 
 /** Pop-up depth chart for desktop/tablet, read from the published
  * /admin/depth-chart tool (projected 2026-27 role + minutes + usage — see
@@ -81,7 +81,9 @@ export function DepthChartModal({
         </div>
 
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", padding: isMobile ? "12px 12px 16px" : "16px 24px 24px" }}>
-          <DepthChartBody team={team} teamName={teamName} players={players} />
+          <DepthChartErrorBoundary>
+            <DepthChartBody team={team} teamName={teamName} players={players} />
+          </DepthChartErrorBoundary>
         </div>
       </div>
     </div>

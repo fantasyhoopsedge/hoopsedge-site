@@ -1,7 +1,7 @@
 "use client";
 
 import type { Player } from "./roster-data";
-import { DepthChartBody } from "./depth-chart-body";
+import { DepthChartBody, DepthChartErrorBoundary } from "./depth-chart-body";
 
 /** Mobile-only inline depth chart — replaces the roster list (not the whole
  * page) when the "Depth Chart" topbar button is toggled on a phone. Desktop
@@ -17,5 +17,9 @@ export function DepthChartInline({
   teamName: string;
   players: Player[];
 }) {
-  return <DepthChartBody team={team} teamName={teamName} players={players} />;
+  return (
+    <DepthChartErrorBoundary>
+      <DepthChartBody team={team} teamName={teamName} players={players} />
+    </DepthChartErrorBoundary>
+  );
 }
