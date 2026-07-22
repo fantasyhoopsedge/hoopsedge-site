@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CATS,
+  CLASS_FILTER_DEFS,
   DYNASTY_TIER_META,
+  POSITION_FILTER_DEFS,
   PRO_UNLOCKED,
   STATSET_COLORS,
   STATSET_DEFS,
@@ -42,6 +44,8 @@ import { PlayerHeadshot } from "./roster-headshot";
 import { TrendHero, usePlayerTrend, type TrendMetric } from "./player-trend-chart";
 import { TAG_META, type TrendTag } from "./trend-insight";
 import { CompareModal } from "./compare-modal";
+import { DepthChartModal } from "./depth-chart-modal";
+import { DepthChartInline } from "./depth-chart-inline";
 
 // hoopR stat season for the trend chart (2026 = the 2025-26 season) — matches
 // roster-live-data.ts's STATS_SEASON; this page has no season switcher yet.
@@ -269,6 +273,14 @@ export function RosterApp({
   };
   const removeFromCompare = (id: string) => updateCompareList(compareList.filter((p) => p.id !== id));
 
+  const [depthChartOpen, setDepthChartOpen] = useState(false);
+  // Mobile (phone) swaps the roster list for an inline depth chart instead of
+  // opening the pop-up — desktop/tablet keep the modal (see DepthChartModal
+  // vs DepthChartInline below). No reset-on-team-change effect needed: this
+  // page remounts fresh on every team navigation, same as every other filter
+  // state here.
+  const [depthChartView, setDepthChartView] = useState(false);
+
   const selectPlayer = (id: string) => {
     setSelectedId(id);
     if (isCompactViewport) setMobileDetailOpen(true);
@@ -314,16 +326,8 @@ export function RosterApp({
     return "middle of the pack, age-wise";
   })();
 
-  const positionFilterDefs = [
-    { id: "G", label: "Guards" },
-    { id: "F", label: "Forwards" },
-    { id: "C", label: "Centers" },
-  ];
-  const classFilterDefs = [
-    { id: "rook", label: "Rookies" },
-    { id: "soph", label: "Sophomores" },
-    { id: "vet", label: "Veterans" },
-  ];
+  const positionFilterDefs = POSITION_FILTER_DEFS;
+  const classFilterDefs = CLASS_FILTER_DEFS;
   const classOf = (p: Player): "rook" | "soph" | "vet" => (p.tag === "rookie" ? "rook" : p.tag === "soph" ? "soph" : "vet");
 
   let list = players.filter((p) => {
@@ -697,6 +701,33 @@ export function RosterApp({
             )}
           </div>
           <div style={{ marginLeft: isMobile ? 0 : "auto", width: isMobile ? "100%" : "auto", display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              type="button"
+              className="rt-hover-surface"
+              onClick={() => (isMobile ? setDepthChartView((v) => !v) : setDepthChartOpen(true))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                height: 42,
+                padding: isMobile ? "0 14px" : "0 18px",
+                border: "none",
+                cursor: "pointer",
+                borderRadius: 999,
+                background: isMobile && depthChartView ? "var(--rt-primary)" : "var(--rt-surface-strong)",
+                color: isMobile && depthChartView ? "var(--rt-on-primary)" : "var(--rt-body)",
+                fontFamily: "var(--rt-font-sans)",
+                fontSize: 13,
+                fontWeight: 600,
+                flexShrink: 0,
+                whiteSpace: "nowrap",
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="4" rx="1" /><rect x="3" y="10" width="12" height="4" rx="1" /><rect x="3" y="16" width="7" height="4" rx="1" />
+              </svg>
+              {!isMobile && "Depth Chart"}
+            </button>
             <div
               style={{
                 display: "inline-flex",
@@ -1131,11 +1162,24 @@ export function RosterApp({
             </div>
           )}
 
+          {/* Depth Chart toggle (mobile only) swaps this list for the inline
+             depth chart — see the "Depth Chart" topbar button above, which
+             flips depthChartView instead of opening the pop-up on a phone. */}
+          {isMobile && depthChartView && (
+            // Passing the already-filtered `list` (not the full roster) is
+            // what makes the page's own All/Guards/Forwards/Centers/Rookies/
+            // Sophomores/Veterans pills apply to the depth chart too —
+            // DepthChartBody only shows rows whose player is present in
+            // whatever it's handed, so this is the entire wiring needed. No
+            // second, duplicate filter row inside the depth chart itself.
+            <DepthChartInline team={team} teamName={curTeam.name} players={list} />
+          )}
+
           {/* Mobile: one compact row layout regardless of the desktop grid/list
              toggle — the full list-view columns need ~800px minimum, and grid
              cards don't fit 2-3 up on a 375px screen. Tapping a row opens the
              full-screen detail view (see selectPlayer / the aside below). */}
-          {isMobile && (
+          {isMobile && !depthChartView && (
             <div style={{ flexShrink: 0, border: "1px solid var(--rt-hairline)", borderRadius: 16, overflow: "hidden" }}>
               {cards.map((c) => (
                 <div
@@ -1205,7 +1249,7 @@ export function RosterApp({
             </div>
           )}
 
-          {noResults && (
+          {noResults && !(isMobile && depthChartView) && (
             <div style={{ flexShrink: 0, padding: 48, textAlign: "center", color: "var(--rt-muted)", fontSize: 15 }}>
               No players match your filter. Clear the search to see the full roster.
             </div>
@@ -1621,6 +1665,28 @@ export function RosterApp({
         onRemove={removeFromCompare}
         onClose={() => setCompareOpen(false)}
         isMobile={isMobile}
+      />
+    )}
+    {depthChartOpen && (
+      <DepthChartModal
+        team={curTeam.abbr}
+        teamName={curTeam.name}
+        // `list`, not `players` — the page's own All/G/F/C/Rookies/Sophomores/
+        // Veterans pills already filter `list` above; DepthChartInline (the
+        // mobile equivalent of this modal) is wired the same way, this one
+        // was just missed when that wiring landed.
+        players={list}
+        onClose={() => setDepthChartOpen(false)}
+        isMobile={isMobile}
+        // The modal's backdrop closes on click, so the page's own filter
+        // pills behind it aren't reachable while it's open — this renders
+        // the same pills inside the modal instead, sharing this exact state
+        // so toggling them here or on the page (once closed) stays in sync.
+        posFilters={posFilters}
+        classFilters={classFilters}
+        togglePosFilter={togglePosFilter}
+        toggleClassFilter={toggleClassFilter}
+        clearAllFilters={clearAllFilters}
       />
     )}
     </>
