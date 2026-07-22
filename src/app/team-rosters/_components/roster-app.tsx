@@ -1677,7 +1677,11 @@ export function RosterApp({
       <DepthChartModal
         team={curTeam.abbr}
         teamName={curTeam.name}
-        players={players}
+        // `list`, not `players` — the page's own All/G/F/C/Rookies/Sophomores/
+        // Veterans pills already filter `list` above; DepthChartInline (the
+        // mobile equivalent of this modal) is wired the same way, this one
+        // was just missed when that wiring landed.
+        players={list}
         onClose={() => setDepthChartOpen(false)}
         isMobile={isMobile}
       />
