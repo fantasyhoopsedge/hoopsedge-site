@@ -276,6 +276,21 @@ export const DYNASTY_TIER_META: Record<number, { name: string; color: string }> 
 // identically everywhere instead of drifting into two different flags.
 export const PRO_UNLOCKED = false;
 
+// Shared with DepthChartModal, which renders its own copy of these same pills
+// (see depth-chart-modal.tsx) — the modal's backdrop closes on click, so the
+// page's own pills behind it aren't reachable while it's open; a single
+// source of truth here is what keeps the two pill sets from drifting apart.
+export const POSITION_FILTER_DEFS: { id: string; label: string }[] = [
+  { id: "G", label: "Guards" },
+  { id: "F", label: "Forwards" },
+  { id: "C", label: "Centers" },
+];
+export const CLASS_FILTER_DEFS: { id: string; label: string }[] = [
+  { id: "rook", label: "Rookies" },
+  { id: "soph", label: "Sophomores" },
+  { id: "vet", label: "Veterans" },
+];
+
 export type SortKey = "dynasty" | "minus1" | "ninecat" | "eightcat" | "salary" | "proj";
 export type FvMetric = "minus1" | "ninecat" | "eightcat";
 export type SeasonMode = "cur" | "prior" | "proj" | "recent";

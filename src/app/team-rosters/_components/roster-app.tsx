@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CATS,
+  CLASS_FILTER_DEFS,
   DYNASTY_TIER_META,
+  POSITION_FILTER_DEFS,
   PRO_UNLOCKED,
   STATSET_COLORS,
   STATSET_DEFS,
@@ -324,16 +326,8 @@ export function RosterApp({
     return "middle of the pack, age-wise";
   })();
 
-  const positionFilterDefs = [
-    { id: "G", label: "Guards" },
-    { id: "F", label: "Forwards" },
-    { id: "C", label: "Centers" },
-  ];
-  const classFilterDefs = [
-    { id: "rook", label: "Rookies" },
-    { id: "soph", label: "Sophomores" },
-    { id: "vet", label: "Veterans" },
-  ];
+  const positionFilterDefs = POSITION_FILTER_DEFS;
+  const classFilterDefs = CLASS_FILTER_DEFS;
   const classOf = (p: Player): "rook" | "soph" | "vet" => (p.tag === "rookie" ? "rook" : p.tag === "soph" ? "soph" : "vet");
 
   let list = players.filter((p) => {
@@ -1684,6 +1678,15 @@ export function RosterApp({
         players={list}
         onClose={() => setDepthChartOpen(false)}
         isMobile={isMobile}
+        // The modal's backdrop closes on click, so the page's own filter
+        // pills behind it aren't reachable while it's open — this renders
+        // the same pills inside the modal instead, sharing this exact state
+        // so toggling them here or on the page (once closed) stays in sync.
+        posFilters={posFilters}
+        classFilters={classFilters}
+        togglePosFilter={togglePosFilter}
+        toggleClassFilter={toggleClassFilter}
+        clearAllFilters={clearAllFilters}
       />
     )}
     </>

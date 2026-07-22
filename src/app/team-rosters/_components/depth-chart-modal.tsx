@@ -1,6 +1,7 @@
 "use client";
 
-import type { Player } from "./roster-data";
+import type { CSSProperties } from "react";
+import { CLASS_FILTER_DEFS, POSITION_FILTER_DEFS, type Player } from "./roster-data";
 import { DepthChartBody, DepthChartErrorBoundary } from "./depth-chart-body";
 
 /** Pop-up depth chart for desktop/tablet, read from the published
@@ -9,21 +10,48 @@ import { DepthChartBody, DepthChartErrorBoundary } from "./depth-chart-body";
  * circular position badges, rows, team-logo watermark) lives in
  * DepthChartBody, shared with the mobile inline view (DepthChartInline) so
  * both breakpoints render the same design — this component only supplies
- * the modal chrome: backdrop, card, and a pinned header with a close button
- * that stays put while the roster list below it scrolls. */
+ * the modal chrome: backdrop, card, a pinned header with a close button
+ * that stays put while the roster list below it scrolls, and its own copy
+ * of the page's filter pills (see the props below) — the backdrop closes
+ * on click, so the page's own pills behind it can't be reached while this
+ * is open. */
 export function DepthChartModal({
   team,
   teamName,
   players,
   onClose,
   isMobile,
+  posFilters,
+  classFilters,
+  togglePosFilter,
+  toggleClassFilter,
+  clearAllFilters,
 }: {
   team: string;
   teamName: string;
   players: Player[];
   onClose: () => void;
   isMobile: boolean;
+  posFilters: Set<string>;
+  classFilters: Set<string>;
+  togglePosFilter: (id: string) => void;
+  toggleClassFilter: (id: string) => void;
+  clearAllFilters: () => void;
 }) {
+  const noFilters = posFilters.size === 0 && classFilters.size === 0;
+  const pillStyle = (on: boolean): CSSProperties => ({
+    flexShrink: 0,
+    padding: "6px 12px",
+    border: "none",
+    cursor: "pointer",
+    borderRadius: 999,
+    fontFamily: "var(--rt-font-sans)",
+    fontSize: 12,
+    fontWeight: 600,
+    whiteSpace: "nowrap",
+    background: on ? "var(--rt-ink)" : "var(--rt-surface-strong)",
+    color: on ? "var(--rt-canvas)" : "var(--rt-body)",
+  });
   return (
     <div
       onClick={onClose}
@@ -78,6 +106,38 @@ export function DepthChartModal({
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
+        </div>
+
+        {/* Filter pills — pinned alongside the header (not part of the
+            scrollable body below) so they stay reachable no matter how far
+            down the tier list is scrolled. Same posFilters/classFilters
+            state as the page behind this modal, so toggling here keeps both
+            in sync instead of running a second, disconnected filter. */}
+        <div
+          style={{
+            flex: "0 0 auto",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 6,
+            padding: isMobile ? "10px 14px" : "12px 24px",
+            borderBottom: "1px solid var(--rt-hairline)",
+          }}
+        >
+          <button type="button" onClick={clearAllFilters} style={pillStyle(noFilters)}>
+            All
+          </button>
+          {POSITION_FILTER_DEFS.map((pf) => (
+            <button key={pf.id} type="button" onClick={() => togglePosFilter(pf.id)} style={pillStyle(posFilters.has(pf.id))}>
+              {pf.id}
+            </button>
+          ))}
+          <span style={{ width: 1, height: 18, background: "var(--rt-hairline)", flexShrink: 0 }} />
+          {CLASS_FILTER_DEFS.map((cf) => (
+            <button key={cf.id} type="button" onClick={() => toggleClassFilter(cf.id)} style={pillStyle(classFilters.has(cf.id))}>
+              {cf.label}
+            </button>
+          ))}
         </div>
 
         <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", padding: isMobile ? "12px 12px 16px" : "16px 24px 24px" }}>
