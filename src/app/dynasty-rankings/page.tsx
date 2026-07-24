@@ -56,7 +56,7 @@ const VERSIONS: VersionMeta[] = [
     expertDates: {
       dizzle:   "July 2026",
       mball:    "July 2026",
-      angle:    "May 2026",
+      angle:    "July 2026",
       dynatyze: "July 2026",
       hashtag:  "July 2026",
     },
