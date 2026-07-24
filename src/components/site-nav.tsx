@@ -297,7 +297,7 @@ export function SiteNav(props: {
         )}
         {showBoardEditor && (
           <li className="nav-arena nav-admin-dev">
-            <a href="/admin/role-context" title="Role-context tier pass (admins only)">☰ Tier Pass</a>
+            <a href="/admin/depth-chart" title="Depth Chart Adjuster (admins only)">☰ Depth Chart Adjuster</a>
           </li>
         )}
         <li className="nav-theme">
@@ -401,8 +401,8 @@ export function SiteNav(props: {
                   </a>
                 )}
                 {showBoardEditor && (
-                  <a href="/admin/role-context" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
-                    Tier Pass
+                  <a href="/admin/depth-chart" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                    Depth Chart Adjuster
                   </a>
                 )}
                 <button type="button" className="nav-mobile-panel-row" onClick={toggleTheme}>
