@@ -21,6 +21,16 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   "cam johnson": "cameron johnson",
   "herb jones": "herbert jones",
   "ron holland": "ronald holland",
+  // Discovered during the July 2026 Angle merge — same class of bug as the
+  // three above, plus two variants that aren't nicknames but hit the same
+  // lookup mechanism: a legal-name/nickname pair long documented as a known
+  // recurring bug (carrington), a family-name-first ordering for a Chinese
+  // player's name (yang hansen), and a source-side typo (larrson).
+  "derrick lively": "dereck lively",
+  "carlton carrington": "bub carrington",
+  "robert dillingham": "rob dillingham",
+  "hansen yang": "yang hansen",
+  "pelle larrson": "pelle larsson",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(
