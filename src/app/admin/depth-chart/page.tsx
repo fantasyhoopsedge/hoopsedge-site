@@ -10,7 +10,7 @@ import { DepthChartShell } from "./_shell";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Depth Chart · Tier Planner",
+  title: "Depth Chart Adjuster",
   robots: { index: false, follow: false },
 };
 

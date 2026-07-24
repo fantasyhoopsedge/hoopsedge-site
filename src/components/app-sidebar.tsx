@@ -100,8 +100,8 @@ const ADMIN_TOOL_LINKS: Array<{ key: AppSidebarActiveKey; href: string; label: s
   {
     key: "depth-chart",
     href: "/admin/depth-chart",
-    label: "Depth Chart",
-    title: "Depth chart / tier planner (admins only)",
+    label: "Depth Chart Adjuster",
+    title: "Depth Chart Adjuster (admins only)",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19V10" /><path d="M12 19V5" /><path d="M20 19v-7" />
@@ -290,30 +290,6 @@ export function AppSidebar({
           </Link>
         );
       })}
-
-      {showBoardEditor && (
-        <Link href="/admin/role-context" style={{ textDecoration: "none" }} title="Role-context tier pass (admins only)">
-          <div
-            className="rt-hover-surface"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "10px 12px",
-              borderRadius: 10,
-              color: "var(--rt-primary)",
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-            </svg>
-            <span style={{ whiteSpace: "nowrap" }}>Tier Pass</span>
-          </div>
-        </Link>
-      )}
 
       <div style={{ marginTop: "auto", padding: "8px 6px 0" }}>
         <a

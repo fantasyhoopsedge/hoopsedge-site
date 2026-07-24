@@ -595,7 +595,7 @@ export function DepthChartEditor() {
     <div className="dc-root">
       <header className="dc-head">
         <div>
-          <h1>Depth Chart <span className="dc-sub">· Tier Planner</span></h1>
+          <h1>Depth Chart Adjuster</h1>
           <p className="dc-muted">
             {rows.length} players · {totalDirty} unsaved change{totalDirty === 1 ? "" : "s"}
             {rcApplied.total > 0 && (
@@ -851,7 +851,6 @@ function Style() {
         box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
       .dc-head, .dc-teams, .dc-hint, .dc-banner { flex: 0 0 auto; }
       .dc-head h1 { font-size: 20px; margin: 0; color: var(--rt-body-strong); font-weight: 700; }
-      .dc-sub { color: var(--rt-muted); font-weight: 500; }
       .dc-muted { color: var(--rt-muted); font-size: 13px; margin: 4px 0 0; }
       .dc-hint { padding: 20px 4px; }
       .dc-pill { font-size: 11px; padding: 2px 7px; border-radius: 999px; margin-left: 8px; font-weight: 600;
