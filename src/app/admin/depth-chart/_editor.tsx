@@ -514,9 +514,26 @@ export function DepthChartEditor() {
 
   async function send(mode: "wip" | "publish") {
     setConfirmMode(null);
-    const edits = [...dirtyKeys].map((k) => {
+    // "Live MPG" is what the team-wide reallocation actually redistributed onto every
+    // free player once ANY teammate got a manual override -- but it was purely a preview
+    // (computed in `preview`, never captured into `edited`), so a free player's ripple
+    // effect never made it into the saved doc even though the tool showed it as the
+    // trustworthy, budget-balanced number. Bake it into an explicit overrideMpg for this
+    // team's rows here, at save time, so what gets written matches what's on screen.
+    const bakedKeys = new Set(dirtyKeys);
+    const bakedEdits = new Map(edited);
+    for (const r of teamRows) {
+      const k = keyOf(r);
+      const live = preview.get(k);
+      if (!live) continue;
+      const cur = bakedEdits.get(k) ?? blankEdit(r);
+      if (cur.tier === "cut" || sameOverride(cur.overrideMpg, live.mpg)) continue;
+      bakedEdits.set(k, { ...cur, overrideMpg: live.mpg });
+      bakedKeys.add(k);
+    }
+    const edits = [...bakedKeys].map((k) => {
       const [t, ...rest] = k.split("||");
-      const e = edited.get(k)!;
+      const e = bakedEdits.get(k)!;
       return {
         team: t, player: rest.join("||"), tier: e.tier, injury: e.injury,
         overrideGames: e.overrideGames, overrideMpg: e.overrideMpg,
