@@ -24,8 +24,10 @@ export async function GET(request: NextRequest) {
         player: r.player,
         pos: r.pos,
         tier: TIER_VALUES.includes(r.tier) ? r.tier : "reserve",
-        projMpg: r.projMpg,
-        projGames: r.projGames,
+        // Manual overrides win over the raw model projection — this is the
+        // published "what Ash actually decided" number, not just Stage 1's output.
+        projMpg: r.overrideMpg ?? r.projMpg,
+        projGames: r.overrideGames ?? r.projGames,
         usg: r.usg,
       }));
     return NextResponse.json({ rows: teamRows });
