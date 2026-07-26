@@ -2792,7 +2792,7 @@
   {
     "consensusRank": 144,
     "player": "LeBron James",
-    "team": "LAL",
+    "team": "PHI",
     "isRookie": false,
     "position": "F",
     "age": 41.4,
@@ -3704,7 +3704,7 @@
   {
     "consensusRank": 192,
     "player": "DeMar DeRozan",
-    "team": "SAC",
+    "team": "FA",
     "isRookie": false,
     "position": "G/F",
     "age": 36.8,
@@ -4008,7 +4008,7 @@
   {
     "consensusRank": 208,
     "player": "Zaccharie Risacher",
-    "team": "ATL",
+    "team": "DAL",
     "isRookie": false,
     "position": "F",
     "age": 21.2,
@@ -5076,7 +5076,7 @@
   {
     "consensusRank": 265,
     "player": "Bradley Beal",
-    "team": "LAC",
+    "team": "FA",
     "isRookie": false,
     "position": "G",
     "age": 32.9,
@@ -5689,7 +5689,7 @@
   {
     "consensusRank": 299,
     "player": "Luguentz Dort",
-    "team": "OKC",
+    "team": "ATL",
     "isRookie": false,
     "position": "G/F",
     "age": 27.1,
@@ -5854,7 +5854,7 @@
   {
     "consensusRank": 308,
     "player": "Ryan Nembhard",
-    "team": "DAL",
+    "team": "ATL",
     "isRookie": false,
     "position": "G",
     "age": 23.2,
@@ -6372,7 +6372,7 @@
   {
     "consensusRank": 336,
     "player": "Cole Anthony",
-    "team": "FA",
+    "team": "MEM",
     "isRookie": false,
     "position": "G",
     "age": 26.1,
@@ -6567,7 +6567,7 @@
   {
     "consensusRank": 347,
     "player": "Killian Hayes",
-    "team": "FA",
+    "team": "SAC",
     "isRookie": false,
     "position": "G",
     "age": 24.9,
@@ -6688,7 +6688,7 @@
   {
     "consensusRank": 354,
     "player": "Spencer Jones",
-    "team": "DEN",
+    "team": "OKC",
     "isRookie": false,
     "position": "F",
     "age": 25,
@@ -6760,7 +6760,7 @@
   {
     "consensusRank": 358,
     "player": "D'Angelo Russell",
-    "team": "WAS",
+    "team": "MEM",
     "isRookie": false,
     "position": "G",
     "age": 30.3,
@@ -6795,7 +6795,7 @@
   {
     "consensusRank": 360,
     "player": "Caris LeVert",
-    "team": "DET",
+    "team": "MIL",
     "isRookie": false,
     "position": "G/F",
     "age": 31.8,
@@ -7018,7 +7018,7 @@
   {
     "consensusRank": 373,
     "player": "Landry Shamet",
-    "team": "FA",
+    "team": "NYK",
     "isRookie": false,
     "position": "G",
     "age": 29.2,
@@ -7036,7 +7036,7 @@
   {
     "consensusRank": 374,
     "player": "Marcus Sasser",
-    "team": "DET",
+    "team": "DAL",
     "isRookie": false,
     "position": "G",
     "age": 25.7,
@@ -7054,7 +7054,7 @@
   {
     "consensusRank": 375,
     "player": "Ziaire Williams",
-    "team": "FA",
+    "team": "LAL",
     "isRookie": false,
     "position": "F",
     "age": 24.7,
@@ -7522,7 +7522,7 @@
   {
     "consensusRank": 402,
     "player": "Kam Jones",
-    "team": "IND",
+    "team": "MIL",
     "isRookie": false,
     "position": "G",
     "age": 24.2,
@@ -7608,7 +7608,7 @@
   {
     "consensusRank": 407,
     "player": "RayJ Dennis",
-    "team": "FA",
+    "team": "ATL",
     "isRookie": false,
     "position": "G",
     "age": 25.2,
@@ -7673,7 +7673,7 @@
   {
     "consensusRank": 411,
     "player": "Tyrese Martin",
-    "team": "FA",
+    "team": "PHI",
     "isRookie": false,
     "position": "G/F",
     "age": 27.3,
@@ -7772,7 +7772,7 @@
   {
     "consensusRank": 417,
     "player": "Matisse Thybulle",
-    "team": "FA",
+    "team": "LAL",
     "isRookie": false,
     "position": "G/F",
     "age": 29.1,
@@ -8169,7 +8169,7 @@
   {
     "consensusRank": 441,
     "player": "Taurean Prince",
-    "team": "MIL",
+    "team": "DET",
     "isRookie": false,
     "position": "F",
     "age": 32.29,
@@ -8615,7 +8615,7 @@
   {
     "consensusRank": 468,
     "player": "Elijah Harkless",
-    "team": "FA",
+    "team": "DET",
     "isRookie": false,
     "position": "G",
     "age": 26.2,
@@ -8777,7 +8777,7 @@
   {
     "consensusRank": 478,
     "player": "Jalen Wilson",
-    "team": "FA",
+    "team": "ATL",
     "isRookie": false,
     "position": "F",
     "age": 25.7,
@@ -8859,7 +8859,7 @@
   {
     "consensusRank": 483,
     "player": "Jett Howard",
-    "team": "FA",
+    "team": "DAL",
     "isRookie": false,
     "position": "G",
     "age": 22.8,
