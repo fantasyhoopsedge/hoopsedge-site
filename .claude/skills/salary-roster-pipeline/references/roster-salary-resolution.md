@@ -112,7 +112,40 @@ for `Qualifying Offer <season>` and records the matching season(s) in
 The frontend renders it as its own superscript ("QO"), distinct from "est" —
 it is real data, just a different *kind* of real.
 
-## 6. Contract status
+## 6. The cap sheet's own `fa_year` column — QO years shift it back one year
+
+Section 3's FA-year boundary reads `fa_year` straight from the cap sheet's
+own column — so when that column is hand-computed or hand-corrected (e.g.
+reconciling `data/nba-rosters/<season>.csv` against a refreshed
+`current.csv`), getting it wrong doesn't just mislabel a badge, it changes
+where `roster_ingest.ts` is willing to invent an estimated year.
+
+The naive formula — `fa_year = current season + count(populated current.csv
+salary columns)` — is correct for a `Team Option` note on the last populated
+year, but **wrong by one year too late** when that last year's note is a
+`Qualifying Offer` instead. The reason: a QO year isn't one more locked
+contract year followed by free agency the year after — the QO tender *is*
+what makes the player a restricted free agent for that season (see section 5
+above: it's a formulaic RFA cap hold, not a negotiated salary). Restricted
+free agency begins the offseason *before* that tendered season starts, not
+after it ends. So:
+
+```
+fa_year = current_season + populated_years        # Team Option (or no note)
+fa_year = current_season + populated_years - 1     # Qualifying Offer on the last populated year
+```
+
+This was found and fixed across roughly 80 rookie-scale contracts in one
+pass by checking `current.csv`'s `contract_note` for `Qualifying Offer` on
+the final populated year specifically (not any QO mention anywhere in the
+note — only when it's the *last* year), and was independently validated
+against a third-party tracker afterward: every corrected `fa_year` matched
+the tracker's figure, where the naive (uncorrected) formula had been one
+year later in every case. If you're ever re-deriving `fa_year` by hand or in
+a script, check the last populated year's note specifically before applying
+the flat formula.
+
+## 7. Contract status
 
 `deriveStatus()` classifies each player as `Standard | Rookie Scale |
 Two-Way | Exhibit 10 | RFA | UFA | Draftee`, stored in `contract_status` and

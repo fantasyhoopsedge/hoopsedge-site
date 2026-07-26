@@ -46,6 +46,44 @@ For the full step-by-step of refreshing current.csv from HoopsHype, see
 exact salary-resolution rules inside `roster_ingest.ts` (precedence, FA-year
 boundary, rookie-scale backsolve, QO tagging, contract status), see
 [references/roster-salary-resolution.md](references/roster-salary-resolution.md).
+For how to validate a completed refresh against an independent source (a
+third-party roster/contract tracker, Spotrac, etc.) — what kinds of
+disagreements are real bugs versus the third party being wrong — see
+[references/third-party-cross-check.md](references/third-party-cross-check.md).
+
+## The column-count trap: current.csv's header has a column no source ever fills
+
+`current.csv`'s header is `player,team,salary_current,salary_y2,salary_y3,
+salary_y4,salary_y5,contract_note` — **8 columns** — but every real HoopsHype
+pull (team-by-team or bulk) only ever emits **4** year-columns plus a note.
+Nothing ever populates `salary_y5`. If you ever rebuild or bulk-merge rows
+into `current.csv` from raw pulled text without inserting an explicit blank
+placeholder for that unused 5th column, every row silently shifts one column
+left: the contract note lands in `salary_y5` and the real `contract_note`
+column is empty for every single row.
+
+This is not cosmetic. `salary_ingest.ts` reads `contract_note` by column
+name to derive `is_two_way`, `free_agent_status` (RFA/UFA), and the stored
+note text — an empty `contract_note` column means **every one of those
+fields is silently wrong** for every player with a note, and a real
+`npm run nba:salary` write will push that straight into `nba_contracts`. This
+exact bug shipped once: an entire rebuild of `current.csv` ran for real
+before anyone noticed, because the dry-run's *match count* looked fine (the
+bug doesn't affect name-matching, only the note-derived fields) — the tell
+was `is_two_way=false` and `contract_note=""` on a player who was obviously
+two-way. If you ever rebuild `current.csv` programmatically, verify column
+alignment **before** running the real ingest:
+
+```bash
+awk -F',' '{print NF}' data/nba-salaries/current.csv | sort | uniq -c
+```
+
+Every data row should show exactly 8 fields, with the 8th (last) one being
+the note text — not a blank 7th field followed by the note in position 6 or
+7. If you rebuilt from raw pulled rows (which only ever have `name, team,
+sal1..sal4, note` — 7 fields), the fix is to reconstruct each row as `name,
+team, sal1, sal2, sal3, sal4, "", note` explicitly, never a straight
+`cells.join(",")` of whatever the raw pull handed you.
 
 ## The hard rule: no salary website is ever fetched programmatically
 
@@ -141,11 +179,22 @@ of a player, these also need periodic human attention:
 
 1. **Is it actually the data, or the 15-minute cache?** See the cache warning
    above before debugging anything else.
-2. **Which of the two pipelines does this field come from?** Salary figures →
+2. **If you just rebuilt `current.csv`, is it actually a column-alignment
+   problem?** Run the `awk -F',' '{print NF}'` check above before trusting
+   anything else about the file — this bug produces confusing symptoms
+   (empty notes, wrong two-way/RFA flags) that look like a dozen unrelated
+   small bugs if you don't check alignment first.
+3. **Which of the two pipelines does this field come from?** Salary figures →
    trace through `roster_ingest.ts`'s resolution rules (reference file) before
    assuming current.csv is wrong. Team/name/position/DOB → `nba_roster`
    should win; if dynasty-rankings.json disagrees, that's dynasty-rankings.json
    being stale, not a bug.
-3. **Did `--dry-run` catch it already?** Both ingest scripts print unmatched
+4. **Did `--dry-run` catch it already?** Both ingest scripts print unmatched
    players, tag conflicts, and estimated years on every run — read that output
    before writing.
+5. **Does an independent source disagree?** See
+   [references/third-party-cross-check.md](references/third-party-cross-check.md)
+   for how to tell "our data is stale" apart from "the other source has an
+   error" apart from "this is a genuine bug in the underlying HoopsHype page
+   itself" — these three look identical at first glance and need different
+   fixes.
