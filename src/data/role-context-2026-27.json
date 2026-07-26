@@ -54,7 +54,7 @@
     "source": ""
   },
   {
-    "team": "ATL",
+    "team": "DAL",
     "player": "Zaccharie Risacher",
     "class": "veteran",
     "dynRank": 205,
@@ -522,7 +522,7 @@
     "source": ""
   },
   {
-    "team": "BOS",
+    "team": "POR",
     "player": "John Tonje",
     "class": "sophomore",
     "dynRank": null,
@@ -1197,7 +1197,7 @@
     "source": ""
   },
   {
-    "team": "DAL",
+    "team": "ATL",
     "player": "Ryan Nembhard",
     "class": "sophomore",
     "dynRank": 303,
@@ -1269,7 +1269,7 @@
     "source": ""
   },
   {
-    "team": "DAL",
+    "team": "HOU",
     "player": "Tyler Smith",
     "class": "veteran",
     "dynRank": null,
@@ -1359,7 +1359,7 @@
     "source": "roster-diff/transactions-2026-27.md"
   },
   {
-    "team": "DEN",
+    "team": "OKC",
     "player": "Spencer Jones",
     "class": "veteran",
     "dynRank": 347,
@@ -1575,7 +1575,7 @@
     "source": ""
   },
   {
-    "team": "DET",
+    "team": "MIL",
     "player": "Caris LeVert",
     "class": "veteran",
     "dynRank": 371,
@@ -1584,7 +1584,7 @@
     "source": ""
   },
   {
-    "team": "DET",
+    "team": "DAL",
     "player": "Marcus Sasser",
     "class": "veteran",
     "dynRank": 382,
@@ -2151,7 +2151,7 @@
     "source": ""
   },
   {
-    "team": "IND",
+    "team": "POR",
     "player": "Micah Potter",
     "class": "veteran",
     "dynRank": null,
@@ -2385,7 +2385,7 @@
     "source": "roster-diff/transactions-2026-27.md"
   },
   {
-    "team": "LAL",
+    "team": "PHI",
     "player": "LeBron James",
     "class": "veteran",
     "dynRank": 142,
@@ -3096,7 +3096,7 @@
     "source": ""
   },
   {
-    "team": "MIL",
+    "team": "DET",
     "player": "Taurean Prince",
     "class": "veteran",
     "dynRank": 445,
@@ -3114,7 +3114,7 @@
     "source": ""
   },
   {
-    "team": "MIL",
+    "team": "DET",
     "player": "Gary Harris",
     "class": "veteran",
     "dynRank": null,
@@ -3258,7 +3258,7 @@
     "source": ""
   },
   {
-    "team": "MIN",
+    "team": "CHA",
     "player": "Mouhamadou Gueye",
     "class": "veteran",
     "dynRank": null,
@@ -3726,7 +3726,7 @@
     "source": ""
   },
   {
-    "team": "OKC",
+    "team": "ATL",
     "player": "Luguentz Dort",
     "class": "veteran",
     "dynRank": 295,
@@ -4770,7 +4770,7 @@
     "source": ""
   },
   {
-    "team": "SAS",
+    "team": "UTA",
     "player": "Harrison Ingram",
     "class": "veteran",
     "dynRank": null,
@@ -5265,7 +5265,7 @@
     "source": ""
   },
   {
-    "team": "WAS",
+    "team": "MEM",
     "player": "D'Angelo Russell",
     "class": "veteran",
     "dynRank": 368,
