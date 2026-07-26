@@ -16,7 +16,7 @@ ATL,CJ McCollum,starter,none,,29
 ATL,Isaac McKneely,cut,none,,
 ATL,Asa Newell,rotation,none,,15
 ATL,Onyeka Okongwu,starter,none,,30
-ATL,Zaccharie Risacher,rotation,none,,0
+DAL,Zaccharie Risacher,rotation,none,,0
 ATL,Henri Veesaar,reserve,none,,9
 ATL,Keaton Wallace,fringe,none,,
 ATL,Aaron Wiggins,rotation,none,70,22
@@ -35,7 +35,6 @@ BOS,Neemias Queta,starter,none,8,22
 BOS,Mitchell Robinson,rotation,none,58,20
 BOS,Baylor Scheierman,rotation,none,75,22
 BOS,Jayson Tatum,starter,none,70,34
-BOS,John Tonje,cut,none,,
 BOS,Milos Uzan,cut,none,,
 BOS,Jordan Walsh,rotation,none,70,17
 BOS,Derrick White,starter,none,76,35
@@ -135,9 +134,9 @@ DAL,Tobi Lawal,fringe,none,8,9
 DAL,Dereck Lively,starter,long_term,,18
 DAL,Naji Marshall,rotation,none,76,27
 DAL,Caleb Martin,reserve,none,40,16
-DAL,Ryan Nembhard,rotation,none,,
+ATL,Ryan Nembhard,rotation,none,,
 DAL,John Poulakidas,fringe,none,12,14
-DAL,Tyler Smith,fringe,none,6,7
+HOU,Tyler Smith,fringe,none,6,7
 DAL,Klay Thompson,rotation,none,55,17
 DAL,PJ Washington,starter,none,75,30
 DAL,Tarik Biberovic,reserve,none,30,0.1
@@ -151,7 +150,7 @@ DEN,Bryce Hopkins,reserve,none,,12
 DEN,Cam Johnson,rotation,none,,29
 DEN,Nikola Jokic,starter,none,72,34
 DEN,Curtis Jones,reserve,none,,10
-DEN,Spencer Jones,rotation,none,,24
+OKC,Spencer Jones,rotation,none,,24
 DEN,Tyus Jones,rotation,none,,
 DEN,Mark Mitchell Jr.,cut,none,,
 DEN,Jamal Murray,starter,none,72,35
@@ -174,13 +173,12 @@ DET,Daniss Jenkins,rotation,none,,
 DET,Isaiah Joe,rotation,none,,
 DET,Isaac Jones,fringe,none,,
 DET,Chaz Lanier,reserve,none,,
-DET,Caris LeVert,cut,none,,
 DET,Wendell Moore Jr.,cut,none,,
 DET,Ebuka Okorie,reserve,none,,
 DET,Ugonna Onyenso,fringe,none,,
 DET,Paul Reed,rotation,none,,
 DET,Duncan Robinson,starter,none,,27
-DET,Marcus Sasser,reserve,none,,
+DAL,Marcus Sasser,reserve,none,,
 DET,Tolu Smith III,fringe,none,,
 DET,Corey Stephenson,cut,none,,
 DET,Ausar Thompson,starter,none,74,28
@@ -231,7 +229,7 @@ IND,Andrew Nembhard,rotation,none,70,28
 IND,Aaron Nesmith,starter,none,74,30
 IND,Kelly Oubre Jr.,starter,none,69,25
 IND,Taelon Peter,fringe,none,,
-IND,Micah Potter,reserve,none,,
+POR,Micah Potter,reserve,none,,
 IND,Kowacie Reeves Jr.,cut,none,,
 IND,Ben Sheppard,reserve,none,,
 IND,Pascal Siakam,starter,none,,32
@@ -268,7 +266,6 @@ LAL,Luka Doncic,starter,none,68,33
 LAL,Quentin Grimes,starter,none,,30
 LAL,Jaden Hardy,reserve,none,,
 LAL,Bronny James,reserve,none,,
-LAL,LeBron James,cut,none,,
 LAL,Walker Kessler,starter,none,60,28
 LAL,Dalton Knecht,reserve,none,,
 LAL,William Kyle III,cut,none,,
@@ -332,7 +329,6 @@ MIL,Brayden Burries,rotation,none,,
 MIL,Rafael Castro,fringe,none,0,
 MIL,Ousmane Dieng,rotation,none,,18
 MIL,A.J. Green,starter,none,,24
-MIL,Gary Harris,cut,none,,
 MIL,Tyler Herro,starter,none,58,32
 MIL,Kasparas Jakucionis,rotation,none,,17
 MIL,Jaime Jaquez Jr.,rotation,none,,26
@@ -340,7 +336,6 @@ MIL,Kyle Kuzma,rotation,none,60,
 MIL,Malique Lewis,cut,none,,
 MIL,Bogoljub Markovic,reserve,none,,10
 MIL,Kevin Porter Jr.,rotation,none,,26
-MIL,Taurean Prince,cut,none,,
 MIL,Ryan Rollins,starter,none,72,31
 MIL,Cormac Ryan,fringe,none,0,
 MIL,Jericho Sims,reserve,none,45,
@@ -357,7 +352,6 @@ MIN,Isaiah Evans,reserve,none,,
 MIN,Enrique Freeman,fringe,none,,
 MIN,Rudy Gobert,starter,none,,30
 MIN,Josh Green,reserve,none,,13
-MIN,Mouhamadou Gueye,cut,none,,
 MIN,Bones Hyland,rotation,none,,25
 MIN,Trey Kaufman-Renn,cut,none,,
 MIN,Trey Lyles,reserve,none,,15
@@ -403,7 +397,7 @@ NYK,Karl-Anthony Towns,starter,none,,
 OKC,Brooks Barnhizer,fringe,none,,10
 OKC,Alex Caruso,rotation,none,,
 OKC,Josh Dix,fringe,none,,8
-OKC,Luguentz Dort,rotation,none,,20
+ATL,Luguentz Dort,rotation,none,,20
 OKC,Shai Gilgeous-Alexander,starter,none,,33
 OKC,Isaiah Hartenstein,rotation,none,,
 OKC,Chet Holmgren,starter,none,69,29
@@ -499,7 +493,7 @@ SAC,Darius Acuff Jr.,starter,none,,30
 SAC,Patrick Baldwin Jr.,cut,none,,
 SAC,Dylan Cardwell,rotation,none,,
 SAC,Nique Clifford,rotation,none,,29
-SAC,DeMar DeRozan,cut,none,,
+FA,DeMar DeRozan,cut,none,,
 SAC,B.J. Edwards,cut,none,,
 SAC,Adam Flagler,fringe,none,,8
 SAC,Killian Hayes,cut,none,,
@@ -523,7 +517,6 @@ SAS,De'Aaron Fox,starter,none,68,30
 SAS,Ja'Kobi Gillespie,fringe,none,,0
 SAS,Dylan Harper,rotation,none,70,29
 SAS,Tobias Harris,starter,none,,
-SAS,Harrison Ingram,cut,none,,
 SAS,Keldon Johnson,rotation,none,,
 SAS,David Jones Garcia,cut,none,,
 SAS,Luke Kornet,reserve,none,60,15
@@ -583,7 +576,6 @@ WAS,KeShawn Murphy,cut,none,,
 WAS,Felix Okpara,fringe,none,,6
 WAS,Julian Reese,fringe,none,,8
 WAS,Will Riley,rotation,none,,
-WAS,D'Angelo Russell,cut,none,,
 WAS,Alex Sarr,starter,none,,28
 WAS,Seth Trimble,cut,none,,
 WAS,Tristan Vukcevic,reserve,none,35,15

@@ -13,7 +13,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15919890.0,
     "statusNext": "guaranteed",
-    "usg": 21.1
+    "usg": 20.5
   },
   {
     "team": "ATL",
@@ -29,7 +29,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10931038.0,
     "statusNext": "team_option",
-    "usg": 23.2
+    "usg": 22.5
   },
   {
     "team": "ATL",
@@ -45,7 +45,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 25000000.0,
     "statusNext": "guaranteed",
-    "usg": 17.5
+    "usg": 17.0
   },
   {
     "team": "ATL",
@@ -55,13 +55,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 14.5,
+    "projMpg": 2.3,
     "projGames": 12.3,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.7
+    "usg": 18.2
   },
   {
     "team": "ATL",
@@ -77,7 +77,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3798360.0,
     "statusNext": "guaranteed",
-    "usg": 14.6
+    "usg": 14.1
   },
   {
     "team": "ATL",
@@ -93,7 +93,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8083680.0,
     "statusNext": "guaranteed",
-    "usg": 20.7
+    "usg": 20.0
   },
   {
     "team": "ATL",
@@ -103,13 +103,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.8,
+    "projMpg": 2.0,
     "projGames": 8.3,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 18.7
+    "usg": 18.5
   },
   {
     "team": "ATL",
@@ -119,13 +119,13 @@
     "injury": "short_term",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 18.0,
+    "projMpg": 2.9,
     "projGames": 33.1,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.5
+    "usg": 12.0
   },
   {
     "team": "ATL",
@@ -157,7 +157,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 30000000.0,
     "statusNext": "guaranteed",
-    "usg": 27.1
+    "usg": 26.3
   },
   {
     "team": "ATL",
@@ -173,7 +173,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13050000.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 17.7
   },
   {
     "team": "ATL",
@@ -205,7 +205,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 17.4
   },
   {
     "team": "ATL",
@@ -221,7 +221,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 25.3
+    "usg": 24.6
   },
   {
     "team": "ATL",
@@ -253,7 +253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6042814.0,
     "statusNext": "team_option",
-    "usg": 18.4
+    "usg": 17.9
   },
   {
     "team": "ATL",
@@ -269,23 +269,23 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.6
+    "usg": 19.0
   },
   {
     "team": "DAL",
     "player": "Zaccharie Risacher",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 0.0,
-    "projGames": 66.6,
+    "overrideMpg": 0.0,
+    "projMpg": 11.6,
+    "projGames": 69.7,
     "salaryNow": 17434636.0,
     "statusNow": "guaranteed",
     "salaryNext": 24408490.0,
     "statusNext": "team_option",
-    "usg": null
+    "usg": 19.2
   },
   {
     "team": "ATL",
@@ -301,7 +301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2694363.0,
     "statusNext": "guaranteed",
-    "usg": 12.9
+    "usg": 12.5
   },
   {
     "team": "ATL",
@@ -311,13 +311,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.0,
+    "projMpg": 2.5,
     "projGames": 28.8,
     "salaryNow": null,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 17.1
+    "usg": 16.9
   },
   {
     "team": "ATL",
@@ -333,7 +333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8168226.0,
     "statusNext": "guaranteed",
-    "usg": 20.6
+    "usg": 19.9
   },
   {
     "team": "BOS",
@@ -583,13 +583,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.7,
+    "projGames": 19.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.5
   },
   {
     "team": "BOS",
@@ -967,7 +967,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.0,
+    "projMpg": 10.8,
     "projGames": 9.9,
     "salaryNow": 716081.0,
     "statusNow": "non_guaranteed",
@@ -989,7 +989,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 18.9
+    "usg": 19.0
   },
   {
     "team": "CHA",
@@ -1015,7 +1015,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.0,
+    "projMpg": 10.8,
     "projGames": 9.9,
     "salaryNow": 716081.0,
     "statusNow": "non_guaranteed",
@@ -1095,7 +1095,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 14.1,
+    "projMpg": 12.7,
     "projGames": 13.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
@@ -1175,7 +1175,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.5,
+    "projMpg": 17.5,
     "projGames": 25.9,
     "salaryNow": 8000000.0,
     "statusNow": "guaranteed",
@@ -1197,7 +1197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5487778.0,
     "statusNext": "team_option",
-    "usg": 16.6
+    "usg": 16.7
   },
   {
     "team": "CHA",
@@ -1261,7 +1261,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 26724138.0,
     "statusNext": "guaranteed",
-    "usg": 24.0
+    "usg": 24.1
   },
   {
     "team": "CHA",
@@ -1293,7 +1293,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5750160.0,
     "statusNext": "guaranteed",
-    "usg": 15.6
+    "usg": 15.7
   },
   {
     "team": "CHA",
@@ -1309,7 +1309,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 22521740.0,
     "statusNext": "guaranteed",
-    "usg": 28.2
+    "usg": 28.3
   },
   {
     "team": "CHA",
@@ -1965,7 +1965,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 16.5
+    "usg": 16.6
   },
   {
     "team": "DAL",
@@ -1997,7 +1997,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3500880.0,
     "statusNext": "guaranteed",
-    "usg": 17.4
+    "usg": 17.5
   },
   {
     "team": "DAL",
@@ -2029,7 +2029,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 18989942.0,
     "statusNext": "guaranteed",
-    "usg": 16.5
+    "usg": 16.6
   },
   {
     "team": "DAL",
@@ -2045,7 +2045,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 27.4
+    "usg": 27.5
   },
   {
     "team": "DAL",
@@ -2061,7 +2061,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "MEM",
@@ -2109,7 +2109,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "DAL",
@@ -2125,7 +2125,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 13.8
+    "usg": 13.9
   },
   {
     "team": "DAL",
@@ -2157,7 +2157,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 12.9
+    "usg": 13.0
   },
   {
     "team": "ATL",
@@ -2167,13 +2167,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 22.8,
-    "projGames": 60.8,
+    "projMpg": 5.4,
+    "projGames": 60.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.1
+    "usg": 17.7
   },
   {
     "team": "DAL",
@@ -2189,7 +2189,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "HOU",
@@ -2197,15 +2197,15 @@
     "pos": "F",
     "tier": "fringe",
     "injury": "none",
-    "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 7.0,
-    "projGames": 6.0,
+    "overrideGames": 6.0,
+    "overrideMpg": 7.0,
+    "projMpg": 6.7,
+    "projGames": 15.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.0
+    "usg": 18.2
   },
   {
     "team": "DAL",
@@ -2221,7 +2221,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.7
+    "usg": 21.8
   },
   {
     "team": "DAL",
@@ -2237,7 +2237,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 22983132.0,
     "statusNext": "guaranteed",
-    "usg": 19.6
+    "usg": 19.7
   },
   {
     "team": "DAL",
@@ -2253,7 +2253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 17.8
+    "usg": 17.9
   },
   {
     "team": "DEN",
@@ -2269,7 +2269,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.5
+    "usg": 19.0
   },
   {
     "team": "DEN",
@@ -2285,7 +2285,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 25000000.0,
     "statusNext": "guaranteed",
-    "usg": 15.4
+    "usg": 15.8
   },
   {
     "team": "DEN",
@@ -2301,7 +2301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2694363.0,
     "statusNext": "guaranteed",
-    "usg": 18.1
+    "usg": 18.6
   },
   {
     "team": "DEN",
@@ -2333,7 +2333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 37094523.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.7
   },
   {
     "team": "DEN",
@@ -2349,7 +2349,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8586968.0,
     "statusNext": "team_option",
-    "usg": 18.2
+    "usg": 18.6
   },
   {
     "team": "DEN",
@@ -2365,7 +2365,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 18.2
+    "usg": 18.6
   },
   {
     "team": "DEN",
@@ -2381,7 +2381,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.3
+    "usg": 17.8
   },
   {
     "team": "DEN",
@@ -2397,7 +2397,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 29.0
+    "usg": 29.8
   },
   {
     "team": "DEN",
@@ -2413,7 +2413,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.6
   },
   {
     "team": "OKC",
@@ -2422,14 +2422,14 @@
     "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 24.0,
-    "projGames": 66.7,
+    "overrideMpg": 24.0,
+    "projMpg": 13.8,
+    "projGames": 48.0,
     "salaryNow": 6367200.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 9.8
+    "usg": 9.5
   },
   {
     "team": "DEN",
@@ -2439,13 +2439,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.6,
+    "projMpg": 30.0,
     "projGames": 70.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.9
+    "usg": 13.1
   },
   {
     "team": "DEN",
@@ -2477,7 +2477,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 57528684.0,
     "statusNext": "guaranteed",
-    "usg": 26.0
+    "usg": 26.7
   },
   {
     "team": "DEN",
@@ -2509,7 +2509,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 13.3
+    "usg": 13.7
   },
   {
     "team": "DEN",
@@ -2525,7 +2525,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 17.4
+    "usg": 17.8
   },
   {
     "team": "DEN",
@@ -2541,7 +2541,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 20.1
+    "usg": 20.6
   },
   {
     "team": "DEN",
@@ -2557,7 +2557,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 18.9
+    "usg": 19.4
   },
   {
     "team": "DEN",
@@ -2589,7 +2589,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.7
   },
   {
     "team": "DET",
@@ -2621,7 +2621,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17000000.0,
     "statusNext": "guaranteed",
-    "usg": 19.9
+    "usg": 20.5
   },
   {
     "team": "DET",
@@ -2637,7 +2637,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 57528684.0,
     "statusNext": "guaranteed",
-    "usg": 31.5
+    "usg": 32.5
   },
   {
     "team": "DET",
@@ -2653,7 +2653,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 21.3
+    "usg": 22.0
   },
   {
     "team": "DET",
@@ -2663,13 +2663,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 14.1,
+    "projMpg": 11.7,
     "projGames": 59.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.7
+    "usg": 14.2
   },
   {
     "team": "DET",
@@ -2701,7 +2701,7 @@
     "statusNow": "team_option",
     "salaryNext": 16386426.0,
     "statusNext": "team_option",
-    "usg": 18.6
+    "usg": 19.1
   },
   {
     "team": "DET",
@@ -2711,13 +2711,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 18.3,
+    "projMpg": 15.2,
     "projGames": 69.8,
     "salaryNow": 8746479.0,
     "statusNow": "guaranteed",
     "salaryNext": 8746479.0,
     "statusNext": "guaranteed",
-    "usg": 16.9
+    "usg": 17.5
   },
   {
     "team": "DET",
@@ -2727,13 +2727,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.6,
+    "projMpg": 16.3,
     "projGames": 67.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.6
+    "usg": 22.3
   },
   {
     "team": "DET",
@@ -2743,13 +2743,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.5,
+    "projMpg": 16.2,
     "projGames": 71.4,
     "salaryNow": 11323006.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 17.1
+    "usg": 17.6
   },
   {
     "team": "DET",
@@ -2759,13 +2759,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.4,
+    "projMpg": 4.5,
     "projGames": 15.5,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.8
+    "usg": 16.2
   },
   {
     "team": "DET",
@@ -2775,13 +2775,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 11.6,
+    "projMpg": 9.7,
     "projGames": 43.2,
     "salaryNow": 2525901.0,
     "statusNow": "guaranteed",
     "salaryNext": 2735698.0,
     "statusNext": "guaranteed",
-    "usg": 16.2
+    "usg": 16.7
   },
   {
     "team": "MIL",
@@ -2791,13 +2791,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.7,
+    "projGames": 62.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.1
   },
   {
     "team": "DET",
@@ -2823,13 +2823,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.2,
+    "projMpg": 10.1,
     "projGames": 45.2,
     "salaryNow": 4705440.0,
     "statusNow": "guaranteed",
     "salaryNext": 4929360.0,
     "statusNext": "guaranteed",
-    "usg": 18.7
+    "usg": 19.4
   },
   {
     "team": "DET",
@@ -2839,13 +2839,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.7,
+    "projMpg": 4.7,
     "projGames": 13.5,
     "salaryNow": 716081.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 17.5
+    "usg": 18.2
   },
   {
     "team": "DET",
@@ -2855,13 +2855,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.8,
+    "projMpg": 14.0,
     "projGames": 64.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.8
+    "usg": 20.4
   },
   {
     "team": "DET",
@@ -2877,7 +2877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.4
+    "usg": 15.8
   },
   {
     "team": "DAL",
@@ -2887,13 +2887,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 11.5,
-    "projGames": 45.3,
+    "projMpg": 6.7,
+    "projGames": 47.0,
     "salaryNow": 8156386.0,
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 19.7
+    "usg": 20.0
   },
   {
     "team": "DET",
@@ -2903,13 +2903,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.8,
+    "projMpg": 5.7,
     "projGames": 11.3,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 18.1
   },
   {
     "team": "DET",
@@ -2941,7 +2941,7 @@
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 17.5
+    "usg": 18.0
   },
   {
     "team": "GSW",
@@ -3175,13 +3175,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.2,
+    "projMpg": 9.3,
     "projGames": 60.6,
     "salaryNow": 8550000.0,
     "statusNow": "guaranteed",
     "salaryNext": 8550000.0,
     "statusNext": "guaranteed",
-    "usg": 19.0
+    "usg": 18.9
   },
   {
     "team": "GSW",
@@ -3271,13 +3271,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 14.4,
+    "projMpg": 8.6,
     "projGames": 41.1,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.2
+    "usg": 16.1
   },
   {
     "team": "HOU",
@@ -3287,7 +3287,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.8,
+    "projMpg": 10.0,
     "projGames": 58.1,
     "salaryNow": 7370000.0,
     "statusNow": "guaranteed",
@@ -3303,13 +3303,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 7.2,
+    "projMpg": 4.3,
     "projGames": 12.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "HOU",
@@ -3335,13 +3335,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 11.1,
+    "projMpg": 6.6,
     "projGames": 32.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "HOU",
@@ -3357,7 +3357,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 24.5
+    "usg": 24.4
   },
   {
     "team": "HOU",
@@ -3373,7 +3373,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 16301892.0,
     "statusNext": "guaranteed",
-    "usg": 19.2
+    "usg": 19.1
   },
   {
     "team": "HOU",
@@ -3383,13 +3383,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.5,
+    "projMpg": 3.3,
     "projGames": 7.2,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.2
+    "usg": 18.0
   },
   {
     "team": "HOU",
@@ -3405,7 +3405,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 39036697.0,
     "statusNext": "guaranteed",
-    "usg": 26.9
+    "usg": 26.8
   },
   {
     "team": "HOU",
@@ -3421,7 +3421,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 19826773.0,
     "statusNext": "team_option",
-    "usg": 21.0
+    "usg": 20.9
   },
   {
     "team": "HOU",
@@ -3437,7 +3437,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 15.5
+    "usg": 15.4
   },
   {
     "team": "HOU",
@@ -3453,7 +3453,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 23643411.0,
     "statusNext": "guaranteed",
-    "usg": 18.1
+    "usg": 18.0
   },
   {
     "team": "HOU",
@@ -3469,7 +3469,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 19.7
+    "usg": 19.6
   },
   {
     "team": "HOU",
@@ -3479,13 +3479,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 14.4,
+    "projMpg": 8.6,
     "projGames": 43.8,
     "salaryNow": 2294370.0,
     "statusNow": "guaranteed",
     "salaryNext": 2694363.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "HOU",
@@ -3511,13 +3511,13 @@
     "injury": "short_term",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.2,
+    "projMpg": 5.3,
     "projGames": 27.3,
     "salaryNow": 2486995.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 13.9
+    "usg": 13.8
   },
   {
     "team": "IND",
@@ -3565,7 +3565,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 20.8
+    "usg": 20.9
   },
   {
     "team": "IND",
@@ -3693,18 +3693,18 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 17.2
+    "usg": 17.3
   },
   {
     "team": "POR",
     "player": "Micah Potter",
     "pos": "C",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.0,
-    "projGames": 42.9,
+    "projMpg": 16.9,
+    "projGames": 41.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
@@ -3741,7 +3741,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 13.2
+    "usg": 13.3
   },
   {
     "team": "IND",
@@ -3767,13 +3767,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.7,
+    "projMpg": 5.8,
     "projGames": 12.6,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.1
+    "usg": 19.0
   },
   {
     "team": "IND",
@@ -3789,7 +3789,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 16.7
+    "usg": 16.8
   },
   {
     "team": "IND",
@@ -3805,7 +3805,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.0
+    "usg": 16.1
   },
   {
     "team": "IND",
@@ -3853,7 +3853,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.8
+    "usg": 19.9
   },
   {
     "team": "IND",
@@ -3869,7 +3869,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.9
+    "usg": 13.0
   },
   {
     "team": "LAC",
@@ -3879,13 +3879,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 2.2,
+    "projMpg": 2.1,
     "projGames": 13.7,
     "salaryNow": 2486995.0,
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 17.7
+    "usg": 17.1
   },
   {
     "team": "LAC",
@@ -3895,13 +3895,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.8,
+    "projMpg": 5.3,
     "projGames": 47.6,
     "salaryNow": 10575645.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 21.1
+    "usg": 21.3
   },
   {
     "team": "LAC",
@@ -3949,7 +3949,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 26.1
+    "usg": 26.2
   },
   {
     "team": "LAC",
@@ -3975,13 +3975,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.9,
+    "projMpg": 5.5,
     "projGames": 42.0,
     "salaryNow": 6400000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.5
+    "usg": 17.3
   },
   {
     "team": "LAC",
@@ -4055,7 +4055,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 2.5,
+    "projMpg": 2.3,
     "projGames": 10.7,
     "salaryNow": 716081.0,
     "statusNow": "non_guaranteed",
@@ -4087,13 +4087,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.3,
+    "projMpg": 4.9,
     "projGames": 43.0,
     "salaryNow": 2294370.0,
     "statusNow": "guaranteed",
     "salaryNext": 2694363.0,
     "statusNext": "guaranteed",
-    "usg": 19.4
+    "usg": 19.3
   },
   {
     "team": "LAC",
@@ -4135,13 +4135,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 2.0,
+    "projMpg": 1.9,
     "projGames": 8.7,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.7
+    "usg": 19.1
   },
   {
     "team": "LAC",
@@ -4221,7 +4221,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3646800.0,
     "statusNext": "guaranteed",
-    "usg": 15.8
+    "usg": 15.9
   },
   {
     "team": "LAL",
@@ -4237,7 +4237,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 59198976.0,
     "statusNext": "guaranteed",
-    "usg": 34.4
+    "usg": 34.6
   },
   {
     "team": "LAL",
@@ -4253,7 +4253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15348837.0,
     "statusNext": "guaranteed",
-    "usg": 19.2
+    "usg": 19.3
   },
   {
     "team": "LAL",
@@ -4263,13 +4263,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.6,
+    "projMpg": 11.2,
     "projGames": 47.0,
     "salaryNow": 6000000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 24.2
+    "usg": 24.4
   },
   {
     "team": "LAL",
@@ -4279,29 +4279,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.7,
+    "projMpg": 8.8,
     "projGames": 40.4,
     "salaryNow": 2486995.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 16.3
+    "usg": 16.4
   },
   {
     "team": "PHI",
     "player": "LeBron James",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 23.1,
+    "projGames": 64.1,
     "salaryNow": 4070355.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": null
+    "usg": 23.4
   },
   {
     "team": "LAL",
@@ -4327,13 +4327,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.3,
+    "projMpg": 10.9,
     "projGames": 47.6,
     "salaryNow": 6452859.0,
     "statusNow": "guaranteed",
     "salaryNext": 9756722.0,
     "statusNext": "team_option",
-    "usg": 17.0
+    "usg": 17.2
   },
   {
     "team": "LAL",
@@ -4359,13 +4359,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 25.8,
+    "projMpg": 21.3,
     "projGames": 71.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.0
+    "usg": 15.1
   },
   {
     "team": "LAL",
@@ -4375,7 +4375,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.0,
+    "projMpg": 15.7,
     "projGames": 55.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
@@ -4391,13 +4391,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.5,
+    "projMpg": 16.9,
     "projGames": 70.3,
     "salaryNow": 12350000.0,
     "statusNow": "guaranteed",
     "salaryNext": 13000000.0,
     "statusNext": "guaranteed",
-    "usg": 18.4
+    "usg": 18.6
   },
   {
     "team": "LAL",
@@ -4407,13 +4407,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 5.5,
+    "projMpg": 4.5,
     "projGames": 11.9,
     "salaryNow": null,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 17.5
+    "usg": 17.8
   },
   {
     "team": "LAL",
@@ -4439,7 +4439,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.5,
+    "projMpg": 5.4,
     "projGames": 12.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
@@ -4461,7 +4461,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 46253250.0,
     "statusNext": "guaranteed",
-    "usg": 23.1
+    "usg": 23.2
   },
   {
     "team": "LAL",
@@ -4487,13 +4487,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 26.9,
+    "projMpg": 22.2,
     "projGames": 68.6,
     "salaryNow": 9834000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 26.6
+    "usg": 26.7
   },
   {
     "team": "LAL",
@@ -4503,7 +4503,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.5,
+    "projMpg": 5.4,
     "projGames": 12.8,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
@@ -4519,7 +4519,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.1,
+    "projMpg": 10.0,
     "projGames": 42.0,
     "salaryNow": 2525901.0,
     "statusNow": "guaranteed",
@@ -4551,7 +4551,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.3,
+    "projMpg": 16.8,
     "projGames": 60.5,
     "salaryNow": 13285714.0,
     "statusNow": "guaranteed",
@@ -4589,7 +4589,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13034880.0,
     "statusNext": "guaranteed",
-    "usg": 22.1
+    "usg": 21.9
   },
   {
     "team": "MEM",
@@ -4605,7 +4605,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.0
+    "usg": 14.8
   },
   {
     "team": "MEM",
@@ -4615,13 +4615,13 @@
     "injury": "short_term",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 4.2,
+    "projMpg": 3.0,
     "projGames": 6.2,
     "salaryNow": 4390320.0,
     "statusNow": "guaranteed",
     "salaryNext": 6752312.0,
     "statusNext": "team_option",
-    "usg": 18.2
+    "usg": 17.9
   },
   {
     "team": "MEM",
@@ -4669,7 +4669,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8342743.0,
     "statusNext": "team_option",
-    "usg": 23.1
+    "usg": 22.9
   },
   {
     "team": "MEM",
@@ -4685,7 +4685,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11738846.0,
     "statusNext": "team_option",
-    "usg": 17.6
+    "usg": 17.4
   },
   {
     "team": "MEM",
@@ -4711,13 +4711,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.3,
+    "projMpg": 7.3,
     "projGames": 38.3,
     "salaryNow": 11357175.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 16.8
+    "usg": 16.6
   },
   {
     "team": "MEM",
@@ -4727,13 +4727,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.5,
+    "projMpg": 7.4,
     "projGames": 41.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 24.8
+    "usg": 24.7
   },
   {
     "team": "MEM",
@@ -4749,7 +4749,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 23.2
+    "usg": 23.0
   },
   {
     "team": "MEM",
@@ -4765,7 +4765,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4121760.0,
     "statusNext": "guaranteed",
-    "usg": 15.7
+    "usg": 15.6
   },
   {
     "team": "MEM",
@@ -4781,7 +4781,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.1
+    "usg": 17.0
   },
   {
     "team": "MEM",
@@ -4797,7 +4797,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 21.6
+    "usg": 21.5
   },
   {
     "team": "MEM",
@@ -4807,13 +4807,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 8.9,
+    "projMpg": 6.3,
     "projGames": 44.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "MEM",
@@ -4839,7 +4839,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 9.0,
+    "projMpg": 6.3,
     "projGames": 36.5,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
@@ -4855,13 +4855,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 12.0,
+    "projMpg": 8.5,
     "projGames": 60.3,
     "salaryNow": 2616754.0,
     "statusNow": "guaranteed",
     "salaryNext": 2830685.0,
     "statusNext": "guaranteed",
-    "usg": 16.8
+    "usg": 16.6
   },
   {
     "team": "MEM",
@@ -4877,7 +4877,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 16.0
+    "usg": 15.9
   },
   {
     "team": "MEM",
@@ -4893,7 +4893,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 19.3
+    "usg": 19.2
   },
   {
     "team": "MEM",
@@ -4909,7 +4909,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 22.0
+    "usg": 21.8
   },
   {
     "team": "MEM",
@@ -5255,13 +5255,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 22.8,
+    "projMpg": 8.7,
     "projGames": 63.8,
     "salaryNow": 6738000.0,
     "statusNow": "guaranteed",
     "salaryNext": 7058520.0,
     "statusNext": "guaranteed",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "MIL",
@@ -5315,17 +5315,17 @@
     "team": "DET",
     "player": "Gary Harris",
     "pos": "G",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 11.3,
+    "projGames": 48.6,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 8.7
   },
   {
     "team": "MIL",
@@ -5437,23 +5437,23 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 23.4
+    "usg": 23.3
   },
   {
     "team": "DET",
     "player": "Taurean Prince",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 18.5,
+    "projGames": 47.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 12.2
   },
   {
     "team": "MIL",
@@ -5715,17 +5715,17 @@
     "team": "CHA",
     "player": "Mouhamadou Gueye",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "starter",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 28.9,
+    "projGames": 3.3,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.6
   },
   {
     "team": "MIN",
@@ -5927,13 +5927,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 25.4,
+    "projMpg": 20.6,
     "projGames": 59.9,
     "salaryNow": 10469414.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 18.2
+    "usg": 18.1
   },
   {
     "team": "NOR",
@@ -5975,13 +5975,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.5,
+    "projMpg": 13.4,
     "projGames": 38.8,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.1
+    "usg": 13.0
   },
   {
     "team": "NOR",
@@ -5997,7 +5997,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8623169.0,
     "statusNext": "team_option",
-    "usg": 12.6
+    "usg": 12.5
   },
   {
     "team": "NOR",
@@ -6055,7 +6055,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.3,
+    "projMpg": 13.2,
     "projGames": 39.6,
     "salaryNow": 2525901.0,
     "statusNow": "guaranteed",
@@ -6093,7 +6093,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.9
+    "usg": 21.8
   },
   {
     "team": "NOR",
@@ -6135,7 +6135,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 21.7,
+    "projMpg": 20.6,
     "projGames": 69.1,
     "salaryNow": 4794828.0,
     "statusNow": "guaranteed",
@@ -6151,13 +6151,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 32.4,
+    "projMpg": 30.7,
     "projGames": 70.0,
     "salaryNow": 45431034.0,
     "statusNow": "guaranteed",
     "salaryNext": 48362068.0,
     "statusNext": "guaranteed",
-    "usg": 19.2
+    "usg": 19.3
   },
   {
     "team": "NYK",
@@ -6167,13 +6167,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 31.7,
+    "projMpg": 30.1,
     "projGames": 74.2,
     "salaryNow": 36160714.0,
     "statusNow": "guaranteed",
     "salaryNext": 38839285.0,
     "statusNext": "guaranteed",
-    "usg": 17.9
+    "usg": 18.0
   },
   {
     "team": "NYK",
@@ -6183,13 +6183,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 31.8,
+    "projMpg": 30.2,
     "projGames": 72.8,
     "salaryNow": 40535041.0,
     "statusNow": "guaranteed",
     "salaryNext": 43330561.0,
     "statusNext": "guaranteed",
-    "usg": 29.0
+    "usg": 29.2
   },
   {
     "team": "NYK",
@@ -6199,13 +6199,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 21.8,
+    "projMpg": 20.7,
     "projGames": 68.5,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 22.3
+    "usg": 22.4
   },
   {
     "team": "NYK",
@@ -6221,7 +6221,7 @@
     "statusNow": "team_option",
     "salaryNext": 5620793.0,
     "statusNext": "team_option",
-    "usg": 18.2
+    "usg": 18.3
   },
   {
     "team": "NYK",
@@ -6237,7 +6237,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2884353.0,
     "statusNext": "guaranteed",
-    "usg": 16.9
+    "usg": 17.0
   },
   {
     "team": "NYK",
@@ -6247,13 +6247,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 21.4,
+    "projMpg": 20.3,
     "projGames": 68.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.8
+    "usg": 15.9
   },
   {
     "team": "NYK",
@@ -6263,13 +6263,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 31.5,
+    "projMpg": 29.8,
     "projGames": 72.7,
     "salaryNow": 22375280.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 15.4
+    "usg": 15.5
   },
   {
     "team": "NYK",
@@ -6311,7 +6311,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.1,
+    "projMpg": 5.8,
     "projGames": 16.1,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
@@ -6333,7 +6333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 17.6
+    "usg": 17.7
   },
   {
     "team": "NYK",
@@ -6343,13 +6343,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.3,
+    "projMpg": 22.1,
     "projGames": 59.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.5
+    "usg": 17.6
   },
   {
     "team": "NYK",
@@ -6375,7 +6375,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.1,
+    "projMpg": 5.8,
     "projGames": 13.5,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
@@ -6391,13 +6391,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 31.3,
+    "projMpg": 29.7,
     "projGames": 72.9,
     "salaryNow": 61015192.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 25.3
+    "usg": 25.4
   },
   {
     "team": "OKC",
@@ -6413,7 +6413,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 11.3
+    "usg": 11.1
   },
   {
     "team": "OKC",
@@ -6423,13 +6423,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 17.1,
+    "projMpg": 18.3,
     "projGames": 62.7,
     "salaryNow": 20998320.0,
     "statusNow": "guaranteed",
     "salaryNext": 22446480.0,
     "statusNext": "guaranteed",
-    "usg": 15.3
+    "usg": 15.1
   },
   {
     "team": "OKC",
@@ -6445,7 +6445,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.6
+    "usg": 18.3
   },
   {
     "team": "ATL",
@@ -6454,14 +6454,14 @@
     "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
-    "projMpg": 20.0,
-    "projGames": 70.4,
+    "overrideMpg": 20.0,
+    "projMpg": 6.9,
+    "projGames": 70.6,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.5
+    "usg": 13.3
   },
   {
     "team": "OKC",
@@ -6477,7 +6477,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 65772000.0,
     "statusNext": "guaranteed",
-    "usg": 33.7
+    "usg": 33.1
   },
   {
     "team": "OKC",
@@ -6487,13 +6487,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.6,
+    "projMpg": 21.0,
     "projGames": 60.6,
     "salaryNow": 25000000.0,
     "statusNow": "guaranteed",
     "salaryNext": 26851852.0,
     "statusNext": "guaranteed",
-    "usg": 15.9
+    "usg": 15.6
   },
   {
     "team": "OKC",
@@ -6509,7 +6509,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 47838690.0,
     "statusNext": "guaranteed",
-    "usg": 22.1
+    "usg": 21.7
   },
   {
     "team": "OKC",
@@ -6535,13 +6535,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 17.9,
+    "projMpg": 19.2,
     "projGames": 69.4,
     "salaryNow": 6081480.0,
     "statusNow": "guaranteed",
     "salaryNext": 6371160.0,
     "statusNext": "guaranteed",
-    "usg": 14.9
+    "usg": 14.6
   },
   {
     "team": "OKC",
@@ -6551,13 +6551,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.5,
+    "projMpg": 20.9,
     "projGames": 67.4,
     "salaryNow": 6784268.0,
     "statusNow": "guaranteed",
     "salaryNext": 10210323.0,
     "statusNext": "team_option",
-    "usg": 21.8
+    "usg": 21.4
   },
   {
     "team": "OKC",
@@ -6573,7 +6573,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 20.7
+    "usg": 20.3
   },
   {
     "team": "OKC",
@@ -6589,7 +6589,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.6
+    "usg": 18.3
   },
   {
     "team": "OKC",
@@ -6599,13 +6599,13 @@
     "injury": "short_term",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 10.3,
+    "projMpg": 11.0,
     "projGames": 26.8,
     "salaryNow": 5120400.0,
     "statusNow": "guaranteed",
     "salaryNext": 7849573.0,
     "statusNext": "team_option",
-    "usg": 18.6
+    "usg": 18.3
   },
   {
     "team": "OKC",
@@ -6621,7 +6621,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5189400.0,
     "statusNext": "guaranteed",
-    "usg": 18.3
+    "usg": 17.9
   },
   {
     "team": "OKC",
@@ -6637,7 +6637,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 11043740.0,
     "statusNext": "team_option",
-    "usg": 19.4
+    "usg": 19.1
   },
   {
     "team": "OKC",
@@ -6653,7 +6653,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 14.8
+    "usg": 14.5
   },
   {
     "team": "OKC",
@@ -6685,7 +6685,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 47838690.0,
     "statusNext": "guaranteed",
-    "usg": 26.9
+    "usg": 26.4
   },
   {
     "team": "OKC",
@@ -6695,13 +6695,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 16.3,
+    "projMpg": 17.5,
     "projGames": 64.4,
     "salaryNow": 7774648.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 15.4
+    "usg": 15.1
   },
   {
     "team": "OKC",
@@ -6711,13 +6711,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 11.6,
+    "projMpg": 12.4,
     "projGames": 53.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.4
+    "usg": 16.1
   },
   {
     "team": "ORL",
@@ -7021,7 +7021,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.1
+    "usg": 11.7
   },
   {
     "team": "PHI",
@@ -7047,13 +7047,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 22.5,
+    "projMpg": 16.7,
     "projGames": 66.1,
     "salaryNow": 2486995.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 11.5
+    "usg": 11.1
   },
   {
     "team": "PHI",
@@ -7069,7 +7069,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2735698.0,
     "statusNext": "guaranteed",
-    "usg": 17.7
+    "usg": 17.1
   },
   {
     "team": "PHI",
@@ -7085,7 +7085,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 65609278.0,
     "statusNext": "guaranteed",
-    "usg": 29.6
+    "usg": 28.6
   },
   {
     "team": "PHI",
@@ -7101,7 +7101,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15445727.0,
     "statusNext": "team_option",
-    "usg": 17.8
+    "usg": 17.2
   },
   {
     "team": "PHI",
@@ -7111,13 +7111,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 15.0,
+    "projMpg": 11.1,
     "projGames": 45.9,
     "salaryNow": 2616754.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": 15.8
+    "usg": 15.4
   },
   {
     "team": "PHI",
@@ -7133,7 +7133,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 66974166.0,
     "statusNext": "guaranteed",
-    "usg": 31.4
+    "usg": 30.3
   },
   {
     "team": "PHI",
@@ -7149,7 +7149,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 10.4
+    "usg": 10.0
   },
   {
     "team": "PHI",
@@ -7159,13 +7159,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 13.7,
+    "projMpg": 10.2,
     "projGames": 44.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.5
+    "usg": 20.7
   },
   {
     "team": "PHI",
@@ -7197,7 +7197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 46394040.0,
     "statusNext": "guaranteed",
-    "usg": 27.6
+    "usg": 26.7
   },
   {
     "team": "PHI",
@@ -7207,13 +7207,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 4.8,
+    "projGames": 9.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 16.6
   },
   {
     "team": "PHI",
@@ -7229,7 +7229,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3956760.0,
     "statusNext": "guaranteed",
-    "usg": 17.9
+    "usg": 17.3
   },
   {
     "team": "PHI",
@@ -7239,13 +7239,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 7.4,
+    "projMpg": 5.5,
     "projGames": 35.9,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.2
+    "usg": 12.8
   },
   {
     "team": "PHI",
@@ -7255,13 +7255,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.8,
+    "projMpg": 17.6,
     "projGames": 61.9,
     "salaryNow": 6300000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 21.5
+    "usg": 20.8
   },
   {
     "team": "PHI",
@@ -7277,7 +7277,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.1
+    "usg": 13.6
   },
   {
     "team": "PHI",
@@ -7287,13 +7287,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 22.9,
+    "projMpg": 17.0,
     "projGames": 61.9,
     "salaryNow": 9450000.0,
     "statusNow": "guaranteed",
     "salaryNext": 9900000.0,
     "statusNext": "guaranteed",
-    "usg": 9.4
+    "usg": 9.1
   },
   {
     "team": "PHI",
@@ -7309,7 +7309,7 @@
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.9
+    "usg": 14.4
   },
   {
     "team": "PHO",
@@ -7335,13 +7335,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 3.2,
+    "projMpg": 2.4,
     "projGames": 20.5,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "PHO",
@@ -7351,13 +7351,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 1.8,
+    "projMpg": 1.3,
     "projGames": 9.5,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.9
+    "usg": 18.5
   },
   {
     "team": "PHO",
@@ -7527,13 +7527,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 1.9,
+    "projMpg": 1.4,
     "projGames": 8.3,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 18.3
+    "usg": 18.5
   },
   {
     "team": "PHO",
@@ -7623,13 +7623,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 3.3,
+    "projMpg": 2.4,
     "projGames": 32.6,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.0
+    "usg": 19.4
   },
   {
     "team": "PHO",
@@ -7661,7 +7661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 24.8
+    "usg": 24.9
   },
   {
     "team": "POR",
@@ -7677,7 +7677,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20973214.0,
     "statusNext": "guaranteed",
-    "usg": 14.6
+    "usg": 14.7
   },
   {
     "team": "POR",
@@ -7693,7 +7693,7 @@
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.8
+    "usg": 17.9
   },
   {
     "team": "POR",
@@ -7719,13 +7719,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 31.9,
+    "projMpg": 28.5,
     "projGames": 72.2,
     "salaryNow": 9550298.0,
     "statusNow": "guaranteed",
     "salaryNext": 13761979.0,
     "statusNext": "team_option",
-    "usg": 16.0
+    "usg": 16.1
   },
   {
     "team": "POR",
@@ -7757,7 +7757,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 19.3
+    "usg": 19.4
   },
   {
     "team": "POR",
@@ -7767,13 +7767,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 24.1,
+    "projMpg": 21.5,
     "projGames": 62.7,
     "salaryNow": 19182676.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 24.1
+    "usg": 24.3
   },
   {
     "team": "POR",
@@ -7783,13 +7783,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 28.7,
+    "projMpg": 25.7,
     "projGames": 63.9,
     "salaryNow": 37200000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 18.1
+    "usg": 18.2
   },
   {
     "team": "POR",
@@ -7805,7 +7805,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.3
+    "usg": 17.4
   },
   {
     "team": "POR",
@@ -7815,7 +7815,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 22.7,
+    "projMpg": 20.3,
     "projGames": 61.8,
     "salaryNow": 3005085.0,
     "statusNow": "guaranteed",
@@ -7837,7 +7837,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "player_option",
-    "usg": 24.0
+    "usg": 24.1
   },
   {
     "team": "POR",
@@ -7853,7 +7853,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 31.7
+    "usg": 31.8
   },
   {
     "team": "POR",
@@ -7863,7 +7863,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 25.0,
+    "projMpg": 22.4,
     "projGames": 59.8,
     "salaryNow": 21696429.0,
     "statusNow": "guaranteed",
@@ -7879,7 +7879,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.4,
+    "projMpg": 18.3,
     "projGames": 52.8,
     "salaryNow": 14500000.0,
     "statusNow": "guaranteed",
@@ -7901,7 +7901,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.6
+    "usg": 15.7
   },
   {
     "team": "SAC",
@@ -8215,7 +8215,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 21.3,
+    "projMpg": 20.6,
     "projGames": 71.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
@@ -8269,7 +8269,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17978927.0,
     "statusNext": "team_option",
-    "usg": 25.5
+    "usg": 25.6
   },
   {
     "team": "SAS",
@@ -8333,7 +8333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 17172994.0,
     "statusNext": "team_option",
-    "usg": 21.5
+    "usg": 21.6
   },
   {
     "team": "SAS",
@@ -8343,7 +8343,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 29.3,
+    "projMpg": 28.3,
     "projGames": 72.1,
     "salaryNow": 15796200.0,
     "statusNow": "guaranteed",
@@ -8359,13 +8359,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 4.0,
+    "projGames": 6.3,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 16.2
   },
   {
     "team": "SAS",
@@ -8375,7 +8375,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 18.9,
+    "projMpg": 18.2,
     "projGames": 71.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
@@ -8455,7 +8455,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.5,
+    "projMpg": 18.8,
     "projGames": 66.4,
     "salaryNow": 3230520.0,
     "statusNow": "guaranteed",
@@ -8471,7 +8471,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 21.9,
+    "projMpg": 21.1,
     "projGames": 69.4,
     "salaryNow": 25108696.0,
     "statusNow": "guaranteed",
@@ -8535,7 +8535,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 33.5,
+    "projMpg": 33.2,
     "projGames": 69.8,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
@@ -8567,13 +8567,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 6.6,
+    "projGames": 9.9,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.0
   },
   {
     "team": "TOR",
@@ -8711,7 +8711,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.6,
+    "projMpg": 23.3,
     "projGames": 57.0,
     "salaryNow": 27300000.0,
     "statusNow": "guaranteed",
@@ -8743,13 +8743,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.9,
+    "projMpg": 23.7,
     "projGames": 68.1,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.5
+    "usg": 16.4
   },
   {
     "team": "TOR",
@@ -8759,7 +8759,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.8,
+    "projMpg": 23.6,
     "projGames": 65.9,
     "salaryNow": 5870172.0,
     "statusNow": "guaranteed",
@@ -8791,13 +8791,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 6.0,
+    "projMpg": 5.5,
     "projGames": 9.9,
     "salaryNow": 716081.0,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 16.3
+    "usg": 16.4
   },
   {
     "team": "UTA",
@@ -8807,7 +8807,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 19.8,
+    "projMpg": 18.3,
     "projGames": 65.6,
     "salaryNow": 4988948.0,
     "statusNow": "guaranteed",
@@ -8823,7 +8823,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 23.3,
+    "projMpg": 21.5,
     "projGames": 67.4,
     "salaryNow": 3000000.0,
     "statusNow": "guaranteed",
@@ -8903,13 +8903,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 7.2,
+    "projMpg": 6.6,
     "projGames": 9.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.2
+    "usg": 16.3
   },
   {
     "team": "UTA",
@@ -9015,7 +9015,7 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": 20.3,
+    "projMpg": 18.7,
     "projGames": 55.8,
     "salaryNow": 10541667.0,
     "statusNow": "guaranteed",
@@ -9053,7 +9053,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "restricted_fa",
-    "usg": 21.3
+    "usg": 21.4
   },
   {
     "team": "UTA",
@@ -9315,17 +9315,17 @@
     "team": "MEM",
     "player": "D'Angelo Russell",
     "pos": "G",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 9.5,
+    "projGames": 40.6,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 22.3
   },
   {
     "team": "WAS",
@@ -9431,29 +9431,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.2,
+    "projGames": 49.2,
     "salaryNow": 3700000.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 23.9
   },
   {
     "team": "DET",
     "player": "Elijah Harkless",
     "pos": "G",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 14.5,
+    "projGames": 20.7,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": null
+    "usg": 18.2
   },
   {
     "team": "DAL",
@@ -9463,29 +9463,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 5.8,
+    "projGames": 52.8,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.3
   },
   {
     "team": "LAL",
     "player": "Matisse Thybulle",
     "pos": "G",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 15.2,
+    "projGames": 29.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 13.8
   },
   {
     "team": "ATL",
@@ -9495,13 +9495,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 5.2,
+    "projGames": 60.3,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.2
   },
   {
     "team": "HOU",
@@ -9511,29 +9511,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.0,
+    "projGames": 49.1,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.2
   },
   {
     "team": "HOU",
     "player": "Oscar Tshiebwe",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 11.1,
+    "projGames": 21.3,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.0
   },
   {
     "team": "HOU",
@@ -9543,13 +9543,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.1,
+    "projGames": 56.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.0
   },
   {
     "team": "IND",
@@ -9559,13 +9559,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 4.8,
+    "projGames": 51.7,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.3
   },
   {
     "team": "LAC",
@@ -9575,45 +9575,45 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 4.4,
+    "projGames": 15.0,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 19.1
   },
   {
     "team": "LAL",
     "player": "Ziaire Williams",
     "pos": "",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 19.7,
+    "projGames": 57.4,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.7
   },
   {
     "team": "LAL",
     "player": "Arthur Kaluma",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 10.3,
+    "projGames": 15.0,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.7
   },
   {
     "team": "MEM",
@@ -9623,13 +9623,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.6,
+    "projGames": 21.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.1
   },
   {
     "team": "MEM",
@@ -9639,13 +9639,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 1.8,
+    "projGames": 6.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.5
   },
   {
     "team": "MIL",
@@ -9655,13 +9655,13 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 5.4,
+    "projGames": 32.9,
     "salaryNow": 2756912.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": null
+    "usg": 18.5
   },
   {
     "team": "MIL",
@@ -9671,61 +9671,61 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 6.5,
+    "projGames": 39.0,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.5
   },
   {
     "team": "NOR",
     "player": "Bryce McGowens",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 15.3,
+    "projGames": 35.0,
     "salaryNow": 2934742.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": null
+    "usg": 16.7
   },
   {
     "team": "NYK",
     "player": "Landry Shamet",
     "pos": "",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 18.3,
+    "projGames": 49.8,
     "salaryNow": 5737500.0,
     "statusNow": "guaranteed",
     "salaryNext": 6162500.0,
     "statusNext": "guaranteed",
-    "usg": null
+    "usg": 18.3
   },
   {
     "team": "OKC",
     "player": "Payton Sandfort",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 13.7,
+    "projGames": 19.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.2
   },
   {
     "team": "PHO",
@@ -9735,29 +9735,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 2.6,
+    "projGames": 20.0,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 18.0
   },
   {
     "team": "POR",
     "player": "Didi Louzada",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 11.1,
+    "projGames": 15.0,
     "salaryNow": 268032.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.4
   },
   {
     "team": "SAS",
@@ -9767,29 +9767,29 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 6.3,
+    "projGames": 45.2,
     "salaryNow": null,
     "statusNow": "unrestricted_fa",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 17.2
   },
   {
     "team": "UTA",
     "player": "Mo Bamba",
     "pos": "",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 10.8,
+    "projGames": 17.7,
     "salaryNow": 3700320.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "team_option",
-    "usg": null
+    "usg": 16.4
   },
   {
     "team": "UTA",
@@ -9799,28 +9799,28 @@
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 7.4,
+    "projGames": 13.7,
     "salaryNow": null,
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": null
+    "usg": 16.2
   },
   {
     "team": "DEN",
     "player": "Alpha Diallo",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
-    "projMpg": null,
-    "projGames": null,
+    "projMpg": 16.3,
+    "projGames": 15.0,
     "salaryNow": null,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": null
+    "usg": 18.6
   }
 ]
