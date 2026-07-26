@@ -181,8 +181,13 @@ def main() -> None:
         fta_s = pg["fta"] * games if (pg and games is not None) else None
         tov_s = pg["tov"] * games if (pg and games is not None) else None
 
+        # r["pos"] is NaN (a float, not a missing key) for the handful of new
+        # signings added without full bio data -- pd.notna guards it the same
+        # way overrideGames/overrideMpg/usg already are below, so json.dump
+        # never sees a bare NaN token here either.
+        pos = r.get("pos", "")
         rows.append({
-            "team": r["team"], "player": r["player"], "pos": r.get("pos", ""),
+            "team": r["team"], "player": r["player"], "pos": pos if pd.notna(pos) else "",
             "tier": tier, "injury": injury,
             "overrideGames": override_games, "overrideMpg": override_mpg,
             "projMpg": round(mpg, 1) if mpg is not None else None,
