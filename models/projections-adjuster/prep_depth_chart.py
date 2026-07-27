@@ -5,7 +5,7 @@ new data collection, only a new combination:
 
   roster        data/nba-rosters/2026-27.csv            team, player, position
   projections   output/season-projections-2026-27.json  Stage 5's final projMpg/projGames
-  contracts     data/nba-salaries/current.csv            salary_y2/y3 + contract_note
+  contracts     data/nba-salaries/current.csv            salary_current/y2 + contract_note
 
 CONTRACT-STATUS DERIVATION. current.csv's `contract_note` free-text field tags specific
 future seasons with one of exactly four patterns (verified against all 22 distinct notes
@@ -18,18 +18,16 @@ a target season:
   - no tag, but a salary figure exists for that year -> guaranteed
   - no tag, no salary figure -> the contract has run out -> unrestricted_fa
 
-hoopR/salary numbering: salary_current = 2025-26, so salary_y2 = 2026-27 (this tool's
-"current" column) and salary_y3 = 2027-28 ("next" column) -- see CLAUDE.md's salary
-year-offset note.
-
-TWO ROWS ARE KNOWN-STALE ON PURPOSE, NOT A PARSING BUG. Two contract_notes are one-off
-manual annotations rather than a dated tag ("UFA - unsigned; prior multi-year figure no
-longer applies", "New LAL deal 2026-27 (1 yr / $2.4M) supersedes stale figure") -- both
-rows already carry salary_y2=NaN, so the general "no tag, no salary -> UFA" rule already
-produces a reasonable answer for the first; the second (Kevon Looney, actually re-signed
-for 2026-27) will incorrectly show UFA because the number was never updated at the
-source. That is a data-staleness gap in current.csv itself, not something this parser can
-fix generically from one row -- flagged here rather than special-cased.
+current.csv's salary_current is THIS roster's own season (2026-27, this tool's
+"current" column) and salary_y2 is next season (2027-28, "next" column) -- NOT a fixed
+one-season offset. A real bug shipped from assuming current.csv was always one season
+behind (true of a stale prior refresh, hardcoded here instead of re-derived) -- it
+silently fed every player's 2027-28 salary into the "now" column across the whole
+depth-chart tool and the live team-rosters page until a real screenshot mismatch caught
+it (Donovan Mitchell showing $60.9M "now" instead of his real $50.1M). If current.csv is
+ever refreshed for a season other than this roster's own `season`, this mapping needs to
+shift again -- re-derive it from what season current.csv was actually pulled for, don't
+hardcode an offset.
 
 CONTRACT-MATCH FALLBACK. ~13% of the roster (mostly Exhibit-10/two-way/G-League-adjacent
 signings) has no row in current.csv at all -- salary trackers don't bother with camp
@@ -157,8 +155,8 @@ def main() -> None:
         if sal_row is not None:
             matched += 1
             tags = parse_note_tags(sal_row.get("contract_note", ""))
-            sal_now, status_now = season_status(sal_row.get("salary_y2"), tags, SEASON_NOW)
-            sal_next, status_next = season_status(sal_row.get("salary_y3"), tags, SEASON_NEXT)
+            sal_now, status_now = season_status(sal_row.get("salary_current"), tags, SEASON_NOW)
+            sal_next, status_next = season_status(sal_row.get("salary_y2"), tags, SEASON_NEXT)
         else:
             fell_back += 1
             status_now = status_next = fallback_status(r.get("contract", ""))

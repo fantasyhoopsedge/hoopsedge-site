@@ -9,8 +9,22 @@
  *     year-for-year, over the roster sheet's own (older, less frequently
  *     updated) 26-27 SALARY column — a disagreement between the two means the
  *     sheet is stale, not that current.csv is wrong.
- *       current.csv salary_y2 = 2026-27, salary_y3 = 2027-28, salary_y4 = 2028-29,
- *       salary_y5 = 2029-30.
+ *       current.csv salary_current = 2026-27, salary_y2 = 2027-28,
+ *       salary_y3 = 2028-29, salary_y4 = 2029-30. (NOT a fixed one-season
+ *       offset — current.csv's first column always represents whatever
+ *       season was selected on HoopsHype's own season dropdown at refresh
+ *       time; this file assumes that season matches this roster's own
+ *       `season` value, i.e. current.csv was refreshed for THIS season. A
+ *       real bug shipped from getting this backwards: a stale prior refresh
+ *       had genuinely been one season behind, and that offset got hardcoded
+ *       here instead of being re-derived per refresh — it silently displayed
+ *       every player's NEXT season's salary as their current one across the
+ *       entire live team-rosters page until caught via a real screenshot
+ *       mismatch (Donovan Mitchell showing $60.9M instead of his real
+ *       $50.1M). If current.csv is ever refreshed for a season other than
+ *       the roster CSV's own `season`, this mapping needs to shift again —
+ *       don't hardcode an offset, re-derive it from what season current.csv
+ *       was actually pulled for.
  *   - Where current.csv has a GAP (player absent, or a year it has no figure
  *     for), the value is an EVEN SPLIT of the contract total over its length,
  *     starting at yr1 = the roster season (2026-27), spread across whichever
@@ -136,7 +150,7 @@ function yearLabel(season: string, i: number): string {
 }
 
 // ── real-salary index from current.csv (authoritative) ──────────────────────────
-type RealSalary = { current: number | null; y2: number | null; y3: number | null; y4: number | null; y5: number | null; note: string | null }; // 25-26, 26-27, 27-28, 28-29, 29-30
+type RealSalary = { current: number | null; y2: number | null; y3: number | null; y4: number | null; y5: number | null; note: string | null }; // 26-27, 27-28, 28-29, 29-30, 30-31
 function loadRealSalaries(): Map<string, RealSalary> {
   const index = new Map<string, RealSalary>();
   if (!existsSync(SALARY_CSV)) return index;
@@ -332,11 +346,11 @@ async function main() {
     if (contractStatusEarly === "Rookie Scale" && draft.year != null && contract.years != null && contract.total != null) {
       const N = contract.years;
       const calSalary = new Map<number, number>();
-      if (rs?.current != null) calSalary.set(2025, rs.current);
-      if (rs?.y2 != null) calSalary.set(2026, rs.y2);
-      if (rs?.y3 != null) calSalary.set(2027, rs.y3);
-      if (rs?.y4 != null) calSalary.set(2028, rs.y4);
-      if (rs?.y5 != null) calSalary.set(2029, rs.y5);
+      if (rs?.current != null) calSalary.set(2026, rs.current);
+      if (rs?.y2 != null) calSalary.set(2027, rs.y2);
+      if (rs?.y3 != null) calSalary.set(2028, rs.y3);
+      if (rs?.y4 != null) calSalary.set(2029, rs.y4);
+      if (rs?.y5 != null) calSalary.set(2030, rs.y5);
 
       const val: (number | null)[] = [];
       for (let p = 1; p <= N; p++) val.push(calSalary.get(draft.year + p - 1) ?? null);
@@ -370,10 +384,10 @@ async function main() {
     // step from yr1 across the contract length (rising/falling to sum exactly
     // to the total). Either way the filled years are flagged as estimates so
     // they're never mistaken for real cap figures.
-    const realByYr: (number | null)[] = [rs?.y2 ?? null, rs?.y3 ?? null, rs?.y4 ?? null, rs?.y5 ?? null]; // yr1..yr4 = 26-27..29-30
-    const csvY2 = realByYr[0]; // current.csv's 2026-27 figure (may be null even if the row exists)
+    const realByYr: (number | null)[] = [rs?.current ?? null, rs?.y2 ?? null, rs?.y3 ?? null, rs?.y4 ?? null]; // yr1..yr4 = 26-27..29-30
+    const csvYr1 = realByYr[0]; // current.csv's 2026-27 figure (may be null even if the row exists)
     const twoWayFallback = contractStatusEarly === "Two-Way" ? TWO_WAY_YR1_2026_27 : null;
-    const yr1 = csvY2 ?? rookiePrefill[0] ?? screenshot2627 ?? twoWayFallback; // current.csv wins, then the rookie backsolve, then the sheet, then the known two-way rate
+    const yr1 = csvYr1 ?? rookiePrefill[0] ?? screenshot2627 ?? twoWayFallback; // current.csv wins, then the rookie backsolve, then the sheet, then the known two-way rate
     const yr: (number | null)[] = [
       yr1,
       realByYr[1] ?? rookiePrefill[1],
@@ -389,7 +403,7 @@ async function main() {
     // a real current.csv figure).
     rookiePrefill.forEach((v, i) => {
       if (v == null) return;
-      const wasBlank = i === 0 ? csvY2 == null : realByYr[i] == null;
+      const wasBlank = i === 0 ? csvYr1 == null : realByYr[i] == null;
       if (wasBlank) {
         estimatedYears.push(yearLabel(season, i));
         salary_source = salary_source ? `${salary_source}+rookie_backsolve` : "rookie_backsolve";

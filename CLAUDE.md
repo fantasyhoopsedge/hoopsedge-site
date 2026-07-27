@@ -162,8 +162,18 @@ through `src/app/api/nba/*` routes).
 `scripts/nba-data/client.ts` MUST stay byte-identical to `normalizePlayerName()`
 in `src/lib/dynasty-rankings.ts` (lowercase → strip diacritics → strip `.,'’` →
 strip jr/sr/ii/iii/iv → collapse whitespace). It joins salary ↔ stats ↔ rankings.
-Salary CSV note: `current.csv` is one season stale — `salary_current` is 2025-26,
-so read `salary_y2` for the upcoming season.
+Salary CSV note: `current.csv`'s `salary_current` column represents whatever
+season was selected on HoopsHype's own dropdown at the time of the last refresh
+— it is **not** permanently one season behind. As of the most recent full
+refresh, `salary_current` = 2026-27 (this roster season), `salary_y2` =
+2027-28, and so on. A real bug shipped from hardcoding "`salary_current` is
+always last season" into `roster_ingest.ts`/`prep_depth_chart.py` instead of
+re-deriving it per refresh — for months it fed every player's *next* season's
+salary into the "current" column across the live team-rosters page and the
+depth-chart tool, until a screenshot mismatch caught it (Donovan Mitchell
+showing $60.9M instead of his real $50.1M). Before trusting either script's
+salary-column mapping, confirm which season `current.csv` was actually
+refreshed for and that it matches what the code assumes.
 
 ### Rookie board — dual storage
 

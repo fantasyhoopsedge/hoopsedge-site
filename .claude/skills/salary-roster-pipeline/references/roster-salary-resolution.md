@@ -9,6 +9,34 @@ via `loadRealSalaries()`). This file explains the resolution order and why it
 exists — read it before changing any of this logic, since each rule here was
 added to fix a specific real bug, not speculatively.
 
+## 0. The column mapping is not a fixed offset — re-derive it every refresh
+
+`current.csv`'s `salary_current` column represents whatever season was
+selected on HoopsHype's own dropdown at the time of the pull — **not**
+a permanently-fixed "one season behind" offset. `roster_ingest.ts` and
+`prep_depth_chart.py` both assume `salary_current` matches the roster CSV's
+own `season` value (i.e. current.csv was refreshed for the same season this
+roster file is for): `salary_current` → `salary_yr1`, `salary_y2` →
+`salary_yr2`, and so on, one-to-one.
+
+This shipped backwards for a real stretch of time: both scripts hardcoded
+`salary_current = 2025-26` (true of a stale prior refresh) and read
+`salary_y2` as "this season" instead. Since the assumption was baked in as a
+fixed offset rather than re-derived per refresh, it silently kept feeding
+every player's *next* season's salary into the "current" slot across the
+entire live team-rosters page and the depth-chart tool — for months,
+unnoticed, because every number still *looked* like a plausible salary, just
+the wrong year's. It was caught by a direct screenshot comparison (Donovan
+Mitchell's live page showing $60.9M when HoopsHype's own page showed his
+real current-season figure as $50.1M — the $60.9M was his real *next*
+season's number, one column over).
+
+**If you ever touch either script's salary-column mapping, first confirm
+which season `current.csv` was actually pulled for** (check the HoopsHype
+page's own season dropdown at refresh time, or ask whoever did the refresh)
+and that it matches the roster CSV's `season` column — don't assume a fixed
+offset holds just because it held during a past refresh cycle.
+
 ## 1. current.csv wins, year for year
 
 If current.csv has a figure for a given season, that figure is used —
@@ -89,8 +117,10 @@ not what to *display*).
 ## 4. Rookie-scale contract-year backsolve
 
 A rookie-scale deal's contract-year 1 is anchored to the player's **draft
-year**, not the roster season — a 2024 draftee's year 1 is 2024-25, one
-season before current.csv's earliest column even exists. When exactly one
+year**, not the roster season — a 2024 draftee's year 1 is 2024-25, seasons
+before current.csv's earliest column even exists (current.csv's own earliest
+column represents whichever season it was most recently refreshed for — see
+the note below on not hardcoding that assumption). When exactly one
 contract year in the 4-year window is still missing after everything else,
 it's solved algebraically: back-solve year 1 from the growth rate between
 the two earliest *known* consecutive years, then solve the missing year as
