@@ -1,13 +1,15 @@
-# How roster_ingest.ts resolves a player's 4-year salary
+# How roster_ingest.ts resolves a player's 6-year salary
 
-`roster_ingest.ts` builds `nba_roster.salary_yr1..salary_yr4` (2026-27 through
-2029-30) for every player from two sources that don't always agree: the
-owner's gated cap-sheet CSV (`data/nba-rosters/<season>.csv`, which has its own
-`salary_26_27` column plus a `contract` string like `"4 yr / $53.8M"`) and
+`roster_ingest.ts` builds `nba_roster.salary_yr1..salary_yr6` (2026-27 through
+2031-32 — extended from 4 to 6 years in the 2026-07-30 rebuild) for every
+player from two sources that don't always agree: the owner's gated cap-sheet
+CSV (`data/nba-rosters/<season>.csv`, which has its own `salary_26_27` column
+plus a `contract` string like `"4 yr / $53.8M"`) and
 `data/nba-salaries/current.csv` (the fresher, HoopsHype-refreshed source, read
-via `loadRealSalaries()`). This file explains the resolution order and why it
-exists — read it before changing any of this logic, since each rule here was
-added to fix a specific real bug, not speculatively.
+via `loadRealSalaries()`, which itself carries `salary_y6` now too). This file
+explains the resolution order and why it exists — read it before changing any
+of this logic, since each rule here was added to fix a specific real bug, not
+speculatively.
 
 ## 0. The column mapping is not a fixed offset — re-derive it every refresh
 
@@ -58,6 +60,67 @@ touching this.
 
 The cap sheet's own `salary_26_27` is only used as a fallback for `yr1` when
 current.csv has no row for the player at all.
+
+## 1a. Extension-not-started detection — when yr0 belongs to a DIFFERENT deal
+
+Added in the 2026-07-30 rebuild after finding that `contract_raw` had been
+silently *derived* by summing whatever 4 years happened to be populated in
+`current.csv`, rather than transcribed from the real signed deal — invisible
+for a normal player, but badly wrong for anyone whose current season is the
+**last year of an already-expiring contract**, with a separately-signed
+extension starting the following season (Wembanyama: 26-27 = last year of
+rookie scale, 27-28 = year 1 of a real 5yr/$252M extension; Donovan Mitchell
+and Shai Gilgeous-Alexander are the same pattern). Treating all 4-6 visible
+years as one contract in that case doesn't just mislabel the total — it can
+also make the resolver try to gap-fill years that belong to a contract that
+hasn't even started yet.
+
+`isLargeJump(a, b)` flags a jump between two consecutive *known* current.csv
+years as "these two years are probably different contracts, not one deal":
+either a **1.8x+ ratio** or a **flat $8M+ raise** trips it (calibrated against
+the real distribution across the full league — normal supermax step-raises
+for the highest earners cluster at 1.06-1.08x / $3.7-4.6M even in the best
+case, so there's real separation at both thresholds, not an arbitrary line).
+Two thresholds exist because one alone misses real cases: a young player
+jumping off a cheap rookie-scale year clears the ratio threshold easily
+(Wembanyama, 2.58x) but a veteran already making real money doesn't — Donovan
+Mitchell's real boundary is only 1.22x by ratio, but a real $10.8M raise.
+
+When the first such jump is found (`extensionBoundary`, the index *before*
+the jump), the resolver **re-anchors** `contract.years`/`contract.total` to
+start at the slot *after* the jump instead of slot 0, using the exact same
+even-split/arithmetic-step math as the normal gap-fill below — just windowed
+to `[start, end)` instead of `[0, N)`. This is the only path that ever writes
+into `salary_yr5`/`salary_yr6`, since a boundary case is the only real reason
+a deal would need to be tracked out that far. The window's own end boundary
+uses the **standard** `fa_year + fa_option_years` formula unconditionally,
+never the Rookie Scale variant (see the note under contract status below —
+`deriveStatus()`'s heuristic can still fire on a boundary player, and using
+its Rookie-Scale-specific boundary formula here would be wrong once the
+contract is known to be a separate, already-signed extension).
+
+**The monotonicity guard** (added after a real near-miss: Cade Cunningham and
+Evan Mobley's real 5yr/$269M total, once anchored at the wrong slot, would
+have even-split into a computed 5th year *24% below* their own known 4th
+year — no real designated-rookie extension pays out that way): a filled year
+in either the normal or the boundary-anchored gap-fill branch is only ever
+committed if it's `>=` the real known year immediately preceding the gap.
+If it isn't, that's a signal the contract total itself doesn't reconcile
+with the known years — leave the gap `null` rather than fabricate a decline.
+
+This detection is also surfaced separately as a **report-only signal**
+(`jumpFlags`, printed by every `--dry-run`/real run) — a large jump doesn't
+just drive resolution, it's also the fastest way to spot which players in a
+brand-new team need the closest look when cross-referencing the next cap-sheet
+screenshot. Two known limitations, found by testing this against the whole
+league rather than assumed: (1) a first-round rookie's normal year-1→year-2
+rookie-scale step often *also* clears the ratio threshold (1.6-2.1x is
+completely normal there) — that's an expected false-positive for the
+report, not a bug, and (2) the naive-sum bug this all exists to catch has no
+internal signature at all when a contract total simply happens to be
+*correct* for the visible window — it can only be caught by an external
+source (the cap-sheet screenshot itself), never derived from `current.csv`
+alone. See the SKILL.md rebuild section for that half of the fix.
 
 ## 2. Gaps get filled, never left as someone's guess dressed up as fact
 
@@ -128,7 +191,19 @@ the two earliest *known* consecutive years, then solve the missing year as
 ever fires for `Rookie Scale` status, and only when there's a single
 genuinely-missing year — with two or more gaps there isn't enough
 information to solve uniquely, so nothing is filled (same conservative
-default as everywhere else in this file).
+default as everywhere else in this file). **Never runs when an
+extension-boundary is detected (1a)** — draft-year-anchored backsolving
+against a contract that's actually a separately-signed extension would
+produce a meaningless slot.
+
+**`deriveStatus()`'s Rookie Scale heuristic requires `contract.years <= 4`**
+(added in the 2026-07-30 rebuild) — a real rookie-scale deal is *always*
+exactly 4 years by CBA rule (2 guaranteed + 2 team options), never 5+. Without
+this gate, a player who's already signed a 5th-year extension on top of their
+rookie scale (Chet Holmgren: pick 2, yos 3 — still matches "1st-rounder,
+≤3 yos" even after his real contract became `5yr/$239M`) would incorrectly
+get the draft-year-anchored boundary/backsolve logic applied to what's
+actually a separate, already-signed deal.
 
 ## 5. Qualifying Offer (QO) tagging
 
@@ -187,15 +262,62 @@ first-rounder, which is wrong — he's an established veteran on a standard
 deal — so he shows as `Rookie Scale` until that source row is corrected).
 If you spot a status that looks wrong, check the player's `draft` field in
 `data/nba-rosters/<season>.csv` before assuming the heuristic itself needs
-changing.
+changing. See the note under section 4 for the `contract.years <= 4` gate
+that keeps this heuristic from misfiring on a signed extension. **On an
+extension-boundary row (1a), `contract_status` is corrected from `Rookie
+Scale` to `Standard` after the fact** if `deriveStatus()`'s heuristic still
+matched — once the boundary is known, the contract is by definition an
+already-signed extension, not the player's original in-progress rookie deal,
+and labeling it otherwise is actively misleading on the frontend badge.
+
+## 8. `contract_year_position` — which year of the deal `season` falls in
+
+Added in the 2026-07-30 rebuild (`nba_roster.contract_year_position`,
+migration `20260730010000_nba_roster_contract_year_position.sql`) — a text
+field like `"2 of 5"`, computed as
+`contract.years - (estimateBoundaryYear - seasonStart(season)) + 1` and
+reusing `estimateBoundaryYear` (section 3) rather than re-deriving the FA
+boundary a second time, so it's automatically correct for both Standard and
+Rookie Scale deals without new logic. **Always `null` on an
+extension-boundary row** — `season` predates that contract entirely (it
+belongs to the expiring prior deal instead), so "year N of the new deal" has
+no true answer for the current season and shouldn't pretend to. Surfaced in
+the team-rosters "Salary & contract" card as "Year N of M" under the contract
+terms line — see `contractFor()` in `roster-helpers.ts` (returns
+`yearPosition`) and `roster-app.tsx` for the render.
+
+## 9. Marking OUR OWN derived estimates so a future refresh doesn't trust them
+
+When an extension-boundary gap-fill (1a) computes a missing year, that
+number is a derived estimate, not a HoopsHype-sourced fact — but if it gets
+written into `current.csv` (to keep the two files in sync, since `current.csv`
+now has `salary_y5`/`salary_y6` columns matching `nba_roster`'s), it becomes
+**indistinguishable from real sourced data** the next time someone reads that
+file, including to `roster_ingest.ts` itself: `salary_estimated`/
+`salary_estimated_years` would stop flagging that year, and the frontend's
+"EST" badge would silently disappear even though nothing about the number's
+provenance changed.
+
+The fix: any estimate written back to `current.csv` gets tagged in that row's
+`contract_note`, e.g. `"Estimated years: 2030-31"` (semicolon-separate
+multiple: `"Estimated years: 2030-31; 2031-32"` — never a bare comma, see
+SKILL.md's "column-count trap" section; a literal comma inside an unquoted
+field silently shifts every column after it). `roster_ingest.ts` parses this back out
+(`noteEstimatedByNorm`) and re-attaches the estimate flag for exactly those
+seasons even though the raw number now lives in `current.csv` as a normal
+column — so the round-trip through `current.csv` never loses the "this is a
+guess" signal. If you ever write a derived figure into `current.csv` by hand
+for a different reason, tag it the same way or a later refresh (or ingest
+run) will treat it as ground truth.
 
 ## Where this surfaces in the frontend
 
 `src/app/team-rosters/_components/roster-live-data.ts` maps
-`nba_roster.contract_status` / `salary_estimated_years` / `salary_qo_years`
-onto the `Player` type (`roster-data.ts`); `contractFor()` in
-`roster-helpers.ts` turns those into per-row `estimated`/`qo` flags; the
-"Salary & contract" card in `roster-app.tsx` renders the status badge and
-the est/QO superscripts. If a new resolution rule needs a frontend badge,
-that's the chain to follow — a DB column alone won't show up anywhere until
-it's threaded through all four of those files.
+`nba_roster.contract_status` / `salary_estimated_years` / `salary_qo_years` /
+`contract_year_position` onto the `Player` type (`roster-data.ts`);
+`contractFor()` in `roster-helpers.ts` turns those into per-row
+`estimated`/`qo` flags plus `yearPosition`; the "Salary & contract" card in
+`roster-app.tsx` renders the status badge, the est/QO superscripts, and the
+"Year N of M" line. If a new resolution rule needs a frontend badge, that's
+the chain to follow — a DB column alone won't show up anywhere until it's
+threaded through all four of those files.

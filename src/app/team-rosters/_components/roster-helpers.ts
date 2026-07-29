@@ -210,8 +210,12 @@ export type ContractRow = { year: string; team: string; age: string; salary: str
  * nba_roster). Year 1 = 2026-27; only seasons with a contracted salary are
  * listed. Even-split estimated years are flagged, and Qualifying-Offer years
  * (a real current.csv figure, but a formulaic RFA cap hold rather than a
- * negotiated salary) are flagged separately. nba_roster tracks 4 years
- * (through 2029-30), so a longer deal shows its first four seasons.
+ * negotiated salary) are flagged separately. nba_roster tracks 6 years
+ * (through 2031-32) — yr5/yr6 are only populated for a deal that runs that
+ * long, which today means a player whose current season is the last year of
+ * an already-expiring contract while a separately signed extension covers
+ * the years past yr4 (e.g. Wembanyama, Mitchell); every other player's yr5/6
+ * stay null and just don't render a row.
  */
 export function contractFor(p: Player) {
   const firstStart = 2026; // 2026-27 season = Year 1
@@ -241,7 +245,7 @@ export function contractFor(p: Player) {
   // the 4-year salary window the rows cover); fall back to the rows we have.
   const n = p.contractYears ?? rows.length;
   const total = p.contractTotal ?? rowTotal;
-  return { n, total, avg: n ? total / n : 0, rows, status: p.contractStatus };
+  return { n, total, avg: n ? total / n : 0, rows, status: p.contractStatus, yearPosition: p.contractYearPosition };
 }
 
 /** Formats a category's raw per-game/percentage value for display, e.g. 17.5 or 56.5%. */

@@ -1573,6 +1573,9 @@ export function RosterApp({
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
                       {contract.n} yr{contract.n > 1 ? "s" : ""} · {money(contract.total)}
                     </div>
+                    {contract.yearPosition && (
+                      <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 3 }}>Year {contract.yearPosition}</div>
+                    )}
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg salary</div>
