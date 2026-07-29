@@ -711,8 +711,16 @@ async function main() {
         .map((i) => yearLabel(season, i))
         .join(", ") || null,
       salary_source,
-      is_incoming_rookie: draftYearNum === 2026 && yos.toUpperCase() === "R",
-      is_sophomore: draftYearNum === 2025 && (yosNum === 1 || yos.toUpperCase() === "R"),
+      // yos ("years of service") is the authoritative signal here, not draft
+      // year — a draft-and-stash player (drafted 2025, sat out overseas,
+      // debuting only now) is a true rookie despite a 2025 draft year, and a
+      // two-way player who bounced between NBA affiliates in their debut
+      // season is a true sophomore despite an "-ND" (undrafted) label. Draft
+      // year used to gate this and produced false SOPHOMORE tags for any 2025
+      // draftee regardless of whether they'd actually played yet (caught via
+      // the tag-vs-2025-26-team conflict check below on Bogoljub Markovic).
+      is_incoming_rookie: yos.toUpperCase() === "R",
+      is_sophomore: yosNum === 1,
       new_to_team: priorTeam != null && NBA_FULL_NAMES.has(priorTeam) && priorTeam !== TEAM_FULL[team],
       source: "cap_sheet_screenshot", updated_at: now,
     });
@@ -781,9 +789,16 @@ async function main() {
   // tags. A returning sophomore played in the NBA last season (NBA prior_team);
   // an incoming rookie did not (college/overseas). Conflicts catch transcription
   // slips and genuine edge cases (a 2025 draft-and-stash now a de-facto rookie).
+  // A sophomore's prior_team matching their OWN current team is genuine
+  // history (they debuted and stayed put) — no reason to doubt it. But for a
+  // claimed incoming rookie, the same same-team value is usually just an
+  // unpopulated-prior-team default (mirrors new_to_team's exclusion below),
+  // not evidence they actually played there, so it shouldn't count as
+  // "played NBA" for that side of the check.
   const tagConflicts = out.filter((r) => {
     const playedNba = r.prior_team != null && NBA_FULL_NAMES.has(r.prior_team);
-    return (r.is_sophomore && !playedNba) || (r.is_incoming_rookie && playedNba);
+    const playedNbaForRookieCheck = playedNba && r.prior_team !== TEAM_FULL[r.team];
+    return (r.is_sophomore && !playedNba) || (r.is_incoming_rookie && playedNbaForRookieCheck);
   });
   if (tagConflicts.length) {
     console.log(`\nTag vs 2025-26-team conflicts (review):`);
