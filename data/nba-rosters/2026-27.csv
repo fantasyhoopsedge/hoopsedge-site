@@ -1,503 +1,498 @@
 season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthplace,pre_draft,prior_team,contract,fa_year,salary_26_27
-2026-27,ATL,Nickeil Alexander-Walker,7,G,6'5,205,09/02/98,27.84,7,2019-17,CAN,Canada - Toronto,Virginia Tech,Atlanta Hawks,3 yr / $45.5M,2029,14403710
-2026-27,ATL,Devin Carter,,G,6'2,195,03/18/02,24.31,2,2024-13,USA,FL - Miami,Providence,Sacramento Kings,3 yr / $23.5M,2028,5158080
+2026-27,ATL,Nickeil Alexander-Walker,7,G,6'5,205,09/02/98,27.84,7,2019-17,CAN,Canada - Toronto,Virginia Tech,Atlanta Hawks,4 yr / $60.6M,2029,14403710
+2026-27,ATL,Devin Carter,,G,6'2,195,03/18/02,24.31,2,2024-13,USA,FL - Miami,Providence,Sacramento Kings,4 yr / $22.1M,2027 +1,5158080
 2026-27,ATL,Dyson Daniels,5,G,6'7,200,03/17/03,23.30,4,2022-08,AUS,Australia - Bendigo,G League Ignite,Atlanta Hawks,4 yr / $100.0M,2030,25000000
 2026-27,ATL,RayJ Dennis,00,G,6'1,180,03/30/01,25.27,2,2024-ND,USA,IL - Plainfield,Baylor,Atlanta Hawks,Two-Way,,678882
-2026-27,ATL,Zuby Ejiofor,20,F,6'7,245,04/20/04,22.21,R,2026-23,USA,TX - Dallas,St. John's,St. John's,4 yr / $17.3M,2030,3453360
-2026-27,ATL,Kingston Flemings,4,G,6'2,185,01/03/07,19.50,R,2026-08,USA,VA - Newport News,Houston,Houston,4 yr / $33.4M,2030,7348680
+2026-27,ATL,Zuby Ejiofor,20,F,6'7,245,04/20/04,22.21,R,2026-23,USA,TX - Dallas,St. John's,St. John's,4 yr / $17.3M,2028 +2,3453360
+2026-27,ATL,Kingston Flemings,4,G,6'2,185,01/03/07,19.50,R,2026-08,USA,VA - Newport News,Houston,Houston,4 yr / $33.4M,2028 +2,7348680
 2026-27,ATL,Keshon Gilbert,51,G,6'4,200,06/30/03,23.01,1,2025-ND,USA,MO - St. Louis,Iowa State,Atlanta Hawks,Two-Way,,
-2026-27,ATL,Mouhamed Gueye,18,F,6'11,210,11/09/02,23.65,3,2023-39,SEN,Senegal - Dakar,Washington State,Atlanta Hawks,1 yr / $2.4M,2027,2406205
-2026-27,ATL,Buddy Hield,8,G,6'4,220,12/12/92,33.57,10,2016-06,BAH,Bahamas - Freeport,Oklahoma,Atlanta Hawks,2 yr / $19.8M,2028,9658536
-2026-27,ATL,Jalen Johnson,1,F,6'8,220,12/18/01,24.55,5,2021-20,USA,WI - Wausau,Duke,Atlanta Hawks,4 yr / $120.0M,2030,30000000
-2026-27,ATL,Corey Kispert,24,F,6'6,225,03/03/99,27.34,5,2021-15,USA,WA - Edmonds,Gonzaga,Atlanta Hawks,3 yr / $40.1M,2029,13975000
-2026-27,ATL,Christian Koloko,35,C,6'11,225,06/20/00,26.04,3,2022-33,CMR,Cameroon - Douala,Arizona,Atlanta Hawks,RFA,,
+2026-27,ATL,Mouhamed Gueye,18,F,6'11,210,11/09/02,23.65,3,2023-39,SEN,Senegal - Dakar,Washington State,Atlanta Hawks,4 yr / $7.6M,2027,2406205
+2026-27,ATL,Buddy Hield,8,G,6'4,220,12/12/92,33.57,10,2016-06,BAH,Bahamas - Freeport,Oklahoma,Atlanta Hawks,4 yr / $37.8M,2027 +1,9658536
+2026-27,ATL,Jalen Johnson,1,F,6'8,220,12/18/01,24.55,5,2021-20,USA,WI - Wausau,Duke,Atlanta Hawks,5 yr / $150M,2030,30000000
+2026-27,ATL,Corey Kispert,24,F,6'6,225,03/03/99,27.34,5,2021-15,USA,WA - Edmonds,Gonzaga,Atlanta Hawks,4 yr / $54M,2029,13975000
 2026-27,ATL,Jock Landale,31,C,6'11,255,10/25/95,30.71,5,2018-ND,AUS,Australia - Melbourne,Saint Mary's,Atlanta Hawks,1 yr / $14.1M,2027,14100000
 2026-27,ATL,CJ McCollum,3,G,6'3,190,09/19/91,34.80,13,2013-10,USA,OH - Canton,Lehigh,Atlanta Hawks,1 yr / $21.0M,2027,21000000
 2026-27,ATL,Isaac McKneely,,G,6'4,205,11/10/02,22.65,R,2026-ND,USA,WV - Poca,Louisville,Louisville,Exhibit 10,,
-2026-27,ATL,Asa Newell,14,F,6'10,220,10/05/05,20.75,1,2025-23,USA,GA - Atlanta,Georgia,Atlanta Hawks,4 yr / $22.4M,2029,3399480
-2026-27,ATL,Onyeka Okongwu,17,C,6'10,240,12/11/00,25.56,6,2020-06,USA,CA - Los Angeles,USC,Atlanta Hawks,2 yr / $33.0M,2028,16120000
-2026-27,DAL,Zaccharie Risacher,10,F,6'8,200,04/08/05,21.24,2,2024-01,FRA,Spain - Malaga,Bourg (France),Atlanta Hawks,3 yr / $55.7M,2028,13826040
-2026-27,ATL,Henri Veesaar,13,C,6'11,225,03/28/04,22.27,R,2026-52,EST,Estonia - Tallinn,North Carolina,North Carolina,4 yr / $9.3M,2030,1357763
+2026-27,ATL,Asa Newell,14,F,6'10,220,10/05/05,20.75,1,2025-23,USA,GA - Atlanta,Georgia,Atlanta Hawks,4 yr / $16.2M,2027 +2,3399480
+2026-27,ATL,Onyeka Okongwu,17,C,6'10,240,12/11/00,25.56,6,2020-06,USA,CA - Los Angeles,USC,Atlanta Hawks,4 yr / $62M,2028,16120000
+2026-27,DAL,Zaccharie Risacher,10,F,6'8,200,04/08/05,21.24,2,2024-01,FRA,Spain - Malaga,Bourg (France),Atlanta Hawks,4 yr / $57M,2027 +1,13826040
+2026-27,ATL,Henri Veesaar,13,C,6'11,225,03/28/04,22.27,R,2026-52,EST,Estonia - Tallinn,North Carolina,North Carolina,4 yr / $9.3M,2029 +1,1357763
 2026-27,ATL,Keaton Wallace,2,G,6'3,185,02/26/99,27.36,2,2021-ND,USA,TX - Richardson,Texas-San Antonio,Atlanta Hawks,RFA,,
-2026-27,ATL,Aaron Wiggins,,G,6'5,190,01/02/99,27.51,5,2021-55,USA,NC - Greensboro,Maryland,Oklahoma City Thunder,3 yr / $25.4M,2029,9028038
-2026-27,BOS,Dalano Banton,45,G,6'8,205,11/07/99,26.66,5,2021-46,CAN,Canada - Toronto,Nebraska,Boston Celtics,2 yr / $2.8M,2027,2801346
-2026-27,BOS,Chris Cenac Jr.,12,F,6'10,240,02/01/07,19.42,R,2026-27,USA,LA - New Orleans,Houston,Houston,4 yr / $15.3M,2030,2988120
+2026-27,ATL,Aaron Wiggins,,G,6'5,190,01/02/99,27.51,5,2021-55,USA,NC - Greensboro,Maryland,Oklahoma City Thunder,5 yr / $45M,2028 +1,9028038
+2026-27,BOS,Chris Cenac Jr.,12,F,6'10,240,02/01/07,19.42,R,2026-27,USA,LA - New Orleans,Houston,Houston,4 yr / $15.4M,2028 +2,2988120
 2026-27,BOS,Mike Conley Jr.,,G,6'1,175,10/11/87,38.75,19,2007-04,USA,AR - Fayetteville,Ohio State,Minnesota Timberwolves,1 yr / $3.9M,2027,3876529
-2026-27,BOS,Tucker DeVries,,F,6'7,215,12/07/02,23.58,R,2026-ND,USA,IA - Waukee,Indiana,Indiana,1 yr / $1.4M,2027,1357763
-2026-27,BOS,Luka Garza,52,C,6'10,245,12/27/98,27.52,5,2021-52,"USA, BIH",DC - Washington,Iowa,Boston Celtics,1 yr / $2.8M,2027,2801346
-2026-27,BOS,Paul George,,F,6'8,220,05/02/90,36.19,16,2010-10,USA,CA - Palmdale,Fresno State,Philadelphia 76ers,2 yr / $110.7M,2028,54126380
-2026-27,BOS,Hugo Gonzalez,28,F,6'6,200,02/05/06,20.41,1,2025-28,ESP,Spain - Madrid,Real Madrid (Spain),Boston Celtics,4 yr / $19.3M,2029,2923560
-2026-27,BOS,Ron Harper Jr.,13,F,6'5,235,04/12/00,26.23,4,2022-ND,USA,NJ - Paterson,Rutgers,Boston Celtics,3 yr / $10.6M,2029,3308290
-2026-27,BOS,Sam Hauser,30,F,6'7,215,12/08/97,28.58,5,2021-ND,USA,WI - Green Bay,Virginia,Boston Celtics,3 yr / $35.0M,2029,10848215
+2026-27,BOS,Tucker DeVries,,F,6'7,215,12/07/02,23.58,R,2026-ND,USA,IA - Waukee,Indiana,Indiana,Exhibit 10,,1357763
+2026-27,BOS,Luka Garza,52,C,6'10,245,12/27/98,27.52,5,2021-52,"USA, BIH",DC - Washington,Iowa,Boston Celtics,2 yr / $5.2M,2027,2801346
+2026-27,BOS,Paul George,,F,6'8,220,05/02/90,36.19,16,2010-10,USA,CA - Palmdale,Fresno State,Philadelphia 76ers,4 yr / $212M,2027 +1,54126380
+2026-27,BOS,Hugo Gonzalez,28,F,6'6,200,02/05/06,20.41,1,2025-28,ESP,Spain - Madrid,Real Madrid (Spain),Boston Celtics,4 yr / $14.3M,2027 +2,2923560
+2026-27,BOS,Ron Harper Jr.,13,F,6'5,235,04/12/00,26.23,4,2022-ND,USA,NJ - Paterson,Rutgers,Boston Celtics,4 yr / $13.7M,2029 +1,3308290
+2026-27,BOS,Sam Hauser,30,F,6'7,215,12/08/97,28.58,5,2021-ND,USA,WI - Green Bay,Virginia,Boston Celtics,4 yr / $45M,2029,10848215
 2026-27,BOS,Dillon Mitchell,20,F,6'8,210,10/03/03,22.75,R,2026-40,USA,FL - Spring Hill,St. John's,St. John's,2nd Rd Pick,,
-2026-27,BOS,Payton Pritchard,11,G,6'1,195,01/28/98,28.44,6,2020-26,USA,OR - Tualatin,Oregon,Boston Celtics,2 yr / $16.1M,2028,7767857
-2026-27,BOS,Neemias Queta,88,C,7'0,250,07/13/99,26.98,5,2021-39,POR,Portugal - Lisbon,Utah State,Boston Celtics,4 yr / $43.2M,2030,2667944
-2026-27,BOS,Mitchell Robinson,,C,7'0,240,04/01/98,28.27,8,2018-36,USA,FL - Pensacola,Did Not Play,New York Knicks,3 yr / $47.4M,2029,15044000
-2026-27,BOS,Baylor Scheierman,55,G,6'6,205,09/26/00,25.77,2,2024-30,USA,NE - Hastings,Creighton,Boston Celtics,3 yr / $15.6M,2028,2744040
-2026-27,BOS,Jayson Tatum,0,F,6'8,210,03/03/98,28.34,9,2017-03,USA,MO - St. Louis,Duke,Boston Celtics,4 yr / $259.8M,2030,58456566
+2026-27,BOS,Payton Pritchard,11,G,6'1,195,01/28/98,28.44,6,2020-26,USA,OR - Tualatin,Oregon,Boston Celtics,4 yr / $30M,2028,7767857
+2026-27,BOS,Neemias Queta,88,C,7'0,250,07/13/99,26.98,5,2021-39,POR,Portugal - Lisbon,Utah State,Boston Celtics,4 yr / $56.5M,2031,2667944
+2026-27,BOS,Mitchell Robinson,,C,7'0,240,04/01/98,28.27,8,2018-36,USA,FL - Pensacola,Did Not Play,New York Knicks,3 yr / $47.4M,2028 +1,15044000
+2026-27,BOS,Baylor Scheierman,55,G,6'6,205,09/26/00,25.77,2,2024-30,USA,NE - Hastings,Creighton,Boston Celtics,4 yr / $12.8M,2027 +1,2744040
+2026-27,BOS,Jayson Tatum,0,F,6'8,210,03/03/98,28.34,9,2017-03,USA,MO - St. Louis,Duke,Boston Celtics,5 yr / $314M,2029 +1,58456566
 2026-27,POR,John Tonje,8,G,6'4,220,04/23/01,25.20,1,2025-53,USA,NE - North Omaha,Wisconsin,Boston Celtics,Two-Way,,678882
-2026-27,BOS,Milos Uzan,,G,6'3,185,12/26/02,23.52,R,2026-ND,USA,NV - Las Vegas,Houston,Houston,1 yr / $1.4M,2027,1357763
-2026-27,BOS,Jordan Walsh,27,F,6'6,205,03/04/04,22.34,3,2023-38,USA,TX - Dallas,Arkansas,Boston Celtics,4 yr / $18.2M,2030,2406205
-2026-27,BOS,Derrick White,9,G,6'4,190,07/02/94,32.01,9,2017-29,USA,CO - Parker,Colorado,Boston Celtics,3 yr / $97.8M,2029,30348000
+2026-27,BOS,Milos Uzan,,G,6'3,185,12/26/02,23.52,R,2026-ND,USA,NV - Las Vegas,Houston,Houston,Exhibit 10,,1357763
+2026-27,BOS,Jordan Walsh,27,F,6'6,205,03/04/04,22.34,3,2023-38,USA,TX - Dallas,Arkansas,Boston Celtics,3 yr / $16M,2030,2406205
+2026-27,BOS,Derrick White,9,G,6'4,190,07/02/94,32.01,9,2017-29,USA,CO - Parker,Colorado,Boston Celtics,4 yr / $118M,2028 +1,30348000
 2026-27,BOS,Amari Williams,77,F,6'11,250,01/28/02,24.43,1,2025-46,ENG,England - Nottingham,Kentucky,Boston Celtics,Two-Way,,678882
 2026-27,BKN,Tyler Bilodeau,34,F,6'7,230,04/17/04,22.21,R,2026-43,USA,MT - Billings,UCLA,UCLA,Two-Way,,678882
 2026-27,BKN,Dion Brown,33,G,6'3,185,05/26/03,23.11,R,2026-ND,USA,MA - Great Barrington,Saint Louis,Saint Louis,Exhibit 10,,
-2026-27,BKN,Mikel Brown Jr.,0,G,6'3,190,04/03/06,20.25,R,2026-06,USA,FL - Orlando,Louisville,Louisville,4 yr / $39.9M,2030,8787000
-2026-27,BKN,Noah Clowney,21,F,6'10,210,07/14/04,21.97,3,2023-21,USA,SC - Spartanburg,Alabama,Brooklyn Nets,2 yr / $13.8M,2027,5413661
-2026-27,BKN,Egor Demin,8,G,6'8,200,03/03/06,20.34,1,2025-08,RUS,Russia - Moscow,BYU,Brooklyn Nets,4 yr / $38.4M,2029,7233720
+2026-27,BKN,Mikel Brown Jr.,0,G,6'3,190,04/03/06,20.25,R,2026-06,USA,FL - Orlando,Louisville,Louisville,4 yr / $39.9M,2028 +2,8787000
+2026-27,BKN,Noah Clowney,21,F,6'10,210,07/14/04,21.97,3,2023-21,USA,SC - Spartanburg,Alabama,Brooklyn Nets,4 yr / $15.1M,2027,5413661
+2026-27,BKN,Egor Demin,8,G,6'8,200,03/03/06,20.34,1,2025-08,RUS,Russia - Moscow,BYU,Brooklyn Nets,4 yr / $31.3M,2027 +2,7233720
 2026-27,BKN,Keon Ellis,,G,6'4,175,01/28/00,26.50,4,2022-ND,USA,FL - Eustis,Alabama,Cleveland Cavaliers,2 yr / $18.0M,2028,9000000
 2026-27,BKN,Ben Humrichous,12,F,6'9,225,07/28/02,23.94,R,2026-ND,USA,IN - Tipton,Illinois,Illinois,Exhibit 10,,
-2026-27,BKN,Joshua Jefferson,9,F,6'7,245,11/21/03,22.62,R,2026-28,USA,NV - Las Vegas,Iowa State,Iowa State,4 yr / $15.3M,2030,2969520
+2026-27,BKN,Joshua Jefferson,9,F,6'7,245,11/21/03,22.62,R,2026-28,USA,NV - Las Vegas,Iowa State,Iowa State,4 yr / $15.3M,2028 +2,2969520
 2026-27,BKN,Chaney Johnson,31,F,6'7,220,06/20/02,24.04,1,2025-ND,USA,AL - Alabaster,Auburn,Brooklyn Nets,Two-Way,,678882
-2026-27,BKN,Terance Mann,14,G,6'6,215,10/18/96,29.72,7,2019-48,USA,NY - Brooklyn,Florida State,Brooklyn Nets,2 yr / $31.5M,2028,15500000
-2026-27,BKN,Josh Minott,00,F,6'8,205,11/25/02,23.61,4,2022-45,USA,FL - Boca Raton,Memphis,Brooklyn Nets,2 yr / $9.0M,2028,4500000
-2026-27,BKN,Michael Porter Jr.,17,F,6'10,220,06/29/98,28.02,7,2018-14,USA,IN - Indianapolis,Missouri,Brooklyn Nets,1 yr / $40.8M,2027,40806150
-2026-27,BKN,Drake Powell,4,G,6'5,195,09/08/05,20.82,1,2025-22,USA,NC - Durham,North Carolina,Brooklyn Nets,4 yr / $22.8M,2029,3540600
-2026-27,BKN,Julius Randle,,F,6'9,250,11/29/94,31.60,12,2014-07,USA,TX - Dallas,Kentucky,Minnesota Timberwolves,2 yr / $69.1M,2028,33333334
-2026-27,BKN,Ben Saraf,77,G,6'6,200,04/14/06,20.22,1,2025-26,ISR,South Africa - Johannesburg,Ratiopharm Ulm (Germany),Brooklyn Nets,4 yr / $20.9M,2029,3028560
+2026-27,BKN,Terance Mann,14,G,6'6,215,10/18/96,29.72,7,2019-48,USA,NY - Brooklyn,Florida State,Brooklyn Nets,3 yr / $47M,2028,15500000
+2026-27,BKN,Josh Minott,00,F,6'8,205,11/25/02,23.61,4,2022-45,USA,FL - Boca Raton,Memphis,Brooklyn Nets,2 yr / $9.0M,2027 +1,4500000
+2026-27,BKN,Michael Porter Jr.,17,F,6'10,220,06/29/98,28.02,7,2018-14,USA,IN - Indianapolis,Missouri,Brooklyn Nets,5 yr / $179M,2027,40806150
+2026-27,BKN,Drake Powell,4,G,6'5,195,09/08/05,20.82,1,2025-22,USA,NC - Durham,North Carolina,Brooklyn Nets,4 yr / $16.7M,2027,3540600
+2026-27,BKN,Julius Randle,,F,6'9,250,11/29/94,31.60,12,2014-07,USA,TX - Dallas,Kentucky,Minnesota Timberwolves,3 yr / $100M,2027 +1,33333334
+2026-27,BKN,Ben Saraf,77,G,6'6,200,04/14/06,20.22,1,2025-26,ISR,South Africa - Johannesburg,Ratiopharm Ulm (Germany),Brooklyn Nets,4 yr / $14.8M,2027 +2,3028560
 2026-27,BKN,Day'Ron Sharpe,20,C,6'10,265,11/06/01,24.66,5,2021-29,USA,NC - Greenville,North Carolina,Brooklyn Nets,2 yr / $20.0M,2028,10000000
-2026-27,BKN,Nolan Traore,88,G,6'3,185,05/28/06,20.10,1,2025-19,FRA,France - Creteil,Saint-Quentin (France),Brooklyn Nets,4 yr / $24.5M,2029,4002000
-2026-27,BKN,Moritz Wagner,,C,6'11,245,04/26/97,29.21,8,2018-25,GER,Germany - Berlin,Michigan,Orlando Magic,2 yr / $19.0M,2028,9500000
-2026-27,BKN,Danny Wolf,2,F,6'11,250,05/05/04,22.16,1,2025-27,USA,IL - Glencoe,Michigan,Brooklyn Nets,4 yr / $20.4M,2029,2941440
+2026-27,BKN,Nolan Traore,88,G,6'3,185,05/28/06,20.10,1,2025-19,FRA,France - Creteil,Saint-Quentin (France),Brooklyn Nets,4 yr / $18.5M,2027 +2,4002000
+2026-27,BKN,Moritz Wagner,,C,6'11,245,04/26/97,29.21,8,2018-25,GER,Germany - Berlin,Michigan,Orlando Magic,2 yr / $19.0M,2027 +1,9500000
+2026-27,BKN,Danny Wolf,2,F,6'11,250,05/05/04,22.16,1,2025-27,USA,IL - Glencoe,Michigan,Brooklyn Nets,4 yr / $14.4M,2027 +2,2941440
 2026-27,CHA,Michael Ajayi,,F,6'7,230,06/23/03,23.03,R,2026-ND,USA,WA - Kent,Butler,Butler,Two-Way,,678882
-2026-27,CHA,Grayson Allen,,G,6'3,200,10/08/95,30.75,8,2018-21,USA,FL - Jacksonville,Duke,Phoenix Suns,2 yr / $37.5M,2028,18125000
-2026-27,CHA,Christian Anderson,5,G,6'1,180,04/02/06,20.25,R,2026-18,"GER, USA",GA - Atlanta,Texas Tech,Texas Tech,4 yr / $20.6M,2030,4257480
+2026-27,CHA,Grayson Allen,,G,6'3,200,10/08/95,30.75,8,2018-21,USA,FL - Jacksonville,Duke,Phoenix Suns,4 yr / $70M,2027 +1,18125000
+2026-27,CHA,Christian Anderson,5,G,6'1,180,04/02/06,20.25,R,2026-18,"GER, USA",GA - Atlanta,Texas Tech,Texas Tech,4 yr / $20.6M,2028 +2,4257480
 2026-27,CHA,Kylan Boswell,,G,6'1,225,04/18/05,21.21,R,2026-ND,USA,IL - Champaign,Illinois,Illinois,Two-Way,,678882
-2026-27,CHA,Pat Connaughton,21,G,6'5,210,01/06/93,33.50,11,2015-41,USA,MA - Arlington,Notre Dame,Charlotte Hornets,1 yr / $3.8M,2027,3815861
-2026-27,CHA,Moussa Diabate,14,C,6'10,210,01/21/02,24.45,4,2022-43,FRA,France - Paris,Michigan,Charlotte Hornets,1 yr / $2.5M,2027,2461462
-2026-27,CHA,Dorian Finney-Smith,,F,6'7,220,05/04/93,33.19,10,2016-ND,USA,VA - Portsmouth,Florida,Houston Rockets,3 yr / $40.9M,2029,14196974
+2026-27,CHA,Pat Connaughton,21,G,6'5,210,01/06/93,33.50,11,2015-41,USA,MA - Arlington,Notre Dame,Charlotte Hornets,2 yr / $5.1M,2027,3815861
+2026-27,CHA,Moussa Diabate,14,C,6'10,210,01/21/02,24.45,4,2022-43,FRA,France - Paris,Michigan,Charlotte Hornets,3 yr / $5.7M,2027,2461462
+2026-27,CHA,Dorian Finney-Smith,,F,6'7,220,05/04/93,33.19,10,2016-ND,USA,VA - Portsmouth,Florida,Houston Rockets,4 yr / $52.7M,2028 +1,14196974
 2026-27,CHA,Wyatt Fricks,,F,6'10,205,11/17/02,23.63,R,2026-ND,USA,GA - Lawrenceville,Marshall,Marshall,Exhibit 10,,
 2026-27,CHA,PJ Hall,16,C,6'8,245,02/21/02,24.37,2,2024-ND,USA,SC - Spartanburg,Clemson,Charlotte Hornets,Two-Way,,678882
-2026-27,CHA,Sion James,4,G,6'5,220,12/04/02,23.58,1,2025-33,USA,GA - Sugar Hill,Duke,Charlotte Hornets,3 yr / $7.7M,2029,2411090
-2026-27,CHA,Ryan Kalkbrenner,11,C,7'1,255,01/17/02,24.46,1,2025-34,USA,MO - St. Louis,Creighton,Charlotte Hornets,3 yr / $7.7M,2029,2411090
-2026-27,CHA,Kon Knueppel,7,G,6'6,215,08/03/05,20.92,1,2025-04,USA,WI - Milwaukee,Duke,Charlotte Hornets,4 yr / $55.2M,2029,10516560
-2026-27,CHA,Max MacKinnon,,F,6'5,195,10/09/03,22.74,R,2026-ND,AUS,Australia - Brisbane,LSU,LSU,Exhibit 10,,
+2026-27,CHA,Sion James,4,G,6'5,220,12/04/02,23.58,1,2025-33,USA,GA - Sugar Hill,Duke,Charlotte Hornets,4 yr / $10M,2028 +1,2411090
+2026-27,CHA,Ryan Kalkbrenner,11,C,7'1,255,01/17/02,24.46,1,2025-34,USA,MO - St. Louis,Creighton,Charlotte Hornets,4 yr / $10M,2028 +1,2411090
+2026-27,CHA,Kon Knueppel,7,G,6'6,215,08/03/05,20.92,1,2025-04,USA,WI - Milwaukee,Duke,Charlotte Hornets,4 yr / $45.5M,2027 +2,10516560
 2026-27,CHA,Tre Mann,23,G,6'4,180,02/03/01,25.42,5,2021-18,USA,FL - Gainesville,Florida,Charlotte Hornets,2 yr / $16.0M,2028,8000000
-2026-27,CHA,Liam McNeeley,33,F,6'7,210,10/10/05,20.73,1,2025-29,USA,TX - Richardson,Connecticut,Charlotte Hornets,4 yr / $20.2M,2029,2902080
-2026-27,CHA,Royce O'Neale,00,F,6'6,225,06/05/93,33.09,9,2015-ND,USA,TX - Killeen,Baylor,Phoenix Suns,2 yr / $22.5M,2028,10875000
-2026-27,CHA,Brandon Miller,24,F,6'7,200,11/22/02,23.62,3,2023-02,USA,TN - Nashville,Alabama,Charlotte Hornets,2 yr / $36.3M,2027,15104121
-2026-27,CHA,Antonio Reeves,12,G,6'5,205,11/20/00,25.62,2,2024-47,USA,IL - Chicago,Kentucky,Charlotte Hornets,RFA,,
-2026-27,CHA,Naz Reid,,C,6'9,265,08/26/99,26.86,7,2019-ND,USA,NJ - Asbury Park,LSU,Minnesota Timberwolves,4 yr / $103.4M,2030,23275862
-2026-27,CHA,Tidjane Salaun,31,F,6'10,205,08/10/05,20.90,2,2024-06,FRA,France - Paris,Cholet (France),Charlotte Hornets,3 yr / $33.7M,2028,8237880
-2026-27,CHA,Hannes Steinbach,22,F,6'10,250,05/01/06,20.18,R,2026-14,GER,Germany - Wurzburg,Washington,Washington,4 yr / $25.0M,2030,5227200
+2026-27,CHA,Liam McNeeley,33,F,6'7,210,10/10/05,20.73,1,2025-29,USA,TX - Richardson,Connecticut,Charlotte Hornets,4 yr / $14.2M,2027 +2,2902080
+2026-27,CHA,Royce O'Neale,00,F,6'6,225,06/05/93,33.09,9,2015-ND,USA,TX - Killeen,Baylor,Phoenix Suns,2 yr / $42M,2028,10875000
+2026-27,CHA,Brandon Miller,24,F,6'7,200,11/22/02,23.62,3,2023-02,USA,TN - Nashville,Alabama,Charlotte Hornets,4 yr / $49.4M,2027,15104121
+2026-27,CHA,Naz Reid,,C,6'9,265,08/26/99,26.86,7,2019-ND,USA,NJ - Asbury Park,LSU,Minnesota Timberwolves,5 yr / $125M,2029 +1,23275862
+2026-27,CHA,Tidjane Salaun,31,F,6'10,205,08/10/05,20.90,2,2024-06,FRA,France - Paris,Cholet (France),Charlotte Hornets,4 yr / $34M,2027 +1,8237880
+2026-27,CHA,Hannes Steinbach,22,F,6'10,250,05/01/06,20.18,R,2026-14,GER,Germany - Wurzburg,Washington,Washington,4 yr / $25.0M,2028 +2,5227200
 2026-27,CHA,Coby White,3,G,6'4,195,02/16/00,26.38,7,2019-07,USA,NC - Goldsboro,North Carolina,Charlotte Hornets,3 yr / $74.0M,2029,26811593
-2026-27,CHA,Grant Williams,2,F,6'7,235,11/30/98,27.60,7,2019-22,USA,TX - Houston,Tennessee,Charlotte Hornets,1 yr / $14.3M,2027,14265750
+2026-27,CHA,Grant Williams,2,F,6'7,235,11/30/98,27.60,7,2019-22,USA,TX - Houston,Tennessee,Charlotte Hornets,4 yr / $53.3M,2027,14265750
 2026-27,CHA,Latrell Wrightsell Jr.,,G,6'3,190,05/18/01,25.13,R,2026-ND,USA,NE - Omaha,Alabama,Alabama,Exhibit 10,,
 2026-27,CHI,Donovan Atwell,,G,6'5,200,04/27/03,23.19,R,2026-ND,USA,NC - Davidson,Texas Tech,Texas Tech,Exhibit 10,,
 2026-27,CHI,Tobe Awaka,,F,6'8,260,01/30/04,22.43,R,2026-ND,USA,NY - Poughkeepsie,Arizona,Arizona,Two-Way,,678882
-2026-27,CHI,Matas Buzelis,14,F,6'8,210,10/13/04,21.72,2,2024-11,"LTU, USA",IL - Chicago,G League Ignite,Chicago Bulls,3 yr / $24.4M,2028,5715360
+2026-27,CHI,Matas Buzelis,14,F,6'8,210,10/13/04,21.72,2,2024-11,"LTU, USA",IL - Chicago,G League Ignite,Chicago Bulls,4 yr / $24M,2027 +1,5715360
 2026-27,CHI,Nic Claxton,,C,6'11,215,04/17/99,27.22,7,2019-31,USA,SC - Greenville,Georgia,Brooklyn Nets,4 yr / $97M,2028,23320738
 2026-27,CHI,Zach Collins,12,C,6'9,250,11/19/97,28.64,8,2017-10,USA,NV - Las Vegas,Gonzaga,Chicago Bulls,2 yr / $17.0M,2028,8500000
-2026-27,CHI,Rob Dillingham,7,G,6'2,175,01/04/05,21.50,2,2024-08,USA,NC - Hickory,Kentucky,Chicago Bulls,3 yr / $28.3M,2028,6889320
-2026-27,CHI,Noa Essengue,24,F,6'8,200,12/18/06,19.54,1,2025-12,FRA,France - Orleans,Ratiopharm Ulm (Germany),Chicago Bulls,4 yr / $32.1M,2029,5701200
-2026-27,CHI,Josh Giddey,3,G,6'7,215,10/10/02,23.73,5,2021-06,AUS,Australia - Melbourne,Adelaide (Australia),Chicago Bulls,3 yr / $75.0M,2029,25000000
-2026-27,CHI,Tre Jones,30,G,6'1,185,01/08/00,26.49,6,2020-41,USA,MN - Apple Valley,Duke,Chicago Bulls,2 yr / $16.0M,2028,8000000
+2026-27,CHI,Rob Dillingham,7,G,6'2,175,01/04/05,21.50,2,2024-08,USA,NC - Hickory,Kentucky,Chicago Bulls,4 yr / $28.5M,2027 +1,6889320
+2026-27,CHI,Noa Essengue,24,F,6'8,200,12/18/06,19.54,1,2025-12,FRA,France - Orleans,Ratiopharm Ulm (Germany),Chicago Bulls,4 yr / $25.3M,2028 +1,5701200
+2026-27,CHI,Josh Giddey,3,G,6'7,215,10/10/02,23.73,5,2021-06,AUS,Australia - Melbourne,Adelaide (Australia),Chicago Bulls,4 yr / $100M,2029,25000000
+2026-27,CHI,Tre Jones,30,G,6'1,185,01/08/00,26.49,6,2020-41,USA,MN - Apple Valley,Duke,Chicago Bulls,3 yr / $24M,2027 +1,8000000
 2026-27,CHI,Houston Mallette,,G,6'5,200,04/09/03,23.24,R,2026-ND,USA,CA - Newport Beach,Alabama,Alabama,Exhibit 10,,
 2026-27,CHI,Mac McClung,5,G,6'2,185,01/06/99,27.50,4,2021-ND,USA,VA - Gate City,Texas Tech,Chicago Bulls,RFA,,
-2026-27,CHI,Leonard Miller,11,F,6'10,220,11/26/03,22.61,3,2023-33,CAN,Canada - Scarborough,G League Ignite,Chicago Bulls,1 yr / $2.4M,2027,2406205
-2026-27,CHI,Isaac Okoro,35,F,6'4,225,01/26/01,25.44,6,2020-05,USA,GA - Atlanta,Auburn,Chicago Bulls,1 yr / $11.8M,2027,11814814
-2026-27,CHI,Norman Powell,,G,6'3,215,05/25/93,33.13,11,2015-46,USA,CA - San Diego,UCLA,Miami Heat,2 yr / $44.1M,2028,21500000
+2026-27,CHI,Leonard Miller,11,F,6'10,220,11/26/03,22.61,3,2023-33,CAN,Canada - Scarborough,G League Ignite,Chicago Bulls,4 yr / $8.3M,2027,2406205
+2026-27,CHI,Isaac Okoro,35,F,6'4,225,01/26/01,25.44,6,2020-05,USA,GA - Atlanta,Auburn,Chicago Bulls,3 yr / $33M,2027,11814814
+2026-27,CHI,Norman Powell,,G,6'3,215,05/25/93,33.13,11,2015-46,USA,CA - San Diego,UCLA,Miami Heat,2 yr / $45M,2028,21500000
 2026-27,CHI,Jaylin Sellers,,G,6'5,205,06/03/03,23.09,R,2026-ND,USA,GA - Columbus,Providence,Providence,Two-Way,,678882
-2026-27,CHI,Jalen Smith,25,C,6'8,215,03/16/00,26.30,6,2020-10,USA,VA - Portsmouth,Maryland,Chicago Bulls,1 yr / $9.4M,2027,9428571
-2026-27,CHI,Dailyn Swain,5,F,6'6,205,07/15/05,20.97,R,2026-15,USA,OH - Columbus,Texas,Texas,4 yr / $24.0M,2030,4965480
-2026-27,CHI,Patrick Williams,44,F,6'6,215,08/26/01,24.86,6,2020-04,USA,NC - Charlotte,Florida State,Chicago Bulls,3 yr / $54.0M,2029,18000000
-2026-27,CHI,Caleb Wilson,8,F,6'9,210,07/18/06,19.96,R,2026-04,USA,GA - Atlanta,North Carolina,North Carolina,4 yr / $48.5M,2030,10683720
+2026-27,CHI,Jalen Smith,25,C,6'8,215,03/16/00,26.30,6,2020-10,USA,VA - Portsmouth,Maryland,Chicago Bulls,3 yr / $27M,2027,9428571
+2026-27,CHI,Dailyn Swain,5,F,6'6,205,07/15/05,20.97,R,2026-15,USA,OH - Columbus,Texas,Texas,4 yr / $24.0M,2028 +2,4965480
+2026-27,CHI,Patrick Williams,44,F,6'6,215,08/26/01,24.86,6,2020-04,USA,NC - Charlotte,Florida State,Chicago Bulls,5 yr / $90M,2028 +1,18000000
+2026-27,CHI,Caleb Wilson,8,F,6'9,210,07/18/06,19.96,R,2026-04,USA,GA - Atlanta,North Carolina,North Carolina,4 yr / $48.5M,2028 +2,10683720
 2026-27,CLE,Rashaun Agee,46,F,6'7,230,11/02/00,25.67,R,2026-ND,USA,IL - Chicago,Texas A&M,Texas A&M,Exhibit 10,,
 2026-27,CLE,Jarrett Allen,31,C,6'9,245,04/21/98,28.21,9,2017-22,USA,CA - San Diego,Texas,Cleveland Cavaliers,3 yr / $90.7M,2029,28000000
 2026-27,CLE,Thomas Bryant,3,C,6'9,250,07/31/97,28.94,9,2017-42,USA,NY - Rochester,Indiana,Cleveland Cavaliers,1 yr / $3.5M,2027,3524115
 2026-27,CLE,Tristan Enaruna,21,F,6'7,220,06/26/01,25.02,1,2024-ND,NED,Netherlands - Almere,Cleveland State,Cleveland Cavaliers,Two-Way,,678882
 2026-27,CLE,James Harden,1,G,6'5,220,08/26/89,36.87,17,2009-03,USA,CA - Compton,Arizona State,Cleveland Cavaliers,UFA,,
+2026-27,CLE,Mario Hezonja,,F,6'8,220,02/25/95,31.44,5,2015-05,CRO,Croatia - Dubrovnik,Barcelona (Spain),Real Madrid (Spain),1 yr / $2.8M,2027,2845883
 2026-27,CLE,Xaivian Lee,,G,6'3,175,03/12/04,22.31,R,2026-ND,CAN,Canada - Toronto,Florida,Florida,Exhibit 10,,
-2026-27,CLE,Sam Merrill,5,G,6'4,205,05/15/96,30.14,6,2020-60,USA,IA - Ames,Utah State,Cleveland Cavaliers,3 yr / $29.5M,2029,9160715
+2026-27,CLE,Sam Merrill,5,G,6'4,205,05/15/96,30.14,6,2020-60,USA,IA - Ames,Utah State,Cleveland Cavaliers,4 yr / $38M,2029,9160715
 2026-27,CLE,Riley Minix,12,F,6'7,230,09/22/00,25.78,2,2024-ND,USA,FL - Vero Beach,Morehead State,Cleveland Cavaliers,Two-Way,,678882
-2026-27,CLE,Donovan Mitchell,45,G,6'2,215,09/07/96,29.83,9,2017-13,USA,NY - Elmsford,Louisville,Cleveland Cavaliers,4 yr / $247.4M,2030,50105628
-2026-27,CLE,Evan Mobley,4,F,6'11,215,06/18/01,25.05,5,2021-03,USA,CA - San Diego,USC,Cleveland Cavaliers,4 yr / $222.7M,2030,50105628
-2026-27,CLE,Craig Porter Jr.,9,G,6'1,180,02/26/00,26.36,3,2023-ND,USA,IN - Terre Haute,Wichita State,Cleveland Cavaliers,1 yr / $2.4M,2027,2406205
-2026-27,CLE,Tyrese Proctor,24,G,6'4,185,04/01/04,22.26,1,2025-49,AUS,Australia - Sydney,Duke,Cleveland Cavaliers,3 yr / $7.4M,2029,2150917
+2026-27,CLE,Donovan Mitchell,45,G,6'2,215,09/07/96,29.83,9,2017-13,USA,NY - Elmsford,Louisville,Cleveland Cavaliers,4 yr / $272.9M,2030 +1,50105628
+2026-27,CLE,Evan Mobley,4,F,6'11,215,06/18/01,25.05,5,2021-03,USA,CA - San Diego,USC,Cleveland Cavaliers,5 yr / $269.1M,2030,50105628
+2026-27,CLE,Craig Porter Jr.,9,G,6'1,180,02/26/00,26.36,3,2023-ND,USA,IN - Terre Haute,Wichita State,Cleveland Cavaliers,4 yr / $8M,2027,2406205
+2026-27,CLE,Tyrese Proctor,24,G,6'4,185,04/01/04,22.26,1,2025-49,AUS,Australia - Sydney,Duke,Cleveland Cavaliers,4 yr / $8.7M,2028 +1,2150917
 2026-27,CLE,Olivier Sarr,33,C,6'10,240,02/27/99,27.37,4,2021-ND,FRA,France - Niort,Kentucky,Cleveland Cavaliers,RFA,,
-2026-27,CLE,Dennis Schroder,8,G,6'1,175,09/15/93,32.81,13,2013-17,GER,Germany - Braunschweig,Braunschweig (Germany),Cleveland Cavaliers,2 yr / $30.3M,2028,14809200
-2026-27,CLE,Max Strus,2,F,6'5,215,03/28/96,30.27,7,2019-ND,USA,IL - Hickory Hills,DePaul,Cleveland Cavaliers,1 yr / $16.7M,2027,16660836
-2026-27,CLE,Meleek Thomas,15,G,6'3,190,08/06/06,19.91,R,2026-34,USA,PA - Pittsburgh,Arkansas,Arkansas,4 yr / $9.3M,2030,1357763
-2026-27,CLE,Nae'Qwan Tomlin,35,F,6'8,210,12/10/00,25.57,2,2024-ND,USA,NY - Brooklyn,Memphis,Cleveland Cavaliers,1 yr / $2.4M,2027,2411090
-2026-27,CLE,Jaylon Tyson,20,G,6'6,215,12/02/02,23.59,2,2024-20,USA,TX - Allen,California,Cleveland Cavaliers,3 yr / $17.9M,2028,3658560
+2026-27,CLE,Dennis Schroder,8,G,6'1,175,09/15/93,32.81,13,2013-17,GER,Germany - Braunschweig,Braunschweig (Germany),Cleveland Cavaliers,3 yr / $44.4M,2028,14809200
+2026-27,CLE,Max Strus,2,F,6'5,215,03/28/96,30.27,7,2019-ND,USA,IL - Hickory Hills,DePaul,Cleveland Cavaliers,4 yr / $62.3M,2027,16660836
+2026-27,CLE,Meleek Thomas,15,G,6'3,190,08/06/06,19.91,R,2026-34,USA,PA - Pittsburgh,Arkansas,Arkansas,4 yr / $9.3M,2029 +1,1357763
+2026-27,CLE,Nae'Qwan Tomlin,35,F,6'8,210,12/10/00,25.57,2,2024-ND,USA,NY - Brooklyn,Memphis,Cleveland Cavaliers,2 yr / $3.1M,2027,2411090
+2026-27,CLE,Jaylon Tyson,20,G,6'6,215,12/02/02,23.59,2,2024-20,USA,TX - Allen,California,Cleveland Cavaliers,4 yr / $16.1M,2027 +1,3658560
 2026-27,CLE,Ernest Udeh Jr.,39,C,6'11,260,01/08/04,22.49,R,2026-ND,USA,FL - Orlando,Miami (FL),Miami (FL),Two-Way,,678882
-2026-27,DAL,Max Christie,00,G,6'5,190,02/10/03,23.40,4,2022-35,USA,IL - Arlington Heights,Michigan State,Dallas Mavericks,2 yr / $17.1M,2028,8285714
-2026-27,DAL,Moussa Cisse,30,C,6'11,220,09/10/02,23.82,R,2025-ND,GUI,Guinea - Conakry,Memphis,Dallas Mavericks,2 yr / $4.8M,2028,2185116
-2026-27,DAL,Sergio de Larrea,55,F,6'5,175,12/04/05,20.58,R,2026-25,ESP,Spain - Valladolid,Valencia (Spain),Valencia (Spain),4 yr / $16.3M,2030,3182280
-2026-27,DAL,Cooper Flagg,32,F,6'9,205,12/21/06,19.53,1,2025-01,USA,ME - Newport,Duke,Dallas Mavericks,4 yr / $75.8M,2029,14517480
+2026-27,DAL,Max Christie,00,G,6'5,190,02/10/03,23.40,4,2022-35,USA,IL - Arlington Heights,Michigan State,Dallas Mavericks,4 yr / $32M,2027 +1,8285714
+2026-27,DAL,Moussa Cisse,30,C,6'11,220,09/10/02,23.82,R,2025-ND,GUI,Guinea - Conakry,Memphis,Dallas Mavericks,2 yr / $4.7M,2028,2185116
+2026-27,DAL,Sergio de Larrea,55,F,6'5,175,12/04/05,20.58,R,2026-25,ESP,Spain - Valladolid,Valencia (Spain),Valencia (Spain),4 yr / $16.3M,2028 +2,3182280
+2026-27,DAL,Cooper Flagg,32,F,6'9,205,12/21/06,19.53,1,2025-01,USA,ME - Newport,Duke,Dallas Mavericks,4 yr / $62.7M,2027 +2,14517480
 2026-27,DAL,Daniel Gafford,21,C,6'10,265,10/01/98,27.76,7,2019-38,USA,AR - El Dorado,Arkansas,Dallas Mavericks,3 yr / $54.4M,2029,17263584
-2026-27,DAL,Kyrie Irving,11,G,6'2,195,03/23/92,34.29,14,2011-01,AUS,Australia - Melbourne,Duke,Dallas Mavericks,2 yr / $81.9M,2028,39491282
+2026-27,DAL,Kyrie Irving,11,G,6'2,195,03/23/92,34.29,14,2011-01,AUS,Australia - Melbourne,Duke,Dallas Mavericks,3 yr / $118M,2027 +1,39491282
 2026-27,DAL,Vsevolod Ishchenko,13,F,6'6,190,02/10/04,21.39,R,2026-56,RUS,Russia - Rostov-on-Don,Lokomotiv Kuban (Russia),Lokomotiv Kuban (Russia),2nd Rd Pick,,
-2026-27,MEM,AJ Johnson,8,G,6'6,160,12/01/04,21.59,2,2024-23,USA,CA - Fresno,Illawarra (Australia),Memphis Grizzlies,3 yr / $17.3M,2028,3237120
-2026-27,DAL,Morez Johnson Jr.,14,F,6'9,250,01/25/06,20.44,R,2026-09,USA,IL - Riverdale,Michigan,Michigan,4 yr / $30.7M,2030,6754800
+2026-27,MEM,AJ Johnson,8,G,6'6,160,12/01/04,21.59,2,2024-23,USA,CA - Fresno,Illawarra (Australia),Memphis Grizzlies,4 yr / $14.6M,2027 +1,3237120
+2026-27,DAL,Morez Johnson Jr.,14,F,6'9,250,01/25/06,20.44,R,2026-09,USA,IL - Riverdale,Michigan,Michigan,4 yr / $30.8M,2028 +2,6754800
 2026-27,DAL,Tobi Lawal,33,F,6'7,215,05/01/03,23.18,R,2026-48,ENG,England - London,Virginia Tech,Virginia Tech,Two-Way,,678882
-2026-27,DAL,Dereck Lively,2,C,7'1,230,02/12/04,22.39,3,2023-12,USA,PA - Philadelphia,Duke,Dallas Mavericks,2 yr / $17.9M,2027,7238897
-2026-27,DAL,Naji Marshall,13,F,6'6,220,08/25/98,28.45,6,2020-ND,USA,NJ - Atlantic City,Xavier,Dallas Mavericks,1 yr / $9.4M,2027,9428571
-2026-27,DAL,Caleb Martin,16,F,6'5,205,09/28/95,30.77,7,2019-ND,USA,NC - Winston-Salem,Nevada,Dallas Mavericks,2 yr / $19.7M,2028,10001494
-2026-27,ATL,Ryan Nembhard,9,G,5'11,180,03/10/03,23.32,1,2025-ND,CAN,Canada - Aurora,Gonzaga,Dallas Mavericks,1 yr / $2.2M,2027,2150917
+2026-27,DAL,Dereck Lively,2,C,7'1,230,02/12/04,22.39,3,2023-12,USA,PA - Philadelphia,Duke,Dallas Mavericks,4 yr / $22.3M,2027,7238897
+2026-27,DAL,Naji Marshall,13,F,6'6,220,08/25/98,28.45,6,2020-ND,USA,NJ - Atlantic City,Xavier,Dallas Mavericks,3 yr / $27M,2027,9428571
+2026-27,DAL,Caleb Martin,16,F,6'5,205,09/28/95,30.77,7,2019-ND,USA,NC - Winston-Salem,Nevada,Dallas Mavericks,4 yr / $35M,2027 +1,10001494
+2026-27,ATL,Ryan Nembhard,9,G,5'11,180,03/10/03,23.32,1,2025-ND,CAN,Canada - Aurora,Gonzaga,Dallas Mavericks,1 yr / $2.5M,2027,2150917
 2026-27,DAL,John Poulakidas,1,G,6'6,205,04/04/03,23.25,1,2025-ND,USA,IL - Naperville,Yale,Dallas Mavericks,Two-Way,,678882
 2026-27,HOU,Tyler Smith,23,F,6'9,225,11/02/04,21.67,2,2024-33,USA,LA - New Orleans,G League Ignite,Dallas Mavericks,1 yr / $0.1M,2027,85300
-2026-27,DAL,Klay Thompson,31,G,6'5,220,02/08/90,36.41,13,2011-11,USA,CA - Los Angeles,Washington State,Dallas Mavericks,1 yr / $17.5M,2027,17460317
+2026-27,DAL,Klay Thompson,31,G,6'5,220,02/08/90,36.41,13,2011-11,USA,CA - Los Angeles,Washington State,Dallas Mavericks,3 yr / $50M,2027,17460317
 2026-27,DAL,PJ Washington,25,F,6'7,230,08/23/98,27.87,7,2019-12,USA,KY - Louisville,Kentucky,Dallas Mavericks,4 yr / $88.8M,2030,19813044
 2026-27,DAL,Tarik Biberovic,,F,,,01/28/01,25.50,R,,,,,,2 yr / $6M,2028,3000000
 2026-27,DEN,Marvin Bagley III,0,F,6'11,235,03/14/99,27.32,8,2018-02,USA,AZ - Tempe,Duke,Dallas Mavericks,1 yr / $3.5M,2027,3506659
-2026-27,DEN,Christian Braun,0,G,6'6,220,04/17/01,25.22,4,2022-21,USA,KS - Burlington,Kansas,Denver Nuggets,4 yr / $96.6M,2030,21551726
-2026-27,DEN,Trevon Brazile,7,F,6'9,225,01/07/03,23.49,R,2026-35,USA,MO - Springfield,Arkansas,Arkansas,4 yr / $9.3M,2030,1357763
+2026-27,DEN,Christian Braun,0,G,6'6,220,04/17/01,25.22,4,2022-21,USA,KS - Burlington,Kansas,Denver Nuggets,5 yr / $125M,2031,21551726
+2026-27,DEN,Trevon Brazile,7,F,6'9,225,01/07/03,23.49,R,2026-35,USA,MO - Springfield,Arkansas,Arkansas,4 yr / $9.3M,2029 +1,1357763
 2026-27,DEN,Giovanni Emejuru,,C,6'10,265,12/21/02,23.54,R,2026-ND,"ENG, ITA",England - Loughborough,East Carolina,East Carolina,Exhibit 10,,
-2026-27,DEN,Aaron Gordon,32,F,6'8,235,09/16/95,30.81,12,2014-04,USA,CA - San Jose,Arizona,Denver Nuggets,3 yr / $103.6M,2029,31978037
-2026-27,DEN,DaRon Holmes II,14,F,6'9,225,08/15/02,23.89,1,2024-22,USA,KS - Overland Park,Dayton,Denver Nuggets,3 yr / $17.5M,2028,3372120
+2026-27,DEN,Aaron Gordon,32,F,6'8,235,09/16/95,30.81,12,2014-04,USA,CA - San Jose,Arizona,Denver Nuggets,3 yr / $104M,2028 +1,31978037
+2026-27,DEN,DaRon Holmes II,14,F,6'9,225,08/15/02,23.89,1,2024-22,USA,KS - Overland Park,Dayton,Denver Nuggets,4 yr / $15.2M,2027 +1,3372120
 2026-27,DEN,Bryce Hopkins,13,F,6'6,220,09/07/02,23.82,R,2026-49,USA,IL - Downers Grove,St. John's,St. John's,2nd Rd Pick,,
-2026-27,DEN,Cam Johnson,23,F,6'8,210,03/03/96,30.34,7,2019-11,USA,PA - Moon Township,North Carolina,Denver Nuggets,1 yr / $23.1M,2027,23062500
-2026-27,DEN,Nikola Jokic,15,C,6'11,285,02/19/95,31.38,11,2012-41,SRB,Serbia - Sombor,Mega Basket (Serbia),Denver Nuggets,2 yr / $121.9M,2028,59033114
+2026-27,DEN,Cam Johnson,23,F,6'8,210,03/03/96,30.34,7,2019-11,USA,PA - Moon Township,North Carolina,Denver Nuggets,4 yr / $94.5M,2027,23062500
+2026-27,DEN,Nikola Jokic,15,C,6'11,285,02/19/95,31.38,11,2012-41,SRB,Serbia - Sombor,Mega Basket (Serbia),Denver Nuggets,5 yr / $276M,2027 +1,59033114
 2026-27,DEN,Curtis Jones,1,G,6'3,195,12/04/01,24.58,1,2025-ND,USA,MN - Minneapolis,Iowa State,Denver Nuggets,RFA,,
-2026-27,OKC,Spencer Jones,21,F,6'7,225,06/14/01,25.06,2,2024-ND,USA,KS - Shawnee Mission,Stanford,Denver Nuggets,2 yr / $12.4M,2028,6064000
+2026-27,DEN,Spencer Jones,21,F,6'7,225,06/14/01,25.06,2,2024-ND,USA,KS - Shawnee Mission,Stanford,Denver Nuggets,2 yr / $11.75M,2028,6064000
 2026-27,DEN,Tyus Jones,,G,6'1,196,05/10/96,30.17,10,2015-24,USA,MN - Apple Valley,Duke,Denver Nuggets,1 yr / $3.9M,2027,3876529
 2026-27,DEN,Mark Mitchell Jr.,,F,6'9,230,09/01/03,22.84,R,2026-ND,USA,KS - Lansing,Missouri,Missouri,Exhibit 10,,
 2026-27,DEN,Jamal Murray,27,G,6'4,215,02/23/97,29.36,9,2016-07,CAN,Canada - Kitchener,Kentucky,Denver Nuggets,3 yr / $161.5M,2029,50105628
 2026-27,DEN,Aaron Nkrumah,,G,6'5,175,11/26/01,24.61,R,2026-ND,USA,MA - Worcester,Tennessee State,Tennessee State,Exhibit 10,,
-2026-27,DEN,Zeke Nnaji,22,F,6'10,240,01/09/01,25.48,6,2020-22,USA,MN - Minneapolis,Arizona,Denver Nuggets,2 yr / $14.9M,2028,7466667
+2026-27,DEN,Zeke Nnaji,22,F,6'10,240,01/09/01,25.48,6,2020-22,USA,MN - Minneapolis,Arizona,Denver Nuggets,4 yr / $32M,2027 +1,7466667
 2026-27,DEN,David Roddy,45,F,6'5,255,03/27/01,25.27,4,2022-23,USA,MN - Minneapolis,Colorado State,Denver Nuggets,RFA,,
 2026-27,DEN,KJ Simpson,25,G,6'2,190,08/08/02,23.91,2,2024-42,USA,CA - Los Angeles,Colorado,Denver Nuggets,Two-Way,,678882
-2026-27,DEN,Julian Strawther,3,G,6'6,205,04/18/02,24.21,3,2023-29,USA,NV - Las Vegas,Gonzaga,Denver Nuggets,2 yr / $12.5M,2027,4826838
+2026-27,DEN,Julian Strawther,3,G,6'6,205,04/18/02,24.21,3,2023-29,USA,NV - Las Vegas,Gonzaga,Denver Nuggets,4 yr / $12.5M,2027,4826838
 2026-27,DEN,Jonas Valanciunas,17,C,6'11,265,05/06/92,34.17,14,2011-05,LTU,Lithuania - Utena,Rytas Vilnius (Lithuania),Denver Nuggets,1 yr / $2.0M,2027,2000000
 2026-27,DEN,Peyton Watson,8,F,6'8,200,09/11/02,23.81,4,2022-30,USA,CA - Beverly Hills,UCLA,Denver Nuggets,RFA,,
 2026-27,DET,Drake Allen,29,G,6'4,190,04/23/01,25.20,R,2026-ND,USA,UT - Eagle Mountain,Utah State,Utah State,Exhibit 10,,
 2026-27,DET,John Collins,,F,6'9,225,09/23/97,28.79,9,2017-19,USA,UT - Layton,Wake Forest,Los Angeles Clippers,3 yr / $51.0M,2029,17000000
-2026-27,DET,Cade Cunningham,2,G,6'6,220,09/25/01,24.78,5,2021-01,USA,TX - Arlington,Oklahoma State,Detroit Pistons,4 yr / $222.7M,2030,50105628
+2026-27,DET,Cade Cunningham,2,G,6'6,220,09/25/01,24.78,5,2021-01,USA,TX - Arlington,Oklahoma State,Detroit Pistons,5 yr / $269.1M,2030,50105628
 2026-27,DET,Jalen Duren,0,C,6'10,250,11/18/03,22.63,4,2022-13,USA,PA - Sharon Hill,Memphis,Detroit Pistons,RFA,,
 2026-27,DET,Javonte Green,31,G,6'5,205,07/23/93,32.97,7,2015-ND,"USA, MNE",VA - Petersburg,Radford,Detroit Pistons,1 yr / $3.9M,2027,3943679
 2026-27,DET,Jaden Henley,39,F,6'7,215,04/24/04,22.19,R,2026-ND,CAN,CA - Baldwin Park,Grand Canyon,Grand Canyon,Exhibit 10,,
-2026-27,DET,Ron Holland II,5,F,6'8,205,07/07/05,20.99,2,2024-05,USA,TX - Duncanville,G League Ignite,Detroit Pistons,3 yr / $36.9M,2028,9069600
-2026-27,DET,Kevin Huerter,27,G,6'6,200,08/27/98,27.87,8,2018-19,USA,NY - Albany,Maryland,Detroit Pistons,3 yr / $27.0M,2029,9507042
+2026-27,DET,Ron Holland II,5,F,6'8,205,07/07/05,20.99,2,2024-05,USA,TX - Duncanville,G League Ignite,Detroit Pistons,4 yr / $37.5M,2027 +1,9069600
+2026-27,DET,Kevin Huerter,27,G,6'6,200,08/27/98,27.87,8,2018-19,USA,NY - Albany,Maryland,Detroit Pistons,3 yr / $27.0M,2028 +1,9507042
 2026-27,DET,Daniss Jenkins,24,G,6'4,165,08/17/01,24.88,2,2024-ND,USA,TX - Dallas,St. John's,Detroit Pistons,1 yr / $4.0M,2027,4000000
-2026-27,DET,Isaiah Joe,,G,6'4,165,07/02/99,27.01,6,2020-49,USA,AR - Fort Smith,Arkansas,Oklahoma City Thunder,2 yr / $22.6M,2028,11323006
+2026-27,DET,Isaiah Joe,,G,6'4,165,07/02/99,27.01,6,2020-49,USA,AR - Fort Smith,Arkansas,Oklahoma City Thunder,4 yr / $48M,2027 +1,11323006
 2026-27,DET,Isaac Jones,13,F,6'8,245,07/11/00,25.98,2,2024-ND,USA,WA - Spanaway,Washington State,Detroit Pistons,Two-Way,,678882
-2026-27,DET,Chaz Lanier,20,G,6'3,205,12/19/01,24.54,1,2025-37,USA,TN - Nashville,Tennessee,Detroit Pistons,3 yr / $7.4M,2029,2150917
-2026-27,MIL,Caris LeVert,8,G,6'7,205,08/25/94,31.87,10,2016-20,USA,OH - Columbus,Michigan,Detroit Pistons,1 yr / $14.8M,2027,14809200
+2026-27,DET,Chaz Lanier,20,G,6'3,205,12/19/01,24.54,1,2025-37,USA,TN - Nashville,Tennessee,Detroit Pistons,4 yr / $8.7M,2028 +1,2150917
+2026-27,MIL,Caris LeVert,8,G,6'7,205,08/25/94,31.87,10,2016-20,USA,OH - Columbus,Michigan,Detroit Pistons,2 yr / $28.9M,2027,14809200
 2026-27,DET,Wendell Moore Jr.,14,G,6'5,215,09/18/01,24.79,4,2022-26,USA,VA - Richmond,Duke,Detroit Pistons,RFA,,
-2026-27,DET,Ebuka Okorie,23,G,6'1,185,04/10/07,19.23,R,2026-17,USA,NH - Nashua,Stanford,Stanford,4 yr / $21.7M,2030,4481280
+2026-27,DET,Ebuka Okorie,23,G,6'1,185,04/10/07,19.23,R,2026-17,USA,NH - Nashua,Stanford,Stanford,4 yr / $21.7M,2028 +2,4481280
 2026-27,DET,Ugonna Onyenso,34,C,6'11,235,09/25/04,21.77,R,2026-53,NGR,Nigeria - Owerri,Virginia,Virginia,Two-Way,,678882
-2026-27,DET,Paul Reed,7,C,6'9,210,06/14/99,27.06,6,2020-58,USA,FL - Orlando,DePaul,Detroit Pistons,1 yr / $5.6M,2027,5602689
-2026-27,DET,Duncan Robinson,55,G,6'7,215,04/22/94,32.21,8,2018-ND,USA,ME - York,Michigan,Detroit Pistons,2 yr / $31.1M,2028,15992957
-2026-27,DAL,Marcus Sasser,25,G,6'1,195,09/21/00,25.79,3,2023-25,USA,TX - Dallas,Houston,Detroit Pistons,2 yr / $13.4M,2027,5198462
-2026-27,DET,Tolu Smith III,35,F,6'11,255,07/24/00,25.94,2,2024-ND,USA,MS - Bay St. Louis,Mississippi State,Detroit Pistons,1 yr / $2.4M,2027,2411090
+2026-27,DET,Paul Reed,7,C,6'9,210,06/14/99,27.06,6,2020-58,USA,FL - Orlando,DePaul,Detroit Pistons,2 yr / $10.9M,2027,5602689
+2026-27,DET,Duncan Robinson,55,G,6'7,215,04/22/94,32.21,8,2018-ND,USA,ME - York,Michigan,Detroit Pistons,3 yr / $48M,2028,15992957
+2026-27,DAL,Marcus Sasser,25,G,6'1,195,09/21/00,25.79,3,2023-25,USA,TX - Dallas,Houston,Detroit Pistons,2 yr / $13.5M,2027,5198462
+2026-27,DET,Tolu Smith III,35,F,6'11,255,07/24/00,25.94,2,2024-ND,USA,MS - Bay St. Louis,Mississippi State,Detroit Pistons,2 yr / $2.5M,2027,2411090
 2026-27,DET,Corey Stephenson,47,F,6'6,220,05/05/04,22.16,R,2026-ND,USA,AL - Hueytown,Florida International,Florida International,Exhibit 10,,
-2026-27,DET,Ausar Thompson,9,F,6'7,205,01/30/03,23.43,3,2023-05,USA,CA - Oakland,City Reapers (Overtime Elite),Detroit Pistons,2 yr / $27.0M,2027,11118130
+2026-27,DET,Ausar Thompson,9,F,6'7,205,01/30/03,23.43,3,2023-05,USA,CA - Oakland,City Reapers (Overtime Elite),Detroit Pistons,4 yr / $36.2M,2027,11118130
 2026-27,GSW,Nick Boyd,,G,6'3,175,04/23/01,25.20,R,2026-ND,USA,NY - Garnerville,Wisconsin,Wisconsin,Exhibit 10,,
-2026-27,GSW,Jimmy Butler,10,F,6'6,230,09/14/89,36.81,15,2011-30,USA,TX - Houston,Marquette,Golden State Warriors,1 yr / $56.8M,2027,56832773
+2026-27,GSW,Jimmy Butler,10,F,6'6,230,09/14/89,36.81,15,2011-30,USA,TX - Houston,Marquette,Golden State Warriors,2 yr / $111M,2027,56832773
 2026-27,GSW,LJ Cryer,18,G,6'1,200,10/09/01,24.74,R,2025-ND,USA,LA - New Orleans,Houston,Golden State Warriors,Two-Way,,678882
 2026-27,GSW,Stephen Curry,30,G,6'2,185,03/14/88,38.32,17,2009-07,USA,OH - Akron,Davidson,Golden State Warriors,1 yr / $62.6M,2027,62587158
-2026-27,GSW,Draymond Green,23,F,6'6,230,03/04/90,36.35,14,2012-35,USA,MI - Saginaw,Michigan State,Golden State Warriors,UFA,,
-2026-27,GSW,Al Horford,20,C,6'8,240,06/03/86,40.10,19,2007-03,DOM,Dominican Republic - Puerto Plata,Florida,Golden State Warriors,2 yr / $14.0M,2028,6822000
+2026-27,GSW,Draymond Green,23,F,6'6,230,03/04/90,36.35,14,2012-35,USA,MI - Saginaw,Michigan State,Golden State Warriors,1 yr / $27.7M,2027,27700000
+2026-27,GSW,Al Horford,20,C,6'8,240,06/03/86,40.10,19,2007-03,DOM,Dominican Republic - Puerto Plata,Florida,Golden State Warriors,2 yr / $14.0M,2027 +1,6822000
 2026-27,GSW,Graham Ike,,F,6'9,250,08/03/02,23.92,R,2026-ND,USA,CO - Aurora,Gonzaga,Gonzaga,Exhibit 10,,
 2026-27,GSW,Lajae Jones,25,F,6'7,220,05/21/04,22.12,R,2026-54,USA,FL - Jacksonville,Florida State,Florida State,2nd Rd Pick,,
-2026-27,GSW,Yaxel Lendeborg,1,F,6'8,240,09/30/02,23.76,R,2026-11,"DOM, USA",Puerto Rico - San Juan,Michigan,Michigan,4 yr / $28.1M,2030,6096240
+2026-27,GSW,Yaxel Lendeborg,1,F,6'8,240,09/30/02,23.76,R,2026-11,"DOM, USA",Puerto Rico - San Juan,Michigan,Michigan,4 yr / $28.1M,2028 +2,6096240
 2026-27,GSW,Malevy Leons,33,F,6'9,210,09/23/99,26.78,2,2024-ND,NED,Netherlands - Ijmuiden,Bradley,Golden State Warriors,Two-Way,,678882
-2026-27,GSW,De'Anthony Melton,8,G,6'2,200,05/28/98,28.11,8,2018-46,USA,CA - North Hollywood,USC,Golden State Warriors,2 yr / $11.2M,2028,5477000
-2026-27,GSW,Moses Moody,4,G,6'5,210,05/31/02,24.10,5,2021-14,USA,AR - Little Rock,Arkansas,Golden State Warriors,2 yr / $25.9M,2028,12500000
-2026-27,GSW,Brandin Podziemski,2,G,6'4,205,02/25/03,23.36,3,2023-19,USA,WI - Greenfield,Santa Clara,Golden State Warriors,2 yr / $14.3M,2027,5679458
-2026-27,GSW,Kristaps Porzingis,7,C,7'2,240,08/02/95,30.94,10,2015-04,LAT,Latvia - Liepaja,Sevilla (Spain),Golden State Warriors,2 yr / $40.0M,2028,20000000
-2026-27,MEM,Quinten Post,21,F,7'0,240,03/21/00,26.29,2,2024-52,NED,Netherlands - Amsterdam,Boston College,Memphis Grizzlies,3 yr / $26.1M,2029,9000000
-2026-27,GSW,Will Richard,3,G,6'3,205,12/24/02,23.53,1,2025-56,USA,GA - Fairburn,Florida,Golden State Warriors,3 yr / $7.4M,2029,2150917
+2026-27,GSW,De'Anthony Melton,8,G,6'2,200,05/28/98,28.11,8,2018-46,USA,CA - North Hollywood,USC,Golden State Warriors,2 yr / $11M,2028,5477000
+2026-27,GSW,Moses Moody,4,G,6'5,210,05/31/02,24.10,5,2021-14,USA,AR - Little Rock,Arkansas,Golden State Warriors,3 yr / $37.5M,2028,12500000
+2026-27,GSW,Brandin Podziemski,2,G,6'4,205,02/25/03,23.36,3,2023-19,USA,WI - Greenfield,Santa Clara,Golden State Warriors,4 yr / $16.2M,2027,5679458
+2026-27,GSW,Kristaps Porzingis,7,C,7'2,240,08/02/95,30.94,10,2015-04,LAT,Latvia - Liepaja,Sevilla (Spain),Golden State Warriors,2 yr / $40.0M,2027 +1,20000000
+2026-27,MEM,Quinten Post,21,F,7'0,240,03/21/00,26.29,2,2024-52,NED,Netherlands - Amsterdam,Boston College,Memphis Grizzlies,3 yr / $30M,2029,9000000
+2026-27,GSW,Will Richard,3,G,6'3,205,12/24/02,23.53,1,2025-56,USA,GA - Fairburn,Florida,Golden State Warriors,4 yr / $8.7M,2028 +1,2150917
 2026-27,GSW,Gui Santos,15,F,6'7,185,06/22/02,24.04,3,2022-55,BRA,Brazil - Brasilia,Minas (Brazil),Golden State Warriors,3 yr / $15.0M,2029,4629630
 2026-27,GSW,Nate Williams,19,F,6'5,205,02/12/99,27.39,4,2022-ND,USA,NY - Rochester,Buffalo,Golden State Warriors,RFA,,
 2026-27,GSW,Charles Bassey,,C,,,10/28/00,25.70,,,,,,Memphis Grizzlies,1 yr / $2.8M,2027,2845883
-2026-27,HOU,Steven Adams,12,C,6'11,265,07/20/93,32.96,12,2013-12,NZL,New Zealand - Rotorua,Pittsburgh,Houston Rockets,2 yr / $24.9M,2028,13000000
-2026-27,HOU,Bogdan Bogdanovic,,G,6'5,225,08/18/92,33.90,9,2014-27,SRB,Serbia - Belgrade,Fenerbahce (Turkey),Los Angeles Clippers,1 yr / $3.5M,2027,3524115
-2026-27,HOU,Clint Capela,30,C,6'10,255,05/18/94,32.14,12,2014-25,SUI,Switzerland - Geneva,Chalon (France),Houston Rockets,2 yr / $14.4M,2028,7035000
+2026-27,HOU,Steven Adams,12,C,6'11,265,07/20/93,32.96,12,2013-12,NZL,New Zealand - Rotorua,Pittsburgh,Houston Rockets,3 yr / $39M,2028,13000000
+2026-27,HOU,Bogdan Bogdanovic,,G,6'5,225,08/18/92,33.90,9,2014-27,SRB,Serbia - Belgrade,Fenerbahce (Turkey),Los Angeles Clippers,1 yr / $3.9M,2027,3524115
+2026-27,HOU,Clint Capela,30,C,6'10,255,05/18/94,32.14,12,2014-25,SUI,Switzerland - Geneva,Chalon (France),Houston Rockets,3 yr / $21.1M,2028,7035000
 2026-27,HOU,Quadir Copeland,,G,6'6,220,09/04/03,22.83,R,2026-ND,USA,PA - Gettysburg,North Carolina State,North Carolina State,Two-Way,,678882
-2026-27,HOU,Isaiah Crawford,27,F,6'6,220,11/01/01,24.67,2,2024-ND,USA,TX - Forth Worth,Louisiana Tech,Houston Rockets,4 yr / $11.3M,2030,2449421
-2026-27,HOU,JD Davison,4,G,6'1,195,10/03/02,23.75,4,2022-53,USA,AL - Montgomery,Alabama,Houston Rockets,1 yr / $2.6M,2027,2584539
-2026-27,HOU,Kevin Durant,7,F,6'11,240,09/29/88,37.77,18,2007-02,USA,DC - Washington,Texas,Houston Rockets,2 yr / $90.0M,2028,43902439
-2026-27,HOU,Tari Eason,17,F,6'8,215,05/10/01,25.15,4,2022-17,USA,VA - Portsmouth,LSU,Houston Rockets,4 yr / $63.0M,2030,14053356
+2026-27,HOU,Isaiah Crawford,27,F,6'6,220,11/01/01,24.67,2,2024-ND,USA,TX - Forth Worth,Louisiana Tech,Houston Rockets,4 yr / $9.3M,2029 +1,2449421
+2026-27,HOU,JD Davison,4,G,6'1,195,10/03/02,23.75,4,2022-53,USA,AL - Montgomery,Alabama,Houston Rockets,2 yr / $2.7M,2027,2584539
+2026-27,HOU,Kevin Durant,7,F,6'11,240,09/29/88,37.77,18,2007-02,USA,DC - Washington,Texas,Houston Rockets,2 yr / $90.0M,2027 +1,43902439
+2026-27,HOU,Tari Eason,17,F,6'8,215,05/10/01,25.15,4,2022-17,USA,VA - Portsmouth,LSU,Houston Rockets,5 yr / $81.5M,2030 +1,14053356
 2026-27,HOU,Tristen Newton,00,G,6'5,190,04/26/01,25.19,2,2024-49,USA,FL - Pensacola,Connecticut,Houston Rockets,Two-Way,,678882
-2026-27,HOU,Alperen Sengun,28,C,6'11,245,07/25/02,23.95,5,2021-16,TUR,Turkey - Giresun,Besiktas (Turkey),Houston Rockets,4 yr / $151.1M,2030,35642202
-2026-27,HOU,Reed Sheppard,15,G,6'2,185,06/24/04,22.03,2,2024-03,USA,KY - London,Kentucky,Houston Rockets,3 yr / $45.0M,2028,11108880
-2026-27,HOU,Marcus Smart,,G,6'3,220,03/06/94,32.35,12,2014-06,USA,TX - Flower Mound,Oklahoma State,Los Angeles Lakers,2 yr / $12.4M,2028,6064000
-2026-27,HOU,Jabari Smith Jr.,10,F,6'11,220,05/13/03,23.15,4,2022-03,USA,GA - Fayetteville,Auburn,Houston Rockets,4 yr / $94.6M,2030,23643411
-2026-27,HOU,Amen Thompson,1,G,6'7,200,01/30/03,23.43,3,2023-04,USA,CA - Oakland,City Reapers (Overtime Elite),Houston Rockets,2 yr / $29.7M,2027,12258119
-2026-27,HOU,Bruce Thornton,3,G,6'0,225,09/14/03,22.81,R,2026-31,USA,GA - Fairburn,Ohio State,Ohio State,4 yr / $9.3M,2030,1357763
-2026-27,HOU,Fred VanVleet,5,G,6'0,195,02/25/94,32.36,9,2016-ND,USA,IL - Rockford,Wichita State,Houston Rockets,1 yr / $25.0M,2027,25000000
-2026-27,IND,Johnny Furphy,12,G,6'8,200,12/08/04,21.57,2,2024-35,AUS,Australia - Melbourne,Kansas,Indiana Pacers,2 yr / $4.8M,2028,2296271
-2026-27,IND,Tyrese Haliburton,0,G,6'5,185,02/29/00,26.35,5,2020-12,USA,WI - Oshkosh,Iowa State,Indiana Pacers,3 yr / $156.9M,2029,48924624
-2026-27,IND,Jay Huff,32,C,7'1,240,08/25/98,27.86,5,2021-ND,USA,NC - Durham,Virginia,Indiana Pacers,2 yr / $5.7M,2028,2667944
-2026-27,IND,Quenton Jackson,29,G,6'4,175,09/15/98,27.81,4,2022-ND,USA,CA - Los Angeles,Texas A&M,Indiana Pacers,2 yr / $5.5M,2028,2584539
+2026-27,HOU,Alperen Sengun,28,C,6'11,245,07/25/02,23.95,5,2021-16,TUR,Turkey - Giresun,Besiktas (Turkey),Houston Rockets,5 yr / $185M,2029 +1,35642202
+2026-27,HOU,Reed Sheppard,15,G,6'2,185,06/24/04,22.03,2,2024-03,USA,KY - London,Kentucky,Houston Rockets,4 yr / $45.9M,2027 +1,11108880
+2026-27,HOU,Marcus Smart,,G,6'3,220,03/06/94,32.35,12,2014-06,USA,TX - Flower Mound,Oklahoma State,Los Angeles Lakers,2 yr / $13M,2028,6064000
+2026-27,HOU,Jabari Smith Jr.,10,F,6'11,220,05/13/03,23.15,4,2022-03,USA,GA - Fayetteville,Auburn,Houston Rockets,5 yr / $122M,2031,23643411
+2026-27,HOU,Amen Thompson,1,G,6'7,200,01/30/03,23.43,3,2023-04,USA,CA - Oakland,City Reapers (Overtime Elite),Houston Rockets,4 yr / $40M,2027,12258119
+2026-27,HOU,Bruce Thornton,3,G,6'0,225,09/14/03,22.81,R,2026-31,USA,GA - Fairburn,Ohio State,Ohio State,4 yr / $9.3M,2029 +1,1357763
+2026-27,HOU,Fred VanVleet,5,G,6'0,195,02/25/94,32.36,9,2016-ND,USA,IL - Rockford,Wichita State,Houston Rockets,2 yr / $50M,2027,25000000
+2026-27,IND,Johnny Furphy,12,G,6'8,200,12/08/04,21.57,2,2024-35,AUS,Australia - Melbourne,Kansas,Indiana Pacers,4 yr / $8.6M,2027 +1,2296271
+2026-27,IND,Tyrese Haliburton,0,G,6'5,185,02/29/00,26.35,5,2020-12,USA,WI - Oshkosh,Iowa State,Indiana Pacers,5 yr / $245M,2029,48924624
+2026-27,IND,Jay Huff,32,C,7'1,240,08/25/98,27.86,5,2021-ND,USA,NC - Durham,Virginia,Indiana Pacers,4 yr / $10.1M,2027 +1,2667944
+2026-27,IND,Quenton Jackson,29,G,6'4,175,09/15/98,27.81,4,2022-ND,USA,CA - Los Angeles,Texas A&M,Indiana Pacers,3 yr / $6.1M,2028,2584539
 2026-27,IND,Keba Keita,13,C,6'8,230,08/20/03,22.87,R,2026-ND,MLI,Mali - Bamako,BYU,BYU,Exhibit 10,,
 2026-27,IND,Tamin Lipsey,14,G,6'1,200,06/25/03,23.03,R,2026-ND,USA,IA - Ames,Iowa State,Iowa State,Exhibit 10,,
 2026-27,IND,Rienk Mast,51,C,6'10,250,07/19/01,24.96,R,2026-ND,NED,Netherlands - Groningen,Nebraska,Nebraska,Exhibit 10,,
-2026-27,IND,T.J. McConnell,9,G,6'1,190,03/25/92,34.28,11,2015-ND,USA,PA - Pittsburgh,Arizona,Indiana Pacers,3 yr / $34.6M,2029,11000000
-2026-27,IND,Andrew Nembhard,2,G,6'4,190,01/16/00,26.47,4,2022-31,CAN,Canada - Aurora,Gonzaga,Indiana Pacers,2 yr / $40.5M,2028,19550160
-2026-27,IND,Aaron Nesmith,23,F,6'5,215,10/16/99,26.72,6,2020-14,USA,SC - Charleston,Vanderbilt,Indiana Pacers,3 yr / $51.4M,2029,11000000
-2026-27,IND,Kelly Oubre Jr.,,F,6'8,205,12/09/95,30.59,11,2015-15,USA,LA - New Orleans,Kansas,Philadelphia 76ers,2 yr / $16.5M,2028,8050000
+2026-27,IND,T.J. McConnell,9,G,6'1,190,03/25/92,34.28,11,2015-ND,USA,PA - Pittsburgh,Arizona,Indiana Pacers,4 yr / $44.8M,2028 +1,11000000
+2026-27,IND,Andrew Nembhard,2,G,6'4,190,01/16/00,26.47,4,2022-31,CAN,Canada - Aurora,Gonzaga,Indiana Pacers,3 yr / $58.7M,2028,19550160
+2026-27,IND,Aaron Nesmith,23,F,6'5,215,10/16/99,26.72,6,2020-14,USA,SC - Charleston,Vanderbilt,Indiana Pacers,3 yr / $40.4M,2029,11000000
+2026-27,IND,Kelly Oubre Jr.,,F,6'8,205,12/09/95,30.59,11,2015-15,USA,LA - New Orleans,Kansas,Philadelphia 76ers,2 yr / $17M,2028,8050000
 2026-27,IND,Taelon Peter,4,G,6'3,185,02/27/02,24.35,1,2025-54,USA,AR - Russellville,Liberty,Indiana Pacers,Two-Way,,
 2026-27,POR,Micah Potter,11,C,6'9,250,04/06/98,28.25,5,2021-ND,USA,OH - Mentor,Wisconsin,Indiana Pacers,1 yr / $2.8M,2027,2801346
 2026-27,IND,Kowacie Reeves Jr.,16,G,6'7,205,01/31/03,23.42,R,2026-ND,USA,GA - Macon,Georgia Tech,Georgia Tech,Exhibit 10,,
 2026-27,IND,Ben Sheppard,26,G,6'6,190,07/16/01,24.97,3,2023-26,USA,GA - Atlanta,Belmont,Indiana Pacers,2 yr / $13.0M,2027,5031668
-2026-27,IND,Pascal Siakam,43,F,6'8,245,04/02/94,32.26,10,2016-27,CMR,Cameroon - Douala,New Mexico State,Indiana Pacers,2 yr / $101.2M,2028,48924624
+2026-27,IND,Pascal Siakam,43,F,6'8,245,04/02/94,32.26,10,2016-27,CMR,Cameroon - Douala,New Mexico State,Indiana Pacers,2 yr / $189M,2028,48924624
 2026-27,IND,Jalen Slawson,18,F,6'7,215,10/22/99,26.70,2,2023-54,USA,SC - Charleston,Furman,Indiana Pacers,Two-Way,,678882
 2026-27,IND,Braden Smith,3,G,5'10,165,07/25/03,22.95,R,2026-38,USA,AR - Russellville,Purdue,Purdue,2nd Rd Pick,,
 2026-27,IND,Ethan Thompson,55,G,6'4,195,04/04/98,27.25,1,2021-ND,USA,CA - Harbor City,Oregon State,Indiana Pacers,Two-Way,,678882
-2026-27,IND,Obi Toppin,1,F,6'9,220,03/04/98,28.34,6,2020-08,USA,NY - Brooklyn,Dayton,Indiana Pacers,2 yr / $31.0M,2028,15000000
-2026-27,IND,Jarace Walker,5,F,6'7,235,09/04/03,22.83,3,2023-08,USA,MD - Baltimore,Houston,Indiana Pacers,2 yr / $20.8M,2027,8478396
-2026-27,IND,Ivica Zubac,40,C,7'0,240,03/18/97,29.30,10,2016-32,CRO,Bosnia - Mostar,Mega Basket (Serbia),Indiana Pacers,2 yr / $40.5M,2028,19550160
+2026-27,IND,Obi Toppin,1,F,6'9,220,03/04/98,28.34,6,2020-08,USA,NY - Brooklyn,Dayton,Indiana Pacers,4 yr / $58M,2028,15000000
+2026-27,IND,Jarace Walker,5,F,6'7,235,09/04/03,22.83,3,2023-08,USA,MD - Baltimore,Houston,Indiana Pacers,4 yr / $27.6M,2027,8478396
+2026-27,IND,Ivica Zubac,40,C,7'0,240,03/18/97,29.30,10,2016-32,CRO,Bosnia - Mostar,Mega Basket (Serbia),Indiana Pacers,3 yr / $58.7M,2027,19550160
 2026-27,IND,Larry Nance Jr.,,F,,,01/01/93,33.50,,,,,,Cleveland Cavaliers,1 yr / $3.9M,2027,3876529
-2026-27,LAC,Cam Christie,12,G,6'5,190,07/24/05,20.95,2,2024-46,USA,IL - Arlington Heights,Minnesota,Los Angeles Clippers,2 yr / $4.8M,2028,2296271
-2026-27,LAC,Gradey Dick,,G,6'7,200,11/20/03,22.63,3,2023-13,USA,KS - Wichita,Kansas,Toronto Raptors,2 yr / $17.7M,2027,7131251
-2026-27,LAC,Kris Dunn,8,G,6'3,205,03/18/94,32.30,10,2016-05,USA,CT - New London,Providence,Los Angeles Clippers,1 yr / $5.7M,2027,5684800
-2026-27,LAC,Darius Garland,10,G,6'1,190,01/26/00,26.44,7,2019-05,USA,IN - Gary,Vanderbilt,Los Angeles Clippers,2 yr / $87.1M,2028,42166510
-2026-27,LAC,Brandon Ingram,,F,6'8,190,09/02/97,28.85,10,2016-02,USA,NC - Kinston,Duke,Toronto Raptors,2 yr / $81.9M,2028,40000000
-2026-27,LAC,Rui Hachimura,,F,6'8,230,02/08/98,28.42,6,2019-09,JPN,Japan - Toyama,Gonzaga,Los Angeles Lakers,2 yr / $28.0M,2028,14000000
-2026-27,LAC,Isaiah Jackson,23,C,6'8,205,01/10/02,24.48,5,2021-22,USA,MI - Pontiac,Kentucky,Los Angeles Clippers,2 yr / $13.4M,2028,7000000
-2026-27,LAC,Derrick Jones Jr.,5,F,6'6,210,02/15/97,29.39,10,2016-ND,USA,PA - Chester,UNLV,Los Angeles Clippers,1 yr / $10.5M,2027,10476190
-2026-27,LAC,Yanic Konan Niederhauser,14,C,6'11,240,03/14/03,23.31,1,2025-30,SUI,Switzerland - Bern,Penn State,Los Angeles Clippers,4 yr / $20.1M,2029,2880960
-2026-27,LAC,Brook Lopez,11,C,7'1,280,04/01/88,38.27,18,2008-10,USA,CA - Los Angeles,Stanford,Los Angeles Clippers,1 yr / $9.2M,2027,9187500
+2026-27,LAC,Cam Christie,12,G,6'5,190,07/24/05,20.95,2,2024-46,USA,IL - Arlington Heights,Minnesota,Los Angeles Clippers,4 yr / $7.9M,2027 +1,2296271
+2026-27,LAC,Gradey Dick,,G,6'7,200,11/20/03,22.63,3,2023-13,USA,KS - Wichita,Kansas,Toronto Raptors,4 yr / $21.4M,2027,7131251
+2026-27,LAC,Kris Dunn,8,G,6'3,205,03/18/94,32.30,10,2016-05,USA,CT - New London,Providence,Los Angeles Clippers,3 yr / $16.3M,2027,5684800
+2026-27,LAC,Darius Garland,10,G,6'1,190,01/26/00,26.44,7,2019-05,USA,IN - Gary,Vanderbilt,Los Angeles Clippers,5 yr / $197M,2028,42166510
+2026-27,LAC,Brandon Ingram,,F,6'8,190,09/02/97,28.85,10,2016-02,USA,NC - Kinston,Duke,Toronto Raptors,3 yr / $120M,2027 +1,40000000
+2026-27,LAC,Rui Hachimura,,F,6'8,230,02/08/98,28.42,6,2019-09,JPN,Japan - Toyama,Gonzaga,Los Angeles Lakers,2 yr / $28.0M,2027 +1,14000000
+2026-27,LAC,Isaiah Jackson,23,C,6'8,205,01/10/02,24.48,5,2021-22,USA,MI - Pontiac,Kentucky,Los Angeles Clippers,3 yr / $21M,2028,7000000
+2026-27,LAC,Derrick Jones Jr.,5,F,6'6,210,02/15/97,29.39,10,2016-ND,USA,PA - Chester,UNLV,Los Angeles Clippers,3 yr / $30M,2027,10476190
+2026-27,LAC,Yanic Konan Niederhauser,14,C,6'11,240,03/14/03,23.31,1,2025-30,SUI,Switzerland - Bern,Penn State,Los Angeles Clippers,4 yr / $14.1M,2027 +1,2880960
+2026-27,LAC,Brook Lopez,11,C,7'1,280,04/01/88,38.27,18,2008-10,USA,CA - Los Angeles,Stanford,Los Angeles Clippers,2 yr / $17.9M,2027,9187500
 2026-27,LAC,Fletcher Loyer,,G,6'4,180,09/01/03,22.84,R,2026-ND,USA,MI - Clarkson,Purdue,Purdue,Exhibit 10,,
 2026-27,LAC,Nick Martinelli,,F,6'6,225,04/20/04,22.21,R,2026-55,USA,IL - Glenview,Northwestern,Northwestern,Two-Way,,678882
 2026-27,LAC,Bennedict Mathurin,9,F,6'5,210,06/19/02,24.04,4,2022-06,CAN,Canada - Montreal,Arizona,Los Angeles Clippers,RFA,,
-2026-27,LAC,Baba Miller,,F,6'10,210,02/07/04,22.41,R,2026-36,ESP,Spain - Mallorca,Cincinnati,Cincinnati,4 yr / $9.6M,2030,1705630
+2026-27,LAC,Baba Miller,,F,6'10,210,02/07/04,22.41,R,2026-36,ESP,Spain - Mallorca,Cincinnati,Cincinnati,4 yr / $9.6M,2029 +1,1705630
 2026-27,LAC,Jordan Miller,22,F,6'5,195,01/23/00,26.45,3,2023-48,USA,CA - Anaheim,Miami (FL),Los Angeles Clippers,3 yr / $15.3M,2029,5300000
 2026-27,LAC,Narcisse Ngoy,,C,7'0,235,07/13/04,21.98,R,2026-57,FRA,France - Cahmpigny-sur-Marne,Poitiers (France),Poitiers (France),2nd Rd Pick,,
 2026-27,LAC,Sean Pedulla,00,G,6'1,195,10/10/02,23.73,1,2025-ND,USA,OK - Edmond,Mississippi,Los Angeles Clippers,Two-Way,,678882
-2026-27,LAC,Kobe Sanders,4,G,6'8,205,05/30/02,24.10,1,2025-50,USA,CA - Spring Valley,Nevada,Los Angeles Clippers,4 yr / $11.3M,2030,2622139
-2026-27,LAC,Keaton Wagler,1,G,6'5,190,02/03/07,19.41,R,2026-05,USA,KS - Shawnee,Illinois,Illinois,4 yr / $44.0M,2030,9674760
+2026-27,LAC,Kobe Sanders,4,G,6'8,205,05/30/02,24.10,1,2025-50,USA,CA - Spring Valley,Nevada,Los Angeles Clippers,4 yr / $11.2M,2029 +1,2622139
+2026-27,LAC,Keaton Wagler,1,G,6'5,190,02/03/07,19.41,R,2026-05,USA,KS - Shawnee,Illinois,Illinois,4 yr / $44.0M,2028 +2,9674760
 2026-27,LAC,TyTy Washington Jr.,15,G,6'3,195,11/15/01,24.64,4,2022-29,USA,AZ - Phoenix,Kentucky,Los Angeles Clippers,RFA,,
-2026-27,LAL,Robbie Avila,,C,6'10,240,09/10/03,22.82,R,2026-ND,USA,IL - Oak Forest,Saint Louis,Saint Louis,Exhibit 10,,
-2026-27,LAL,Cameron Carr,43,G,6'4,185,11/21/04,21.62,R,2026-24,USA,MN - Eden Prairie,Baylor,Baylor,4 yr / $16.8M,2030,3315360
-2026-27,LAL,Luka Doncic,77,G,6'8,230,02/28/99,27.35,8,2018-03,SLO,Slovenia - Ljubljana,Real Madrid (Spain),Los Angeles Lakers,3 yr / $165.3M,2029,51033600
-2026-27,LAL,Quentin Grimes,,G,6'4,210,05/08/00,26.17,5,2021-25,USA,TX - Houston,Houston,Philadelphia 76ers,4 yr / $60.0M,2030,13953489
-2026-27,LAL,Jaden Hardy,,G,6'3,200,07/05/02,24.01,3,2022-37,USA,MI - Detroit,G League Ignite,Washington Wizards,2 yr / $12.0M,2028,6000000
-2026-27,LAL,Bronny James,9,G,6'2,210,10/06/04,21.74,2,2024-55,USA,OH - Akron,USC,Los Angeles Lakers,2 yr / $4.8M,2028,2296271
-2026-27,PHI,LeBron James,23,F,6'9,250,12/30/84,41.53,22,2003-01,USA,OH - Akron,St. Vincent-St. Mary (OH),Los Angeles Lakers,2 yr / $7.9M,2028,3876529
-2026-27,LAL,Walker Kessler,,C,7'2,245,07/26/01,24.95,4,2022-22,USA,GA - Atlanta,Auburn,Utah Jazz,4 yr / $129.5M,2030,30108821
-2026-27,LAL,Dalton Knecht,4,F,6'6,215,04/19/01,25.21,2,2024-17,USA,ND - Fargo,Tennessee,Los Angeles Lakers,3 yr / $20.4M,2028,4201080
-2026-27,LAL,William Kyle III,,F,6'9,230,03/01/04,22.34,R,2026-ND,USA,NE - Bellevue,Syracuse,Syracuse,Exhibit 10,,
-2026-27,LAL,Jake LaRavia,12,F,6'7,235,11/03/01,24.67,4,2022-19,USA,CA - Pasadena,Wake Forest,Los Angeles Lakers,1 yr / $6.0M,2027,6000000
+2026-27,LAL,Robbie Avila,67,C,6'10,240,09/10/03,22.82,R,2026-ND,USA,IL - Oak Forest,Saint Louis,Saint Louis,Exhibit 10,,
+2026-27,LAL,Cameron Carr,43,G,6'4,185,11/21/04,21.62,R,2026-24,USA,MN - Eden Prairie,Baylor,Baylor,4 yr / $16.8M,2028 +2,3315360
+2026-27,LAL,Luka Doncic,77,G,6'8,230,02/28/99,27.35,8,2018-03,SLO,Slovenia - Ljubljana,Real Madrid (Spain),Los Angeles Lakers,3 yr / $160M,2028 +1,51033600
+2026-27,LAL,Quentin Grimes,5,G,6'4,210,05/08/00,26.17,5,2021-25,USA,TX - Houston,Houston,Philadelphia 76ers,4 yr / $60.0M,2030,13953489
+2026-27,LAL,Jaden Hardy,7,G,6'3,200,07/05/02,24.01,3,2022-37,USA,MI - Detroit,G League Ignite,Washington Wizards,3 yr / $18M,2027 +1,6000000
+2026-27,LAL,Bronny James,9,G,6'2,210,10/06/04,21.74,2,2024-55,USA,OH - Akron,USC,Los Angeles Lakers,4 yr / $7.9M,2027 +1,2296271
+2026-27,PHI,LeBron James,23,F,6'9,250,12/30/84,41.53,22,2003-01,USA,OH - Akron,St. Vincent-St. Mary (OH),Los Angeles Lakers,2 yr / $7.9M,2027 +1,3876529
+2026-27,LAL,Walker Kessler,14,C,7'2,245,07/26/01,24.95,4,2022-22,USA,GA - Atlanta,Auburn,Utah Jazz,4 yr / $130M,2029 +1,30108821
+2026-27,LAL,Dalton Knecht,4,F,6'6,215,04/19/01,25.21,2,2024-17,USA,ND - Fargo,Tennessee,Los Angeles Lakers,4 yr / $18.5M,2027 +1,4201080
+2026-27,LAL,William Kyle III,45,F,6'9,230,03/01/04,22.34,R,2026-ND,USA,NE - Bellevue,Syracuse,Syracuse,Exhibit 10,,
+2026-27,LAL,Jake LaRavia,12,F,6'7,235,11/03/01,24.67,4,2022-19,USA,CA - Pasadena,Wake Forest,Los Angeles Lakers,2 yr / $12M,2027,6000000
 2026-27,LAL,Kevon Looney,,C,6'9,222,02/06/96,30.42,10,2015-30,USA,CA - Riverside,UCLA,Los Angeles Lakers,1 yr / $3.9M,2027,3876529
-2026-27,LAL,Sandro Mamukelashvili,,C,6'9,240,05/23/99,27.13,5,2021-54,GEO,NY - New York City,Seton Hall,Toronto Raptors,4 yr / $52.0M,2030,13000000
+2026-27,LAL,Sandro Mamukelashvili,54,C,6'9,240,05/23/99,27.13,5,2021-54,GEO,NY - New York City,Seton Hall,Toronto Raptors,4 yr / $52.0M,2029 +1,13000000
 2026-27,LAL,Chris Manon,30,G,6'4,210,12/09/01,24.57,1,2025-ND,USA,NJ - New Milford,Vanderbilt,Los Angeles Lakers,RFA,,
-2026-27,LAL,Robert McCray V,,G,6'4,188,09/26/02,23.77,R,2026-ND,USA,SC - Columbia,Florida State,Florida State,Exhibit 10,,
-2026-27,LAL,AK Okereke,,F,6'7,245,07/02/03,23.01,R,2026-ND,USA,CA - Clovis,Vanderbilt,Vanderbilt,Two-Way,,678882
-2026-27,LAL,Austin Reaves,15,G,6'5,195,05/29/98,28.10,5,2021-ND,USA,AR - Newark,Oklahoma,Los Angeles Lakers,4 yr / $180.0M,2030,41240250
-2026-27,LAL,Chase Ross,,G,6'5,210,02/07/03,23.41,R,2026-ND,USA,TX - Dallas,Marquette,Marquette,Exhibit 10,,
-2026-27,LAL,Collin Sexton,,G,6'3,190,01/04/99,27.51,8,2018-08,USA,GA - Marietta,Alabama,Chicago Bulls,2 yr / $19.2M,2028,9366000
+2026-27,LAL,Robert McCray V,27,G,6'4,188,09/26/02,23.77,R,2026-ND,USA,SC - Columbia,Florida State,Florida State,Exhibit 10,,
+2026-27,LAL,AK Okereke,31,F,6'7,245,07/02/03,23.01,R,2026-ND,USA,CA - Clovis,Vanderbilt,Vanderbilt,Two-Way,,678882
+2026-27,LAL,Austin Reaves,15,G,6'5,195,05/29/98,28.10,5,2021-ND,USA,AR - Newark,Oklahoma,Los Angeles Lakers,4 yr / $180.0M,2029 +1,41240250
+2026-27,LAL,Chase Ross,29,G,6'5,210,02/07/03,23.41,R,2026-ND,USA,TX - Dallas,Marquette,Marquette,Exhibit 10,,
+2026-27,LAL,Collin Sexton,,G,6'3,190,01/04/99,27.51,8,2018-08,USA,GA - Marietta,Alabama,Chicago Bulls,2 yr / $19M,2027 +1,9366000
 2026-27,LAL,Peter Suder,,G,6'3,215,07/29/03,22.93,R,2026-ND,USA,IN - Carmel,Miami (OH),Miami (OH),1 yr / $0.1M,2027,91000
-2026-27,LAL,Adou Thiero,1,F,6'7,220,05/08/04,22.16,1,2025-36,USA,UT - Salt Lake City,Arkansas,Los Angeles Lakers,2 yr / $4.7M,2028,2150917
+2026-27,LAL,Adou Thiero,1,F,6'7,220,05/08/04,22.16,1,2025-36,USA,UT - Salt Lake City,Arkansas,Los Angeles Lakers,3 yr / $5.9M,2027 +1,2150917
 2026-27,LAL,Drew Timme,17,F,6'9,235,09/09/00,25.82,2,2023-ND,USA,TX - Richardson,Gonzaga,Los Angeles Lakers,RFA,,
-2026-27,LAL,Jarred Vanderbilt,2,F,6'8,215,04/03/99,27.26,8,2018-41,USA,TX - Houston,Kentucky,Los Angeles Lakers,2 yr / $25.7M,2028,12428571
+2026-27,LAL,Jarred Vanderbilt,2,F,6'8,215,04/03/99,27.26,8,2018-41,USA,TX - Houston,Kentucky,Los Angeles Lakers,4 yr / $48M,2027 +1,12428571
 2026-27,DAL,Santi Aldama,7,F,7'0,215,01/10/01,25.48,5,2021-30,ESP,Spain - Las Palmas,Loyola (MD),Dallas Mavericks,2 yr / $34.0M,2028,17007043
-2026-27,MEM,Cameron Boozer,27,F,6'8,255,07/18/07,18.96,R,2026-03,USA,UT - Salt Lake City,Duke,Duke,4 yr / $53.8M,2030,11849760
-2026-27,MEM,Kentavious Caldwell-Pope,3,G,6'5,205,02/18/93,33.38,13,2013-08,USA,GA - Thomaston,Georgia,Memphis Grizzlies,1 yr / $21.6M,2027,21621500
-2026-27,MEM,Walter Clayton Jr.,4,G,6'4,195,03/06/03,23.33,1,2025-18,USA,FL - Sebring,Florida,Memphis Grizzlies,4 yr / $25.6M,2029,4190520
+2026-27,MEM,Cameron Boozer,27,F,6'8,255,07/18/07,18.96,R,2026-03,USA,UT - Salt Lake City,Duke,Duke,4 yr / $53.8M,2028 +2,11849760
+2026-27,MEM,Walter Clayton Jr.,4,G,6'4,195,03/06/03,23.33,1,2025-18,USA,FL - Sebring,Florida,Memphis Grizzlies,4 yr / $19.3M,2027 +2,4190520
 2026-27,MEM,Zach Cleveland,,F,6'7,220,03/12/04,22.31,R,2026-ND,USA,IL - Normal,Liberty,Liberty,Exhibit 10,,
 2026-27,MEM,Carson Cooper,20,C,6'11,245,02/04/04,22.24,R,2026-ND,USA,MI - Jackson,Michigan State,Michigan State,Two-Way,,
-2026-27,MEM,Cedric Coward,23,G,6'5,205,09/11/03,22.81,1,2025-11,USA,CA - Fresno,Washington State,Memphis Grizzlies,4 yr / $32.9M,2029,6001080
-2026-27,MEM,Zach Edey,14,C,7'3,305,05/14/02,24.14,2,2024-09,CAN,Canada - Toronto,Purdue,Memphis Grizzlies,3 yr / $26.1M,2028,6332760
-2026-27,MEM,Taj Gibson,67,C,6'9,230,06/24/85,41.04,17,2009-26,USA,NY - New York City,USC,Memphis Grizzlies,1 yr / $3.8M,2027,3800000
-2026-27,MEM,Taylor Hendricks,22,F,6'9,215,11/22/03,22.62,3,2023-09,USA,FL - Fort Lauderdale,UCF,Memphis Grizzlies,2 yr / $19.2M,2027,7805900
-2026-27,MEM,GG Jackson II,45,F,6'9,210,12/17/04,21.55,3,2023-45,USA,SC - Columbia,South Carolina,Memphis Grizzlies,1 yr / $2.4M,2027,2406205
-2026-27,MEM,Ty Jerome,2,G,6'5,195,07/08/97,28.99,7,2019-24,USA,NY - New York City,Virginia,Memphis Grizzlies,2 yr / $18.9M,2028,9220050
-2026-27,MEM,Karim Lopez,35,F,6'8,220,04/12/07,19.23,R,2026-21,MEX,Mexico - Hermosillo,New Zealand Breakers (Australia),New Zealand Breakers (Australia),4 yr / $18.4M,2030,3746760
-2026-27,MEM,Jahmai Mashack,21,G,6'4,205,11/10/02,23.65,1,2025-59,USA,CA - Riverside,Tennessee,Memphis Grizzlies,1 yr / $0.7M,2027,679042
-2026-27,MEM,Scotty Pippen Jr.,1,G,6'2,170,11/10/00,25.65,4,2022-ND,USA,OR - Portland,Vanderbilt,Memphis Grizzlies,2 yr / $5.3M,2028,2461462
-2026-27,MEM,Olivier-Maxence Prosper,18,F,6'7,230,07/03/02,24.01,3,2023-24,CAN,Canada - Montreal,Marquette,Memphis Grizzlies,1 yr / $2.5M,2027,2497812
+2026-27,MEM,Cedric Coward,23,G,6'5,205,09/11/03,22.81,1,2025-11,USA,CA - Fresno,Washington State,Memphis Grizzlies,4 yr / $26.3M,2027 +2,6001080
+2026-27,MEM,Zach Edey,14,C,7'3,305,05/14/02,24.14,2,2024-09,CAN,Canada - Toronto,Purdue,Memphis Grizzlies,4 yr / $26.2M,2027 +1,6332760
+2026-27,MEM,Taj Gibson,67,C,6'9,230,06/24/85,41.04,17,2009-26,USA,NY - New York City,USC,Memphis Grizzlies,2 yr / $4.8M,2027,3800000
+2026-27,MEM,Taylor Hendricks,22,F,6'9,215,11/22/03,22.62,3,2023-09,USA,FL - Fort Lauderdale,UCF,Memphis Grizzlies,4 yr / $25.4M,2027,7805900
+2026-27,MEM,GG Jackson II,45,F,6'9,210,12/17/04,21.55,3,2023-45,USA,SC - Columbia,South Carolina,Memphis Grizzlies,4 yr / $8.5M,2027,2406205
+2026-27,MEM,Ty Jerome,2,G,6'5,195,07/08/97,28.99,7,2019-24,USA,NY - New York City,Virginia,Memphis Grizzlies,3 yr / $27.7M,2027 +1,9220050
+2026-27,MEM,Karim Lopez,35,F,6'8,220,04/12/07,19.23,R,2026-21,MEX,Mexico - Hermosillo,New Zealand Breakers (Australia),New Zealand Breakers (Australia),4 yr / $18.4M,2028 +2,3746760
+2026-27,MEM,Jahmai Mashack,21,G,6'4,205,11/10/02,23.65,1,2025-59,USA,CA - Riverside,Tennessee,Memphis Grizzlies,Two-Way,,679042
+2026-27,MEM,Scotty Pippen Jr.,1,G,6'2,170,11/10/00,25.65,4,2022-ND,USA,OR - Portland,Vanderbilt,Memphis Grizzlies,4 yr / $9.6M,2027 +1,2461462
+2026-27,MEM,Olivier-Maxence Prosper,18,F,6'7,230,07/03/02,24.01,3,2023-24,CAN,Canada - Montreal,Marquette,Memphis Grizzlies,2 yr / $3M,2027,2497812
 2026-27,MEM,Richie Saunders,5,G,6'5,205,09/19/01,24.79,R,2026-32,USA,UT - Riverton,BYU,BYU,2nd Rd Pick,,
 2026-27,MEM,Javon Small,10,G,6'1,190,12/19/02,23.54,1,2025-48,USA,IN - South Bend,West Virginia,Memphis Grizzlies,Two-Way,,
-2026-27,MEM,Cam Spencer,24,G,6'3,205,04/06/00,26.25,2,2024-53,USA,MD - Davidsonville,Connecticut,Memphis Grizzlies,3 yr / $7.9M,2029,2411090
-2026-27,MEM,Isaiah Stewart,28,C,6'8,250,05/22/01,25.12,6,2020-16,USA,NY - Rochester,Washington,Detroit Pistons,2 yr / $30.0M,2028,15000000
-2026-27,MEM,Jaylen Wells,0,G,6'7,205,08/26/03,22.86,2,2024-39,USA,CA - Sacramento,Washington State,Memphis Grizzlies,2 yr / $4.8M,2028,2296271
-2026-27,MEM,Jerami Grant,,F,6'7,215,03/12/94,32.32,12,2014-39,USA,OR - Portland,Syracuse,Portland Trail Blazers,2 yr / $70.6M,2028,34206898
-2026-27,MEM,Kris Murray,,F,6'8,220,08/19/00,25.88,3,2023-23,USA,IA - Cedar Rapids,Iowa,Portland Trail Blazers,2 yr / $13.6M,2027,5315004
-2026-27,MIA,Bam Adebayo,13,C,6'9,255,07/18/97,28.97,9,2017-14,USA,NJ - Newark,Kentucky,Miami Heat,3 yr / $160.3M,2029,49488300
-2026-27,MIA,Giannis Antetokounmpo,,F,6'11,245,12/06/94,31.58,13,2013-15,"GRE, NGR",Greece - Athens,Filathlitikos (Greece),Milwaukee Bucks,2 yr / $121.2M,2028,58456566
-2026-27,MIA,Ryan Conwell,7,G,6'2,215,06/15/04,22.05,R,2026-37,USA,IN - Indianapolis,Louisville,Louisville,4 yr / $9.3M,2030,1357763
+2026-27,MEM,Cam Spencer,24,G,6'3,205,04/06/00,26.25,2,2024-53,USA,MD - Davidsonville,Connecticut,Memphis Grizzlies,4 yr / $10.4M,2028 +1,2411090
+2026-27,MEM,Isaiah Stewart,28,C,6'8,250,05/22/01,25.12,6,2020-16,USA,NY - Rochester,Washington,Detroit Pistons,4 yr / $60M,2027 +1,15000000
+2026-27,MEM,Jaylen Wells,0,G,6'7,205,08/26/03,22.86,2,2024-39,USA,CA - Sacramento,Washington State,Memphis Grizzlies,4 yr / $7.9M,2027 +1,2296271
+2026-27,MEM,Jerami Grant,,F,6'7,215,03/12/94,32.32,12,2014-39,USA,OR - Portland,Syracuse,Portland Trail Blazers,5 yr / $160M,2027 +1,34206898
+2026-27,MEM,Kris Murray,,F,6'8,220,08/19/00,25.88,3,2023-23,USA,IA - Cedar Rapids,Iowa,Portland Trail Blazers,4 yr / $14.3M,2027,5315004
+2026-27,MIA,Bam Adebayo,13,C,6'9,255,07/18/97,28.97,9,2017-14,USA,NJ - Newark,Kentucky,Miami Heat,3 yr / $160M,2028 +1,49488300
+2026-27,MIA,Giannis Antetokounmpo,,F,6'11,245,12/06/94,31.58,13,2013-15,"GRE, NGR",Greece - Athens,Filathlitikos (Greece),Milwaukee Bucks,2 yr / $175M,2027 +1,58456566
+2026-27,MIA,Ryan Conwell,7,G,6'2,215,06/15/04,22.05,R,2026-37,USA,IN - Indianapolis,Louisville,Louisville,3 yr / $6.3M,2028 +1,1357763
 2026-27,MIA,Tre Donaldson,11,G,6'3,195,12/11/03,22.56,R,2026-ND,USA,FL - Tallahassee,Miami (FL),Miami (FL),Two-Way,,
 2026-27,MIA,Simone Fontecchio,0,F,6'7,210,12/09/95,30.59,4,2017-ND,ITA,Italy - Pescara,EA7 Milano (Italy),Miami Heat,1 yr / $2.6M,2027,2625627
-2026-27,MIA,Myron Gardner,15,F,6'5,220,05/21/01,25.12,1,2023-ND,USA,MI - Detroit,Little Rock,Miami Heat,2 yr / $4.7M,2028,2150917
+2026-27,MIA,Myron Gardner,15,F,6'5,220,05/21/01,25.12,1,2023-ND,USA,MI - Detroit,Little Rock,Miami Heat,3 yr / $5.5M,2028,2150917
 2026-27,MIA,Vladislav Goldin,50,C,7'0,250,05/12/01,25.15,1,2025-ND,RUS,Russia - Nalchik,Michigan,Miami Heat,Two-Way,,678882
 2026-27,MIA,J'Vonne Hadley,,F,6'7,210,04/03/02,24.25,R,2026-ND,USA,MN - St. Paul,Louisville,Louisville,Exhibit 10,,
 2026-27,MIA,Keyshawn Hall,,G,6'6,225,04/09/03,23.24,R,2026-ND,USA,OH - Cleveland,Auburn,Auburn,Exhibit 10,,
-2026-27,MIA,Tim Hardaway Jr.,11,G,6'5,205,03/16/92,34.32,13,2013-24,USA,CA - Alameda,Michigan,Denver Nuggets,1 yr / $6.1M,2027,6065000
+2026-27,MIA,Tim Hardaway Jr.,11,G,6'5,205,03/16/92,34.32,13,2013-24,USA,CA - Alameda,Michigan,Denver Nuggets,1 yr / $6.5M,2027,6065000
 2026-27,MIA,Keshad Johnson,16,F,6'6,225,06/23/01,25.03,2,2024-ND,USA,CA - Oakland,Arizona,Miami Heat,RFA,,
 2026-27,MIA,Nikola Jovic,5,F,6'10,205,06/09/03,23.07,4,2022-27,SRB,England - Leicester,Mega Basket (Serbia),Miami Heat,4 yr / $62.4M,2030,16200000
 2026-27,MIA,Trevor Keels,8,G,6'3,215,08/26/03,22.86,2,2022-42,USA,MD - Clinton,Duke,Miami Heat,RFA,,
-2026-27,MIA,Pelle Larsson,9,G,6'5,215,02/23/01,25.36,2,2024-44,SWE,Sweden - Stockholm,Arizona,Miami Heat,1 yr / $2.3M,2027,2296271
-2026-27,MIA,Davion Mitchell,45,G,6'0,200,09/05/98,27.83,5,2021-09,USA,GA - Hinesville,Baylor,Miami Heat,1 yr / $12.4M,2027,12400000
-2026-27,MIA,Bobby Portis,,F,6'9,250,02/10/95,31.40,11,2015-22,USA,AR - Little Rock,Arkansas,Milwaukee Bucks,2 yr / $30.1M,2028,14521414
-2026-27,MIA,Dru Smith,12,G,6'2,205,12/30/97,28.52,4,2021-ND,USA,IN - Evansville,Missouri,Miami Heat,2 yr / $5.5M,2028,2584539
+2026-27,MIA,Pelle Larsson,9,G,6'5,215,02/23/01,25.36,2,2024-44,SWE,Sweden - Stockholm,Arizona,Miami Heat,3 yr / $5.4M,2027,2296271
+2026-27,MIA,Davion Mitchell,45,G,6'0,200,09/05/98,27.83,5,2021-09,USA,GA - Hinesville,Baylor,Miami Heat,2 yr / $24M,2027 +1,12400000
+2026-27,MIA,Bobby Portis,,F,6'9,250,02/10/95,31.40,11,2015-22,USA,AR - Little Rock,Arkansas,Milwaukee Bucks,3 yr / $43.6M,2027 +1,14521414
+2026-27,MIA,Dru Smith,12,G,6'2,205,12/30/97,28.52,4,2021-ND,USA,IN - Evansville,Missouri,Miami Heat,3 yr / $7.9M,2027 +1,2584539
 2026-27,MIA,Tre White,,F,6'7,215,01/28/03,23.43,R,2026-ND,USA,TX - Dallas,Kansas,Kansas,Exhibit 10,,
-2026-27,MIA,Andrew Wiggins,22,F,6'6,195,02/23/95,31.37,12,2014-01,CAN,Canada - Toronto,Kansas,Miami Heat,3 yr / $64.0M,2029,30169644
-2026-27,MIL,Nate Ament,,F,6'9,210,12/10/06,19.56,R,2026-13,USA,VA - Woodbridge,Tennessee,Tennessee,4 yr / $26.0M,2030,5502000
-2026-27,MIL,Brayden Burries,,G,6'3,215,09/18/05,20.79,R,2026-10,USA,CA - San Bernardino,Arizona,Arizona,4 yr / $29.2M,2030,6417360
+2026-27,MIA,Andrew Wiggins,22,F,6'6,195,02/23/95,31.37,12,2014-01,CAN,Canada - Toronto,Kansas,Miami Heat,2 yr / $34M,2027 +1,30169644
+2026-27,MIL,Nate Ament,,F,6'9,210,12/10/06,19.56,R,2026-13,USA,VA - Woodbridge,Tennessee,Tennessee,4 yr / $26.0M,2028 +2,5502000
+2026-27,MIL,Brayden Burries,,G,6'3,215,09/18/05,20.79,R,2026-10,USA,CA - San Bernardino,Arizona,Arizona,4 yr / $29.2M,2028 +2,6417360
 2026-27,MIL,Rafael Castro,,C,6'9,225,03/30/03,23.27,R,2026-ND,"DOM, USA",NJ - Dover,George Washington,George Washington,Two-Way,,
-2026-27,MIL,Ousmane Dieng,21,C,6'9,185,05/21/03,23.12,4,2022-11,FRA,France - Villeneuve-sur-Lot,New Zealand Breakers (Australia),Milwaukee Bucks,3 yr / $17.3M,2029,5750000
+2026-27,MIL,Ousmane Dieng,21,C,6'9,185,05/21/03,23.12,4,2022-11,FRA,France - Villeneuve-sur-Lot,New Zealand Breakers (Australia),Milwaukee Bucks,3 yr / $17.5M,2029,5750000
 2026-27,MIL,A.J. Green,20,G,6'4,190,09/27/99,26.77,4,2022-ND,USA,IA - Cedar Falls,Northern Iowa,Milwaukee Bucks,4 yr / $45.0M,2030,10044644
-2026-27,DET,Gary Harris,11,G,6'4,210,09/14/94,31.81,12,2014-19,USA,IN - Fishers,Michigan State,Milwaukee Bucks,1 yr / $3.8M,2027,3815861
-2026-27,MIL,Tyler Herro,,G,6'5,195,01/20/00,26.46,7,2019-13,USA,WI - Milwaukee,Kentucky,Miami Heat,1 yr / $33.0M,2027,33000000
-2026-27,MIL,Kasparas Jakucionis,6,G,6'5,200,05/29/06,20.10,1,2025-20,LTU,Lithuania - Vilnius,Illinois,Miami Heat,4 yr / $23.6M,2029,3841680
-2026-27,MIL,Jaime Jaquez Jr.,,F,6'6,225,02/18/01,25.38,3,2023-18,USA,CA - Irvine,UCLA,Miami Heat,2 yr / $15.0M,2027,5939141
-2026-27,MIL,Kyle Kuzma,18,F,6'8,220,07/24/95,30.95,9,2017-27,USA,MI - Flint,Utah,Milwaukee Bucks,1 yr / $20.5M,2027,20490152
+2026-27,DET,Gary Harris,11,G,6'4,210,09/14/94,31.81,12,2014-19,USA,IN - Fishers,Michigan State,Milwaukee Bucks,2 yr / $7.5M,2027,3815861
+2026-27,MIL,Tyler Herro,,G,6'5,195,01/20/00,26.46,7,2019-13,USA,WI - Milwaukee,Kentucky,Miami Heat,4 yr / $120M,2027,33000000
+2026-27,MIL,Kasparas Jakucionis,6,G,6'5,200,05/29/06,20.10,1,2025-20,LTU,Lithuania - Vilnius,Illinois,Miami Heat,4 yr / $17.7M,2027 +2,3841680
+2026-27,MIL,Jaime Jaquez Jr.,,F,6'6,225,02/18/01,25.38,3,2023-18,USA,CA - Irvine,UCLA,Miami Heat,4 yr / $17M,2027,5939141
+2026-27,MIL,Kyle Kuzma,18,F,6'8,220,07/24/95,30.95,9,2017-27,USA,MI - Flint,Utah,Milwaukee Bucks,4 yr / $90M,2027,20490152
 2026-27,MIL,Malique Lewis,19,F,6'8,195,11/10/04,21.65,R,2026-60,"TTO, ESP",Trinidad - San Fernando,South East Melbourne (Australia),South East Melbourne (Australia),2nd Rd Pick,,
 2026-27,MIL,Bogoljub Markovic,23,F,6'11,210,07/12/05,20.99,R,2025-47,SRB,Serbia - Uzice,Mega Basket (Serbia),Mega Basket (Serbia),4 yr / $9.3M,2029 +1,1357763
-2026-27,MIL,Kevin Porter Jr.,7,G,6'5,205,05/04/00,26.17,6,2019-30,USA,WA - Seattle,USC,Milwaukee Bucks,1 yr / $5.4M,2027,5390700
-2026-27,DET,Taurean Prince,12,F,6'6,220,03/22/94,32.29,10,2016-12,USA,TX - San Marcos,Baylor,Milwaukee Bucks,1 yr / $3.9M,2027,3881960
-2026-27,MIL,Ryan Rollins,13,G,6'3,180,07/03/02,24.01,4,2022-44,USA,MI - Macomb,Toledo,Milwaukee Bucks,2 yr / $8.0M,2028,4000000
+2026-27,MIL,Kevin Porter Jr.,7,G,6'5,205,05/04/00,26.17,6,2019-30,USA,WA - Seattle,USC,Milwaukee Bucks,2 yr / $10.5M,2027,5390700
+2026-27,DET,Taurean Prince,12,F,6'6,220,03/22/94,32.29,10,2016-12,USA,TX - San Marcos,Baylor,Milwaukee Bucks,2 yr / $7.1M,2027,3881960
+2026-27,MIL,Ryan Rollins,13,G,6'3,180,07/03/02,24.01,4,2022-44,USA,MI - Macomb,Toledo,Milwaukee Bucks,3 yr / $12M,2027 +1,4000000
 2026-27,MIL,Cormac Ryan,30,G,6'5,195,10/26/98,27.69,1,2024-ND,USA,NY - New York City,North Carolina,Milwaukee Bucks,Two-Way,,678882
-2026-27,MIL,Jericho Sims,00,C,6'10,250,10/20/98,27.71,5,2021-58,USA,MN - Minneapolis,Texas,Milwaukee Bucks,1 yr / $2.8M,2027,2801346
+2026-27,MIL,Jericho Sims,00,C,6'10,250,10/20/98,27.71,5,2021-58,USA,MN - Minneapolis,Texas,Milwaukee Bucks,2 yr / $5.3M,2027,2801346
 2026-27,MIL,Gary Trent Jr.,,G,6'5,209,01/18/99,27.48,7,2018-37,USA,OH - Hudson,Duke,Milwaukee Bucks,4 yr / $64.0M,2030,15200000
-2026-27,MIL,Myles Turner,3,C,6'11,250,03/24/96,30.28,11,2015-11,USA,TX - Bedford,Texas,Milwaukee Bucks,3 yr / $83.6M,2029,26584164
-2026-27,MIL,Kel'el Ware,,C,7'0,230,04/20/04,22.21,2,2024-15,USA,AR - North Little Rock,Indiana,Miami Heat,3 yr / $22.5M,2028,4654920
-2026-27,MIN,LaMelo Ball,,G,6'7,180,08/22/01,24.87,6,2020-03,USA,CA - Anaheim,Illawarra (Australia),Charlotte Hornets,3 yr / $130.7M,2029,40770520
-2026-27,MIN,Joan Beringer,19,F,6'11,230,11/01/06,19.67,1,2025-17,"FRA, BEN",France - Selestat,Cedevita (Slovenia),Minnesota Timberwolves,4 yr / $26.9M,2029,4411200
+2026-27,MIL,Myles Turner,3,C,6'11,250,03/24/96,30.28,11,2015-11,USA,TX - Bedford,Texas,Milwaukee Bucks,4 yr / $109M,2028 +1,26584164
+2026-27,MIL,Kel'el Ware,,C,7'0,230,04/20/04,22.21,2,2024-15,USA,AR - North Little Rock,Indiana,Miami Heat,4 yr / $20.5M,2027 +1,4654920
+2026-27,MIN,LaMelo Ball,,G,6'7,180,08/22/01,24.87,6,2020-03,USA,CA - Anaheim,Illawarra (Australia),Charlotte Hornets,5 yr / $204M,2029,40770520
+2026-27,MIN,Joan Beringer,19,F,6'11,230,11/01/06,19.67,1,2025-17,"FRA, BEN",France - Selestat,Cedevita (Slovenia),Minnesota Timberwolves,4 yr / $20.3M,2027 +2,4411200
 2026-27,MIN,Jaylen Clark,22,G,6'5,205,10/13/01,24.73,2,2023-53,USA,CA - Riverside,UCLA,Minnesota Timberwolves,3 yr / $10.0M,2029,3086420
-2026-27,MIN,Donte DiVincenzo,0,G,6'4,205,01/31/97,29.43,8,2018-17,USA,DE - Newark,Villanova,Minnesota Timberwolves,1 yr / $12.5M,2027,12535000
-2026-27,MIN,Ayo Dosunmu,13,G,6'4,200,01/17/00,26.47,5,2021-38,USA,IL - Chicago,Illinois,Minnesota Timberwolves,4 yr / $86.5M,2030,19310345
-2026-27,MIN,Anthony Edwards,5,G,6'4,225,08/05/01,24.92,6,2020-01,USA,GA - Atlanta,Georgia,Minnesota Timberwolves,3 yr / $156.9M,2029,48924624
-2026-27,MIN,Isaiah Evans,33,G,6'5,185,12/06/05,20.58,R,2026-33,USA,NC - Fayetteville,Duke,Duke,4 yr / $9.3M,2030,1357763
+2026-27,MIN,Donte DiVincenzo,0,G,6'4,205,01/31/97,29.43,8,2018-17,USA,DE - Newark,Villanova,Minnesota Timberwolves,5 yr / $46.9M,2027,12535000
+2026-27,MIN,Ayo Dosunmu,13,G,6'4,200,01/17/00,26.47,5,2021-38,USA,IL - Chicago,Illinois,Minnesota Timberwolves,5 yr / $112M,2031,19310345
+2026-27,MIN,Anthony Edwards,5,G,6'4,225,08/05/01,24.92,6,2020-01,USA,GA - Atlanta,Georgia,Minnesota Timberwolves,5 yr / $245M,2029,48924624
+2026-27,MIN,Isaiah Evans,33,G,6'5,185,12/06/05,20.58,R,2026-33,USA,NC - Fayetteville,Duke,Duke,4 yr / $9.3M,2029 +1,1357763
 2026-27,MIN,Enrique Freeman,25,F,6'9,220,07/29/00,25.93,2,2024-50,USA,OH - Cleveland,Akron,Minnesota Timberwolves,Two-Way,,678882
-2026-27,MIN,Rudy Gobert,27,C,7'1,260,06/26/92,34.03,13,2013-27,FRA,France - Saint-Quentin,Cholet (France),Minnesota Timberwolves,2 yr / $74.5M,2028,36500000
-2026-27,MIN,Josh Green,,G,6'6,200,11/16/00,25.63,6,2020-18,AUS,Australia - Sydney,Arizona,Charlotte Hornets,1 yr / $14.7M,2027,14679012
+2026-27,MIN,Rudy Gobert,27,C,7'1,260,06/26/92,34.03,13,2013-27,FRA,France - Saint-Quentin,Cholet (France),Minnesota Timberwolves,3 yr / $110M,2027 +1,36500000
+2026-27,MIN,Josh Green,,G,6'6,200,11/16/00,25.63,6,2020-18,AUS,Australia - Sydney,Arizona,Charlotte Hornets,3 yr / $41M,2027,14679012
 2026-27,CHA,Mouhamadou Gueye,,F,6'9,210,07/06/98,28.00,2,2022-ND,USA,NY - Staten Island,Pittsburgh,Chicago Bulls,1 yr / $2.4M,2027,2411090
 2026-27,MIN,Bones Hyland,8,G,6'2,170,09/14/00,25.82,5,2021-26,USA,DE - Wilmington,VCU,Minnesota Timberwolves,1 yr / $2.8M,2027,2846555
 2026-27,MIN,Trey Kaufman-Renn,14,F,6'7,240,08/19/02,23.88,R,2026-59,USA,IN - Sellersburg,Purdue,Purdue,2nd Rd Pick,,
 2026-27,MIN,Trey Lyles,,F,6'9,235,11/05/95,30.68,10,2015-12,"CAN, USA",Canada - Saskatoon,Kentucky,Real Madrid (Spain),1 yr / $3.9M,2027,3876529
-2026-27,MIN,Jaden McDaniels,3,F,6'9,185,09/29/00,25.76,6,2020-28,USA,WA - Federal Way,Washington,Minnesota Timberwolves,3 yr / $83.6M,2029,25750001
+2026-27,MIN,Jaden McDaniels,3,F,6'9,185,09/29/00,25.76,6,2020-28,USA,WA - Federal Way,Washington,Minnesota Timberwolves,5 yr / $131M,2029,25750001
 2026-27,MIN,Zyon Pullin,15,G,6'4,205,03/03/01,25.34,2,2024-ND,USA,CA - Pleasant Hill,Florida,Minnesota Timberwolves,Two-Way,,678882
-2026-27,MIN,Terrence Shannon Jr.,1,G,6'6,215,07/30/00,25.93,2,2024-27,USA,IL - Chicago,Illinois,Minnesota Timberwolves,3 yr / $15.9M,2028,2801640
+2026-27,MIN,Terrence Shannon Jr.,1,G,6'6,215,07/30/00,25.93,2,2024-27,USA,IL - Chicago,Illinois,Minnesota Timberwolves,4 yr / $13.1M,2027 +1,2801640
 2026-27,MIN,Rocco Zikarsky,44,C,7'3,225,07/11/06,19.98,1,2025-45,AUS,Australia - Sunshine Coast,Brisbane (Australia),Minnesota Timberwolves,Two-Way,,678882
-2026-27,NOR,Chris Bell,,F,6'7,195,02/16/03,23.38,R,2026-ND,USA,CA - Concord,California,California,Exhibit 10,,
-2026-27,NOR,Saddiq Bey,41,F,6'8,215,04/09/99,27.24,5,2020-19,USA,NC - Charlotte,Villanova,New Orleans Pelicans,1 yr / $6.6M,2027,6557080
-2026-27,NOR,Melvin Council Jr.,,G,6'4,185,04/23/02,24.20,R,2026-ND,USA,NY - Rochester,Kansas,Kansas,Exhibit 10,,
+2026-27,NOR,Chris Bell,44,F,6'7,195,02/16/03,23.38,R,2026-ND,USA,CA - Concord,California,California,Exhibit 10,,
+2026-27,NOR,Saddiq Bey,41,F,6'8,215,04/09/99,27.24,5,2020-19,USA,NC - Charlotte,Villanova,New Orleans Pelicans,3 yr / $19M,2027,6557080
+2026-27,NOR,Melvin Council Jr.,40,G,6'4,185,04/23/02,24.20,R,2026-ND,USA,NY - Rochester,Kansas,Kansas,Exhibit 10,,
 2026-27,NOR,Hunter Dickinson,4,C,7'1,255,11/25/00,25.61,1,2025-ND,USA,VA - Alexandria,Kansas,New Orleans Pelicans,Two-Way,,678882
-2026-27,NOR,Jeremiah Fears,0,G,6'3,190,10/14/06,19.72,1,2025-07,USA,IL - Chicago,Oklahoma,New Orleans Pelicans,4 yr / $41.8M,2029,7896240
-2026-27,NOR,Jordan Hawkins,24,G,6'5,190,04/29/02,24.18,3,2023-14,USA,MD - Gaithersburg,Connecticut,New Orleans Pelicans,2 yr / $17.5M,2027,7021740
-2026-27,NOR,Herb Jones,2,F,6'7,205,10/06/98,27.75,5,2021-35,USA,AL - Greensboro,Alabama,New Orleans Pelicans,4 yr / $82.5M,2030,14898786
+2026-27,NOR,Jeremiah Fears,0,G,6'3,190,10/14/06,19.72,1,2025-07,USA,IL - Chicago,Oklahoma,New Orleans Pelicans,4 yr / $34.2M,2027 +2,7896240
+2026-27,NOR,Jordan Hawkins,24,G,6'5,190,04/29/02,24.18,3,2023-14,USA,MD - Gaithersburg,Connecticut,New Orleans Pelicans,4 yr / $20.6M,2027,7021740
+2026-27,NOR,Herb Jones,2,F,6'7,205,10/06/98,27.75,5,2021-35,USA,AL - Greensboro,Alabama,New Orleans Pelicans,4 yr / $82.5M,2029 +1,14898786
 2026-27,NOR,DeAndre Jordan,6,C,6'11,265,07/21/88,37.98,18,2008-35,USA,TX - Houston,Texas A&M,New Orleans Pelicans,2 yr / $7.9M,2028,3876529
 2026-27,NOR,Karlo Matkovic,17,F,6'10,230,03/30/01,25.27,2,2022-52,"CRO, BIH",Bosnia - Livno,Mega Basket (Serbia),New Orleans Pelicans,1 yr / $2.3M,2027,2296271
-2026-27,NOR,Yves Missi,21,C,6'11,235,05/14/04,22.14,2,2024-21,CMR,Belgium - Brussels,Baylor,New Orleans Pelicans,3 yr / $17.7M,2028,3512760
-2026-27,NOR,Trey Murphy III,25,F,6'8,205,06/18/00,26.05,5,2021-17,USA,NC - Durham,Virginia,New Orleans Pelicans,3 yr / $87.0M,2029,27000000
-2026-27,NOR,Dejounte Murray,5,G,6'4,180,09/19/96,29.79,9,2016-29,USA,WA - Seattle,Washington,New Orleans Pelicans,2 yr / $63.5M,2028,32785071
+2026-27,NOR,Yves Missi,21,C,6'11,235,05/14/04,22.14,2,2024-21,CMR,Belgium - Brussels,Baylor,New Orleans Pelicans,4 yr / $15.7M,2027 +1,3512760
+2026-27,NOR,Trey Murphy III,25,F,6'8,205,06/18/00,26.05,5,2021-17,USA,NC - Durham,Virginia,New Orleans Pelicans,4 yr / $112M,2029,27000000
+2026-27,NOR,Dejounte Murray,5,G,6'4,180,09/19/96,29.79,9,2016-29,USA,WA - Seattle,Washington,New Orleans Pelicans,4 yr / $114M,2027 +1,32785071
 2026-27,NOR,Josh Oduro,13,F,6'9,240,10/14/00,25.72,1,2024-ND,USA,VA - Gainesville,Providence,New Orleans Pelicans,RFA,,
 2026-27,NOR,Micah Peavy,14,G,6'7,215,07/16/01,24.97,1,2025-40,USA,TX - Cibolo,Georgetown,New Orleans Pelicans,3 yr / $7.4M,2029,2150917
 2026-27,NOR,Jaron Pierre Jr.,10,F,6'6,210,07/12/02,23.98,R,2026-58,USA,LA - New Orleans,Southern Methodist,Southern Methodist,Two-Way,,678882
-2026-27,NOR,Jordan Poole,3,G,6'4,195,06/19/99,27.05,7,2019-28,USA,WI - Milwaukee,Michigan,New Orleans Pelicans,1 yr / $34.0M,2027,34044642
-2026-27,NOR,Derik Queen,22,C,6'9,250,12/27/04,21.52,1,2025-13,USA,MD - Baltimore,Maryland,New Orleans Pelicans,4 yr / $31.2M,2029,5416080
-2026-27,NOR,Zion Williamson,1,F,6'6,285,07/06/00,26.00,6,2019-01,USA,NC - Salisbury,Duke,New Orleans Pelicans,2 yr / $87.1M,2028,42166510
-2026-27,NYK,Jose Alvarado,5,G,6'0,180,04/12/98,28.24,5,2021-ND,USA,NY - Brooklyn,Georgia Tech,New York Knicks,3 yr / $14.4M,2029,4439656
-2026-27,NYK,OG Anunoby,8,F,6'7,240,07/17/97,28.97,9,2017-23,ENG,England - London,Indiana,New York Knicks,3 yr / $136.3M,2029,42500000
-2026-27,NYK,Mikal Bridges,25,F,6'6,210,08/30/96,29.85,8,2018-10,USA,PA - Philadelphia,Villanova,New York Knicks,4 yr / $150.0M,2030,33482145
-2026-27,NYK,Jalen Brunson,11,G,6'2,190,08/31/96,29.85,8,2018-33,USA,NJ - New Brunswick,Villanova,New York Knicks,3 yr / $121.6M,2029,37739521
+2026-27,NOR,Jordan Poole,3,G,6'4,195,06/19/99,27.05,7,2019-28,USA,WI - Milwaukee,Michigan,New Orleans Pelicans,4 yr / $128M,2027,34044642
+2026-27,NOR,Derik Queen,22,C,6'9,250,12/27/04,21.52,1,2025-13,USA,MD - Baltimore,Maryland,New Orleans Pelicans,4 yr / $24.4M,2027 +2,5416080
+2026-27,NOR,Zion Williamson,1,F,6'6,285,07/06/00,26.00,6,2019-01,USA,NC - Salisbury,Duke,New Orleans Pelicans,5 yr / $197M,2028,42166510
+2026-27,NYK,Jose Alvarado,5,G,6'0,180,04/12/98,28.24,5,2021-ND,USA,NY - Brooklyn,Georgia Tech,New York Knicks,3 yr / $14M,2029,4439656
+2026-27,NYK,OG Anunoby,8,F,6'7,240,07/17/97,28.97,9,2017-23,ENG,England - London,Indiana,New York Knicks,5 yr / $213M,2028 +1,42500000
+2026-27,NYK,Mikal Bridges,25,F,6'6,210,08/30/96,29.85,8,2018-10,USA,PA - Philadelphia,Villanova,New York Knicks,4 yr / $150.0M,2029 +1,33482145
+2026-27,NYK,Jalen Brunson,11,G,6'2,190,08/31/96,29.85,8,2018-33,USA,NJ - New Brunswick,Villanova,New York Knicks,4 yr / $157M,2028 +1,37739521
 2026-27,NYK,Jordan Clarkson,,G,6'5,194,06/07/92,34.10,12,2014-46,USA,NV - Las Vegas,Missouri,New York Knicks,1 yr / $3.9M,2027,3876529
-2026-27,NYK,Pacome Dadiet,4,G,6'9,210,07/27/05,20.94,2,2024-25,FRA,France - Aubagne,Ratiopharm Ulm (Germany),New York Knicks,3 yr / $14.0M,2028,2983680
-2026-27,NYK,Mohamed Diawara,51,F,6'9,225,04/29/05,21.18,1,2025-51,FRA,France - Paris,Cholet (France),New York Knicks,4 yr / $11.3M,2030,2622139
+2026-27,NYK,Pacome Dadiet,4,G,6'9,210,07/27/05,20.94,2,2024-25,FRA,France - Aubagne,Ratiopharm Ulm (Germany),New York Knicks,4 yr / $13M,2027 +1,2983680
+2026-27,NYK,Mohamed Diawara,51,F,6'9,225,04/29/05,21.18,1,2025-51,FRA,France - Paris,Cholet (France),New York Knicks,4 yr / $11.2M,2030,2622139
 2026-27,NYK,Andre Drummond,,C,6'11,280,08/10/93,32.92,14,2012-09,USA,NY - Mount Vernon,Connecticut,Philadelphia 76ers,1 yr / $3.9M,2027,3876529
-2026-27,NYK,Josh Hart,3,F,6'5,205,03/06/95,31.34,8,2017-30,USA,WI - Silver Spring,Villanova,New York Knicks,2 yr / $43.3M,2028,20923760
+2026-27,NYK,Josh Hart,3,F,6'5,205,03/06/95,31.34,8,2017-30,USA,WI - Silver Spring,Villanova,New York Knicks,4 yr / $80.9M,2027 +1,20923760
 2026-27,NYK,Trey Jemison,50,C,6'10,270,11/28/99,26.61,2,2023-ND,USA,AL - Birmingham,Alabama-Birmingham,New York Knicks,RFA,,
-2026-27,NYK,Dillon Jones,1,F,6'5,235,10/29/01,24.68,2,2024-26,USA,SC - Columbia,Weber State,New York Knicks,RFA,,
+2026-27,FA,Dillon Jones,1,F,6'5,235,10/29/01,24.68,2,2024-26,USA,SC - Columbia,Weber State,New York Knicks,RFA,,
 2026-27,NYK,Jack Kayil,,G,6'3,175,01/27/06,20.44,R,2026-39,GER,Germany - Berlin,Alba Berlin (Germany),Alba Berlin (Germany),2nd Rd Pick,,
-2026-27,NYK,Tyler Kolek,13,G,6'2,195,03/27/01,25.28,2,2024-34,USA,RI - Providence,Marquette,New York Knicks,2 yr / $4.8M,2028,2296271
-2026-27,NYK,Miles McBride,2,G,6'2,195,09/08/00,25.82,5,2021-36,USA,OH - Cincinnati,West Virginia,New York Knicks,1 yr / $4.0M,2027,3956523
+2026-27,NYK,Tyler Kolek,13,G,6'2,195,03/27/01,25.28,2,2024-34,USA,RI - Providence,Marquette,New York Knicks,4 yr / $9.1M,2027 +1,2296271
+2026-27,NYK,Miles McBride,2,G,6'2,195,09/08/00,25.82,5,2021-36,USA,OH - Cincinnati,West Virginia,New York Knicks,3 yr / $13M,2027,3956523
 2026-27,NYK,Kevin McCullar Jr.,9,F,6'6,210,03/15/01,25.31,2,2024-56,USA,TX - San Antonio,Kansas,New York Knicks,RFA,,
 2026-27,NYK,Tyler Nickel,,F,6'6,215,09/05/03,22.83,R,2026-47,USA,VA - Harrisonburg,Vanderbilt,Vanderbilt,2nd Rd Pick,,
-2026-27,NYK,Karl-Anthony Towns,32,C,7'0,250,11/15/95,30.64,11,2015-01,USA,NJ - Edison,Kentucky,New York Knicks,2 yr / $118.1M,2028,57078728
+2026-27,NYK,Karl-Anthony Towns,32,C,7'0,250,11/15/95,30.64,11,2015-01,USA,NJ - Edison,Kentucky,New York Knicks,4 yr / $220M,2027 +1,57078728
 2026-27,OKC,Brooks Barnhizer,23,G,6'5,230,03/02/02,24.35,1,2025-44,USA,IN - Lafayette,Northwestern,Oklahoma City Thunder,Two-Way,,678882
-2026-27,OKC,Alex Caruso,9,G,6'5,185,02/28/94,32.36,9,2016-ND,USA,TX - College Station,Texas A&M,Oklahoma City Thunder,3 yr / $63.0M,2029,19550160
+2026-27,OKC,Alex Caruso,9,G,6'5,185,02/28/94,32.36,9,2016-ND,USA,TX - College Station,Texas A&M,Oklahoma City Thunder,4 yr / $81.1M,2029,19550160
 2026-27,OKC,Josh Dix,21,G,6'6,210,06/29/04,22.02,R,2026-ND,USA,IL - Council Bluffs,Creighton,Creighton,Two-Way,,678882
-2026-27,ATL,Luguentz Dort,5,F,6'4,200,04/19/99,27.22,7,2019-ND,CAN,Canada - Montreal,Arizona State,Oklahoma City Thunder,1 yr / $17.2M,2027,17222222
-2026-27,OKC,Shai Gilgeous-Alexander,2,G,6'6,195,07/02/98,28.01,8,2018-11,CAN,Canada - Toronto,Kentucky,Oklahoma City Thunder,4 yr / $238.1M,2030,40806150
+2026-27,ATL,Luguentz Dort,5,F,6'4,200,04/19/99,27.22,7,2019-ND,CAN,Canada - Montreal,Arizona State,Oklahoma City Thunder,5 yr / $82.5M,2027,17222222
+2026-27,OKC,Shai Gilgeous-Alexander,2,G,6'6,195,07/02/98,28.01,8,2018-11,CAN,Canada - Toronto,Kentucky,Oklahoma City Thunder,4 yr / $272M,2030 +1,40806150
 2026-27,OKC,Isaiah Hartenstein,55,C,7'0,250,05/05/98,28.17,8,2017-43,USA,OH - Eugene,Zalgiris (Lithuania),Oklahoma City Thunder,3 yr / $75.0M,2029,23148148
-2026-27,OKC,Chet Holmgren,7,F,7'1,210,05/01/02,24.18,3,2022-02,USA,MN - Minneapolis,Gonzaga,Oklahoma City Thunder,4 yr / $184.8M,2030,41240250
+2026-27,OKC,Chet Holmgren,7,F,7'1,210,05/01/02,24.18,3,2022-02,USA,MN - Minneapolis,Gonzaga,Oklahoma City Thunder,5 yr / $239M,2031,41240250
 2026-27,OKC,Nate Johnson,31,G,6'3,205,06/16/03,23.05,R,2026-ND,USA,OH - Middletown,Kansas State,Kansas State,Exhibit 10,,
-2026-27,OKC,Aday Mara,15,C,7'3,260,04/07/05,21.24,R,2026-12,ESP,Spain - Zaragoza,Michigan,Michigan,4 yr / $27.0M,2030,5791680
-2026-27,OKC,Jared McCain,3,G,6'3,195,02/20/04,22.37,2,2024-16,USA,CA - Sacramento,Duke,Oklahoma City Thunder,3 yr / $21.4M,2028,4422600
-2026-27,OKC,Ajay Mitchell,25,G,6'4,190,06/25/02,24.03,2,2024-38,BEL,Belgium - Ans,UC Santa Barbara,Oklahoma City Thunder,2 yr / $5.7M,2028,2850000
+2026-27,OKC,Aday Mara,15,C,7'3,260,04/07/05,21.24,R,2026-12,ESP,Spain - Zaragoza,Michigan,Michigan,4 yr / $27.0M,2028 +2,5791680
+2026-27,OKC,Jared McCain,3,G,6'3,195,02/20/04,22.37,2,2024-16,USA,CA - Sacramento,Duke,Oklahoma City Thunder,4 yr / $19.4M,2027 +1,4422600
+2026-27,OKC,Ajay Mitchell,25,G,6'4,190,06/25/02,24.03,2,2024-38,BEL,Belgium - Ans,UC Santa Barbara,Oklahoma City Thunder,3 yr / $8.7M,2027 +1,2850000
 2026-27,OKC,Otega Oweh,13,G,6'4,215,06/21/03,23.04,R,2026-41,USA,NJ - Newark,Kentucky,Kentucky,Two-Way,,678882
-2026-27,OKC,Thomas Sorber,12,C,6'9,250,12/25/05,20.33,R,2025-52,USA,NJ - Trenton,Georgetown,Oklahoma City Thunder,4 yr / $29.6M,2029,4887720
-2026-27,OKC,Bennett Stirtz,14,G,6'2,185,10/03/03,22.76,R,2026-16,USA,MO - Liberty,Iowa,Iowa,4 yr / $22.8M,2030,4717320
-2026-27,OKC,Nikola Topic,44,G,6'6,200,08/10/05,20.90,1,2024-12,SRB,Serbia - Novi Sad,Mega Basket (Serbia),Oklahoma City Thunder,3 yr / $24.0M,2028,5429760
-2026-27,OKC,Cason Wallace,22,G,6'3,195,11/07/03,22.67,3,2023-10,USA,TX - Dallas,Kentucky,Oklahoma City Thunder,2 yr / $18.3M,2027,7421121
+2026-27,OKC,Thomas Sorber,12,C,6'9,250,12/25/05,20.33,R,2025-52,USA,NJ - Trenton,Georgetown,Oklahoma City Thunder,4 yr / $22.5M,2027 +2,4887720
+2026-27,OKC,Bennett Stirtz,14,G,6'2,185,10/03/03,22.76,R,2026-16,USA,MO - Liberty,Iowa,Iowa,4 yr / $22.8M,2028 +2,4717320
+2026-27,OKC,Nikola Topic,44,G,6'6,200,08/10/05,20.90,1,2024-12,SRB,Serbia - Novi Sad,Mega Basket (Serbia),Oklahoma City Thunder,4 yr / $23M,2027 +1,5429760
+2026-27,OKC,Cason Wallace,22,G,6'3,195,11/07/03,22.67,3,2023-10,USA,TX - Dallas,Kentucky,Oklahoma City Thunder,4 yr / $24.1M,2027,7421121
 2026-27,OKC,Lamar Wilkerson,42,F,6'6,205,11/17/01,24.63,R,2026-ND,USA,AR - Ashdown,Indiana,Indiana,Exhibit 10,,
-2026-27,OKC,Jalen Williams,8,G,6'5,210,04/14/01,25.23,4,2022-12,USA,CO - Denver,Santa Clara,Oklahoma City Thunder,4 yr / $184.8M,2030,41240250
-2026-27,OKC,Jaylin Williams,6,F,6'9,240,06/29/02,24.02,4,2022-34,USA,AR - Fort Smith,Arkansas,Oklahoma City Thunder,2 yr / $15.5M,2028,7774648
+2026-27,OKC,Jalen Williams,8,G,6'5,210,04/14/01,25.23,4,2022-12,USA,CO - Denver,Santa Clara,Oklahoma City Thunder,5 yr / $239M,2031,41240250
+2026-27,OKC,Jaylin Williams,6,F,6'9,240,06/29/02,24.02,4,2022-34,USA,AR - Fort Smith,Arkansas,Oklahoma City Thunder,3 yr / $24M,2027 +1,7774648
 2026-27,OKC,Kenrich Williams,34,F,6'7,210,12/02/94,31.61,8,2018-ND,USA,TX - Waco,TCU,Oklahoma City Thunder,1 yr / $5.0M,2027,5000000
-2026-27,ORL,Paolo Banchero,5,F,6'10,250,11/12/02,23.65,4,2022-01,USA,WA - Seattle,Duke,Orlando Magic,4 yr / $184.8M,2030,41240250
-2026-27,ORL,Desmond Bane,3,G,6'6,215,06/25/98,28.03,6,2020-30,USA,IN - Richmond,TCU,Orlando Magic,3 yr / $126.5M,2029,39446090
-2026-27,ORL,Goga Bitadze,35,C,6'11,250,07/20/99,26.96,7,2019-18,GEO,Georgia - Sagarejo,Buducnost (Montenegro),Orlando Magic,1 yr / $7.6M,2027,7608696
-2026-27,ORL,Anthony Black,0,G,6'7,200,01/20/04,22.46,3,2023-06,USA,TX - Irving,Arkansas,Orlando Magic,2 yr / $24.6M,2027,10105996
-2026-27,ORL,Jamal Cain,8,F,6'7,190,03/20/99,27.30,4,2022-ND,USA,MI - Pontiac,Oakland University,Orlando Magic,1 yr / $2.6M,2027,2584539
+2026-27,ORL,Paolo Banchero,5,F,6'10,250,11/12/02,23.65,4,2022-01,USA,WA - Seattle,Duke,Orlando Magic,5 yr / $239M,2030 +1,41240250
+2026-27,ORL,Desmond Bane,3,G,6'6,215,06/25/98,28.03,6,2020-30,USA,IN - Richmond,TCU,Orlando Magic,5 yr / $197M,2029,39446090
+2026-27,ORL,Goga Bitadze,35,C,6'11,250,07/20/99,26.96,7,2019-18,GEO,Georgia - Sagarejo,Buducnost (Montenegro),Orlando Magic,3 yr / $25M,2027,7608696
+2026-27,ORL,Anthony Black,0,G,6'7,200,01/20/04,22.46,3,2023-06,USA,TX - Irving,Arkansas,Orlando Magic,4 yr / $32.9M,2027,10105996
+2026-27,ORL,Jamal Cain,8,F,6'7,190,03/20/99,27.30,4,2022-ND,USA,MI - Pontiac,Oakland University,Orlando Magic,2 yr / $2.9M,2027,2584539
 2026-27,ORL,Jevon Carter,2,G,6'0,200,09/14/95,30.82,8,2018-32,USA,IL - Maywood,West Virginia,Orlando Magic,1 yr / $3.5M,2027,3506659
-2026-27,ORL,Wendell Carter Jr.,34,C,6'10,270,04/16/99,27.22,8,2018-07,USA,GA - Atlanta,Duke,Orlando Magic,3 yr / $58.7M,2029,18102000
+2026-27,ORL,Wendell Carter Jr.,34,C,6'10,270,04/16/99,27.22,8,2018-07,USA,GA - Atlanta,Duke,Orlando Magic,3 yr / $58.7M,2028 +1,18102000
 2026-27,ORL,Colin Castleton,14,C,6'10,255,05/25/00,26.12,3,2023-ND,USA,FL - Pembroke Pines,Florida,Orlando Magic,Two-Way,,678882
-2026-27,ORL,Tristan Da Silva,23,F,6'8,215,05/15/01,25.14,4,2024-18,"GER, BRA",Germany - Munich,Colorado,Orlando Magic,3 yr / $19.5M,2028,3991200
+2026-27,ORL,Tristan Da Silva,23,F,6'8,215,05/15/01,25.14,4,2024-18,"GER, BRA",Germany - Munich,Colorado,Orlando Magic,4 yr / $17.6M,2027 +1,3991200
 2026-27,ORL,Jonathan Isaac,1,F,6'10,230,10/03/97,28.77,7,2017-06,USA,NY - Bronx,Florida State,Orlando Magic,1 yr / $3.5M,2027,3524115
 2026-27,ORL,Alex Morales,30,G,6'6,180,11/21/97,28.62,1,2022-ND,USA,NJ - Paterson,Wagner,Orlando Magic,Two-Way,,678882
 2026-27,ORL,Izaiyah Nelson,25,F,6'8,220,10/01/03,22.76,R,2026-51,USA,GA - Marietta,South Florida,South Florida,Two-Way,,678882
-2026-27,ORL,Noah Penda,93,F,6'7,215,01/07/05,21.49,1,2025-32,FRA,France - Paris,Le Mans (France),Orlando Magic,3 yr / $7.4M,2029,2150917
+2026-27,ORL,Noah Penda,93,F,6'7,215,01/07/05,21.49,1,2025-32,FRA,France - Paris,Le Mans (France),Orlando Magic,4 yr / $8.7M,2028 +1,2150917
 2026-27,ORL,Malik Reneau,42,F,6'9,230,04/01/03,23.26,R,2026-ND,USA,FL - Hialeah Gardens,Miami (FL),Miami (FL),Exhibit 10,,
-2026-27,ORL,Jase Richardson,11,G,6'1,180,10/16/03,20.72,1,2025-35,USA,CA - Berkeley,Michigan State,Orlando Magic,4 yr / $21.6M,2029,3132360
-2026-27,ORL,Jalen Suggs,4,G,6'5,205,06/03/01,25.09,5,2021-05,USA,MN - Saint Paul,Gonzaga,Orlando Magic,4 yr / $115.5M,2030,32400000
+2026-27,ORL,Jase Richardson,11,G,6'1,180,10/16/03,20.72,1,2025-35,USA,CA - Berkeley,Michigan State,Orlando Magic,4 yr / $15.3M,2027 +2,3132360
+2026-27,ORL,Jalen Suggs,4,G,6'5,205,06/03/01,25.09,5,2021-05,USA,MN - Saint Paul,Gonzaga,Orlando Magic,5 yr / $151M,2030,32400000
 2026-27,ORL,Nikola Vucevic,9,C,6'9,260,10/24/90,35.72,15,2011-16,MNE,Switzerland - Morges,USC,Boston Celtics,1 yr / $3.9M,2027,3876529
-2026-27,ORL,Franz Wagner,22,F,6'10,220,08/27/01,24.86,5,2021-08,GER,Germany - Berlin,Michigan,Orlando Magic,4 yr / $185.6M,2030,41754636
-2026-27,PHI,Dominick Barlow,25,F,6'9,215,03/26/03,23.11,4,2022-ND,USA,NJ - Hackensack,Team Overtime (Overtime Elite),Philadelphia 76ers,1 yr / $3.4M,2027,3415000
+2026-27,ORL,Franz Wagner,22,F,6'10,220,08/27/01,24.86,5,2021-08,GER,Germany - Berlin,Michigan,Orlando Magic,5 yr / $224M,2030,41754636
+2026-27,PHI,Dominick Barlow,25,F,6'9,215,03/26/03,23.11,4,2022-ND,USA,NJ - Hackensack,Team Overtime (Overtime Elite),Philadelphia 76ers,2 yr / $6.8M,2027,3415000
 2026-27,PHI,MarJon Beauchamp,16,F,6'7,200,10/12/00,25.73,4,2022-24,USA,WA - Yakima,G League Ignite,Philadelphia 76ers,RFA,,
-2026-27,PHI,Adem Bona,30,C,6'10,235,03/28/03,23.27,2,2024-41,"NGR, TUR",Nigeria - Lagos,UCLA,Philadelphia 76ers,2 yr / $4.8M,2028,2296271
-2026-27,PHI,Johni Broome,22,C,6'10,235,07/19/02,23.96,1,2025-35,USA,FL - Plant City,Auburn,Philadelphia 76ers,3 yr / $7.4M,2029,2150917
-2026-27,PHI,Jaylen Brown,,F,6'6,225,10/24/96,29.71,10,2016-03,USA,GA - Marietta,California,Boston Celtics,3 yr / $185.0M,2029,57736350
-2026-27,PHI,VJ Edgecombe,77,G,6'4,180,07/30/05,20.93,1,2025-03,BAH,Bahamas - Bimini,Baylor,Philadelphia 76ers,4 yr / $61.1M,2029,11663880
-2026-27,PHI,Justin Edwards,11,F,6'7,205,12/16/03,22.55,2,2024-ND,USA,PA - Philadelphia,Kentucky,Philadelphia 76ers,2 yr / $5.0M,2028,2411090
-2026-27,PHI,Joel Embiid,21,C,7'0,280,03/16/94,32.31,10,2014-03,"CMR, USA",Cameroon - Yaounde,Kansas,Philadelphia 76ers,3 yr / $187.1M,2029,57736350
-2026-27,PHI,Ariel Hukporti,,C,7'0,245,04/12/02,24.24,2,2024-58,GER,Germany - Stralsund,Ludwigsburg (Germany),New York Knicks,1 yr / $3.4M,2027,3400000
+2026-27,PHI,Adem Bona,30,C,6'10,235,03/28/03,23.27,2,2024-41,"NGR, TUR",Nigeria - Lagos,UCLA,Philadelphia 76ers,4 yr / $7.9M,2027 +1,2296271
+2026-27,LAC,Johni Broome,22,C,6'10,235,07/19/02,23.96,1,2025-35,USA,FL - Plant City,Auburn,Philadelphia 76ers,4 yr / $8.7M,2028 +1,2150917
+2026-27,PHI,Jaylen Brown,7,F,6'6,225,10/24/96,29.71,10,2016-03,USA,GA - Marietta,California,Boston Celtics,5 yr / $285M,2029,57736350
+2026-27,PHI,VJ Edgecombe,77,G,6'4,180,07/30/05,20.93,1,2025-03,BAH,Bahamas - Bimini,Baylor,Philadelphia 76ers,4 yr / $50.4M,2027 +2,11663880
+2026-27,PHI,Justin Edwards,11,F,6'7,205,12/16/03,22.55,2,2024-ND,USA,PA - Philadelphia,Kentucky,Philadelphia 76ers,3 yr / $7.1M,2027 +1,2411090
+2026-27,PHI,Joel Embiid,21,C,7'0,280,03/16/94,32.31,10,2014-03,"CMR, USA",Cameroon - Yaounde,Kansas,Philadelphia 76ers,3 yr / $188M,2028 +1,57736350
+2026-27,PHI,Ariel Hukporti,55,C,7'0,245,04/12/02,24.24,2,2024-58,GER,Germany - Stralsund,Ludwigsburg (Germany),New York Knicks,1 yr / $3.4M,2027,3400000
 2026-27,PHI,Caleb Love,,G,6'3,210,09/27/01,24.78,1,2025-ND,USA,MO - St. Louis,Arizona,Portland Trail Blazers,Two-Way,,678882
 2026-27,PHI,Tyrese Martin,23,G,6'6,215,03/07/99,27.33,5,2022-51,USA,PA - Allentown,Connecticut,Philadelphia 76ers,RFA,,
-2026-27,PHI,Tyrese Maxey,0,G,6'2,200,11/04/00,25.67,6,2020-21,USA,TX - Dallas,Kentucky,Philadelphia 76ers,3 yr / $130.7M,2029,40770520
-2026-27,PHI,Duke Miles,,G,6'0,180,02/03/02,24.42,R,2026-ND,USA,AL - Montgomery,Vanderbilt,Vanderbilt,1 yr / $1.4M,2027,1357763
-2026-27,PHI,Labaron Philon Jr.,00,G,6'2,175,11/24/05,20.61,R,2026-22,USA,AL - Mobile,Alabama,Alabama,4 yr / $17.8M,2030,3597120
+2026-27,PHI,Tyrese Maxey,0,G,6'2,200,11/04/00,25.67,6,2020-21,USA,TX - Dallas,Kentucky,Philadelphia 76ers,5 yr / $204M,2029,40770520
+2026-27,PHI,Duke Miles,,G,6'0,180,02/03/02,24.42,R,2026-ND,USA,AL - Montgomery,Vanderbilt,Vanderbilt,Exhibit 10,,1357763
+2026-27,PHI,Labaron Philon Jr.,00,G,6'2,175,11/24/05,20.61,R,2026-22,USA,AL - Mobile,Alabama,Alabama,4 yr / $17.8M,2028 +2,3597120
 2026-27,PHI,Rayan Rupert,,G,6'7,205,05/31/04,22.10,3,2023-43,FRA,France - Strasbourg,New Zealand Breakers (Australia),Memphis Grizzlies,Two-Way,,678882
 2026-27,PHI,Anfernee Simons,,G,6'3,200,06/08/99,27.09,8,2018-24,USA,FL - Longwood,IMG Academy (HS - FL),Chicago Bulls,2 yr / $12.3M,2028,6000000
-2026-27,PHI,Dalen Terry,14,G,6'6,195,07/12/02,23.98,4,2022-18,USA,AZ - Phoenix,Arizona,Philadelphia 76ers,1 yr / $2.6M,2027,2584539
-2026-27,PHI,Dean Wade,,F,6'9,230,11/20/96,29.64,7,2019-ND,USA,KS - Wichita,Kansas State,Cleveland Cavaliers,4 yr / $38.7M,2030,9000000
-2026-27,PHI,Jabari Walker,33,F,6'7,235,07/30/02,23.94,4,2022-57,USA,KS - Wichita,Colorado,Philadelphia 76ers,1 yr / $2.6M,2027,2584539
-2026-27,PHO,Devin Booker,15,G,6'5,205,10/30/96,29.68,11,2015-13,USA,MI - Grand Rapids,Kentucky,Phoenix Suns,4 yr / $263.4M,2030,57078728
-2026-27,PHO,Jamaree Bouyea,17,G,6'2,180,06/27/99,27.03,4,2022-ND,USA,CA - Seaside,San Francisco,Phoenix Suns,1 yr / $2.6M,2027,2584539
+2026-27,PHI,Dean Wade,,F,6'9,230,11/20/96,29.64,7,2019-ND,USA,KS - Wichita,Kansas State,Cleveland Cavaliers,4 yr / $39M,2030,9000000
+2026-27,PHI,Jabari Walker,33,F,6'7,235,07/30/02,23.94,4,2022-57,USA,KS - Wichita,Colorado,Philadelphia 76ers,2 yr / $3.3M,2027,2584539
+2026-27,PHO,Devin Booker,15,G,6'5,205,10/30/96,29.68,11,2015-13,USA,MI - Grand Rapids,Kentucky,Phoenix Suns,2 yr / $132M,2029 +1,57078728
+2026-27,PHO,Jamaree Bouyea,17,G,6'2,180,06/27/99,27.03,4,2022-ND,USA,CA - Seaside,San Francisco,Phoenix Suns,1 yr / $3.2M,2027,2584539
 2026-27,PHO,Koby Brea,14,G,6'5,215,11/06/02,23.66,1,2025-41,USA,NY - New York City,Kentucky,Phoenix Suns,Two-Way,,678882
-2026-27,PHO,Miles Bridges,,F,6'7,225,03/21/98,28.30,7,2018-12,USA,MI - Flint,Michigan State,Charlotte Hornets,1 yr / $22.8M,2027,22826087
-2026-27,PHO,Dillon Brooks,3,F,6'7,235,01/22/96,30.46,9,2017-45,CAN,Canada - Mississauga,Oregon,Phoenix Suns,1 yr / $21.0M,2027,20992727
+2026-27,PHO,Miles Bridges,22,F,6'7,225,03/21/98,28.30,7,2018-12,USA,MI - Flint,Michigan State,Charlotte Hornets,3 yr / $75M,2027,22826087
+2026-27,PHO,Dillon Brooks,3,F,6'7,235,01/22/96,30.46,9,2017-45,CAN,Canada - Mississauga,Oregon,Phoenix Suns,4 yr / $86M,2027,20992727
 2026-27,PHO,Corey Camper Jr.,,G,6'5,185,04/17/02,24.22,R,2026-ND,USA,AR - Little Rock,Nevada,Nevada,Exhibit 10,,
-2026-27,PHO,Ryan Dunn,0,F,6'7,215,01/07/03,23.49,2,2024-ND,USA,NV - Baldwin,Virginia,Phoenix Suns,3 yr / $15.8M,2028,2784240
-2026-27,PHO,Rasheer Fleming,20,F,6'9,240,07/10/04,21.99,1,2025-31,USA,NJ - Camden,Saint Joseph's,Phoenix Suns,3 yr / $7.4M,2029,2150917
+2026-27,PHO,Ryan Dunn,0,F,6'7,215,01/07/03,23.49,2,2024-ND,USA,NV - Baldwin,Virginia,Phoenix Suns,4 yr / $13M,2027 +1,2784240
+2026-27,PHO,Rasheer Fleming,20,F,6'9,240,07/10/04,21.99,1,2025-31,USA,NJ - Camden,Saint Joseph's,Phoenix Suns,4 yr / $8.7M,2028 +1,2150917
 2026-27,PHO,Collin Gillespie,12,G,6'1,195,06/25/99,27.03,3,2023-ND,USA,PA - Philadelphia,Villanova,Phoenix Suns,4 yr / $48.0M,2030,10714286
 2026-27,PHO,Jordan Goodwin,23,G,6'3,215,10/23/98,27.70,5,2021-50,USA,IL - Cartersville,Saint Louis,Phoenix Suns,3 yr / $19.0M,2029,5864198
-2026-27,PHO,Jalen Green,4,G,6'4,185,02/09/02,24.40,5,2021-02,USA,CA - Merced,G League Ignite,Phoenix Suns,2 yr / $72.0M,2028,36000000
+2026-27,PHO,Jalen Green,4,G,6'4,185,02/09/02,24.40,5,2021-02,USA,CA - Merced,G League Ignite,Phoenix Suns,3 yr / $105M,2027 +1,36000000
 2026-27,PHO,Haywood Highsmith,,F,6'6,220,01/09/98,28.51,3,2019-ND,USA,FL - Miami,Wheeling,Phoenix Suns,1 yr / $3.0M,2027,3018158
 2026-27,PHO,Sam Hoiberg,,G,6'0,185,03/21/03,23.29,R,2026-ND,USA,IL - Chicago,Nebraska,Nebraska,Exhibit 10,,
-2026-27,PHO,C.J. Huntley,22,F,6'11,230,01/06/02,24.50,1,2025-ND,USA,NC - Huntersville,Appalachian State,Phoenix Suns,Two-Way,,
-2026-27,PHO,Oso Ighodaro,11,C,6'11,235,07/14/02,23.98,2,2024-40,USA,AZ - Mesa,Marquette,Phoenix Suns,1 yr / $2.3M,2027,2296271
-2026-27,PHO,Luke Kennard,,G,6'5,205,06/24/96,30.04,9,2017-12,USA,OH - Middletown,Duke,Los Angeles Lakers,2 yr / $12.4M,2028,6064156
-2026-27,PHO,Isaiah Livers,18,F,6'6,230,07/28/98,27.94,4,2021-42,USA,MI - Kalamazoo,Michigan,Phoenix Suns,RFA,,
-2026-27,PHO,Khaman Maluach,10,C,7'1,250,09/14/06,19.81,1,2025-10,SSD,South Sudan - Rumbek,Duke,Phoenix Suns,4 yr / $33.7M,2029,6316680
-2026-27,PHO,Koa Peat,18,F,6'7,245,01/20/07,19.45,R,2026-30,USA,AZ - Gilbert,Arizona,Arizona,4 yr / $15.0M,2030,2926800
+2026-27,PHO,C.J. Huntley,21,F,6'11,230,01/06/02,24.50,1,2025-ND,USA,NC - Huntersville,Appalachian State,Phoenix Suns,Two-Way,,
+2026-27,PHO,Oso Ighodaro,11,C,6'11,235,07/14/02,23.98,2,2024-40,USA,AZ - Mesa,Marquette,Phoenix Suns,4 yr / $7.9M,2028,2296271
+2026-27,PHO,Luke Kennard,,G,6'5,205,06/24/96,30.04,9,2017-12,USA,OH - Middletown,Duke,Los Angeles Lakers,2 yr / $13M,2027 +1,6064156
+2026-27,PHO,Isaiah Livers,,F,6'6,230,07/28/98,27.94,4,2021-42,USA,MI - Kalamazoo,Michigan,Phoenix Suns,RFA,,
+2026-27,PHO,Khaman Maluach,10,C,7'1,250,09/14/06,19.81,1,2025-10,SSD,South Sudan - Rumbek,Duke,Phoenix Suns,4 yr / $27.4M,2027 +2,6316680
+2026-27,PHO,Koa Peat,18,F,6'7,245,01/20/07,19.45,R,2026-30,USA,AZ - Gilbert,Arizona,Arizona,4 yr / $15.0M,2028 +2,2926800
 2026-27,PHO,Pat Spencer,,G,6'2,205,07/04/96,30.02,3,2020-ND,USA,MD - Davidsonville,Northwestern,Golden State Warriors,Two-Way,,678882
 2026-27,PHO,Mark Williams,25,C,7'1,240,12/16/01,24.55,4,2022-15,USA,VA - Norfolk,Duke,Phoenix Suns,3 yr / $38.0M,2029,11728395
-2026-27,POR,Deni Avdija,8,F,6'8,230,01/03/01,25.50,6,2020-09,"ISR, SRB",Israel - Beir Zera,Maccabi Tel Aviv (Israel),Portland Trail Blazers,2 yr / $25.0M,2028,13125000
+2026-27,POR,Deni Avdija,8,F,6'8,230,01/03/01,25.50,6,2020-09,"ISR, SRB",Israel - Beir Zera,Maccabi Tel Aviv (Israel),Portland Trail Blazers,4 yr / $55M,2028,13125000
 2026-27,POR,Toumani Camara,33,F,6'7,230,06/08/00,26.16,3,2023-52,BEL,Belgium - Brussels,Dayton,Portland Trail Blazers,4 yr / $81.0M,2030,18080358
 2026-27,POR,Branden Carlson,10,C,7'0,220,06/14/99,27.07,2,2024-ND,USA,UT - South Jordan,Utah,Oklahoma City Thunder,1 yr / $2.4M,2027,2449421
-2026-27,POR,Sidy Cissoko,9,F,6'6,220,04/02/02,22.26,3,2023-44,FRA,France - Saint-Maurice,G League Ignite,Portland Trail Blazers,1 yr / $2.5M,2027,2497812
-2026-27,POR,Donovan Clingan,23,C,7'2,280,02/23/04,22.36,2,2024-07,USA,CT - Bristol,Connecticut,Portland Trail Blazers,3 yr / $30.8M,2028,7519920
+2026-27,POR,Sidy Cissoko,9,F,6'6,220,04/02/02,22.26,3,2023-44,FRA,France - Saint-Maurice,G League Ignite,Portland Trail Blazers,2 yr / $3.2M,2027,2497812
+2026-27,POR,Donovan Clingan,23,C,7'2,280,02/23/04,22.36,2,2024-07,USA,CT - Bristol,Connecticut,Portland Trail Blazers,4 yr / $31.1M,2027 +1,7519920
 2026-27,POR,Barry Dunning Jr.,,G,6'6,195,10/26/03,22.69,R,2026-ND,USA,AL - Mobile,Pittsburgh,Pittsburgh,Exhibit 10,,
-2026-27,POR,Yang Hansen,16,C,7'1,270,06/26/05,21.02,1,2025-16,CHN,China - Zibo,Qingdao (China),Portland Trail Blazers,4 yr / $28.2M,2029,4643520
-2026-27,POR,Scoot Henderson,00,G,6'3,205,02/03/04,22.42,3,2023-03,USA,GA - Marietta,G League Ignite,Portland Trail Blazers,2 yr / $32.8M,2027,13585465
-2026-27,POR,Jrue Holiday,5,G,6'4,220,06/12/90,36.07,17,2009-17,USA,CA - Los Angeles,UCLA,Portland Trail Blazers,2 yr / $72.0M,2028,34800000
-2026-27,POR,Jayson Kent,29,F,6'8,215,02/03/02,24.42,1,2025-ND,USA,TX - Austin,Texas,Portland Trail Blazers,Two-Way,,678882
-2026-27,POR,Vit Krejci,27,G,6'8,195,06/19/00,26.05,5,2020-37,CZE,Czech Republic - Strakonice,Zaragoza (Spain),Portland Trail Blazers,2 yr / $5.7M,2028,2667944
-2026-27,POR,Damian Lillard,0,G,6'2,200,07/15/90,35.98,13,2012-06,USA,CA - Oakland,Weber State,Portland Trail Blazers,2 yr / $27.5M,2028,13398800
-2026-27,POR,Ja Morant,1,G,6'2,175,08/10/99,26.90,7,2019-02,USA,SC - Dalzell,Murray State,Memphis Grizzlies,2 yr / $87.1M,2028,42166510
+2026-27,POR,Yang Hansen,16,C,7'1,270,06/26/05,21.02,1,2025-16,CHN,China - Zibo,Qingdao (China),Portland Trail Blazers,4 yr / $21.4M,2027 +2,4643520
+2026-27,POR,Scoot Henderson,00,G,6'3,205,02/03/04,22.42,3,2023-03,USA,GA - Marietta,G League Ignite,Portland Trail Blazers,4 yr / $44.4M,2027,13585465
+2026-27,POR,Jrue Holiday,5,G,6'4,220,06/12/90,36.07,17,2009-17,USA,CA - Los Angeles,UCLA,Portland Trail Blazers,4 yr / $134M,2027 +1,34800000
+2026-27,POR,Jayson Kent,29,F,6'8,215,02/03/02,24.42,1,2025-ND,USA,TX - Austin,Texas,Texas,Two-Way,,678882
+2026-27,POR,Vit Krejci,27,G,6'8,195,06/19/00,26.05,5,2020-37,CZE,Czech Republic - Strakonice,Zaragoza (Spain),Portland Trail Blazers,4 yr / $10.2M,2027 +1,2667944
+2026-27,POR,Damian Lillard,0,G,6'2,200,07/15/90,35.98,13,2012-06,USA,CA - Oakland,Weber State,Portland Trail Blazers,3 yr / $41.6M,2027 +1,13398800
+2026-27,POR,Ja Morant,1,G,6'2,175,08/10/99,26.90,7,2019-02,USA,SC - Dalzell,Murray State,Memphis Grizzlies,5 yr / $197M,2028,42166510
 2026-27,POR,Shaedon Sharpe,17,G,6'5,210,05/30/03,23.10,4,2022-07,CAN,Canada - London,Did Not Play,Portland Trail Blazers,4 yr / $90.0M,2030,20089287
-2026-27,POR,Robert Williams III,35,C,6'9,250,10/17/97,28.73,8,2018-27,USA,LA - Shreveport,Texas A&M,Portland Trail Blazers,3 yr / $43.5M,2029,14000000
-2026-27,POR,Chris Youngblood,11,G,6'4,220,02/09/02,24.40,1,2025-ND,USA,AL - Tuscaloosa,Alabama,Portland Trail Blazers,Two-Way,,678882
-2026-27,SAC,Precious Achiuwa,,C,6'8,245,09/19/99,26.81,6,2020-20,NGR,Nigeria - Port Harcourt,Memphis,Sacramento Kings,2 yr / $11.2M,2028,5477000
-2026-27,SAC,Darius Acuff Jr.,5,G,6'2,185,11/16/07,18.63,R,2026-07,USA,MI - Detroit,Arkansas,Arkansas,4 yr / $36.5M,2030,8021640
+2026-27,POR,Robert Williams III,35,C,6'9,250,10/17/97,28.73,8,2018-27,USA,LA - Shreveport,Texas A&M,Portland Trail Blazers,3 yr / $44M,2029,14000000
+2026-27,POR,Chris Youngblood,11,G,6'4,220,02/09/02,24.40,1,2025-ND,USA,AL - Tuscaloosa,Alabama,Alabama,Two-Way,,678882
+2026-27,SAC,Precious Achiuwa,,C,6'8,245,09/19/99,26.81,6,2020-20,NGR,Nigeria - Port Harcourt,Memphis,Sacramento Kings,2 yr / $11.5M,2028,5477000
+2026-27,SAC,Darius Acuff Jr.,5,G,6'2,185,11/16/07,18.63,R,2026-07,USA,MI - Detroit,Arkansas,Arkansas,4 yr / $36.5M,2028 +2,8021640
 2026-27,SAC,Patrick Baldwin Jr.,23,F,7'0,220,11/18/02,23.63,4,2022-28,USA,WI - Green Bay,Milwaukee,Sacramento Kings,RFA,,
-2026-27,SAC,Dylan Cardwell,32,C,6'10,255,12/16/01,24.55,1,2025-ND,USA,GA - Augusta,Auburn,Sacramento Kings,3 yr / $7.4M,2029,2150917
-2026-27,SAC,Nique Clifford,5,G,6'5,175,02/09/02,24.40,1,2025-25,USA,CO - Colorado Springs,Colorado State,Sacramento Kings,4 yr / $22.0M,2029,3263400
+2026-27,SAC,Dylan Cardwell,32,C,6'10,255,12/16/01,24.55,1,2025-ND,USA,GA - Augusta,Auburn,Sacramento Kings,4 yr / $8.3M,2028 +1,2150917
+2026-27,SAC,Nique Clifford,5,G,6'5,175,02/09/02,24.40,1,2025-24,USA,CO - Colorado Springs,Colorado State,Sacramento Kings,4 yr / $15.8M,2027 +2,3263400
 2026-27,FA,DeMar DeRozan,10,F,6'6,220,08/07/89,36.92,17,2009-09,USA,CA - Compton,USC,Sacramento Kings,UFA,2027,
 2026-27,SAC,B.J. Edwards,,G,6'5,200,11/02/02,23.67,R,2026-ND,USA,TN - Knoxville,Southern Methodist,Southern Methodist,Exhibit 10,,
 2026-27,SAC,Adam Flagler,20,G,6'3,180,12/01/99,26.61,2,2023-ND,USA,GA - Duluth,Baylor,Austin Spurs (G League),Two-Way,,678882
@@ -512,108 +507,104 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,SAC,Maxime Raynaud,42,C,7'1,250,04/07/03,23.25,1,2025-42,FRA,France - Paris,Stanford,Sacramento Kings,2 yr / $4.7M,2028,2150917
 2026-27,SAC,Domantas Sabonis,11,C,6'10,240,05/03/96,30.18,10,2016-11,USA,OR - Portland,Gonzaga,Sacramento Kings,2 yr / $94.1M,2028,45472000
 2026-27,SAC,Emanuel Sharp,34,G,6'2,210,03/07/04,22.33,R,2026-45,"USA, ISR",Israel - Tel Aviv,Houston,Houston,4 yr / $9.3M,2030,1357763
-2026-27,SAC,Isaiah Stevens,24,G,5'11,185,11/01/00,25.68,2,2024-ND,USA,TX - Allen,Colorado State,Sacramento Kings,Two-Way,,678882
 2026-27,SAS,Harrison Barnes,40,F,6'7,225,05/30/92,34.11,14,2012-07,USA,IA - Ames,North Carolina,San Antonio Spurs,1 yr / $8.0M,2027,8000000
 2026-27,SAS,Maliq Brown,15,F,6'8,215,11/16/03,22.64,R,2026-44,USA,VA - Culpeper,Duke,Duke,Two-Way,,678882
-2026-27,SAS,Carter Bryant,11,F,6'6,210,11/26/05,20.61,1,2025-14,USA,CA - Riverside,Arizona,San Antonio Spurs,4 yr / $30.4M,2029,5145360
-2026-27,SAS,Stephon Castle,6,G,6'5,215,11/01/04,21.67,2,2024-04,USA,CA - Coronado,Connecticut,San Antonio Spurs,3 yr / $40.7M,2028,10015920
+2026-27,SAS,Carter Bryant,11,F,6'6,210,11/26/05,20.61,1,2025-14,USA,CA - Riverside,Arizona,San Antonio Spurs,4 yr / $23.4M,2027 +2,5145360
+2026-27,SAS,Stephon Castle,6,G,6'5,215,11/01/04,21.67,2,2024-04,USA,CA - Coronado,Connecticut,San Antonio Spurs,4 yr / $41.4M,2027 +1,10015920
 2026-27,SAS,Julian Champagnie,30,F,6'7,215,06/29/01,25.02,4,2022-50,USA,NY - Staten Island,St. John's,San Antonio Spurs,3 yr / $45.0M,2029,15350000
-2026-27,SAS,De'Aaron Fox,4,G,6'3,185,12/20/97,28.55,9,2017-05,USA,LA - New Orleans,Kentucky,San Antonio Spurs,4 yr / $221.7M,2030,49488300
+2026-27,SAS,De'Aaron Fox,4,G,6'3,185,12/20/97,28.55,9,2017-05,USA,LA - New Orleans,Kentucky,San Antonio Spurs,4 yr / $222M,2030,49488300
 2026-27,SAS,Ja'Kobi Gillespie,17,G,5'11,180,03/10/04,22.32,R,2026-42,USA,TN - Greenville,Tennessee,Tennessee,Two-Way,,678882
-2026-27,SAS,Dylan Harper,2,G,6'5,215,03/02/06,20.34,1,2025-02,USA,NJ - Franklin Lakes,Rutgers,San Antonio Spurs,4 yr / $67.9M,2029,12989040
-2026-27,SAS,Tobias Harris,12,F,6'8,225,07/15/92,33.99,15,2011-19,USA,NY - Islip,Tennessee,Detroit Pistons,2 yr / $30.8M,2028,15044000
+2026-27,SAS,Dylan Harper,2,G,6'5,215,03/02/06,20.34,1,2025-02,USA,NJ - Franklin Lakes,Rutgers,San Antonio Spurs,4 yr / $56.1M,2027 +2,12989040
+2026-27,SAS,Tobias Harris,12,F,6'8,225,07/15/92,33.99,15,2011-19,USA,NY - Islip,Tennessee,Detroit Pistons,2 yr / $31M,2028,15044000
 2026-27,UTA,Harrison Ingram,55,F,6'5,230,11/27/02,23.61,2,2024-48,USA,TX - Dallas,North Carolina,San Antonio Spurs,1 yr / $2.4M,2027,2449421
-2026-27,SAS,Keldon Johnson,3,F,6'6,230,10/11/99,26.74,7,2019-29,USA,KY - Chesterfield,Kentucky,San Antonio Spurs,1 yr / $18.0M,2027,18000000
+2026-27,SAS,Keldon Johnson,3,F,6'6,230,10/11/99,26.74,7,2019-29,USA,KY - Chesterfield,Kentucky,San Antonio Spurs,4 yr / $74M,2027,18000000
 2026-27,SAS,David Jones Garcia,25,F,6'4,210,11/24/01,24.61,4,2024-ND,DOM,Dominican Republic - Santo Domingo,Memphis,San Antonio Spurs,Two-Way,,678882
-2026-27,SAS,Luke Kornet,5,C,7'1,250,07/15/95,30.98,9,2017-ND,USA,KY - Lexington,Vanderbilt,San Antonio Spurs,3 yr / $29.7M,2029,10450000
+2026-27,SAS,Luke Kornet,5,C,7'1,250,07/15/95,30.98,9,2017-ND,USA,KY - Lexington,Vanderbilt,San Antonio Spurs,4 yr / $40.7M,2028 +1,10450000
 2026-27,SAS,Emanuel Miller,14,F,6'5,215,06/19/00,26.05,2,2024-ND,CAN,Canada - Scarborough,TCU,San Antonio Spurs,Two-Way,,
 2026-27,SAS,Jayden Quaintance,22,F,6'9,255,07/11/07,18.98,R,2026-20,USA,OH - Cleveland,Kentucky,Kentucky,4 yr / $18.9M,2028 +2,3903720
-2026-27,SAS,Tarris Reed Jr.,10,C,6'9,265,08/05/03,22.92,R,2026-26,USA,MO - St. Louis,Connecticut,Connecticut,4 yr / $15.8M,2030,3076920
-2026-27,SAS,Devin Vassell,24,G,6'5,200,08/23/00,25.87,6,2020-09,USA,GA - Lawrenceville,Florida State,San Antonio Spurs,3 yr / $80.1M,2029,27500000
-2026-27,SAS,Victor Wembanyama,1,C,7'4,235,01/04/04,22.50,3,2023-01,FRA,France - Le Chesnay,Metropolitans (France),San Antonio Spurs,4 yr / $157.8M,2030,16868013
+2026-27,SAS,Tarris Reed Jr.,10,C,6'9,265,08/05/03,22.92,R,2026-26,USA,MO - St. Louis,Connecticut,Connecticut,4 yr / $15.8M,2028 +2,3076920
+2026-27,SAS,Devin Vassell,24,G,6'5,200,08/23/00,25.87,6,2020-09,USA,GA - Lawrenceville,Florida State,San Antonio Spurs,5 yr / $135M,2029,27500000
+2026-27,SAS,Victor Wembanyama,1,C,7'4,235,01/04/04,22.50,3,2023-01,FRA,France - Le Chesnay,Metropolitans (France),San Antonio Spurs,5 yr / $252M,2031 +1,16868013
 2026-27,TOR,Kyle Anderson,,F,6'8,230,09/20/93,32.81,12,2014-30,"USA, CHN",NY - New York City,UCLA,Minnesota Timberwolves,1 yr / $3.9M,2027,3876529
-2026-27,TOR,Scottie Barnes,4,F,6'8,235,08/01/01,24.93,5,2021-04,USA,FL - West Palm Beach,Florida State,Toronto Raptors,4 yr / $185.6M,2030,41754636
-2026-27,TOR,RJ Barrett,9,F,6'6,215,06/14/00,26.06,7,2019-03,CAN,Canada - Toronto,Duke,Toronto Raptors,1 yr / $29.6M,2027,29616071
-2026-27,TOR,Jamison Battle,77,F,6'7,220,05/10/01,25.16,2,2024-ND,USA,MN - Minneapolis,Ohio State,Toronto Raptors,1 yr / $2.3M,2027,2296271
-2026-27,TOR,Nate Bittle,,C,7'0,215,06/03/03,23.09,R,2026-ND,USA,OR - Central Point,Oregon,Oregon,1 yr / $1.4M,2027,1357763
-2026-27,TOR,Jaden Bradley,8,G,6'2,205,09/14/03,22.81,R,2026-50,USA,NY - Rochester,Arizona,Arizona,2nd Rd Pick,,
+2026-27,TOR,Scottie Barnes,4,F,6'8,235,08/01/01,24.93,5,2021-04,USA,FL - West Palm Beach,Florida State,Toronto Raptors,5 yr / $224M,2030,41754636
+2026-27,TOR,RJ Barrett,9,F,6'6,215,06/14/00,26.06,7,2019-03,CAN,Canada - Toronto,Duke,Toronto Raptors,4 yr / $107M,2027,29616071
+2026-27,TOR,Jamison Battle,77,F,6'7,220,05/10/01,25.16,2,2024-ND,USA,MN - Minneapolis,Ohio State,Toronto Raptors,3 yr / $5.3M,2027,2296271
+2026-27,TOR,Nate Bittle,,C,7'0,215,06/03/03,23.09,R,2026-ND,USA,OR - Central Point,Oregon,Oregon,Exhibit 10,,1357763
+2026-27,TOR,Jaden Bradley,8,G,6'2,205,09/14/03,22.81,R,2026-50,USA,NY - Rochester,Arizona,Arizona,Two-Way,,
 2026-27,TOR,Nimari Burnett,,G,6'5,200,12/20/01,24.54,R,2026-ND,USA,IL - Chicago,Michigan,Michigan,Exhibit 10,,
-2026-27,TOR,Allen Graves,22,F,6'7,225,07/28/06,19.94,R,2026-19,USA,LA - Ponchatoula,Santa Clara,Santa Clara,4 yr / $19.7M,2030,4065720
+2026-27,TOR,Allen Graves,22,F,6'7,225,07/28/06,19.94,R,2026-19,USA,LA - Ponchatoula,Santa Clara,Santa Clara,4 yr / $19.7M,2028 +2,4065720
 2026-27,TOR,Chucky Hepburn,24,G,6'0,190,02/09/03,23.40,1,2025-ND,USA,NE - Omaha,Louisville,Toronto Raptors,Two-Way,,678882
-2026-27,TOR,Trayce Jackson-Davis,32,C,6'9,245,02/22/00,26.37,3,2023-57,USA,IN - Greenwood,Indiana,Toronto Raptors,1 yr / $2.4M,2027,2406205
-2026-27,TOR,Kawhi Leonard,,F,6'6,225,06/29/91,35.04,14,2011-15,USA,CA - Los Angeles,San Diego State,Los Angeles Clippers,1 yr / $50.3M,2027,50300000
-2026-27,TOR,Alijah Martin,55,G,6'2,210,12/26/01,24.53,1,2025-39,USA,MS - Summit,Florida,Toronto Raptors,2 yr / $4.8M,2028,2185116
-2026-27,TOR,Collin Murray-Boyles,12,F,6'7,245,06/10/05,21.07,1,2025-09,USA,SC - Columbia,South Carolina,Toronto Raptors,4 yr / $35.4M,2029,6649560
-2026-27,TOR,Jakob Poeltl,19,C,7'0,255,10/15/95,30.73,10,2016-09,AUT,Austria - Vienna,Utah,Toronto Raptors,4 yr / $103.6M,2030,19500000
-2026-27,TOR,Immanuel Quickley,5,G,6'2,190,06/17/99,27.05,6,2020-25,USA,MD - Havre de Grace,Kentucky,Toronto Raptors,3 yr / $97.5M,2029,32500000
-2026-27,TOR,Jamal Shead,23,G,6'1,200,06/24/02,24.03,2,2024-45,USA,TX - Austin,Houston,Toronto Raptors,1 yr / $2.3M,2027,2296271
-2026-27,TOR,Ja'Kobe Walter,14,G,6'4,180,09/04/04,21.83,2,2024-19,USA,TX - Dallas,Baylor,Toronto Raptors,3 yr / $18.6M,2028,3811800
-2026-27,UTA,Ace Bailey,19,F,6'9,200,08/13/06,19.89,1,2025-05,USA,TN - Chattanooga,Rutgers,Utah Jazz,4 yr / $50.2M,2029,9522960
+2026-27,TOR,Trayce Jackson-Davis,32,C,6'9,245,02/22/00,26.37,3,2023-57,USA,IN - Greenwood,Indiana,Toronto Raptors,4 yr / $7.4M,2027,2406205
+2026-27,TOR,Kawhi Leonard,,F,6'6,225,06/29/91,35.04,14,2011-15,USA,CA - Los Angeles,San Diego State,Los Angeles Clippers,3 yr / $150M,2027,50300000
+2026-27,TOR,Alijah Martin,55,G,6'2,210,12/26/01,24.53,1,2025-39,USA,MS - Summit,Florida,Toronto Raptors,2 yr / $4.8M,2027 +1,2185116
+2026-27,TOR,Collin Murray-Boyles,12,F,6'7,245,06/10/05,21.07,1,2025-09,USA,SC - Columbia,South Carolina,Toronto Raptors,4 yr / $28.8M,2027 +2,6649560
+2026-27,TOR,Jakob Poeltl,19,C,7'0,255,10/15/95,30.73,10,2016-09,AUT,Austria - Vienna,Utah,Toronto Raptors,3 yr / $84.1M,2030,19500000
+2026-27,TOR,Immanuel Quickley,5,G,6'2,190,06/17/99,27.05,6,2020-25,USA,MD - Havre de Grace,Kentucky,Toronto Raptors,5 yr / $163M,2029,32500000
+2026-27,TOR,Jamal Shead,23,G,6'1,200,06/24/02,24.03,2,2024-45,USA,TX - Austin,Houston,Toronto Raptors,3 yr / $6.1M,2027,2296271
+2026-27,TOR,Ja'Kobe Walter,14,G,6'4,180,09/04/04,21.83,2,2024-19,USA,TX - Dallas,Baylor,Toronto Raptors,4 yr / $16.8M,2027 +1,3811800
+2026-27,UTA,Ace Bailey,19,F,6'9,200,08/13/06,19.89,1,2025-05,USA,TN - Chattanooga,Rutgers,Utah Jazz,4 yr / $41.2M,2027 +2,9522960
 2026-27,UTA,Tamar Bates,0,G,6'4,195,02/21/03,23.37,R,2025-ND,USA,KS - Kansas City,Missouri,Grand Rapids Gold (G League),Two-Way,,678882
-2026-27,UTA,Isaiah Collier,8,G,6'4,210,10/08/04,21.74,2,2024-29,USA,GA - Atlanta,USC,Utah Jazz,3 yr / $15.7M,2028,2763960
-2026-27,UTA,Kyle Filipowski,2,C,6'11,250,11/07/03,22.66,2,2024-32,USA,NY - Middletown,Duke,Utah Jazz,2 yr / $6.0M,2028,3000000
-2026-27,UTA,Keyonte George,3,G,6'4,185,11/08/03,22.66,3,2023-16,USA,TX - Lewisville,Baylor,Utah Jazz,2 yr / $16.4M,2027,6563608
+2026-27,UTA,Isaiah Collier,8,G,6'4,210,10/08/04,21.74,2,2024-29,USA,GA - Atlanta,USC,Utah Jazz,4 yr / $12.9M,2027 +1,2763960
+2026-27,UTA,Kyle Filipowski,2,C,6'11,250,11/07/03,22.66,2,2024-32,USA,NY - Middletown,Duke,Utah Jazz,4 yr / $12M,2027 +1,3000000
+2026-27,UTA,Keyonte George,3,G,6'4,185,11/08/03,22.66,3,2023-16,USA,TX - Lewisville,Baylor,Utah Jazz,4 yr / $18.8M,2027,6563608
 2026-27,UTA,Hayden Gray,33,G,6'4,190,05/11/03,23.15,1,2025-ND,USA,CA - San Diego,UC San Diego,Utah Jazz,2 yr / $2.2M,2026 +1,2150917
-2026-27,UTA,Micah Handlogten,,C,7'1,255,12/17/03,22.55,R,2026-ND,USA,NC - Huntersville,Florida,Florida,Exhibit 10,,
-2026-27,UTA,Jaxson Hayes,,C,7'0,220,05/23/00,26.13,7,2019-08,"USA, SLO",OK - Norman,Texas,Los Angeles Lakers,2 yr / $12.0M,2028,6000000
-2026-27,UTA,Blake Hinson,11,F,6'8,240,12/26/99,26.53,1,2024-ND,USA,FL - Daytona Beach,Pittsburgh,Utah Jazz,Two-Way,,678882
-2026-27,UTA,Jaren Jackson Jr.,20,C,6'10,240,09/15/99,26.81,8,2018-04,USA,NJ - Plainfield,Michigan State,Utah Jazz,4 yr / $205.0M,2030,49000000
-2026-27,UTA,Jaxon Kohler,,C,6'9,245,06/17/03,23.05,R,2026-ND,USA,UT - American Fork,Michigan State,Michigan State,Two-Way,,
-2026-27,UTA,John Konchar,55,G,6'5,210,03/22/96,30.29,7,2019-ND,USA,IL - Chicago,Purdue Fort Wayne,Utah Jazz,1 yr / $6.2M,2027,6165000
-2026-27,UTA,Lauri Markkanen,23,F,7'1,240,05/22/97,29.13,9,2017-07,FIN,Finland - Vantaa,Arizona,Utah Jazz,3 yr / $149.5M,2029,46113154
+2026-27,UTA,Micah Handlogten,88,C,7'1,255,12/17/03,22.55,R,2026-ND,USA,NC - Huntersville,Florida,Florida,Exhibit 10,,
+2026-27,UTA,Jaxson Hayes,,C,7'0,220,05/23/00,26.13,7,2019-08,"USA, SLO",OK - Norman,Texas,Los Angeles Lakers,2 yr / $12.0M,2027 +1,6000000
+2026-27,UTA,Blake Hinson,25,F,6'8,240,12/26/99,26.53,1,2024-ND,USA,FL - Daytona Beach,Pittsburgh,Utah Jazz,Two-Way,,678882
+2026-27,UTA,Jaren Jackson Jr.,20,C,6'10,240,09/15/99,26.81,8,2018-04,USA,NJ - Plainfield,Michigan State,Utah Jazz,4 yr / $205.0M,2029 +1,49000000
+2026-27,UTA,Jaxon Kohler,,C,6'9,245,06/17/03,23.05,R,2026-ND,USA,UT - American Fork,Michigan State,Michigan State,Exhibit 10,,
+2026-27,UTA,John Konchar,55,G,6'5,210,03/22/96,30.29,7,2019-ND,USA,IL - Chicago,Purdue Fort Wayne,Utah Jazz,3 yr / $18.5M,2027,6165000
+2026-27,UTA,Lauri Markkanen,23,F,7'1,240,05/22/97,29.13,9,2017-07,FIN,Finland - Vantaa,Arizona,Utah Jazz,4 yr / $196M,2029,46113154
 2026-27,UTA,Bez Mbeng,21,G,6'4,185,05/02/03,23.18,1,2025-ND,USA,MD - Potomac,Yale,Utah Jazz,2 yr / $2.2M,2026 +1,2150917
-2026-27,UTA,Svi Mykhailiuk,10,F,6'7,205,06/10/97,29.07,8,2018-47,UKR,Ukraine - Cherkasy,Kansas,Utah Jazz,2 yr / $7.9M,2028,3850000
+2026-27,UTA,Svi Mykhailiuk,10,F,6'7,205,06/10/97,29.07,8,2018-47,UKR,Ukraine - Cherkasy,Kansas,Utah Jazz,4 yr / $15.1M,2027 +1,3850000
 2026-27,UTA,Jusuf Nurkic,30,C,6'11,290,08/23/94,31.87,12,2014-16,BIH,Bosnia & Herzegovina - Zivinice,Zadar (Croatia),Utah Jazz,2 yr / $22.0M,2028,11458333
-2026-27,UTA,Darryn Peterson,22,G,6'4,200,01/17/07,19.46,R,2026-02,USA,OH - Canton,Kansas,Kansas,4 yr / $59.9M,2030,13195320
-2026-27,UTA,Brice Sensabaugh,28,F,6'6,235,10/30/03,22.68,3,2023-28,USA,FL - Wilton Manors,Ohio State,Utah Jazz,2 yr / $12.6M,2027,4861695
-2026-27,UTA,Cody Williams,5,G,6'8,190,11/20/04,21.62,2,2024-10,USA,CA - San Luis Obispo,Colorado,Utah Jazz,3 yr / $24.9M,2028,6015600
-2026-27,UTA,Josh Okogie,,G,,,09/01/98,24.80,,,,,,Houston Rockets,2 yr / $12.0M,2028,6000000
-2026-27,WAS,Deandre Ayton,,C,7'0,250,07/23/98,27.96,8,2018-01,BAH,Bahamas - Nassau,Arizona,Los Angeles Lakers,1 yr / $8.1M,2027,8104000
-2026-27,WAS,Bub Carrington,7,G,6'4,190,07/21/05,20.96,2,2024-14,USA,MD - Baltimore,Pittsburgh,Washington Wizards,3 yr / $23.0M,2028,4900560
-2026-27,WAS,Justin Champagnie,9,F,6'6,205,06/29/01,25.02,5,2021-ND,USA,NY - New York City,Pittsburgh,Washington Wizards,2 yr / $5.7M,2028,2667944
+2026-27,UTA,Darryn Peterson,22,G,6'4,200,01/17/07,19.46,R,2026-02,USA,OH - Canton,Kansas,Kansas,4 yr / $59.9M,2028 +2,13195320
+2026-27,UTA,Brice Sensabaugh,28,F,6'6,235,10/30/03,22.68,3,2023-28,USA,FL - Wilton Manors,Ohio State,Utah Jazz,4 yr / $12.6M,2027,4861695
+2026-27,UTA,Cody Williams,5,G,6'8,190,11/20/04,21.62,2,2024-10,USA,CA - San Luis Obispo,Colorado,Utah Jazz,4 yr / $24.9M,2027 +1,6015600
+2026-27,UTA,Josh Okogie,21,G,,,09/01/98,24.80,,,,,,Houston Rockets,4 yr / $12M,2027 +1,6000000
+2026-27,WAS,Deandre Ayton,,C,7'0,250,07/23/98,27.96,8,2018-01,BAH,Bahamas - Nassau,Arizona,Los Angeles Lakers,2 yr / $16.2M,2027,8104000
+2026-27,WAS,Bub Carrington,7,G,6'4,190,07/21/05,20.96,2,2024-14,USA,MD - Baltimore,Pittsburgh,Washington Wizards,4 yr / $21.3M,2027 +1,4900560
+2026-27,WAS,Justin Champagnie,9,F,6'6,205,06/29/01,25.02,5,2021-ND,USA,NY - New York City,Pittsburgh,Washington Wizards,4 yr / $9.8M,2027 +1,2667944
 2026-27,WAS,Sharife Cooper,13,G,6'0,175,06/11/01,25.07,2,2021-48,USA,NJ - Newark,Auburn,Washington Wizards,RFA,,
-2026-27,WAS,Bilal Coulibaly,0,G,6'7,195,07/26/04,21.94,3,2023-07,FRA,France - Saint-Cloud,Metropolitans (France),Washington Wizards,2 yr / $22.6M,2027,9240116
-2026-27,WAS,Anthony Davis,23,F,6'10,255,03/11/93,33.33,14,2012-01,USA,IL - Chicago,Kentucky,Washington Wizards,2 yr / $121.2M,2028,58456566
-2026-27,WAS,AJ Dybantsa,4,F,6'8,215,01/19/07,19.46,R,2026-01,USA,MA - Boston,BYU,BYU,4 yr / $66.9M,2030,14748000
-2026-27,WAS,Kyshawn George,18,F,6'8,200,12/13/03,22.56,2,2024-24,"SUI, CAN",Switzerland - Monthey,Miami (FL),Washington Wizards,3 yr / $17.0M,2028,3108000
-2026-27,WAS,Tre Johnson,12,G,6'5,190,03/07/06,20.33,1,2025-06,USA,TX - Dallas,Texas,Washington Wizards,4 yr / $45.7M,2029,8649600
+2026-27,WAS,Bilal Coulibaly,0,G,6'7,195,07/26/04,21.94,3,2023-07,FRA,France - Saint-Cloud,Metropolitans (France),Washington Wizards,4 yr / $30.1M,2027,9240116
+2026-27,WAS,Anthony Davis,23,F,6'10,255,03/11/93,33.33,14,2012-01,USA,IL - Chicago,Kentucky,Washington Wizards,3 yr / $175M,2027 +1,58456566
+2026-27,WAS,AJ Dybantsa,4,F,6'8,215,01/19/07,19.46,R,2026-01,USA,MA - Boston,BYU,BYU,4 yr / $66.9M,2028 +2,14748000
+2026-27,WAS,Kyshawn George,18,F,6'8,200,12/13/03,22.56,2,2024-24,"SUI, CAN",Switzerland - Monthey,Miami (FL),Washington Wizards,4 yr / $14.3M,2027 +1,3108000
+2026-27,WAS,Tre Johnson,12,G,6'5,190,03/07/06,20.33,1,2025-06,USA,TX - Dallas,Texas,Washington Wizards,4 yr / $37.4M,2027 +2,8649600
 2026-27,WAS,Khris Middleton,,F,6'6,222,08/12/91,34.92,13,2012-39,USA,SC - Charleston,Texas A&M,Milwaukee Bucks,3 yr / $17.6M,2029,5591122
 2026-27,WAS,KeShawn Murphy,,F,6'10,230,11/24/02,23.61,R,2026-ND,USA,AL - Birmingham,Auburn,Auburn,Exhibit 10,,
 2026-27,WAS,Felix Okpara,34,F,6'11,235,04/20/04,22.21,R,2026-46,NGR,Nigeria - Lagos,Tennessee,Tennessee,Two-Way,,678882
 2026-27,WAS,Julian Reese,15,F,6'9,230,06/30/03,23.02,1,2025-ND,USA,MD - Baltimore,Maryland,Washington Wizards,Two-Way,,678882
-2026-27,WAS,Will Riley,27,F,6'9,180,02/10/06,20.40,1,2025-21,CAN,Canada - Kitchener,Illinois,Washington Wizards,4 yr / $23.2M,2029,3688320
+2026-27,WAS,Will Riley,27,F,6'9,180,02/10/06,20.40,1,2025-21,CAN,Canada - Kitchener,Illinois,Washington Wizards,4 yr / $17.2M,2027 +2,3688320
 2026-27,MEM,D'Angelo Russell,28,G,6'3,195,02/23/96,30.37,11,2015-02,USA,KY - Louisville,Ohio State,Washington Wizards,1 yr / $6.0M,2027,5969250
-2026-27,WAS,Alex Sarr,20,C,7'0,205,04/26/05,21.19,2,2024-02,FRA,France - Bordeaux,Perth (Australia),Washington Wizards,3 yr / $49.9M,2028,12370680
+2026-27,WAS,Alex Sarr,20,C,7'0,205,04/26/05,21.19,2,2024-02,FRA,France - Bordeaux,Perth (Australia),Washington Wizards,4 yr / $51M,2027 +1,12370680
 2026-27,WAS,Seth Trimble,,G,6'3,195,08/09/04,21.90,R,2026-ND,USA,WI - Menomonee Falls,North Carolina,North Carolina,Two-Way,,
-2026-27,WAS,Tristan Vukcevic,00,C,7'0,220,03/11/03,23.32,3,2023-42,"SRB, GRE",Italy - Siena,Partzan (Serbia),Washington Wizards,2 yr / $6.0M,2028,3000000
+2026-27,WAS,Tristan Vukcevic,00,C,7'0,220,03/11/03,23.32,3,2023-42,"SRB, GRE",Italy - Siena,Partzan (Serbia),Washington Wizards,3 yr / $8.9M,2027 +1,3000000
 2026-27,WAS,Jamir Watkins,5,G,6'6,210,07/06/01,25.01,1,2025-43,USA,NJ - Trenton,Florida State,Washington Wizards,Two-Way,,678882
-2026-27,WAS,Cam Whitmore,1,F,6'6,230,07/08/04,21.99,3,2023-20,USA,MD - Odenton,Villanova,Washington Wizards,2 yr / $13.8M,2027,5458643
+2026-27,WAS,Cam Whitmore,1,F,6'6,230,07/08/04,21.99,3,2023-20,USA,MD - Odenton,Villanova,Washington Wizards,4 yr / $15.6M,2027,5458643
 2026-27,WAS,Trae Young,3,G,6'2,165,09/19/98,27.80,8,2018-05,USA,TX - Lubbock,Oklahoma,Washington Wizards,4 yr / $212.8M,2030,49488300
-2026-27,MEM,Cole Anthony,,G,6'2,185,05/15/00,26.16,5,2020-15,USA,NY - New York City,North Carolina,Milwaukee Bucks,2 yr / $7.4M,2028,3700000
 2026-27,FA,Bruce Brown,,G,6'4,202,08/15/96,29.91,7,2018-42,USA,MA - Boston,Miami (FL),Denver Nuggets,UFA,,
-2026-27,DET,Elijah Harkless,,G,,,,,,,USA,,,Utah Jazz,Two-Way,,678882
+2026-27,DET,Elijah Harkless,,G,6'3,195,02/03/00,26.50,2,2023-ND,USA,CA - San Bernardino,UNLV,Utah Jazz,Two-Way,,678882
 2026-27,FA,Kelly Olynyk,,F,6'11,238,04/19/91,35.23,12,2013-13,USA,BC - Kamloops,Gonzaga,San Antonio Spurs,UFA,,
 2026-27,FA,Cameron Payne,,G,6'1,185,08/08/94,31.93,10,2015-14,USA,MI - Flint,Murray State,Philadelphia 76ers,UFA,,
-2026-27,DAL,Jett Howard,,G,,,09/14/03,22.80,,,,,,Orlando Magic,Two-Way,,678882
+2026-27,DAL,Jett Howard,9,F,6'8,215,09/14/03,22.89,3,2023-11,USA,IL - Chicago,Michigan,Orlando Magic,Two-Way,,678882
 2026-27,FA,Gary Payton II,,G,,,12/01/92,33.60,,,,,,Golden State Warriors,UFA,,
 2026-27,FA,Nick Richards,,C,6'11,240,11/28/98,27.62,5,2020-42,USA,NC - Chesapeake,Kentucky,Chicago Bulls,UFA,,
 2026-27,FA,Jeremy Sochan,,F,6'8,230,05/20/04,22.14,3,2022-09,POL,USA - Oklahoma City,Baylor,San Antonio Spurs,UFA,,
-2026-27,LAL,Matisse Thybulle,,G,6'5,201,03/04/97,29.36,6,2019-20,USA,WA - Seattle,Washington,Portland Trail Blazers,1 yr / $3.3M,2027,3286399
+2026-27,LAL,Matisse Thybulle,26,G,6'5,201,03/04/97,29.36,6,2019-20,USA,WA - Seattle,Washington,Portland Trail Blazers,1 yr / $3.3M,2027,3286399
 2026-27,FA,Trendon Watford,,F,6'8,237,02/23/01,25.38,4,2021-ND,USA,AL - Birmingham,LSU,Philadelphia 76ers,UFA,,
 2026-27,FA,Russell Westbrook,,G,6'3,200,11/12/88,37.66,17,2008-04,USA,CA - Long Beach,UCLA,Sacramento Kings,UFA,,
 2026-27,FA,Brandon Williams,,,,,,,,,,,,Dallas Mavericks,UFA,,
 2026-27,FA,Vince Williams Jr.,,F,6'6,210,08/17/99,26.90,3,2022-47,USA,VA - Virginia Beach,Virginia Commonwealth,Utah Jazz,UFA,,
 2026-27,ATL,Jalen Wilson,,F,,,11/04/00,25.70,,,,,,Brooklyn Nets,Two-Way,,678882
-2026-27,HOU,Jae'Sean Tate,,,,,,,,,,,,Houston Rockets,1 yr / $3.1M,2027,3066143
-2026-27,HOU,Oscar Tshiebwe,,,,,,,,,,,,Houston Rockets,1 yr / $2.5M,2027,2537526
-2026-27,HOU,Julian Phillips,,,,,,,,,,,,Houston Rockets,1 yr / $2.5M,2027,2537526
-2026-27,IND,Kobe Brown,,,,,,,,,,,,Indiana Pacers,Two-Way,,678882
-2026-27,LAC,Jamarion Sharp,,,,,,,,,,,,Los Angeles Clippers,Two-Way,,678882
-2026-27,LAL,Ziaire Williams,,,,,,,,,,,,Los Angeles Lakers,1 yr / $2.8M,2027,2845883
-2026-27,LAL,Arthur Kaluma,,,,,,,,,,,,Los Angeles Lakers,Two-Way,,678882
-2026-27,MEM,Brandon Clarke,,,,,,,,,,,,Memphis Grizzlies,1 yr / $12.5M,2027,12500000
-2026-27,MEM,Mamadi Diakite,,,,,,,,,,,,Memphis Grizzlies,1 yr / $0.5M,2027,464050
-2026-27,MIL,Pete Nance,,,,,,,,,,,,Milwaukee Bucks,2 yr / $5.3M,2028,2537526
+2026-27,HOU,Jae'Sean Tate,8,F,6'4,230,10/28/95,30.77,6,2018-ND,USA,OH - Toledo,Ohio State,Houston Rockets,1 yr / $3.2M,2027,3066143
+2026-27,HOU,Oscar Tshiebwe,,C,6'9,255,11/27/99,26.69,3,2023-ND,COD,DR Congo - Lubumbashi,Kentucky,Houston Rockets,Two-Way,,2537526
+2026-27,HOU,Julian Phillips,,F,6'6,200,11/05/03,22.75,3,2023-35,USA,TX - Killeen,Tennessee,Houston Rockets,1 yr / $2.5M,2027,2537526
+2026-27,IND,Kobe Brown,24,F,6'7,250,01/01/00,26.59,3,2023-30,USA,AL - Huntsville,Missouri,Indiana Pacers,Two-Way,,678882
+2026-27,LAC,Jamarion Sharp,,C,7'5,235,08/26/01,24.94,R,2024-ND,USA,KY - Hopkinsville,Mississippi,Los Angeles Clippers,Two-Way,,678882
+2026-27,LAL,Ziaire Williams,11,F,6'9,185,09/12/01,24.89,5,2021-10,USA,CA - Lancaster,Stanford,Los Angeles Lakers,1 yr / $2.9M,2027,2845883
+2026-27,LAL,Arthur Kaluma,47,F,6'7,225,03/01/02,24.43,R,2025-ND,"USA, UGA",TX - Irving,Texas,Los Angeles Lakers,Two-Way,,678882
+2026-27,MIL,Pete Nance,,,,,,,,,,,,Milwaukee Bucks,2 yr / $5.2M,2027 +1,2537526
 2026-27,MIL,Kam Jones,,,,,,,,,,,,Milwaukee Bucks,Two-Way,,678882
 2026-27,NOR,Bryce McGowens,,,,,,,,,,,,New Orleans Pelicans,2 yr / $5.5M,2028,2584539
 2026-27,NYK,Landry Shamet,,,,,,,,,,,,New York Knicks,4 yr / $24.0M,2030,5490967
@@ -621,6 +612,9 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,PHO,EJ Liddell,,,,,,,,,,,,Phoenix Suns,1 yr / $0.7M,2027,706898
 2026-27,POR,Didi Louzada,,,,,,,,,,,,Portland Trail Blazers,2 yr / $0.5M,2028,268032
 2026-27,SAS,Jordan McLaughlin,,,,,,,,,,,,San Antonio Spurs,1 yr / $3.3M,2027,3286399
-2026-27,UTA,Mo Bamba,,,,,,,,,,,,Utah Jazz,2 yr / $7.2M,2028,3506659
-2026-27,UTA,Trey Alexander,,,,,,,,,,,,Utah Jazz,Two-Way,,678882
+2026-27,UTA,Mo Bamba,11,,,,,,,,,,,Utah Jazz,2 yr / $7M,2027 +1,3506659
+2026-27,UTA,Trey Alexander,15,G,6'5,185,05/02/03,23.26,2,2024-ND,USA,OK - Oklahoma City,Creighton,New Orleans Pelicans,Two-Way,,678882
 2026-27,DEN,Alpha Diallo,,F,6'6,205,06/29/97,29.09,R,2020-ND,"USA, GUI",CO - Denver,Providence,Monaco (France),1 yr / $1.4M,2027,1357763
+2026-27,NOR,Kobe Bufkin,,G,6'4,195,09/21/03,22.87,3,2023-15,USA,MI - Grand Rapids,Michigan,Los Angeles Lakers,1 yr / $,2027,
+2026-27,NOR,Christian Koloko,,C,6'11,225,06/20/00,26.12,3,2022-33,CMR,Cameroon - Douala,Arizona,Atlanta Hawks,1 yr / $2.5M,2027,
+2026-27,PHI,Kentavious Caldwell-Pope,,G,6'5,205,02/18/93,33.46,13,2013-08,USA,GA - Thomaston,Georgia,Memphis Grizzlies,1 yr / $,,0
