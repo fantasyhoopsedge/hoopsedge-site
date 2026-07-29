@@ -41,6 +41,10 @@ export type Player = {
   contractTotal: number | null;
   /** Standard | Rookie Scale | Two-Way | Exhibit 10 | RFA | UFA | Draftee (nba_roster.contract_status). */
   contractStatus: string | null;
+  /** "N of M" — which year of the deal this season falls in. Null for an
+   *  extension signed while still under a different, expiring contract (the
+   *  current season isn't part of the new deal at all). */
+  contractYearPosition: string | null;
   /** Real per-year cap hits, index 0 = 2026-27 (Year 1) → 2029-30. null = no contracted salary that year. */
   salaryYears: (number | null)[];
   /** Comma-separated seasons whose salary is an even-split estimate (e.g. "2027-28, 2028-29"). */

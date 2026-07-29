@@ -308,9 +308,10 @@ export const getDraftYears = unstable_cache(
 /** Per-year cap hits (Year 1 = 2026-27), extrapolating 2029-30 for a mid-contract deal that runs that far. */
 function resolveSalaryYears(r: {
   salary_yr1: number | null; salary_yr2: number | null; salary_yr3: number | null; salary_yr4: number | null;
+  salary_yr5: number | null; salary_yr6: number | null;
   fa_year: number | null; salary_estimated_years: string | null;
 }): { years: (number | null)[]; estimated: string | null } {
-  const years = [r.salary_yr1, r.salary_yr2, r.salary_yr3, r.salary_yr4];
+  const years = [r.salary_yr1, r.salary_yr2, r.salary_yr3, r.salary_yr4, r.salary_yr5, r.salary_yr6];
   let estimated = r.salary_estimated_years;
   // current.csv only reaches 2028-29, so a deal running to 2029-30 (FA year > 2029)
   // has a null yr4 — extrapolate it from the yr2→yr3 raise so the table reaches 2029-30.
@@ -492,6 +493,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       contractYears: r.contract_years,
       contractTotal: r.contract_total,
       contractStatus: r.contract_status,
+      contractYearPosition: r.contract_year_position,
       salaryYears,
       estimatedYears: estimated,
       qoYears: r.salary_qo_years,
