@@ -513,6 +513,36 @@ export interface Database {
           },
         ];
       };
+      // Real Salary Rankings (migrations 20260730000000 + _3factor +
+      // _salary_z). One row per (player_id, season): a consensus-anchored
+      // Market Value model — dynasty consensus rank (dominant) blended with
+      // a cap-Efficiency adjuster (60/40 cheapness/production, see
+      // EFFICIENCY_SUBWEIGHTS in src/lib/value/real-salary-model.ts) —
+      // Market Salary quantile-mapped onto real salaries — for the
+      // "Balanced" archetype preset. Other archetypes are recomputed
+      // client-side from consensus_z/production_z/salary_z. Written by
+      // scripts/build-real-salary-values.ts (service role).
+      real_salary_values: {
+        Row: {
+          player_id: string;
+          season: number;
+          league_size: number;
+          salary: number;
+          salary_source: string;
+          confidence_tier: string | null;
+          consensus_z: number;
+          production_z: number;
+          salary_z: number;
+          market_value_score: number;
+          expected_cap_hit: number;
+          surplus_value: number;
+          surplus_rank: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       dn_leaderboard: {
@@ -648,3 +678,6 @@ export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidate
 // ── Seasonal rankings convenience aliases ───────────────────────────────────
 export type SeasonPlayerStats = Database["public"]["Tables"]["season_player_stats"]["Row"];
 export type SeasonPlayerValues = Database["public"]["Tables"]["season_player_values"]["Row"];
+
+// ── Real Salary Rankings convenience alias ──────────────────────────────────
+export type RealSalaryValues = Database["public"]["Tables"]["real_salary_values"]["Row"];

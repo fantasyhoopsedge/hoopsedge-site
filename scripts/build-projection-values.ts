@@ -55,13 +55,19 @@ const SEASON_TYPE = "projection";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 
-interface ArtifactPlayer {
+export interface ArtifactPlayer {
   athlete_id: number | null;
   player: string;
   team: string;
   pos: string;
   projGames: number;
   projMpg: number;
+  // Stage 5 durability signal, availability-based (see season-projections-model
+  // memory) — reused by scripts/build-real-salary-values.ts as the discount
+  // input for Real Salary Rankings. Not currently persisted to Supabase by
+  // this script (season_player_stats/values have no column for it), so
+  // consumers read it straight from the artifact via resolvePlayers().
+  confidenceTier: "High" | "Medium" | "Low";
   perGame: {
     pts: number; reb: number; ast: number; stl: number; blk: number; tov: number;
     fg3m: number; fgm: number; fga: number; ftm: number; fta: number;
@@ -73,14 +79,14 @@ interface ArtifactPlayer {
   };
 }
 
-interface Artifact {
+export interface Artifact {
   season: number;
   seasonLabel: string;
   generatedAt: string;
   players: ArtifactPlayer[];
 }
 
-function loadArtifact(): Artifact {
+export function loadArtifact(): Artifact {
   const raw = readFileSync(ARTIFACT_PATH, "utf8");
   return JSON.parse(raw) as Artifact;
 }
@@ -94,7 +100,7 @@ const FALLBACK_TYPE = "summer";
  *  identities (real hoopR id where one exists, else its stable sl-<nbaComId>).
  *  See the module docstring for why this is the right identity source, not a
  *  new one. */
-async function loadFallbackIds(): Promise<Map<string, string>> {
+export async function loadFallbackIds(): Promise<Map<string, string>> {
   const supabase = getServiceClient();
   const { data, error } = await supabase
     .from("season_player_stats")
@@ -107,14 +113,14 @@ async function loadFallbackIds(): Promise<Map<string, string>> {
   return map;
 }
 
-interface ResolvedPlayer extends ArtifactPlayer {
+export interface ResolvedPlayer extends ArtifactPlayer {
   id: string;
 }
 
 /** Resolves every artifact player to a stable string id: the Python-assigned
  *  athlete_id when present, else the Summer League 2026 fallback by normalized
  *  name, else excluded (logged, not silently dropped). */
-function resolvePlayers(
+export function resolvePlayers(
   players: ArtifactPlayer[],
   fallbackIds: Map<string, string>,
 ): { resolved: ResolvedPlayer[]; unresolved: ArtifactPlayer[] } {
@@ -339,7 +345,14 @@ async function main(): Promise<void> {
   console.log(`\n✓ done`);
 }
 
-main().catch((e) => {
-  console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
-  process.exit(1);
-});
+// Guard against running main() as a side effect of importing loadArtifact/
+// resolvePlayers/loadFallbackIds into another script (build-real-salary-
+// values.ts) — only run the build when this file is the actual entrypoint.
+// Mirrors build-seasonal-values.ts's identical guard.
+const isEntrypoint = process.argv[1] != null && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isEntrypoint) {
+  main().catch((e) => {
+    console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
+    process.exit(1);
+  });
+}
