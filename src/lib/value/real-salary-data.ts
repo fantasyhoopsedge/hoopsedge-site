@@ -58,6 +58,7 @@ const ROSTER_SEASON = "2026-27";
 export interface RosterExtra {
   player_id: string | null;
   full_name: string;
+  dob: string | null;
   salary_yr2: number | null;
   salary_yr3: number | null;
   salary_yr4: number | null;
@@ -67,13 +68,15 @@ export interface RosterExtra {
 }
 
 /**
- * Display-only roster fields for the filters (Class, Contract) and the
- * future-salary columns (2027-28/2028-29/2029-30) — a separate read from
- * real_salary_values on purpose: none of this feeds the ranking/pricing
- * model, it's purely for display, so it doesn't belong in the computed
- * table or the build script. nba_roster caps at salary_yr4 (2029-30) — a
- * known gap (see docs/real-salary-dynasty-rankings-brief.md) — so 2030-31
- * has no data source at all; the table shows a dash for it.
+ * Display-only roster fields for the filters (Class, Contract), the Age
+ * column (computed fresh from dob on every request — not a persisted/stale
+ * age_at_ingest snapshot), and the future-salary columns (2027-28/2028-29/
+ * 2029-30) — a separate read from real_salary_values on purpose: none of
+ * this feeds the ranking/pricing model, it's purely for display, so it
+ * doesn't belong in the computed table or the build script. nba_roster caps
+ * at salary_yr4 (2029-30) — a known gap (see
+ * docs/real-salary-dynasty-rankings-brief.md) — so 2030-31 has no data
+ * source at all; the table shows a dash for it.
  *
  * Includes full_name deliberately: player_id is null for brand-new
  * incoming rookies (not yet linked to a resolved nba_players.id — same gap
@@ -88,7 +91,7 @@ export const getRosterExtras = unstable_cache(
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await supabase
         .from("nba_roster")
-        .select("player_id,full_name,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore")
+        .select("player_id,full_name,dob,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore")
         .eq("season", ROSTER_SEASON)
         .range(from, from + PAGE - 1);
       if (error || !data?.length) break;

@@ -6,7 +6,7 @@
  *
  *   1. EfficiencyZ = 60%·salaryZ (cheapness — rank-to-z of salary rank
  *      ASCENDING, so a LOW salary scores well) + 40%·productionZ (blend of
- *      per-game/totals Minus1V — see EFFICIENCY_SUBWEIGHTS). Weighted toward
+ *      per-game/totals Minus1V — see EFFICIENCY_BASE_SALARY_WEIGHT). Weighted toward
  *      salary because a cheap, long-controlled contract is the real asset in
  *      this format even before a young player's box score catches up.
  *   2. BlendScore = wConsensus·consensusZ + wEfficiency·EfficiencyZ (pure

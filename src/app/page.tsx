@@ -19,24 +19,35 @@ const FEATURES = [
     title: "Expert consensus",
     body: "Partnered with the best industry experts to produce a consensus ranking — so you know where the average is, with no bias.",
     href: "/dynasty-rankings",
+    wide: false,
   },
   {
     tag: "Rookie board",
     title: "Draft with conviction",
     body: "A rookie draft board with statistical ratings — know who, what, and where to draft them.",
     href: "/draft-board",
+    wide: false,
   },
   {
     tag: "Player category values",
     title: "See them early",
     body: "Track your favourite players' category fantasy value — standard 9-cat, 8-cat and Minus 1 value. Stay ahead of the game.",
     href: "/seasonal-rankings",
+    wide: false,
   },
   {
     tag: "NBA team rosters",
     title: "Know every player",
     body: "All 30 NBA rosters with real NBA salary and contract data — track risers and fallers and see exactly who you're trading for.",
     href: "/team-rosters",
+    wide: false,
+  },
+  {
+    tag: "Real salary rankings",
+    title: "Built for cap leagues",
+    body: "Dynasty consensus adjusted for cap efficiency — cheap, productive contracts move up, expensive ones settle back down. Made for real-salary leagues.",
+    href: "/real-salary-rankings",
+    wide: true,
   },
 ];
 
@@ -220,7 +231,11 @@ export default function Home() {
         </p>
         <div className="home-features-grid">
           {FEATURES.map((f) => (
-            <a key={f.tag} href={f.href} style={{ textDecoration: "none", display: "block" }}>
+            <a
+              key={f.tag}
+              href={f.href}
+              style={{ textDecoration: "none", display: "block", gridColumn: f.wide ? "1 / -1" : undefined }}
+            >
               <Card variant="feature" hover style={{ height: "100%" }}>
                 <Badge tone="brand">{f.tag}</Badge>
                 <h3

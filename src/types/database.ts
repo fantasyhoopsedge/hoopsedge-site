@@ -517,7 +517,7 @@ export interface Database {
       // _salary_z). One row per (player_id, season): a consensus-anchored
       // Market Value model — dynasty consensus rank (dominant) blended with
       // a cap-Efficiency adjuster (60/40 cheapness/production, see
-      // EFFICIENCY_SUBWEIGHTS in src/lib/value/real-salary-model.ts) —
+      // EFFICIENCY_BASE_SALARY_WEIGHT in src/lib/value/real-salary-model.ts) —
       // Market Salary quantile-mapped onto real salaries — for the
       // "Balanced" archetype preset. Other archetypes are recomputed
       // client-side from consensus_z/production_z/salary_z. Written by

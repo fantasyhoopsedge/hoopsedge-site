@@ -30,7 +30,7 @@
  *
  * Fifth revision: the Efficiency adjuster is itself a weighted blend of
  * CHEAPNESS (salary, inverted so low salary scores well) and Production,
- * weighted 60/40 toward cheapness by default (EFFICIENCY_SUBWEIGHTS).
+ * weighted 60/40 toward cheapness by default (EFFICIENCY_BASE_SALARY_WEIGHT).
  * Previously Efficiency was production alone, which under-credits a player
  * like Cameron Boozer: his box-score production is still developing as a
  * rookie, but he's locked into 4 years of cheap rookie-scale salary — the
@@ -103,56 +103,77 @@ export function rankToZ(rank: number, poolSize: number): number {
 
 // ── manager archetypes ──────────────────────────────────────────────────────
 
-export type Archetype = "balanced" | "contending" | "rebuilding" | "tanking";
+export type Archetype = "balanced" | "contending" | "rebuilding";
 
 export interface WeightPreset {
   consensus: number;
   efficiency: number;
+  /**
+   * Extra (signed) salary sub-weight applied ONLY to rookie-scale contracts
+   * within Efficiency — added to EFFICIENCY_BASE_SALARY_WEIGHT before
+   * blendScore runs, then renormalized against production so the two
+   * sub-weights still sum to 1. Zero for Balanced ("balanced in type of
+   * contract" — no reason to touch anything). Negative for Contending (less
+   * interested in unproven rookie-scale assets specifically — production
+   * counts for relatively more instead, since a contender wants proven
+   * output). Positive for Rebuilding (more interested in rookie-scale
+   * specifically — cheapness counts for relatively more, production less).
+   * Non-rookie-scale contracts (Standard/Other — i.e. "cheap vet" deals) are
+   * completely unaffected by this field at every archetype: "all scenarios
+   * are interested in cheap vet contracts" the same amount. Ash
+   * (2026-07-31): "the rookie scale vs vet contract logic will only come
+   * into play for the contending vs rebuilding overlay."
+   */
+  rookieScaleAdjustment: number;
 }
 
 /**
- * First-pass defaults (2026-07-30), not tuned — easy to retune here without
- * touching anything else. Consensus is the dominant term in every preset per
- * Ash's "real salary rankings are a variation to dynasty consensus."
- * Tuned 2026-07-30.
+ * Tuned 2026-07-30, CORRECTED 2026-07-31 (direction fix — see git history/
+ * memory for the full writeup: Efficiency weight must RISE the more an
+ * archetype prefers cheap/young assets over expensive proven ones, since
+ * Efficiency is 60% cheapness and penalizes an expensive player's OWN score
+ * directly). RETUNED twice more same day (Ash): first dropped Tanking
+ * entirely and pulled the remaining three closer together, then landed here
+ * — 77.5/22.5 / 70/30 / 62.5/37.5 — paired with a NEW rookie-scale-specific
+ * adjustment (rookieScaleAdjustment above) so the consensus/efficiency split
+ * alone no longer has to carry both "how much does cost matter overall" AND
+ * "how much does contract TYPE matter" at once. Cheap veteran contracts are
+ * valued identically across all three archetypes; only a rookie-scale
+ * contract's cheapness counts for more/less depending on archetype.
  */
 export const WEIGHT_PRESETS: Record<Archetype, WeightPreset> = {
-  balanced: { consensus: 0.70, efficiency: 0.30 },
-  contending: { consensus: 0.65, efficiency: 0.35 },
-  rebuilding: { consensus: 0.75, efficiency: 0.25 },
-  tanking: { consensus: 0.80, efficiency: 0.20 },
+  contending: { consensus: 0.775, efficiency: 0.225, rookieScaleAdjustment: -0.15 },
+  balanced: { consensus: 0.70, efficiency: 0.30, rookieScaleAdjustment: 0 },
+  rebuilding: { consensus: 0.625, efficiency: 0.375, rookieScaleAdjustment: 0.15 },
 };
 
 export const ARCHETYPE_LABELS: Record<Archetype, string> = {
   balanced: "Balanced",
   contending: "Contending",
   rebuilding: "Rebuilding",
-  tanking: "Tanking",
 };
 
 export const ARCHETYPE_BLURB: Record<Archetype, string> = {
-  balanced: "Consensus-anchored, meaningful room for cap-efficiency (salary-weighted) to move the needle.",
-  contending: "Still consensus-anchored, but cap efficiency matters more — win-now.",
-  rebuilding: "Leans even harder on long-term asset quality; this year's cap efficiency matters less.",
-  tanking: "Almost pure long-term asset quality — value isn't about this year's cap efficiency at all.",
+  balanced: "Consensus-anchored, balanced interest across contract types — cheap vets and rookie-scale deals both matter.",
+  contending: "Still consensus-anchored, but less interested in unproven rookie-scale assets — pay for proven production, win-now.",
+  rebuilding: "Cap efficiency matters more — more interested in rookie-scale assets on top of the usual preference for cheap veteran deals.",
 };
 
 /**
- * How the Efficiency adjuster splits between cheapness (salary) and
- * Production. Weighted toward salary by default (2026-07-30) — a cheap,
+ * Base split of the Efficiency adjuster between cheapness (salary) and
+ * Production before any archetype/contract-type adjustment — a cheap,
  * long-controlled contract is the real asset in this format even before a
  * young player's box score catches up; see module docstring's Cameron
- * Boozer example. Same split applied for every archetype for now (not
- * per-archetype tuned) — revisit if an archetype should weight this
- * differently (e.g. Contending caring more about current production).
+ * Boozer example. See WeightPreset.rookieScaleAdjustment for how this shifts
+ * per archetype for rookie-scale contracts specifically.
  */
-export const EFFICIENCY_SUBWEIGHTS = { salary: 0.6, production: 0.4 };
+export const EFFICIENCY_BASE_SALARY_WEIGHT = 0.6;
 
 // ── the model ────────────────────────────────────────────────────────────
 //
 //   EfficiencyZ = subw.salary·salaryZ + subw.production·productionZ  (salaryZ
 //     is CHEAPNESS — rank ascending by salary, so a low actual salary scores
-//     well; see EFFICIENCY_SUBWEIGHTS)
+//     well; see EFFICIENCY_BASE_SALARY_WEIGHT)
 //   BlendScore = wConsensus·consensusZ + wEfficiency·EfficiencyZ  (pure
 //     z-space, no dollars — see module docstring for why salaryZ here is
 //     still self-reference-safe despite depending on the player's own salary)
@@ -171,9 +192,15 @@ export interface RealSalaryFactors {
   consensusZ: number;
   productionZ: number;
   /** Cheapness — rank-to-z of salary rank ASCENDING (cheapest = rank 1), so
-   *  HIGH salaryZ means a LOW actual salary. See EFFICIENCY_SUBWEIGHTS. */
+   *  HIGH salaryZ means a LOW actual salary. See EFFICIENCY_BASE_SALARY_WEIGHT. */
   salaryZ: number;
   salary: number;
+  /** True only for rookie-scale contracts — drives
+   *  WeightPreset.rookieScaleAdjustment. Optional/falsy-defaults-to-false so
+   *  callers that don't track contract type (the build script's stored
+   *  Balanced preset, whose rookieScaleAdjustment is 0 anyway) don't need to
+   *  populate it. */
+  isRookieScale?: boolean;
 }
 
 export interface RealSalaryComputed {
@@ -183,8 +210,9 @@ export interface RealSalaryComputed {
 }
 
 function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
-  const efficiencyZ = EFFICIENCY_SUBWEIGHTS.salary * r.salaryZ
-    + EFFICIENCY_SUBWEIGHTS.production * r.productionZ;
+  const salaryWeight = EFFICIENCY_BASE_SALARY_WEIGHT + (r.isRookieScale ? preset.rookieScaleAdjustment : 0);
+  const productionWeight = 1 - salaryWeight;
+  const efficiencyZ = salaryWeight * r.salaryZ + productionWeight * r.productionZ;
   return preset.consensus * r.consensusZ + preset.efficiency * efficiencyZ;
 }
 

@@ -17,6 +17,20 @@ function classOf(extra: RosterExtra | undefined): "rook" | "soph" | "vet" {
   return "vet";
 }
 
+// Fractional age (matches dynasty-rankings.json's "22.4"-style precision),
+// computed fresh from dob on every request rather than read from
+// nba_roster.age_at_ingest — that column is a snapshot written once at
+// ingest and drifts stale between refreshes (see roster-live-data.ts's own
+// ageFromDob, which this mirrors but keeps the decimal instead of rounding
+// to a whole year).
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+function ageFromDob(dob: string | null | undefined): number | null {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  return (Date.now() - d.getTime()) / MS_PER_YEAR;
+}
+
 const SEASON = 2027;
 const SEASON_TYPE = "projection";
 
@@ -77,6 +91,7 @@ export default async function RealSalaryRankingsPage() {
       consensusRank: CONSENSUS_RANK_BY_NAME[normalizePlayerName(s.name)] ?? null,
       classId: classOf(extra),
       contractBucket: contractBucketOf(extra?.contract_status ?? null),
+      age: ageFromDob(extra?.dob),
       salaryYr2: extra?.salary_yr2 ?? null,
       salaryYr3: extra?.salary_yr3 ?? null,
       salaryYr4: extra?.salary_yr4 ?? null,
