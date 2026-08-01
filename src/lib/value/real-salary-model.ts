@@ -262,3 +262,91 @@ export function rankBy<T extends { playerId: string }>(
   sorted.forEach((r, i) => out.set(r.playerId, i + 1));
   return out;
 }
+
+// ── player-card value verdict (2026-07-31) ─────────────────────────────────
+//
+// Ash's 11-rule classifier for the one-line "value asset" callout shown on
+// each player's real-salary quick-view card, evaluated TOP TO BOTTOM,
+// first-match-wins (rule 5's "any asset value" and rules 6-11's overlapping
+// bands only make sense read as a priority list, not independent
+// conditions). `delta` is consensusRank - valueRank (same sign convention as
+// the table's own Δ/Vs Consensus column: positive = moved UP from consensus,
+// i.e. a real-salary bargain relative to his dynasty stock).
+//
+// One deliberate resolution of an apparent contradiction in the spec: rules
+// 10 ("equal or down") and 11 ("equal or up") both nominally cover delta===0
+// for the same surplus band/rank tier. Every OTHER equal-delta case in the
+// spec (rule 8) maps to "Similar value asset," so delta===0 is treated as
+// belonging to rule 11 here (down is rule 10's exclusively, delta<0 strict) —
+// keeps the two rules non-overlapping and consistent with rule 8's own
+// equal-delta → "Similar" mapping.
+//
+// Coverage-tested against the full 513-player pool across all 3 archetypes
+// (2026-07-31): the 11 rules alone left ~20% unmatched — players with no
+// consensus rank at all (delta null), and, the larger real gap, POSITIVE
+// surplus paired with a DOWN move vs consensus (a bargain by dollars that
+// still slipped a spot or two in the blend — not a contradiction, just a
+// combination rules 1-5 never covered). Ash's fill-in (2026-07-31): every
+// unmatched case gets the same "Similar value asset" verdict already used by
+// rules 8/11 — a fair neutral default when the signal is mixed or there's no
+// real consensus baseline to compare against. Makes this function total: it
+// always returns a verdict now, never null.
+const M = 1_000_000;
+
+export type ValueVerdictTone = "positive" | "negative" | "neutral";
+export interface ValueVerdict {
+  text: string;
+  tone: ValueVerdictTone;
+}
+
+function similarVerdict(playerName: string): ValueVerdict {
+  return { text: `Similar value asset. ${playerName} has similar value in real salary formats`, tone: "neutral" };
+}
+
+export function deriveValueVerdict(
+  playerName: string,
+  surplusValue: number,
+  /** consensusRank - valueRank; null when the player has no consensus rank
+   *  to compare against (e.g. unranked) — falls through to the neutral
+   *  "Similar value" fill-in below, same as every other unmatched case. */
+  delta: number | null,
+  valueRank: number,
+): ValueVerdict {
+  if (delta == null) return similarVerdict(playerName);
+
+  if (surplusValue > 0) {
+    if (delta >= 0 && valueRank <= 100) {
+      if (surplusValue > 25 * M) return { text: `Elite value asset. ${playerName} has substantially more value in real salary formats`, tone: "positive" };
+      if (surplusValue > 15 * M) return { text: `Excellent value asset. ${playerName} has genuinely more value in real salary formats`, tone: "positive" };
+      return { text: `Great value asset. ${playerName} has slightly more value in real salary formats`, tone: "positive" };
+    }
+    if (delta >= 0 && valueRank > 100 && valueRank <= 250) {
+      return { text: `Solid value asset. ${playerName} has more value in real salary formats`, tone: "positive" };
+    }
+    if (delta > 0) {
+      return { text: `Value asset. ${playerName} is marginally more valuable in real salary formats`, tone: "positive" };
+    }
+    // Fill-in: positive surplus but moved DOWN vs consensus — a real, common
+    // combination (Luka Doncic, Anthony Edwards, Cade Cunningham, ... all
+    // land here) that rules 1-5 never anticipated. Mixed signal → neutral.
+    return similarVerdict(playerName);
+  }
+
+  // surplusValue <= 0
+  const mild = surplusValue >= -15 * M; // between -$15M and $0M
+  const severe = surplusValue < -15 * M; // lower than -$15M
+  if (valueRank <= 150) {
+    if (severe && delta < 0) return { text: `Distressed value asset. ${playerName} has substantially lower value in real salary formats`, tone: "negative" };
+    if (mild && delta < 0) return { text: `Depressed value asset. ${playerName} has depressed value in real salary formats`, tone: "negative" };
+    if (mild && delta === 0) return similarVerdict(playerName);
+    // Fill-in: e.g. mild-negative-with-up-consensus, or severe-negative with
+    // flat/up consensus — mixed signal → neutral.
+    return similarVerdict(playerName);
+  }
+  // outside top 150
+  if (severe && delta < 0) return { text: `Negative value asset. ${playerName} has substantially lower value in real salary formats`, tone: "negative" };
+  if (mild && delta < 0) return { text: `Poorer value asset. ${playerName} has worse value in real salary formats`, tone: "negative" };
+  if (mild && delta >= 0) return similarVerdict(playerName);
+  // Fill-in: severe-negative with flat/up consensus outside top 150.
+  return similarVerdict(playerName);
+}

@@ -89,6 +89,15 @@ function buildRankLine(ranks: (number | null)[]): ({ x: number; y: number } | nu
   });
 }
 
+/** See TrendHero's `thirdStat` prop doc comment below. */
+export type TrendHeroThirdStat = {
+  value: string;
+  dir: "up" | "down" | "flat";
+  delta: number | null;
+  labelCompact: string;
+  labelFull: string;
+};
+
 /**
  * Hero trend widget for the roster detail panel — sits directly under the
  * player name/tier tag on the dark hero background. Shows the real cumulative
@@ -108,6 +117,7 @@ export function TrendHero({
   consensusRank,
   consensusDir,
   consensusDelta,
+  thirdStat,
   age,
   isRookie = false,
   compact = false,
@@ -134,6 +144,14 @@ export function TrendHero({
   /** Spots moved since the prior version (dynasty-rankings.json's `trendDelta`).
    * null when the player has no prior-version baseline. */
   consensusDelta: number | null;
+  /** Overrides ONLY the visible third stat block's value/label (default:
+   * "Dynasty rank" from consensusRank/consensusDir/consensusDelta above) —
+   * consensusRank etc. keep flowing into deriveFinalTake() below regardless,
+   * so the trend blurb still describes the player's real dynasty consensus
+   * even when this block is showing something else (e.g. /real-salary-
+   * rankings' "Salary rank vs consensus", 2026-07-31). Omit to keep the
+   * default Dynasty rank block exactly as before. */
+  thirdStat?: TrendHeroThirdStat;
   age: number | null;
   /** First-year player in the charted season (Player.tag === "soph" for the
    * completed 2025-26 season) — drives the rookie-aware DEVELOPING read (R15). */
@@ -286,14 +304,18 @@ export function TrendHero({
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
-                {consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
+                {thirdStat ? thirdStat.value : consensusRank == null || consensusRank >= 999 ? "U/R" : "#" + consensusRank}
               </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700, color: changeColor(consensusDir) }}>
-                <span style={{ fontSize: 9 }}>{caret(consensusDir)}</span>
-                {consensusDir !== "flat" && consensusDelta ? consensusDelta : null}
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 12, fontWeight: 700, color: changeColor(thirdStat ? thirdStat.dir : consensusDir) }}>
+                <span style={{ fontSize: 9 }}>{caret(thirdStat ? thirdStat.dir : consensusDir)}</span>
+                {thirdStat
+                  ? (thirdStat.dir !== "flat" && thirdStat.delta ? thirdStat.delta : null)
+                  : (consensusDir !== "flat" && consensusDelta ? consensusDelta : null)}
               </span>
             </div>
-            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? "Dynasty" : "Dynasty rank"}</div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
+              {thirdStat ? (compact ? thirdStat.labelCompact : thirdStat.labelFull) : (compact ? "Dynasty" : "Dynasty rank")}
+            </div>
           </div>
         </div>
       </div>

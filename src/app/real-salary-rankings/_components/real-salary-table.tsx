@@ -3,14 +3,16 @@
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
-import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
+import { TEAM_LOGO, type Player } from "@/app/team-rosters/_components/roster-data";
 import { NBA_TEAM_ABBRS } from "@/lib/nba-teams";
 import { initials, money, fullMoney } from "@/app/team-rosters/_components/roster-helpers";
-import { playerHeadshotUrl } from "@/lib/dynasty-rankings";
+import { playerHeadshotUrl, normalizePlayerName } from "@/lib/dynasty-rankings";
 import { shortenPlayerName } from "@/lib/shorten-name";
+import { PlayerQuickViewModal } from "@/app/team-rosters/_components/player-quickview-modal";
+import { SalaryContractCard } from "@/app/team-rosters/_components/salary-contract-card";
 import {
   WEIGHT_PRESETS, ARCHETYPE_LABELS, ARCHETYPE_BLURB,
-  computeMarketValue, rankBy,
+  computeMarketValue, rankBy, deriveValueVerdict,
   type Archetype, type RealSalaryFactors,
 } from "@/lib/value/real-salary-model";
 
@@ -275,6 +277,42 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
   const [archetype, setArchetype] = useState<Archetype>("balanced");
   const [sortKey, setSortKey] = useState<SortKey>("valueRank");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  // Row-click player detail — same fetch-team-roster-then-match-by-name
+  // pattern dynasty-rankings/page.tsx already uses for its own quick view
+  // (2026-07-31): /api/team-rosters/[team] already returns everything
+  // PlayerQuickViewModal + SalaryContractCard need, so no new data source.
+  // valueRank/consensusRank/delta come from the REAL-SALARY row (not the
+  // fetched Player, which has no notion of salary rank) — captured at click
+  // time so the "Salary rank vs consensus" stat survives the async fetch.
+  const [quickView, setQuickView] = useState<{
+    open: boolean; loading: boolean; error: string | null; player: Player | null;
+    name: string; valueRank: number; consensusRank: number | null; delta: number | null; surplusValue: number;
+  }>({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: 0 });
+  const openPlayerQuickView = async (r: DisplayRow) => {
+    const base = { name: r.name, valueRank: r.valueRank, consensusRank: r.consensusRank, delta: r.delta, surplusValue: r.surplusValue };
+    if (!r.team || NON_TEAM_VALUES.has(r.team)) {
+      setQuickView({ open: true, loading: false, error: "No current NBA team on record for this player.", player: null, ...base });
+      return;
+    }
+    const team = r.team;
+    setQuickView({ open: true, loading: true, error: null, player: null, ...base });
+    try {
+      const res = await fetch(`/api/team-rosters/${team}`);
+      if (!res.ok) throw new Error("failed");
+      const roster: Player[] = await res.json();
+      const target = normalizePlayerName(r.name);
+      const match = roster.find((p) => normalizePlayerName(p.name) === target);
+      if (!match) {
+        setQuickView({ open: true, loading: false, error: "Couldn't find this player's team-rosters data.", player: null, ...base });
+        return;
+      }
+      setQuickView({ open: true, loading: false, error: null, player: match, ...base });
+    } catch {
+      setQuickView({ open: true, loading: false, error: "Couldn't load this player right now.", player: null, ...base });
+    }
+  };
+  const closeQuickView = () => setQuickView({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: 0 });
 
   // Team/Contract/Salary Range are single-select native dropdowns, grouped
   // together in row 2. Class/Position/Contract are multi-select pill groups
@@ -609,7 +647,7 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
                 </thead>
                 <tbody>
                   {sorted.map((r) => (
-                    <tr key={r.playerId} className="dr-tr">
+                    <tr key={r.playerId} className="dr-tr" onClick={() => openPlayerQuickView(r)}>
                       <td className="dr-td dr-col-rank">
                         <div className="dr-rank-cell">
                           <span className="dr-rank-num dr-rank-num-tier-def">{r.valueRank}</span>
@@ -722,6 +760,31 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
           </div>
         )}
       </div>
+
+      {quickView.open ? (
+        <PlayerQuickViewModal
+          player={quickView.player}
+          loading={quickView.loading}
+          error={quickView.error}
+          onClose={closeQuickView}
+          isMobile={isMobile}
+          fullScreenOnMobile
+          thirdStat={{
+            value: "#" + quickView.valueRank,
+            dir: quickView.delta == null || quickView.delta === 0 ? "flat" : quickView.delta > 0 ? "up" : "down",
+            delta: quickView.delta != null ? Math.abs(quickView.delta) : null,
+            labelCompact: "Salary",
+            labelFull: "Salary rank vs consensus",
+          }}
+          extraContent={quickView.player ? <SalaryContractCard player={quickView.player} compact={isMobile} /> : undefined}
+          show9CatProfile={false}
+          headerNote={quickView.player ? (() => {
+            const verdict = deriveValueVerdict(quickView.name, quickView.surplusValue, quickView.delta, quickView.valueRank);
+            const color = verdict.tone === "positive" ? "var(--green-elite)" : verdict.tone === "negative" ? "var(--red-severe)" : "var(--dynasty-gold)";
+            return <span style={{ fontSize: 13, fontWeight: 700, color }}>{verdict.text}</span>;
+          })() : null}
+        />
+      ) : null}
 
       <style>{`
         .rsr-archetype-gutter { padding-bottom: 14px; }

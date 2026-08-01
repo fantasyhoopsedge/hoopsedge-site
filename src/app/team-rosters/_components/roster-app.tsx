@@ -25,7 +25,6 @@ import {
   catValCur,
   catZ,
   changeColor,
-  contractFor,
   fvOf,
   fvValue,
   heroName,
@@ -46,6 +45,7 @@ import { TAG_META, type TrendTag } from "./trend-insight";
 import { CompareModal } from "./compare-modal";
 import { DepthChartModal } from "./depth-chart-modal";
 import { DepthChartInline } from "./depth-chart-inline";
+import { SalaryContractCard } from "./salary-contract-card";
 
 // hoopR stat season for the trend chart (2026 = the 2025-26 season) — matches
 // roster-live-data.ts's STATS_SEASON; this page has no season switcher yet.
@@ -474,8 +474,6 @@ export function RosterApp({
   const spHideMpg = projLocked || profile.noData;
   const spMpgBar = spDisplayMpg != null && !spHideMpg ? mpgBarFor(spDisplayMpg) : null;
 
-  const contract = contractFor(sp);
-  const isNewRookieScale = contract.status === "Rookie Scale" && sp.tag === "rookie";
   const dTag = sp.tag ? tagBadge(sp.tag, true) : null;
 
   // Tier is shown persistently in the hero header regardless of sort — this is
@@ -1539,73 +1537,7 @@ export function RosterApp({
             )}
           </div>
 
-          {/* Salary & contract */}
-          <div style={{ background: "var(--rt-canvas)", border: "1px solid var(--rt-hairline)", borderRadius: 16, padding: isLandscapeTabletWidth ? 14 : 20 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>Salary &amp; contract</span>
-              {contract.status && (
-                <span
-                  style={{
-                    fontFamily: "var(--rt-font-sans)",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: isNewRookieScale ? "var(--dynasty-gold)" : "var(--rt-muted)",
-                    border: `1px solid ${isNewRookieScale ? "var(--dynasty-gold)" : "var(--rt-hairline)"}`,
-                    borderRadius: 999,
-                    padding: "3px 9px",
-                  }}
-                >
-                  {contract.status}
-                </span>
-              )}
-            </div>
-            {contract.rows.length === 0 ? (
-              <div style={{ padding: "20px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 12, lineHeight: 1.5 }}>
-                No salary data yet — contract terms haven&apos;t been reported.
-              </div>
-            ) : (
-              <>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginTop: isLandscapeTabletWidth ? 10 : 16 }}>
-                  <div>
-                    <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Contract terms</div>
-                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
-                      {contract.n} yr{contract.n > 1 ? "s" : ""} · {money(contract.total)}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg salary</div>
-                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 18, fontWeight: 500, color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>{money(contract.avg)}</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: isLandscapeTabletWidth ? 10 : 18, paddingTop: 4, borderTop: "1px solid var(--rt-hairline-soft)" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "7px 0 5px" : "11px 0 9px" }}>
-                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Year</span>
-                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Team</span>
-                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>Age</span>
-                    <span style={{ fontSize: 10, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Salary</span>
-                  </div>
-                  {contract.rows.map((yr, i) => (
-                    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 34px 74px", gap: 10, padding: isLandscapeTabletWidth ? "5px 0" : "9px 0", borderTop: "1px solid var(--rt-hairline-soft)", alignItems: "center" }}>
-                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums" }}>{yr.year}</span>
-                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-body)", fontVariantNumeric: "tabular-nums" }}>{yr.team}</span>
-                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-muted)", fontVariantNumeric: "tabular-nums", textAlign: "center" }}>{yr.age}</span>
-                      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 13, color: "var(--rt-ink)", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
-                        {yr.salary}
-                        {yr.estimated && (
-                          <sup title="Even-split estimate" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>est</sup>
-                        )}
-                        {yr.qo && (
-                          <sup title="Qualifying offer — a real cap hold, not a negotiated salary" style={{ fontSize: 8, color: "var(--rt-muted)", marginLeft: 2, fontFamily: "var(--rt-font-sans)", letterSpacing: "0.03em" }}>QO</sup>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          <SalaryContractCard player={sp} compact={isLandscapeTabletWidth} />
 
           {/* Rookie draft — 2026 draft class only (sp.draft is null for everyone else) */}
           {sp.draft && (

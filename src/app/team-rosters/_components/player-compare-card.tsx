@@ -1,7 +1,8 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { PlayerHeadshot } from "./roster-headshot";
-import { TrendHero, usePlayerTrend } from "./player-trend-chart";
+import { TrendHero, usePlayerTrend, type TrendHeroThirdStat } from "./player-trend-chart";
 import { buildRankedProfile, buildRecentProfile, catOrderFor, contractFor, heroName, initials, money, mpgBarFor, posLabel, seasonTriosFor } from "./roster-helpers";
 import { PRO_UNLOCKED, TEAM_LOGO, type Cat, type Player, type SeasonMode } from "./roster-data";
 import type { TrendMetric } from "./trend-insight";
@@ -27,12 +28,26 @@ export function PlayerCompareCard({
   metric,
   catOrder,
   onRemove,
+  thirdStat,
+  show9CatProfile = true,
+  headerNote,
 }: {
   player: Player;
   mode: SeasonMode;
   metric: TrendMetric;
   catOrder?: Cat[];
   onRemove: () => void;
+  /** Passed straight through to TrendHero — see its own doc comment. */
+  thirdStat?: TrendHeroThirdStat;
+  /** Hides the whole 9-category profile section — default true (shown), so
+   * every existing caller (team-rosters compare modal, dynasty-rankings
+   * quick view) is unaffected. /real-salary-rankings passes false
+   * (2026-07-31): the profile doesn't fit its salary-first card. */
+  show9CatProfile?: boolean;
+  /** Extra content rendered directly under the headshot/name/age row, above
+   * the Salary/Contract mini-stats — e.g. /real-salary-rankings' "value
+   * asset" verdict line (2026-07-31). Omit for no change from before. */
+  headerNote?: ReactNode;
 }) {
   const trend = usePlayerTrend(player.id, TRENDS_SEASON, TRENDS_SEASON_TYPE);
   const order = catOrder ?? catOrderFor(player);
@@ -112,6 +127,10 @@ export function PlayerCompareCard({
         </div>
       </div>
 
+      {headerNote && (
+        <div style={{ marginTop: 10, fontSize: 11, lineHeight: 1.5, color: "var(--rt-body)" }}>{headerNote}</div>
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--rt-hairline-soft)" }}>
         <div>
           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 14, fontWeight: 600, color: "var(--rt-ink)" }}>{money(player.salary)}</div>
@@ -137,6 +156,7 @@ export function PlayerCompareCard({
         consensusRank={player.consensus}
         consensusDir={player.dir}
         consensusDelta={player.dirDelta}
+        thirdStat={thirdStat}
         age={player.age}
         isRookie={player.tag === "soph"}
         mode={mode}
@@ -145,6 +165,7 @@ export function PlayerCompareCard({
         compact
       />
 
+      {show9CatProfile && (
       <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid var(--rt-hairline-soft)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--rt-ink)" }}>9-category profile</div>
@@ -212,6 +233,7 @@ export function PlayerCompareCard({
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
