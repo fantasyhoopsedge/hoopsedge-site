@@ -175,7 +175,7 @@ The pitch isn't "here's a ranking" — dynasty managers can get that from any si
 
 ## 9. Ecosystem ties
 
-Dynasty rankings sits at a junction of four otherwise-separate FHE data surfaces:
+Dynasty rankings sits at a junction of five otherwise-separate FHE data surfaces:
 
 ```
 Rookie board ──────────► Dynasty consensus ◄────────── Team rosters
@@ -194,9 +194,17 @@ Version archive ───────────► Historic trends & a future 
 public/data/versions/v*.json   on-site version picker (live) +
 one snapshot per refresh,      a planned "AI Edge" agent users can
 growing every cycle            ask for dynasty advice
+
+Dynasty consensus ─────────────────────────► Real Salary Rankings
+src/lib/dynasty-rankings.json                 real_salary_values —
+(read via loadConsensus(), name-keyed)        build-time snapshot, goes
+                                               stale in VALUE (not
+                                               corrupted) if not rebuilt
 ```
 
 Concretely: rookies enter the board from FHE's own scouted prospect data, not from the five external experts. Every player's team badge and quick-view stat line are reconciled live against `nba_roster` rather than baked into the JSON, so a trade mid-season doesn't require a full rankings refresh just to fix a team logo. And the same `normalizePlayerName()` key that joins the five expert lists together is the identical function joining salary data, game logs, and category-value trends elsewhere in the app — any change to it has to be made in both `src/lib/dynasty-rankings.ts` and `scripts/nba-data/client.ts` simultaneously, per the byte-identical requirement in `CLAUDE.md`.
+
+The newest tie is `/real-salary-rankings` (built 2026-07-30, iterated through 2026-08-01): `npm run realsalary:build` reads `dynasty-rankings.json` via the same `loadConsensus()` helper `seasonal:build` uses, keyed by normalized name, so it's immune to the rank-reuse corruption pattern described in `CLAUDE.md`. But it still writes a **build-time snapshot** of `consensus_z`/rank/surplus into `real_salary_values` — meanwhile `/real-salary-rankings`' own Consensus column reads the bundled JSON fresh on every render — so a refresh that updates `dynasty-rankings.json` without rerunning the build leaves the page showing a fresh consensus rank next to a stale salary-model verdict. `dynasty:sync` now runs `realsalary:build` as its third step precisely so this can't happen silently; see `CLAUDE.md`.
 
 The version archive is the newest of these ties, and the forward-looking one: today it powers the version picker already built into `/dynasty-rankings` (§7), but every version this skill archives is also raw material for a future conversational "AI Edge" agent — something a user could ask "how has this player trended over the last three versions?" or "who's risen the most since March?" and get an answer grounded in real historical snapshots rather than a single point-in-time list. That's the concrete reason archiving-before-overwrite (§10, item 8) is a required step of every refresh, not an optional nicety.
 

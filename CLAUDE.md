@@ -33,7 +33,7 @@ npm run nba:roster       # ingest data/nba-rosters/<season>.csv into nba_roster
 npm run nba:staleness    # freshness alarm (emails via SendGrid if data is stale)
 npm run seasonal:build   # recompute season_player_values for all league sizes (validation-gated)
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
-npm run dynasty:sync     # seasonal:build + trends:build in order — run after ANY dynasty-rankings.json edit
+npm run dynasty:sync     # seasonal:build + trends:build + realsalary:build in order — run after ANY dynasty-rankings.json edit
 npm run rb:seed          # seed the rookie board into Supabase
 npm run launch:snapshot  # print the Draft Night signup/play funnel
 ```
@@ -106,7 +106,17 @@ engine (rolling windows re-sum raw game totals — never average z-scores — so
 Upserted into `nba_player_trends` (one jsonb payload per player), read by
 `/api/player-trends` and the `/team-rosters` tone/BUY-SELL-HOLD system. It reads
 `season_player_values`, so build order is: refresh → seasonal → trends
-(`npm run dynasty:sync` runs the last two together).
+(`npm run dynasty:sync` runs the last three together, see below).
+
+`npm run realsalary:build` (`scripts/build-real-salary-values.ts`) computes
+`/real-salary-rankings`' cap-aware values (`src/lib/value/real-salary-model.ts`)
+into `real_salary_values`. It reads `dynasty-rankings.json` via `loadConsensus()`
+(`scripts/build-seasonal-values.ts`), keyed by normalized name — safe from the
+rank-reuse corruption below — but `consensus_z`/rank/surplus are still a
+**build-time snapshot**: `/real-salary-rankings`' own consensus-rank display
+(`page.tsx`'s `CONSENSUS_RANK_BY_NAME`) reads the bundled JSON fresh on every
+render, so a stale `real_salary_values` table will show a mismatched Consensus
+column/Δ against a freshly-published dynasty-rankings.json until rebuilt.
 
 **Rerun `dynasty:sync` after every `dynasty-rankings.json` edit — not optional.**
 `season_player_stats.consensus_rank` is a snapshot written once, at build time,
