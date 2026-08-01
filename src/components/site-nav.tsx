@@ -284,6 +284,7 @@ export function SiteNav(props: {
           <ul className="nav-dropdown-menu">
             <li><a href="/seasonal-rankings">Player Category Values</a></li>
             <li><a href="/dynasty-rankings">Dynasty Consensus</a></li>
+            <li><a href="/real-salary-rankings">Real Salary Rankings</a></li>
             <li><a href="/draft-board">2026 Rookie Draft</a></li>
           </ul>
         </li>
@@ -385,6 +386,7 @@ export function SiteNav(props: {
                   <div className="nav-mobile-panel-sub">
                     <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player Category Values</a>
                     <a href="/dynasty-rankings" onClick={closeMobileMenu}>Dynasty Consensus</a>
+                    <a href="/real-salary-rankings" onClick={closeMobileMenu}>Real Salary Rankings</a>
                     <a href="/draft-board" onClick={closeMobileMenu}>Rookie Board</a>
                   </div>
                 )}

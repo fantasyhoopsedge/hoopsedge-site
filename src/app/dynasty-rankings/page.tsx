@@ -363,6 +363,9 @@ export default function DynastyRankingsPage() {
       <PlatformSidebarNav active="dynasty" />
 
       <div className="dr-rankings-measured-top">
+        <div className="dr-page-gutter dr-page-heading">
+          <h1>Dynasty Consensus</h1>
+        </div>
         <div className="dr-sticky-controls">
           <div className="dr-page-gutter">
             {/* Mobile only: compact toggle that opens the filters as an

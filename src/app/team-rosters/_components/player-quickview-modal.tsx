@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { PlayerCompareCard } from "./player-compare-card";
 import type { Player, SeasonMode } from "./roster-data";
 import type { TrendMetric } from "./trend-insight";
+import type { TrendHeroThirdStat } from "./player-trend-chart";
 
 const MODE_DEFS: { id: SeasonMode; label: string }[] = [
   { id: "recent", label: "Recent" },
@@ -31,6 +32,11 @@ export function PlayerQuickViewModal({
   onClose,
   onCompare,
   isMobile,
+  thirdStat,
+  extraContent,
+  fullScreenOnMobile = false,
+  show9CatProfile = true,
+  headerNote,
 }: {
   player: Player | null;
   loading: boolean;
@@ -40,27 +46,55 @@ export function PlayerQuickViewModal({
    * player — omit to hide the button (e.g. contexts with no compare tool). */
   onCompare?: () => void;
   isMobile: boolean;
+  /** Overrides the Dynasty Rank stat block — passed through to
+   * PlayerCompareCard/TrendHero. Omit to keep the default Dynasty Rank
+   * display (e.g. /real-salary-rankings passes Salary Rank vs Consensus
+   * instead, 2026-07-31). */
+  thirdStat?: TrendHeroThirdStat;
+  /** Extra content rendered below the PlayerCompareCard, inside the same
+   * scrollable card (e.g. /real-salary-rankings' full Salary & Contract
+   * table, which PlayerCompareCard itself only shows a compact one-line
+   * summary of). */
+  extraContent?: ReactNode;
+  /** Full-screen takeover (edge-to-edge, no backdrop/rounded corners) on
+   * mobile instead of the default centered dimmed-backdrop popup every
+   * other size still uses. Default false — every existing caller keeps
+   * today's popup-at-every-size behavior unchanged. */
+  fullScreenOnMobile?: boolean;
+  /** Passed straight through to PlayerCompareCard — see its own doc comment. */
+  show9CatProfile?: boolean;
+  /** Passed straight through to PlayerCompareCard — see its own doc comment. */
+  headerNote?: ReactNode;
 }) {
   const [mode, setMode] = useState<SeasonMode>("cur");
   const [metric, setMetric] = useState<TrendMetric>("minus1V");
+  const mobileFullScreen = fullScreenOnMobile && isMobile;
 
   return (
     <div
-      onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 260, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", padding: isMobile ? 12 : 24 }}
+      onClick={mobileFullScreen ? undefined : onClose}
+      style={
+        mobileFullScreen
+          ? { position: "fixed", inset: 0, zIndex: 260, background: "var(--rt-canvas)" }
+          : { position: "fixed", inset: 0, zIndex: 260, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.55)", padding: isMobile ? 12 : 24 }
+      }
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "min(380px, 100%)",
-          maxHeight: "calc(100vh - 48px)",
-          overflowY: "auto",
-          background: "var(--rt-canvas)",
-          border: "1px solid var(--rt-hairline)",
-          borderRadius: 20,
-          boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
-          padding: isMobile ? 16 : 24,
-        }}
+        style={
+          mobileFullScreen
+            ? { width: "100%", height: "100%", overflowY: "auto", background: "var(--rt-canvas)", padding: 16 }
+            : {
+                width: "min(380px, 100%)",
+                maxHeight: "calc(100vh - 48px)",
+                overflowY: "auto",
+                background: "var(--rt-canvas)",
+                border: "1px solid var(--rt-hairline)",
+                borderRadius: 20,
+                boxShadow: "0 24px 60px rgba(0,0,0,0.35)",
+                padding: isMobile ? 16 : 24,
+              }
+        }
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
           <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
@@ -150,7 +184,10 @@ export function PlayerQuickViewModal({
           ) : error ? (
             <div style={{ padding: "48px 0", textAlign: "center", color: "var(--rt-muted)", fontSize: 13, lineHeight: 1.5 }}>{error}</div>
           ) : player ? (
-            <PlayerCompareCard player={player} mode={mode} metric={metric} onRemove={onClose} />
+            <>
+              <PlayerCompareCard player={player} mode={mode} metric={metric} onRemove={onClose} thirdStat={thirdStat} show9CatProfile={show9CatProfile} headerNote={headerNote} />
+              {extraContent && <div style={{ marginTop: 16 }}>{extraContent}</div>}
+            </>
           ) : null}
         </div>
       </div>

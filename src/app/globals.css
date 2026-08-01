@@ -1098,6 +1098,22 @@ body:has(.dr-rankings-shell) {
   padding: 0 16px;
   box-sizing: border-box;
 }
+
+/* Shared page-title block, sits above .dr-sticky-controls — introduced for
+   real-salary-rankings (which also has archetype tabs + blurb underneath
+   the h1, so those live in a sibling element, not here) and reused as-is on
+   dynasty-rankings so the two pages present the same heading treatment. */
+.dr-page-heading {
+  padding-top: 20px;
+  padding-bottom: 14px;
+}
+.dr-page-heading h1 {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .dr-page-gutter {
     padding: 0 16px;
@@ -1229,7 +1245,14 @@ body:has(.dr-rankings-shell) {
     padding: 0;
   }
 
-  .dr-rankings-shell .dr-page-gutter {
+  /* Scoped to the gutter INSIDE sticky-controls only — that's the one whose
+     mobile filter-toggle button needs to span edge-to-edge. A bare
+     ".dr-page-gutter" here used to zero every gutter on the page, including
+     unrelated ones like the page heading / archetype tabs above the sticky
+     area, leaving them flush against the screen edge on mobile (Ash,
+     2026-07-31) — narrowed rather than widening every other gutter's rules
+     to compensate. */
+  .dr-rankings-shell .dr-sticky-controls .dr-page-gutter {
     padding: 0;
   }
 
