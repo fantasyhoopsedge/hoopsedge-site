@@ -8,7 +8,7 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 // "profile" doesn't match any NAV_ITEMS key by design — the account/settings
 // page isn't one of the main content sections, so nothing in the rail should
 // highlight while it's active.
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -115,6 +115,18 @@ const ADMIN_TOOL_LINKS: Array<{ key: AppSidebarActiveKey; href: string; label: s
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19V10" /><path d="M12 19V5" /><path d="M20 19v-7" />
+      </svg>
+    ),
+  },
+  {
+    key: "dynasty-board-editor",
+    href: "/admin/dynasty-board",
+    label: "Dynasty Board",
+    title: "Dynasty Board editor (admins only)",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" />
+        <path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
       </svg>
     ),
   },
