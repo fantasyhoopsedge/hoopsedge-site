@@ -51,6 +51,80 @@ third-party roster/contract tracker, Spotrac, etc.) — what kinds of
 disagreements are real bugs versus the third party being wrong — see
 [references/third-party-cross-check.md](references/third-party-cross-check.md).
 
+## The 2026-07-30 rebuild: contract_raw/fa_year were silently wrong league-wide
+
+A multi-session initiative is rebuilding `data/nba-rosters/<season>.csv`'s
+`contract` and `fa_year` columns for every team, because a real, systemic bug
+was found: for a large share of players, `contract_raw` was never actually
+transcribed from the player's real signed deal — it was silently **derived by
+summing whatever 4 years happened to be populated in `current.csv`** and
+mislabeling that sum as "N yr / $total". This is invisible until you check a
+player whose contract doesn't fit neatly in a 4-year forward window (a long
+extension, or a deal signed before the tracked window started) — e.g.
+Wembanyama's row said `"4 yr / $157.8M"`, and $157.8M is *exactly* the sum of
+his 4 known `current.csv` years, even though his real deal is a 5yr/$252M
+extension. Confirmed as a repeating pattern across dozens of players once
+looked for deliberately, not a one-off.
+
+**The fix is a team-by-team audit**, cross-referencing each team's roster
+rows against a fresh full-roster cap-sheet screenshot (the owner calls this
+source "Pocaro's sheet" — a HoopsHype-derived per-team cap table with
+CONTRACT / FA YEAR / 26-27 SALARY columns, plus full bio: jersey, position,
+height, weight, DOB, age, years-of-service, draft, nationality). Progress is
+tracked as one task per team; see the project memory for current status
+(which teams are done, which are pending, and open flags).
+
+**The rule for this specific rebuild — memorize the precedence, it's easy to
+get backwards:**
+- **`contract_raw` and `fa_year` → Pocaro's sheet wins.** It's the only source
+  that reflects the player's *actual signed contract*, including years already
+  elapsed before the tracked window.
+- **`salary_26_27` → `current.csv` still wins**, unchanged from the pipeline's
+  existing hard rule (see "current.csv wins, year for year" in
+  `references/roster-salary-resolution.md`). Never let Pocaro's sheet's own
+  salary column override it, even when they disagree — check `current.csv`
+  directly before touching a salary figure.
+
+**The gotcha that reversed a real correction mid-session: a Spotrac-style
+forward-only per-year table is NOT a substitute for Pocaro's sheet, and using
+one to "correct" a contract total is itself a bug.** Spotrac's table only
+shows years from the *current* season forward — a player who signed a 3-year
+deal last season and is now one year in will show only 2 remaining years on
+that table, making the real 3-year/$27.7M deal look like a 2-year/$18.9M one.
+This produced a full table of plausible-looking "corrections" for an entire
+roster in one pass before being caught (Ty Jerome's real `3yr/$27.7M` deal,
+signed 2025-26 at $8.8M/$9.2M/$9.7M, would have been wrongly cut down to
+`2yr/$18.9M` using only the forward-visible two years). **Pocaro's sheet
+already accounts for elapsed years; Spotrac's per-year table does not — when
+they disagree on contract length/total, trust Pocaro's sheet, not Spotrac.**
+Spotrac-style tables (and the Dead Money / Active Roster split some of them
+show) *are* useful for a different question — confirming whether a player is
+still actually on the roster at all (see below) — just not for contract
+length or total value.
+
+**Roster-membership resolution (is this player even still on the team?):** a
+player missing from a screenshot is not automatically removed — screenshots
+routinely get cropped/truncated mid-list, and that looks identical to a real
+roster departure at first glance. Only remove a player when there's an
+*affirmative* signal: the owner directly confirms it, a "WAIVED" tag or
+Dead-Money-table appearance, or the screenshot ends at a clean team-header
+boundary (not mid-list) with no trace of the player in either an active-roster
+or dead-money view. Otherwise, flag it and wait for confirmation rather than
+guessing — a real case this session (Kevon Looney) turned out to be a pure
+sheet omission despite being gone from two separate screenshots in a row.
+
+**Bio data**: the same screenshots carry jersey number, position, height,
+weight, DOB, age, years-of-service, draft slot, and nationality — use those
+columns as the source for filling any blank bio field on an already-processed
+team. Don't fabricate bio facts from general knowledge unless the owner
+explicitly says to (blank jersey numbers are frequently blank in the source
+too — that's not a gap to fill, that's the sheet not having assigned one yet).
+
+For the deep technical detail on the resolver logic this rebuild depends on —
+the naive-sum detector, the extension-boundary re-anchoring, the new
+`contract_year_position` field, and the schema changes involved — see
+[references/roster-salary-resolution.md](references/roster-salary-resolution.md).
+
 ## The column-count trap: current.csv's header has a column no source ever fills
 
 `current.csv`'s header is `player,team,salary_current,salary_y2,salary_y3,

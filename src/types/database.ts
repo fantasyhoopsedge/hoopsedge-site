@@ -432,10 +432,15 @@ export interface Database {
           },
         ];
       };
-      // Enriched per-season roster (migration 20260630000000_nba_roster).
+      // Enriched per-season roster (migration 20260630000000_nba_roster;
+      // salary_yr5/yr6 added in 20260730000000_nba_roster_salary_yr5_yr6;
+      // contract_year_position added in 20260730010000_nba_roster_contract_year_position).
       // Fed by scripts/nba-data/roster_ingest.ts from data/nba-rosters/<season>.csv.
-      // salary_yr1 = `season`; yr2..yr4 are the following seasons. Estimated years
-      // (even-split of contract_total) flagged in salary_estimated/_years.
+      // salary_yr1 = `season`; yr2..yr6 are the following seasons. Estimated years
+      // (even-split of contract_total) flagged in salary_estimated/_years. yr5/yr6
+      // are only ever populated for a contract that runs that long (most players'
+      // stay null). contract_year_position is "N of M" — which year of the deal
+      // `season` falls in — derived from contract_years and the FA-year boundary.
       nba_roster: {
         Row: {
           season: string;
@@ -462,12 +467,15 @@ export interface Database {
           contract_years: number | null;
           contract_total: number | null;
           contract_status: string | null;
+          contract_year_position: string | null;
           fa_year: number | null;
           fa_option_years: number;
           salary_yr1: number | null;
           salary_yr2: number | null;
           salary_yr3: number | null;
           salary_yr4: number | null;
+          salary_yr5: number | null;
+          salary_yr6: number | null;
           salary_estimated: boolean;
           salary_estimated_years: string | null;
           salary_qo_years: string | null;

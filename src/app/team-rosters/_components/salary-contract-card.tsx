@@ -11,9 +11,10 @@ import type { Player } from "./roster-data";
  * without duplicating the JSX. Visually identical to the original inline
  * block — `compact` replaces roster-app.tsx's `isLandscapeTabletWidth` flag.
  *
- * Caps at 4 salary years (2026-27 → 2029-30) — nba_roster has no salary_yr5/
- * 2030-31 column, a documented gap (see docs/real-salary-dynasty-rankings-
- * brief.md and real-salary-data.ts).
+ * Shows every populated salary year from `contractFor()` — up to 6
+ * (2026-27 → 2031-32, nba_roster's salary_yr1..yr6) for a deal that runs
+ * that long; most players only have 1-4 populated and the rest render
+ * nothing (contractFor()'s row-building is already length-agnostic).
  */
 export function SalaryContractCard({ player, compact = false }: { player: Player; compact?: boolean }) {
   const contract = contractFor(player);
@@ -53,6 +54,9 @@ export function SalaryContractCard({ player, compact = false }: { player: Player
               <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 22, fontWeight: 500, letterSpacing: "-0.5px", color: "var(--rt-ink)", marginTop: 5, fontVariantNumeric: "tabular-nums" }}>
                 {contract.n} yr{contract.n > 1 ? "s" : ""} · {money(contract.total)}
               </div>
+              {contract.yearPosition && (
+                <div style={{ fontSize: 11, color: "var(--rt-muted)", marginTop: 3 }}>Year {contract.yearPosition}</div>
+              )}
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: 11, color: "var(--rt-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Avg salary</div>
