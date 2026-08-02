@@ -34,9 +34,9 @@ import { loadArtifact, resolvePlayers, loadFallbackIds } from "./build-projectio
 import { batchUpsert, loadConsensus } from "./build-seasonal-values";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import {
-  WEIGHT_PRESETS, rankToZ, selectPool, computeMarketValue, rankBy,
+  WEIGHT_PRESETS, rankToZ, selectPool, computeMarketValue, rankBy, contractClassOf,
   POOL_SIZE,
-  type RealSalaryFactors,
+  type RealSalaryFactors, type ContractClass,
 } from "../src/lib/value/real-salary-model";
 
 const SEASON = 2027;
@@ -83,7 +83,15 @@ async function loadProjectedMinus1V(): Promise<Map<string, ProjectionRow>> {
   return out;
 }
 
-interface SalaryInfo { salary: number; source: "nba_roster" | "nba_contracts"; }
+interface SalaryInfo {
+  salary: number;
+  source: "nba_roster" | "nba_contracts";
+  /** nba_roster.contract_status -> team-commitment class. nba_contracts has no
+   *  contract-type column at all, so a contracts-sourced row falls back to
+   *  "standard" (the neutral case) — see real-salary-model.ts's
+   *  contractClassOf(). */
+  contractClass: ContractClass;
+}
 interface SalaryLookup { byPlayerId: Map<string, SalaryInfo>; byName: Map<string, SalaryInfo>; }
 
 /**
@@ -109,14 +117,18 @@ async function loadSalaries(): Promise<SalaryLookup> {
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("nba_roster")
-      .select("player_id,full_name,salary_yr1")
+      .select("player_id,full_name,salary_yr1,contract_status")
       .eq("season", ROSTER_SEASON)
       .range(from, from + 999);
     if (error) throw new Error(`nba_roster fetch failed: ${error.message}`);
     if (!data?.length) break;
     for (const r of data) {
       if (r.salary_yr1 == null) continue;
-      const info: SalaryInfo = { salary: r.salary_yr1, source: "nba_roster" };
+      const info: SalaryInfo = {
+        salary: r.salary_yr1,
+        source: "nba_roster",
+        contractClass: contractClassOf(r.contract_status),
+      };
       if (r.player_id) byPlayerId.set(r.player_id, info);
       byName.set(normalizeName(r.full_name), info);
     }
@@ -128,7 +140,7 @@ async function loadSalaries(): Promise<SalaryLookup> {
   if (error) throw new Error(`nba_contracts fetch failed: ${error.message}`);
   for (const r of contracts ?? []) {
     if (r.salary_current == null) continue;
-    const info: SalaryInfo = { salary: r.salary_current, source: "nba_contracts" };
+    const info: SalaryInfo = { salary: r.salary_current, source: "nba_contracts", contractClass: "standard" };
     if (r.player_id && !byPlayerId.has(r.player_id)) byPlayerId.set(r.player_id, info);
     const nameKey = normalizeName(r.salary_player_name);
     if (!byName.has(nameKey)) byName.set(nameKey, info);
@@ -164,6 +176,7 @@ async function main(): Promise<void> {
   interface Scoreable {
     playerId: string; name: string; salary: number; salarySource: "nba_roster" | "nba_contracts";
     tier: Tier | null; productionRaw: number; consensusRank: number | null;
+    contractClass: ContractClass;
   }
   const scoreable: Scoreable[] = [];
   let skippedNoSalary = 0;
@@ -179,6 +192,7 @@ async function main(): Promise<void> {
       playerId, name, salary: sal.salary, salarySource: sal.source,
       tier: tierById.get(playerId) ?? null, productionRaw,
       consensusRank: cons?.rank ?? null,
+      contractClass: sal.contractClass,
     });
   }
   console.log(`  ${skippedNoSalary} player(s) with a projection but no known salary — excluded`);
@@ -198,6 +212,7 @@ async function main(): Promise<void> {
     productionZ: r.productionRaw,
     salaryZ: rankToZ(salaryRankById.get(r.playerId)!, N),
     salary: r.salary,
+    contractClass: r.contractClass,
   }));
 
   const poolIds = selectPool(factors, POOL_SIZE);
@@ -248,8 +263,11 @@ async function main(): Promise<void> {
   // Wembanyama as the #1 sanity check), PLUS a couple of incoming rookies —
   // players whose nba_roster.player_id is null (not yet resolved to
   // nba_players.id) previously vanished entirely from this pipeline; a
-  // present row here means the byName salary fallback is still working.
-  const WATCHLIST = ["Victor Wembanyama", "Ajay Mitchell", "LeBron James", "Joel Embiid", "Stephen Curry", "Jayson Tatum", "Giannis Antetokounmpo", "Cameron Boozer", "AJ Dybantsa"];
+  // present row here means the byName salary fallback is still working. Javon
+  // Small and Izaiyah Nelson are two-way regression guards: both sat ~50-105
+  // spots ABOVE their consensus rank before CHEAPNESS_CREDIT existed
+  // (2026-08-02), purely on the $0.68M two-way minimum.
+  const WATCHLIST = ["Victor Wembanyama", "Ajay Mitchell", "LeBron James", "Joel Embiid", "Stephen Curry", "Jayson Tatum", "Giannis Antetokounmpo", "Cameron Boozer", "AJ Dybantsa", "Javon Small", "Izaiyah Nelson"];
   console.log(`\n── watchlist ──`);
   for (const name of WATCHLIST) {
     const r = rows.find((row) => row.name === name);
@@ -258,6 +276,82 @@ async function main(): Promise<void> {
       + `salary=$${(r.salary / 1e6).toFixed(1)}M expected=$${(r.expectedCapHit / 1e6).toFixed(1)}M `
       + `surplus=$${(r.surplusValue / 1e6).toFixed(1)}M`);
   }
+
+  // Contract-class movement audit (2026-08-02). Positive Δ = the model moved
+  // him UP off his dynasty slot, same sign convention as the page's "Vs
+  // Consensus" column. Non-guaranteed (two-way / Exhibit 10) deals must NOT
+  // show a large positive mean/max here — that was the exact bug
+  // CHEAPNESS_CREDIT fixes; see real-salary-model.ts.
+  console.log(`\n── movement vs consensus by contract class (Balanced) ──`);
+  // Two different Δs, and only the second one is the model's doing:
+  //   rawΔ    = published consensusRank - valueRank. What the page's "Vs
+  //             Consensus" column showed BEFORE 2026-08-02. Systematically
+  //             inflated at the bottom of the board because
+  //             dynasty-rankings.json ranks 493 players while this population
+  //             is whoever has BOTH a projection and a salary — every
+  //             consensus-ranked player missing here shifts everyone below him
+  //             up a slot for free. Kept in this readout purely to keep the
+  //             size of that artifact visible.
+  //   modelΔ  = rank by consensusZ WITHIN this same population - valueRank.
+  //             Pure Efficiency movement, artifact removed. This is the number
+  //             CHEAPNESS_CREDIT is tuned against, and (since 2026-08-02) the
+  //             number the page's Vs Consensus column actually displays — see
+  //             real-salary-table.tsx's consensusRankInPool.
+  const consensusOnlyRank = rankBy(
+    rows.map((r) => ({ playerId: r.playerId, z: r.consensusZ })), (r) => r.z);
+  const ranked = rows.filter((r) => r.consensusRank != null);
+  const stat = (ds: number[]) => {
+    const s = [...ds].sort((a, b) => a - b);
+    const mean = s.reduce((a, b) => a + b, 0) / s.length;
+    const sign = (n: number) => `${n >= 0 ? "+" : ""}${n}`;
+    return `mean=${mean >= 0 ? "+" : ""}${mean.toFixed(1)} min=${sign(s[0])} `
+      + `median=${sign(s[Math.floor(s.length / 2)])} max=${sign(s[s.length - 1])}`;
+  };
+  for (const cls of ["rookie-scale", "standard", "non-guaranteed"] as ContractClass[]) {
+    const grp = ranked.filter((r) => r.contractClass === cls);
+    if (!grp.length) { console.log(`  ${cls.padEnd(16)} none`); continue; }
+    console.log(`  ${cls.padEnd(16)} n=${String(grp.length).padStart(3)}`);
+    console.log(`    rawΔ   ${stat(grp.map((r) => r.consensusRank! - r.valueRank))}`);
+    console.log(`    modelΔ ${stat(grp.map((r) => consensusOnlyRank.get(r.playerId)! - r.valueRank))}`);
+  }
+  const twoWayUp = ranked
+    .filter((r) => r.contractClass === "non-guaranteed")
+    .sort((a, b) => (consensusOnlyRank.get(b.playerId)! - b.valueRank) - (consensusOnlyRank.get(a.playerId)! - a.valueRank))
+    .slice(0, 8);
+  console.log(`  biggest non-guaranteed climbers (by modelΔ):`);
+  for (const r of twoWayUp) {
+    const md = consensusOnlyRank.get(r.playerId)! - r.valueRank;
+    console.log(`    ${r.name.padEnd(22)} consensus=${r.consensusRank} rank=${r.valueRank} `
+      + `rawΔ=${r.consensusRank! - r.valueRank >= 0 ? "+" : ""}${r.consensusRank! - r.valueRank} `
+      + `modelΔ=${md >= 0 ? "+" : ""}${md}`);
+  }
+  // The rawΔ/modelΔ gap above is pure population attrition, and it grows with
+  // board depth — printed here so a future "should the Vs Consensus column be
+  // rebased?" question resolves in one run instead of a re-derivation. Since
+  // 2026-08-02 the page displays modelΔ, so a big rawΔ here is expected and
+  // harmless; it is NOT what users see.
+  console.log(`  rawΔ vs modelΔ by consensus band (ALL contract classes):`);
+  for (const [lo, hi] of [[1, 100], [101, 200], [201, 300], [301, 400], [401, 999]]) {
+    const grp = ranked.filter((r) => r.consensusRank! >= lo && r.consensusRank! <= hi);
+    if (!grp.length) continue;
+    const avg = (f: (r: typeof grp[number]) => number) =>
+      (grp.reduce((s, r) => s + f(r), 0) / grp.length).toFixed(1);
+    console.log(`    cons ${String(lo).padStart(3)}-${hi === 999 ? "end" : String(hi).padStart(3)} `
+      + `n=${String(grp.length).padStart(3)} `
+      + `mean rawΔ=${avg((r) => r.consensusRank! - r.valueRank)} `
+      + `mean modelΔ=${avg((r) => consensusOnlyRank.get(r.playerId)! - r.valueRank)}`);
+  }
+
+  // Ash's hard check: no two-way/Exhibit-10 player should sit above a
+  // rookie-scale player whom dynasty consensus already ranked ahead of him.
+  const rookieScale = ranked.filter((r) => r.contractClass === "rookie-scale");
+  const inversions = ranked
+    .filter((r) => r.contractClass === "non-guaranteed")
+    .flatMap((tw) => rookieScale
+      .filter((rs) => rs.consensusRank! < tw.consensusRank! && rs.valueRank > tw.valueRank)
+      .map((rs) => `${tw.name} (cons ${tw.consensusRank} → #${tw.valueRank}) over ${rs.name} (cons ${rs.consensusRank} → #${rs.valueRank})`));
+  console.log(`  two-way-over-rookie-scale inversions: ${inversions.length}`);
+  for (const s of inversions.slice(0, 10)) console.log(`    ${s}`);
 
   if (DRY_RUN) {
     console.log("\n[DRY RUN] skipping upsert.");
@@ -293,3 +387,4 @@ main().catch((e) => {
   console.error(`\n✗ ${e instanceof Error ? e.message : String(e)}`);
   process.exit(1);
 });
+

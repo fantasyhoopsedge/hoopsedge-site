@@ -280,6 +280,80 @@ question is answered, but the estimator is a small model of its own and deserves
 a few worked cases (Ash spot-checking Avdija/Miller/a few more against intuition)
 before it's trusted to drive rankings.
 
+### 3.3.3 Contract class — a two-way's cheapness is not a bargain (2026-08-02)
+
+Shipped fix, not a proposal. The Efficiency adjuster's cheapness half (`salaryZ`,
+60% of Efficiency by `EFFICIENCY_BASE_SALARY_WEIGHT`) originally saw nothing but
+the dollar figure, and the cheapest figure in the entire league is the **$0.68M
+two-way minimum** — so the largest cheapness credit available was being handed to
+the players with the *least* team commitment. Measured on the 2026-08-02 build
+before the fix: every one of the 32 consensus-ranked two-way / Exhibit-10 players
+finished **above** his dynasty-consensus rank, by +41 minimum, +57.6 mean, +110
+worst (Javon Small, consensus 250 → #140), with **129** cases of a two-way
+outranking a rookie-scale player consensus already had ahead of him.
+
+Ash (2026-08-02): *"rookies on two-ways should not jump over any rookies on a 4yr
+rookie scale deal … standard rookie-scale deals indicate the player is more highly
+regarded by the team as fully contracted and should generally be prioritised over
+two-ways and exhibits … a two-way player should not jump much at all."*
+
+The two reasons a contract is cheap are opposites, and the model now distinguishes
+them via `ContractClass` (`real-salary-model.ts`, derived from
+`nba_roster.contract_status`):
+
+| Class | Statuses | `CHEAPNESS_CREDIT` | Why |
+| --- | --- | --- | --- |
+| `rookie-scale` | Rookie Scale | 1 | CBA-capped pay + 4 years of team control — a real asset |
+| `standard` | Standard, RFA, UFA, Draftee, no status | 1 | A cheap vet deal is a genuine bargain |
+| `non-guaranteed` | Two-Way, Exhibit 10 | **0** | Cheap *because* the team hasn't committed — not on the 15, not guaranteed, waivable |
+
+The zeroed weight is **not** reassigned to production. Production keeps its own
+base share (`1 − EFFICIENCY_BASE_SALARY_WEIGHT`) either way, so Efficiency shrinks
+toward zero for a two-way rather than swinging him on a noisy projection — which
+is exactly "should not jump much at all." After the fix, the 32 two-ways move
+**mean −5.7 / max +0** spots off their consensus slot within the same population:
+not one of them gains a place any more.
+
+### 3.3.4 "Vs Consensus" is rebased onto the scored population (2026-08-02)
+
+Shipped alongside 3.3.3, and a separate issue from it — this one was never about
+staleness. The column read `published consensusRank − valueRank`, but the two
+numbers came from **different-sized populations**:
+
+- `dynasty-rankings.json` ranks **493** players.
+- The tool ranks whoever has *both* a projection and a salary — **515**.
+- Only **444** are in both, so ~49 ranked players can't be scored here.
+
+Each of those 49 sitting above you hands you a free slot, so the column carried
+an upward bias that grew with depth. Measured 2026-08-02, across *all* contract
+classes — `rawΔ` is the old arithmetic, `modelΔ` is true Efficiency movement:
+
+| Consensus band | mean rawΔ | mean modelΔ |
+| --- | --- | --- |
+| 1–100 | −2.8 | −2.8 |
+| 101–200 | −2.1 | −2.6 |
+| 201–300 | +6.1 | +1.9 |
+| 301–400 | +12.0 | +2.1 |
+| 401+ | **+35.3** | +2.6 |
+
+Jamarion Sharp read **↑49** having not moved a single place. Ash's call
+(2026-08-02): rebase Δ, keep the CONS column on the published rank.
+
+So Δ is now `consensusRankInPool − valueRank` (`real-salary-table.tsx`), where
+`consensusRankInPool` is where the player would sit if the model did nothing but
+sort *this* population by consensus. Unranked players keep a null Δ — no
+baseline to move from — and since they all share the worst `consensusZ` they sort
+beneath every ranked player and never displace one.
+
+**Known consequence, accepted deliberately:** CONS still shows the published rank
+(it has to match `/dynasty-rankings`), so `CONS − RANK` no longer equals the
+on-screen Δ for deep players. Δ answers "did cap Efficiency move him," which is
+the question the column exists for. The same rebased Δ feeds
+`deriveValueVerdict()`, which is the more accurate input for it.
+
+`build-real-salary-values.ts` prints both Δs on every run — a large `rawΔ` there
+is expected and is *not* what users see.
+
 ### 3.4 What NOT to do
 
 - Don't build a from-scratch projection model for this — the 6-stage projections

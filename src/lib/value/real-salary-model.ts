@@ -169,6 +169,54 @@ export const ARCHETYPE_BLURB: Record<Archetype, string> = {
  */
 export const EFFICIENCY_BASE_SALARY_WEIGHT = 0.6;
 
+// ── contract commitment class (sixth revision, 2026-08-02) ─────────────────
+//
+// A salary number alone can't say WHY a contract is cheap, and the two reasons
+// are opposites. A rookie-scale deal is cheap because the CBA caps what a
+// drafted player can be paid while the team holds four years of control — a
+// genuine asset. A two-way / Exhibit-10 deal is cheap because the team hasn't
+// committed at all: not on the 15-man roster, money not guaranteed, waivable
+// on a whim. Feeding both through the same cheapness sub-score meant the
+// $0.68M two-way minimum — the cheapest figure in the entire population, and
+// therefore the single largest cheapness credit available — was handed to the
+// players with the LEAST team commitment.
+//
+// Ash (2026-08-02): "rookies on two-ways should not jump over any rookies on a
+// 4yr rookie scale deal ... standard rookie-scale deals indicate the player is
+// more highly regarded by the team as fully contracted and should generally be
+// prioritised over two-ways and exhibits ... a two-way player should not jump
+// much at all." Observed before the fix: two-ways sitting +35 to +110 spots
+// above their dynasty-consensus rank purely on the $0.7M cheapness credit.
+export type ContractClass = "rookie-scale" | "standard" | "non-guaranteed";
+
+/** nba_roster.contract_status -> ContractClass. Statuses come from
+ *  roster_ingest.ts's deriveStatus(): Rookie Scale | Standard | Two-Way |
+ *  Exhibit 10 | RFA | UFA | Draftee. Anything that isn't explicitly
+ *  rookie-scale or explicitly non-guaranteed (including a missing status)
+ *  falls back to "standard" — the neutral, pre-existing behaviour. */
+export function contractClassOf(status: string | null | undefined): ContractClass {
+  if (status === "Rookie Scale") return "rookie-scale";
+  if (status === "Two-Way" || status === "Exhibit 10") return "non-guaranteed";
+  return "standard";
+}
+
+/**
+ * Fraction of the cheapness (salaryZ) sub-score a contract class actually
+ * earns. Zero for non-guaranteed deals: their low number is the absence of an
+ * asset, not a cheap one.
+ *
+ * The zeroed weight is NOT reassigned to production — production keeps its own
+ * base share (1 - EFFICIENCY_BASE_SALARY_WEIGHT) either way, so the whole
+ * Efficiency adjuster shrinks toward zero for a two-way instead of swinging
+ * on a noisy projection. That is precisely "should not jump much at all": a
+ * two-way lands at ~his consensus slot, nudged only by production.
+ */
+export const CHEAPNESS_CREDIT: Record<ContractClass, number> = {
+  "rookie-scale": 1,
+  standard: 1,
+  "non-guaranteed": 0,
+};
+
 // ── the model ────────────────────────────────────────────────────────────
 //
 //   EfficiencyZ = subw.salary·salaryZ + subw.production·productionZ  (salaryZ
@@ -195,12 +243,10 @@ export interface RealSalaryFactors {
    *  HIGH salaryZ means a LOW actual salary. See EFFICIENCY_BASE_SALARY_WEIGHT. */
   salaryZ: number;
   salary: number;
-  /** True only for rookie-scale contracts — drives
-   *  WeightPreset.rookieScaleAdjustment. Optional/falsy-defaults-to-false so
-   *  callers that don't track contract type (the build script's stored
-   *  Balanced preset, whose rookieScaleAdjustment is 0 anyway) don't need to
-   *  populate it. */
-  isRookieScale?: boolean;
+  /** Team-commitment class from nba_roster.contract_status — drives both
+   *  CHEAPNESS_CREDIT and WeightPreset.rookieScaleAdjustment. Optional;
+   *  omitted means "standard", the neutral case. */
+  contractClass?: ContractClass;
 }
 
 export interface RealSalaryComputed {
@@ -210,8 +256,15 @@ export interface RealSalaryComputed {
 }
 
 function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
-  const salaryWeight = EFFICIENCY_BASE_SALARY_WEIGHT + (r.isRookieScale ? preset.rookieScaleAdjustment : 0);
-  const productionWeight = 1 - salaryWeight;
+  const cls = r.contractClass ?? "standard";
+  const baseSalaryWeight = EFFICIENCY_BASE_SALARY_WEIGHT
+    + (cls === "rookie-scale" ? preset.rookieScaleAdjustment : 0);
+  // Production's share is derived from the BASE weight, so gating cheapness
+  // (CHEAPNESS_CREDIT) shrinks Efficiency rather than reweighting it into
+  // production — see CHEAPNESS_CREDIT. Identical to the old formula for both
+  // rookie-scale and standard deals, where the credit is 1.
+  const salaryWeight = baseSalaryWeight * CHEAPNESS_CREDIT[cls];
+  const productionWeight = 1 - baseSalaryWeight;
   const efficiencyZ = salaryWeight * r.salaryZ + productionWeight * r.productionZ;
   return preset.consensus * r.consensusZ + preset.efficiency * efficiencyZ;
 }

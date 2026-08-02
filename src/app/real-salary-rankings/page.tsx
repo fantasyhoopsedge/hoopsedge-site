@@ -2,11 +2,15 @@ import { getStats } from "@/lib/value/seasonal-data";
 import { getRealSalaryValues, getRosterExtras, type RosterExtra } from "@/lib/value/real-salary-data";
 import rankings from "@/lib/dynasty-rankings.json";
 import { normalizePlayerName } from "@/lib/dynasty-rankings";
+import { contractClassOf } from "@/lib/value/real-salary-model";
 import { RealSalaryTable, type RealSalaryRow } from "./_components/real-salary-table";
 
-// "Rookie Scale" | "Standard" pass through as-is; everything else (Two-Way,
-// Exhibit 10, RFA, UFA, Draftee — see roster_ingest.ts's deriveStatus())
-// buckets into "Other", per Ash's filter spec (2026-07-30).
+// FILTER bucket only — deliberately coarser than the model's own ContractClass
+// (real-salary-model.ts), which has to separate Two-Way/Exhibit 10 from the
+// rest of "Other" to gate the cheapness credit. "Rookie Scale" | "Standard"
+// pass through as-is; everything else (Two-Way, Exhibit 10, RFA, UFA, Draftee
+// — see roster_ingest.ts's deriveStatus()) buckets into "Other", per Ash's
+// filter spec (2026-07-30).
 function contractBucketOf(status: string | null): "Rookie Scale" | "Standard" | "Other" {
   if (status === "Rookie Scale" || status === "Standard") return status;
   return "Other";
@@ -91,6 +95,7 @@ export default async function RealSalaryRankingsPage() {
       consensusRank: CONSENSUS_RANK_BY_NAME[normalizePlayerName(s.name)] ?? null,
       classId: classOf(extra),
       contractBucket: contractBucketOf(extra?.contract_status ?? null),
+      contractClass: contractClassOf(extra?.contract_status ?? null),
       age: ageFromDob(extra?.dob),
       salaryYr2: extra?.salary_yr2 ?? null,
       salaryYr3: extra?.salary_yr3 ?? null,

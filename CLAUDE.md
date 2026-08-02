@@ -32,8 +32,9 @@ npm run nba:salary       # ingest data/nba-salaries/current.csv into nba_contrac
 npm run nba:roster       # ingest data/nba-rosters/<season>.csv into nba_roster
 npm run nba:staleness    # freshness alarm (emails via SendGrid if data is stale)
 npm run seasonal:build   # recompute season_player_values for all league sizes (validation-gated)
+npm run projections:build # 2026-27 projection dataset from output/season-projections-2026-27.json
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
-npm run dynasty:sync     # seasonal:build + trends:build + realsalary:build in order — run after ANY dynasty-rankings.json edit
+npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
 npm run rb:seed          # seed the rookie board into Supabase
 npm run launch:snapshot  # print the Draft Night signup/play funnel
 ```
@@ -105,8 +106,17 @@ engine (rolling windows re-sum raw game totals — never average z-scores — so
 `seasonAvg` at the final block reconciles exactly with `season_player_values`).
 Upserted into `nba_player_trends` (one jsonb payload per player), read by
 `/api/player-trends` and the `/team-rosters` tone/BUY-SELL-HOLD system. It reads
-`season_player_values`, so build order is: refresh → seasonal → trends
-(`npm run dynasty:sync` runs the last three together, see below).
+`season_player_values`, so build order is: refresh → seasonal → projections →
+trends → realsalary (`npm run dynasty:sync` runs the last four together, see
+below).
+
+`npm run projections:build` sits between seasonal and trends. It does NOT
+re-run the 6-stage projection model — it loads the already-generated artifact
+`output/season-projections-2026-27.json` and writes the 2027/`projection`
+dataset (`season_player_stats` + `season_player_values`), so it's deterministic
+and safe to rerun. It must come AFTER `seasonal:build` (it resolves this draft
+class's ids against the Summer League 2026 rows that build writes) and BEFORE
+`realsalary:build` (which reads 2027/`projection`/450 for its Minus1V input).
 
 `npm run realsalary:build` (`scripts/build-real-salary-values.ts`) computes
 `/real-salary-rankings`' cap-aware values (`src/lib/value/real-salary-model.ts`)
@@ -120,7 +130,12 @@ column/Δ against a freshly-published dynasty-rankings.json until rebuilt.
 
 **Rerun `dynasty:sync` after every `dynasty-rankings.json` edit — not optional.**
 `season_player_stats.consensus_rank` is a snapshot written once, at build time,
-by joining `dynasty-rankings.json` on normalized name. A rank refresh reassigns
+by joining `dynasty-rankings.json` on normalized name. Every dataset carries its
+own snapshot and only its OWN build script refreshes it — `projections:build`
+joined the chain on 2026-08-02 for exactly this reason: `seasonal:build` skips
+the 2027 projection dataset (no game logs to aggregate), so the chain silently
+left `/seasonal-rankings`' projections view on a stale board — measured that day
+at 384 of 438 ranks disagreeing with the published JSON. A rank refresh reassigns
 rank numbers to different players; any code that re-joins consensus data by
 *rank number* instead of *name* will silently attach a stale row's new owner's
 data to the old player once the JSON changes and the DB hasn't caught up yet
