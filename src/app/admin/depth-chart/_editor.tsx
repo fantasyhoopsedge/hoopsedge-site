@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { allocateTeam, impliedRawLoad, TEAM_MINUTE_BUDGET, type AllocateInput } from "@/lib/allocate-team";
+import {
+  bandPosition, ROTATION_BANDS, ROTATION_MIN_LOAD, rotationBlocks, USG_BANDS,
+  usageSpread, verdictOf, type BlockTotals,
+} from "@/lib/rotation-shape";
 
 interface TierOption { value: string; label: string; hint: string }
 interface Row {
@@ -191,6 +195,73 @@ function TeamLoadChip({ load, locked, free }: { load: number; locked: number; fr
             ? "every player overridden -- nothing left to auto-balance, this total is fixed until you edit a number"
             : ""}
       </span>
+    </div>
+  );
+}
+
+// The shape half of the budget question. Team load says the minutes SUM correctly;
+// this says they are DISTRIBUTED like a real team's. See src/lib/rotation-shape.ts for
+// where the bands come from and why ranks 13+ is advisory rather than a target.
+function RotationShapeChip({
+  blocks, lockedLoad, usgTop, usgSpread: spread, nRotation,
+}: {
+  blocks: BlockTotals; lockedLoad: number;
+  usgTop: number; usgSpread: number; nRotation: number;
+}) {
+  const over = lockedLoad - TEAM_MINUTE_BUDGET;
+  const oversubscribed = over > 0.5;
+  const usg = [
+    { ...USG_BANDS.top, value: usgTop, fmt: (v: number) => `${v.toFixed(1)}%` },
+    { ...USG_BANDS.spread, value: spread, fmt: (v: number) => v.toFixed(1) },
+  ];
+  return (
+    <div className="dc-shape">
+      <div className="dc-shape-head">
+        <span className="dc-shape-label">Rotation shape</span>
+        <span className="dc-shape-sub">min / team game vs 2022-26 teams at the same health</span>
+      </div>
+      {oversubscribed && (
+        <div className="dc-shape-alarm">
+          Overrides alone total {lockedLoad.toFixed(1)} — {over > 0 ? "+" : ""}{over.toFixed(1)} over
+          budget. Free players can only add minutes, so this cannot be balanced away:
+          cut manual MPG or GP.
+        </div>
+      )}
+      <div className="dc-shape-rows">
+        {ROTATION_BANDS.map((b) => {
+          const v = blocks[b.key];
+          const verdict = b.advisory ? "ok" : verdictOf(b, v);
+          return (
+            <div key={b.key} className={`dc-shape-row dc-shape-${verdict}`}>
+              <span className="dc-shape-name">{b.label}</span>
+              <span className="dc-shape-value">{v.toFixed(1)}</span>
+              <span className="dc-shape-track" title={`typical ${b.lo}-${b.hi}, mean ${b.mean}`}>
+                <span className="dc-shape-mean" style={{ left: `${100 * bandPosition(b, b.mean)}%` }} />
+                <span className="dc-shape-dot" style={{ left: `${100 * bandPosition(b, v)}%` }} />
+              </span>
+              <span className="dc-shape-band">{b.lo}–{b.hi}</span>
+              <span className="dc-shape-hint">
+                {b.advisory
+                  ? b.hint
+                  : verdict === "ok" ? b.hint : `${verdict === "high" ? "heavy" : "light"} — ${b.hint}`}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="dc-shape-usg">
+        {nRotation < 3
+          ? <span className="dc-shape-hint">usage needs 3+ players at {ROTATION_MIN_LOAD}+ min</span>
+          : usg.map((u) => {
+            const off = Number.isFinite(u.value) && (u.value < u.lo || u.value > u.hi);
+            return (
+              <span key={u.label} className={"dc-shape-usgitem" + (off ? " dc-shape-high" : "")}>
+                {u.label} <strong>{Number.isFinite(u.value) ? u.fmt(u.value) : "—"}</strong>
+                <span className="dc-shape-band"> ({u.lo}–{u.hi})</span>
+              </span>
+            );
+          })}
+      </div>
     </div>
   );
 }
@@ -439,21 +510,41 @@ export function DepthChartEditor() {
   // loosening one override or hand-tuning the rest to close the gap. That is a
   // fact about a fully-locked roster, not a bug this tool can compute its way out
   // of -- see project.py's identical "fully manually-locked" acceptance.
+  //
+  // `lockedLoad` is the second number this tool was missing, and NOR is why. A free
+  // player can only ever ADD minutes -- the allocator may not touch an override -- so
+  // once the overrides ALONE clear 241.75, the total is unreachable no matter how many
+  // free players are left. project.py used to report exactly that state as an allocator
+  // bug and refuse to run; NOR sat at 245.2 with two newly-traded-in players who had no
+  // row yet and got 0.0 MPG each. Nothing on this screen said so while it was being
+  // typed. Surfaced separately from `load` because the two fail differently: `load` off
+  // budget with free players left is normal mid-edit, `lockedLoad` over budget is
+  // already unfixable.
   const teamTotals = useMemo(() => {
-    let load = 0, locked = 0, free = 0;
+    let load = 0, locked = 0, free = 0, lockedLoad = 0;
+    const loads: number[] = [];
+    const rotationUsg: number[] = [];
     for (const r of teamRows) {
       const e = edited.get(keyOf(r)) ?? blankEdit(r);
       if (e.tier === "cut") continue;
       const hasOverride = e.overrideGames != null || e.overrideMpg != null;
       hasOverride ? locked++ : free++;
       const live = preview.get(keyOf(r));
-      if (live) {
-        load += live.mpg * (live.games / 82);
-      } else {
-        load += (r.projMpg ?? 0) * ((r.projGames ?? 0) / 82);
-      }
+      const playerLoad = live
+        ? live.mpg * (live.games / 82)
+        : (r.projMpg ?? 0) * ((r.projGames ?? 0) / 82);
+      load += playerLoad;
+      if (hasOverride) lockedLoad += playerLoad;
+      loads.push(playerLoad);
+      if (playerLoad >= ROTATION_MIN_LOAD && r.usg != null) rotationUsg.push(r.usg);
     }
-    return { load, locked, free };
+    return {
+      load, locked, free, lockedLoad,
+      blocks: rotationBlocks(loads),
+      usgTop: rotationUsg.length ? Math.max(...rotationUsg) : NaN,
+      usgSpread: usageSpread(rotationUsg),
+      nRotation: rotationUsg.length,
+    };
   }, [teamRows, edited, preview]);
 
   function blankEdit(r: Row): Edit {
@@ -660,6 +751,13 @@ export function DepthChartEditor() {
             onChange={(v) => setCategory(team, v)}
           />
           <TeamLoadChip load={teamTotals.load} locked={teamTotals.locked} free={teamTotals.free} />
+          <RotationShapeChip
+            blocks={teamTotals.blocks}
+            lockedLoad={teamTotals.lockedLoad}
+            usgTop={teamTotals.usgTop}
+            usgSpread={teamTotals.usgSpread}
+            nRotation={teamTotals.nRotation}
+          />
           <TeamFlagsBar tf={roleFlags?.teams[team]}
             applied={rcApplied.byTeam.get(team) ?? { up: 0, down: 0 }}
             conflicts={rcConflicts.byTeam.get(team) ?? 0}
@@ -913,6 +1011,41 @@ function Style() {
       .dc-loadbar-target { font-size: 12px; color: var(--rt-muted); }
       .dc-loadbar-diff { font-size: 12px; font-weight: 700; font-family: var(--rt-font-mono); color: var(--rt-down); }
       .dc-loadbar-free { font-size: 12px; color: var(--rt-muted); margin-left: auto; }
+
+      .dc-shape { flex: 0 0 auto; margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--rt-hairline);
+        border-radius: 10px; background: var(--rt-surface-soft); max-width: 100%; }
+      .dc-shape-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+      .dc-shape-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+        color: var(--rt-muted); }
+      .dc-shape-sub { font-size: 11px; color: var(--rt-muted); opacity: .8; }
+      .dc-shape-alarm { font-size: 12px; font-weight: 600; line-height: 1.45; margin-bottom: 8px;
+        padding: 7px 10px; border-radius: 8px; color: var(--rt-down);
+        border: 1px solid var(--rt-down); background: color-mix(in srgb, var(--rt-down) 12%, transparent); }
+      .dc-shape-rows { display: flex; flex-direction: column; gap: 4px; }
+      .dc-shape-row { display: grid; grid-template-columns: 74px 46px minmax(70px, 1fr) 74px auto;
+        align-items: center; gap: 8px; font-size: 12px; }
+      .dc-shape-name { color: var(--rt-muted); font-weight: 600; }
+      .dc-shape-value { font-family: var(--rt-font-mono); font-weight: 800; text-align: right; }
+      .dc-shape-ok .dc-shape-value { color: var(--rt-up); }
+      .dc-shape-low .dc-shape-value, .dc-shape-high .dc-shape-value { color: var(--rt-down); }
+      .dc-shape-track { position: relative; height: 6px; border-radius: 3px;
+        background: color-mix(in srgb, var(--rt-up) 16%, transparent); }
+      .dc-shape-mean { position: absolute; top: -2px; width: 1px; height: 10px;
+        background: var(--rt-muted); opacity: .5; }
+      .dc-shape-dot { position: absolute; top: -3px; width: 12px; height: 12px; margin-left: -6px;
+        border-radius: 50%; background: var(--rt-up); border: 2px solid var(--rt-surface-soft); }
+      .dc-shape-low .dc-shape-dot, .dc-shape-high .dc-shape-dot { background: var(--rt-down); }
+      .dc-shape-band { font-size: 11px; color: var(--rt-muted); font-family: var(--rt-font-mono); }
+      .dc-shape-hint { font-size: 11px; color: var(--rt-muted); }
+      .dc-shape-low .dc-shape-hint, .dc-shape-high .dc-shape-hint { color: var(--rt-down); font-weight: 600; }
+      .dc-shape-usg { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; padding-top: 8px;
+        border-top: 1px solid var(--rt-hairline); font-size: 12px; color: var(--rt-muted); }
+      .dc-shape-usgitem strong { font-family: var(--rt-font-mono); color: var(--rt-fg); }
+      .dc-shape-usgitem.dc-shape-high strong { color: var(--rt-down); }
+      @media (max-width: 720px) {
+        .dc-shape-row { grid-template-columns: 66px 44px minmax(50px, 1fr) auto; }
+        .dc-shape-hint { display: none; }
+      }
 
       .dc-flagbar { flex: 0 0 auto; display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 14px;
         margin: 0 0 14px; padding: 10px 14px; border: 1px solid var(--rt-hairline); border-radius: 10px;
