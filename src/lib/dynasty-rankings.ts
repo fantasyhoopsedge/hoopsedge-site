@@ -73,7 +73,10 @@ export interface DynastyPlayer {
     dizzle?: number;
     angle?: number;
     mball?: number;
-    hashtag?: number;
+    /** FBI-HE (Fantasy Basketball International / Hoops Edge) — replaced "hashtag"
+     * 2026-08-02 when Hashtag Basketball ended its FHE partnership. Sourced from
+     * the /admin/dynasty-board tool's published order, not an external scrape. */
+    fbihe?: number;
     dynatyze?: number;
   };
   avgRank: number;

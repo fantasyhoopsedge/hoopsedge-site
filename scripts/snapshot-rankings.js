@@ -5,7 +5,10 @@
  * Usage:
  *   node scripts/snapshot-rankings.js --version 1.1 --date "July 2026"
  *
- * Expert dates are read from --dizzle, --mball, --angle, --dynatyze, --hashtag flags.
+ * Expert dates are read from --dizzle, --mball, --angle, --dynatyze, --fbihe flags.
+ * ("fbihe" = FBI-HE, Fantasy Basketball International / Hoops Edge — replaced
+ * "hashtag" 2026-08-02 when Hashtag Basketball ended its FHE partnership; see
+ * docs/dynasty-rankings-refresh.md and the fbi-partnership memory.)
  * After running, update public/data/versions-index.json manually (or use --update-index).
  */
 
@@ -31,7 +34,7 @@ const expertDates = {
   mball:    flag('mball')    || '',
   angle:    flag('angle')    || '',
   dynatyze: flag('dynatyze') || '',
-  hashtag:  flag('hashtag')  || '',
+  fbihe:    flag('fbihe')    || '',
 };
 
 const rankings = require('../src/lib/dynasty-rankings.json');

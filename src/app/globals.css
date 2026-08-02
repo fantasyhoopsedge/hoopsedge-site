@@ -1746,10 +1746,10 @@ body:has(.dr-rankings-shell) {
     width: 50px !important;
   }
 
-  /* HASHTAG/DYNATYZE (7-8 chars) measured 42-44px alone, more with an active
+  /* FBI-HE/DYNATYZE (6-8 chars) measured 42-44px alone, more with an active
      sort arrow — same margin-over-measured approach as the narrow columns. */
-  .dr-rankings-shell .dr-th-expert.dr-col-w-hashtag,
-  .dr-rankings-shell .dr-td-expert.dr-col-w-hashtag {
+  .dr-rankings-shell .dr-th-expert.dr-col-w-fbihe,
+  .dr-rankings-shell .dr-td-expert.dr-col-w-fbihe {
     width: 60px;
     min-width: 60px;
     max-width: 60px;
@@ -2044,7 +2044,7 @@ body:has(.dr-rankings-shell) {
   width: 65px;
 }
 
-.dr-col-w-hashtag {
+.dr-col-w-fbihe {
   width: 75px;
 }
 

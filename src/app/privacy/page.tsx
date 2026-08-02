@@ -215,7 +215,7 @@ export default function PrivacyPage() {
             <li style={S.li}>HCTI / htmlcsstoimage.com — image generation for projection cards</li>
           </ul>
           <p style={S.p}>
-            The FHE Consensus Rankings incorporate dynasty rankings from Hashtag Basketball, Dynatyze, Angle Fantasy Basketball, Moneyballers, and Dizzle Dynasty, each of whom has provided prior written consent to this use. No user personal information is shared with any of these sources.
+            The FHE Consensus Rankings incorporate dynasty rankings from FBI-HE, Dynatyze, Angle Fantasy Basketball, Moneyballers, and Dizzle Dynasty, each of whom has provided prior written consent to this use. No user personal information is shared with any of these sources.
           </p>
           <p style={S.pLast}>
             Whop is a subscription payment platform we intend to use if and when a paid tier is introduced. It is not currently active. See Section 8 for details.
