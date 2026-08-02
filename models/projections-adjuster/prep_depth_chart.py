@@ -116,6 +116,98 @@ def fallback_status(contract: str) -> str:
     return "unrestricted_fa"
 
 
+def reconcile_tier_csv(roster: pd.DataFrame, proj_lookup: dict) -> None:
+    """Bring depth-chart-2026-27.csv back in step with the roster, keyed on (team, player).
+
+    That composite key is the whole problem: a traded player's row is stranded under his
+    old team, and EVERY consumer keys the same way. Stage 1 looks up (team, player) and
+    finds nothing, so a hand-set override silently reverts to the model's own number --
+    Spencer Jones was carrying MPG 16 under OKC and projecting 0.5 at DEN. The editor is
+    worse than silent: it lists players from the BUNDLE (rebuilt from the roster, so he
+    appears under DEN) but publish writes the CSV, and depth-chart-store's fileApply
+    raises `no roster row for ...` on a key that isn't there -- which fails the WHOLE
+    publish, not just that row. Two players with no CSV row at all (Koloko, Bufkin, both
+    traded into NOR) made NOR unpublishable.
+
+    So: re-key by NAME when the team moved, carrying tier/injury/overrides across; add
+    rostered players who have no row; drop rows for players off the roster entirely. The
+    name fallback is strict on both sides for the same reason as the role-context one --
+    a shared name is exactly where a wrong guess assigns someone else's minutes.
+    """
+    if not os.path.exists(TIER_CSV):
+        return
+    t = pd.read_csv(TIER_CSV)
+    for col in ("tier", "injury", "override_games", "override_mpg"):
+        if col not in t.columns:
+            t[col] = ""
+    t["k"] = t["player"].map(normalize_name)
+
+    roster_keys = set(zip(roster["team"], roster["player"]))
+    roster_by_k = {k: r for k, r in zip(roster["k"], roster.to_dict("records"))}
+    roster_k_counts = roster["k"].value_counts().to_dict()
+    csv_k_counts = t["k"].value_counts().to_dict()
+
+    keep, dropped, rekeyed = [], [], []
+    for row in t.to_dict("records"):
+        if (row["team"], row["player"]) in roster_keys:
+            keep.append(row)
+            continue
+        target = roster_by_k.get(row["k"])
+        if target is not None and roster_k_counts.get(row["k"], 0) == 1 and csv_k_counts.get(row["k"], 0) == 1:
+            # "cut" is a statement about the team the row is ON -- he didn't make THAT
+            # roster. A trade has already answered that question, so carrying it across
+            # would silently bench a player on his new team (Kentavious Caldwell-Pope,
+            # cut from MEM, arrived at PHI as cut/0/0 and would have dropped out of
+            # Philadelphia's allocation entirely). Reset him to a seeded tier instead;
+            # the 0/0 overrides are part of the same cut artifact and go with it.
+            had = f"G {row['override_games']}, MPG {row['override_mpg']}"
+            if row["tier"] == "cut":
+                proj = next((proj_lookup[c] for c in name_candidates(row["k"]) if c in proj_lookup), None)
+                row["tier"] = seed_tier(proj["projMpg"] if proj else None)
+                note = f"was CUT on the old team -> reseeded {row['tier']}"
+            else:
+                note = f"tier {row['tier']} kept"
+            # THE TIER TRAVELS, THE NUMBER DOES NOT. A GP/MPG override is a claim on ONE
+            # team's 241.75 -- Spencer Jones's 16 minutes were carved out of OKC's
+            # rotation, and pasting that figure into Denver's just adds 16 minutes to a
+            # roster that was already full (DEN 254.5, LAC 246.6 when this carried).
+            # The judgment worth keeping is the TIER, which is what the allocator reads;
+            # the minutes get re-derived in the new team's budget, and Ash can re-set
+            # them against a chip that now shows him the running total.
+            row["override_games"] = ""
+            row["override_mpg"] = ""
+            rekeyed.append(f"{row['player']}: {row['team']} -> {target['team']} "
+                           f"({note}; overrides cleared, had {had})")
+            row["team"] = target["team"]
+            keep.append(row)
+        else:
+            dropped.append(f"{row['team']} {row['player']} (tier {row['tier']}, "
+                           f"G {row['override_games']}, MPG {row['override_mpg']})")
+
+    have = set(zip((r["team"] for r in keep), (r["player"] for r in keep)))
+    added = []
+    for r in roster.to_dict("records"):
+        if (r["team"], r["player"]) in have:
+            continue
+        proj = next((proj_lookup[c] for c in name_candidates(r["k"]) if c in proj_lookup), None)
+        keep.append({"team": r["team"], "player": r["player"],
+                     "tier": seed_tier(proj["projMpg"] if proj else None),
+                     "injury": "none", "override_games": "", "override_mpg": "", "k": r["k"]})
+        added.append(f"{r['team']} {r['player']}")
+
+    out = pd.DataFrame(keep)[["team", "player", "tier", "injury", "override_games", "override_mpg"]]
+    out = out.sort_values(["team", "player"]).reset_index(drop=True)
+    out.to_csv(TIER_CSV, index=False)
+    print(f"  reconciled {os.path.relpath(TIER_CSV, REPO)} to the roster: "
+          f"{len(rekeyed)} re-keyed, {len(added)} added, {len(dropped)} dropped")
+    for m in rekeyed:
+        print(f"    re-keyed  {m}")
+    for m in added:
+        print(f"    added     {m} (seeded tier, no override)")
+    for m in dropped:
+        print(f"    dropped   {m}")
+
+
 def main() -> None:
     roster = pd.read_csv(ROSTER_CSV)
     roster = roster[~roster["team"].isin(NOT_A_TEAM)].copy()
@@ -130,6 +222,8 @@ def main() -> None:
         doc = json.load(open(PROJECTIONS_JSON, encoding="utf-8"))
         for p in doc.get("players", []):
             proj_lookup[p["norm_name"]] = p
+
+    reconcile_tier_csv(roster, proj_lookup)
 
     existing_tiers: dict[str, str] = {}
     existing_injuries: dict[str, str] = {}

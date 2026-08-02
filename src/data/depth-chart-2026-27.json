@@ -93,7 +93,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7716120.0,
     "statusNext": "guaranteed",
-    "usg": 20.5
+    "usg": 20.6
   },
   {
     "team": "ATL",
@@ -173,7 +173,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13050000.0,
     "statusNext": "guaranteed",
-    "usg": 18.1
+    "usg": 18.2
   },
   {
     "team": "ATL",
@@ -205,7 +205,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 25.1
+    "usg": 25.2
   },
   {
     "team": "ATL",
@@ -237,7 +237,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3560880.0,
     "statusNext": "team_option",
-    "usg": 18.3
+    "usg": 18.4
   },
   {
     "team": "ATL",
@@ -253,7 +253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 16880000.0,
     "statusNext": "guaranteed",
-    "usg": 19.5
+    "usg": 19.6
   },
   {
     "team": "DAL",
@@ -285,7 +285,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 12.8
+    "usg": 12.9
   },
   {
     "team": "ATL",
@@ -317,7 +317,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8168226.0,
     "statusNext": "guaranteed",
-    "usg": 19.6
+    "usg": 19.7
   },
   {
     "team": "BOS",
@@ -2125,7 +2125,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.1
+    "usg": 18.2
   },
   {
     "team": "DAL",
@@ -2371,17 +2371,17 @@
     "team": "DEN",
     "player": "Spencer Jones",
     "pos": "F",
-    "tier": "fringe",
+    "tier": "rotation",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
+    "overrideMpg": 16.0,
     "projMpg": 0.5,
     "projGames": 48.0,
     "salaryNow": 6064000.0,
     "statusNow": "guaranteed",
     "salaryNext": 6367200.0,
     "statusNext": "guaranteed",
-    "usg": 9.7
+    "usg": 9.3
   },
   {
     "team": "DEN",
@@ -2749,7 +2749,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.2
+    "usg": 18.2
   },
   {
     "team": "DET",
@@ -5245,7 +5245,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10848215.0,
     "statusNext": "guaranteed",
-    "usg": 13.6
+    "usg": 13.7
   },
   {
     "team": "DET",
@@ -5277,7 +5277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 28.1
+    "usg": 28.2
   },
   {
     "team": "MIL",
@@ -5405,7 +5405,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4000000.0,
     "statusNext": "player_option",
-    "usg": 22.3
+    "usg": 22.4
   },
   {
     "team": "MIL",
@@ -5861,8 +5861,8 @@
     "pos": "G",
     "tier": "reserve",
     "injury": "none",
-    "overrideGames": 58.0,
-    "overrideMpg": 14.0,
+    "overrideGames": 20.0,
+    "overrideMpg": 10.0,
     "projMpg": 14.0,
     "projGames": 58.0,
     "salaryNow": 7021740.0,
@@ -6381,7 +6381,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.3
+    "usg": 13.6
   },
   {
     "team": "OKC",
@@ -6979,10 +6979,10 @@
     "team": "LAC",
     "player": "Johni Broome",
     "pos": "C",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
-    "overrideGames": null,
-    "overrideMpg": null,
+    "overrideGames": 50.0,
+    "overrideMpg": 9.0,
     "projMpg": 4.4,
     "projGames": 11.0,
     "salaryNow": 2150917.0,
@@ -9501,7 +9501,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2756912.0,
     "statusNext": "team_option",
-    "usg": 18.6
+    "usg": 18.7
   },
   {
     "team": "MIL",
@@ -9517,16 +9517,16 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.6
+    "usg": 18.7
   },
   {
     "team": "NOR",
     "player": "Bryce McGowens",
     "pos": "",
-    "tier": "reserve",
+    "tier": "fringe",
     "injury": "none",
     "overrideGames": 59.0,
-    "overrideMpg": 12.0,
+    "overrideMpg": 7.0,
     "projMpg": 12.0,
     "projGames": 59.0,
     "salaryNow": 2584539.0,
@@ -9667,10 +9667,10 @@
     "team": "NOR",
     "player": "Kobe Bufkin",
     "pos": "G",
-    "tier": "fringe",
+    "tier": "reserve",
     "injury": "none",
-    "overrideGames": null,
-    "overrideMpg": null,
+    "overrideGames": 40.0,
+    "overrideMpg": 12.0,
     "projMpg": 0.0,
     "projGames": 14.3,
     "salaryNow": null,
@@ -9686,7 +9686,7 @@
     "tier": "fringe",
     "injury": "none",
     "overrideGames": null,
-    "overrideMpg": null,
+    "overrideMpg": 5.0,
     "projMpg": 0.0,
     "projGames": 30.0,
     "salaryNow": null,
