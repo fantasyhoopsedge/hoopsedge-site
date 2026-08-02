@@ -538,7 +538,7 @@ export function DynastyBoardEditor() {
                 <th>Pos</th>
                 <th>Team</th>
                 <th>Age</th>
-                <th title="FHE/FBI Baseline rank — currently sourced from the hashtag-basketball expert's own rank">FHE/FBI#</th>
+                <th title="FHE/FBI Baseline rank — currently sourced from the FBI-HE expert's own rank">FHE/FBI#</th>
                 <th title="Current v1.1 multi-expert consensus average rank (dynasty-rankings.json)">V1.1#</th>
                 <th>Role</th>
                 <th title="Minus1V per-game projected rank">M-1V#</th>

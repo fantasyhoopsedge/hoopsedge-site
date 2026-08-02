@@ -9,15 +9,21 @@ import { loadPublishedRows } from "@/lib/depth-chart-store";
 import { formatContract, renumber, type DynastyBoardPlayer, type EcosystemPlayer } from "@/lib/dynasty-board";
 
 /**
- * Builds a fresh Dynasty Board seed (every player in the hashtag-basketball
- * consensus, src/lib/dynasty-rankings.json, in consensus order) and the
- * "ecosystem pool" of every other rostered NBA player available to add. Both
- * are enriched from the same Supabase sources — contract (nba_roster), role
- * tag (depth-chart tier), and projected per-game production
- * (season_player_stats/season_player_values) — via loadEnrichmentContext()
- * below, so a player looks identical whether they came from the consensus or
- * were added later. All joins key on normalizePlayerName() — never a
- * persisted rank number (CLAUDE.md).
+ * Builds a fresh Dynasty Board seed (every player in src/lib/dynasty-rankings.json,
+ * ordered by the FBI-HE baseline rank) and the "ecosystem pool" of every other
+ * rostered NBA player available to add. Both are enriched from the same
+ * Supabase sources — contract (nba_roster), role tag (depth-chart tier), and
+ * projected per-game production (season_player_stats/season_player_values) —
+ * via loadEnrichmentContext() below, so a player looks identical whether they
+ * came from the consensus or were added later. All joins key on
+ * normalizePlayerName() — never a persisted rank number (CLAUDE.md).
+ *
+ * "FBI-HE" (expertRanks.fbihe) replaced "hashtag" 2026-08-02 when Hashtag
+ * Basketball ended its FHE partnership — see the fbi-partnership memory and
+ * docs/dynasty-rankings-refresh.md. This means the tool's own baseline is now
+ * circular by design: each refresh's published board becomes next cycle's
+ * fbihe seat in dynasty-rankings.json, which becomes the seed for the NEXT
+ * time this tool is opened. That's intentional, not a bug.
  */
 
 // 2026-27 is the season being drafted for; its only stats dataset is the
@@ -173,14 +179,13 @@ export async function buildDynastyBoardSeed(): Promise<DynastyBoardPlayer[]> {
       // memory) — union with nba_roster's flag rather than overriding it.
       isRookie: p.isRookie || e.isRookie,
       customRank: 0, // set below, after sorting by the FHE/FBI Baseline rank
-      // FHE/FBI Baseline = the hashtag expert's own individual rank, NOT the
-      // multi-expert consensus average — per Ash's 2026-08-01 instruction, the
-      // baseline should be hashtag's own list (fbi-partnership memory: this
-      // baseline is what eventually becomes the co-branded FHE/FBI rank).
-      // ~9% of players (2026-08-01 data) aren't individually ranked by hashtag
-      // (other experts cover them instead) — consensusRank is the only sane
-      // fallback for those so they still land somewhere sensible in the order.
-      consensusRank: p.expertRanks.hashtag ?? p.consensusRank,
+      // FHE/FBI Baseline = the fbihe expert's own rank (as of 2026-08-02, this
+      // IS the FBI-HE co-branded rank, not a stand-in for it — see the
+      // fbi-partnership memory), NOT the multi-expert consensus average. A
+      // small slice of players aren't individually ranked by fbihe (other
+      // experts cover them instead) — consensusRank is the sane fallback so
+      // they still land somewhere sensible in the order.
+      consensusRank: p.expertRanks.fbihe ?? p.consensusRank,
       // The CURRENT v1.1 multi-expert consensus AVERAGE rank (decimal, e.g. 5.4)
       // — dynasty-rankings.json's own `avgRank`, the exact figure shown as
       // "AVG RANK" on /dynasty-rankings — shown read-only alongside the baseline.
@@ -189,13 +194,13 @@ export async function buildDynastyBoardSeed(): Promise<DynastyBoardPlayer[]> {
     };
   });
 
-  // Order by the FHE/FBI Baseline rank (hashtag's own list), not
+  // Order by the FHE/FBI Baseline rank (fbihe's own list), not
   // DYNASTY_RANKINGS' native (consensus-average) order.
   seeded.sort((a, b) => (a.consensusRank ?? 0) - (b.consensusRank ?? 0));
   return renumber(seeded);
 }
 
-/** Every ecosystem player NOT already in the hashtag consensus — the pool the
+/** Every ecosystem player NOT already in the consensus — the pool the
  * "+ Add player" picker searches. Sorted by Minus1V rank (best first, then
  * unprojected players alphabetically) so the most useful adds surface first. */
 export async function buildAddablePool(): Promise<EcosystemPlayer[]> {

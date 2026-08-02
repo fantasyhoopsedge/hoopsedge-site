@@ -12,7 +12,7 @@ import { ROLE_TAGS, type DynastyBoardPlayer } from "@/lib/dynasty-board";
  *            consensus seed built on the fly.
  *   POST   — { players, draft:true } saves a WIP draft; { players } (no
  *            draft flag) publishes; { reset:true } discards the current
- *            edits and reseeds a draft from the hashtag consensus.
+ *            edits and reseeds a draft from the FBI-HE baseline.
  *   DELETE — discards the WIP draft, falling back to published (or a fresh
  *            seed if nothing has ever been published).
  *

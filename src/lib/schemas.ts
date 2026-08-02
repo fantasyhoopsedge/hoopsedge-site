@@ -147,7 +147,7 @@ export function generateConsensusRankingsSchema(siteUrl: string): object {
     '@id': `${siteUrl}/dynasty-rankings#dataset`,
     name: 'FHE Dynasty Fantasy Basketball Consensus Rankings 2026',
     description:
-      '450-player dynasty fantasy basketball consensus rankings for 9-category roto leagues, aggregated from 5 expert sources: Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, Hashtag Basketball, and Moneyballers. Built specifically for deep dynasty formats of 16 or more teams.',
+      '450-player dynasty fantasy basketball consensus rankings for 9-category roto leagues, aggregated from 5 expert sources: Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, FBI-HE, and Moneyballers. Built specifically for deep dynasty formats of 16 or more teams.',
     url: `${siteUrl}/dynasty-rankings`,
     creator: { '@id': `${siteUrl}/#organization` },
     keywords: [
@@ -172,16 +172,18 @@ export function generateConsensusRankingsSchema(siteUrl: string): object {
       'Turnovers per game (TO)',
     ],
     measurementTechnique:
-      'Simple average of expert dynasty ranks from 5 panels: Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, Hashtag Basketball, and Moneyballers',
+      'Simple average of expert dynasty ranks from 5 panels: Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, FBI-HE, and Moneyballers',
     numberOfItems: 450,
     temporalCoverage: '2026',
     inLanguage: 'en',
     license: 'https://creativecommons.org/licenses/by-nc/4.0/',
+    // FBI-HE (Fantasy Basketball International / Hoops Edge) is FHE's own
+    // co-branded panel, not an external cited source — see the fbi-partnership
+    // memory — so it has no entry here the way the other 4 external sites do.
     isBasedOn: [
       { '@type': 'WebSite', name: 'Dynatyze',                 url: 'https://dynatyze.com' },
       { '@type': 'WebSite', name: 'Dizzle Dynasty',           url: 'https://dizzledynasty.com' },
       { '@type': 'WebSite', name: 'Angle Fantasy Basketball', url: 'https://anglefantasybasketball.com' },
-      { '@type': 'WebSite', name: 'Hashtag Basketball',       url: 'https://hashtagbasketball.com' },
       { '@type': 'WebSite', name: 'Moneyballers',             url: 'https://moneyballers.com' },
     ],
   };

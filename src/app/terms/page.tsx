@@ -186,7 +186,7 @@ export default function TermsPage() {
               You are permitted to access and use this content for personal, non-commercial purposes only. Reproduction, redistribution, republication, or any commercial use of FHE content — in whole or in part — without prior written permission from FantasyHoopsEdge is strictly prohibited.
             </p>
             <p style={{ ...S.pLast }}>
-              The FHE Consensus Rankings incorporate individual dynasty rankings published by Hashtag Basketball, Dynatyze, Angle Fantasy Basketball, Moneyballers, and Dizzle Dynasty. Each of these experts has provided prior written consent to the inclusion of their rankings in the FHE consensus methodology. Their rankings remain the intellectual property of their respective creators. FantasyHoopsEdge does not claim ownership of any individual expert&apos;s rankings. Reproduction or redistribution of any individual expert&apos;s rankings from this platform without that expert&apos;s own permission is prohibited.
+              The FHE Consensus Rankings incorporate individual dynasty rankings published by FBI-HE, Dynatyze, Angle Fantasy Basketball, Moneyballers, and Dizzle Dynasty. Each of these experts has provided prior written consent to the inclusion of their rankings in the FHE consensus methodology. Their rankings remain the intellectual property of their respective creators. FantasyHoopsEdge does not claim ownership of any individual expert&apos;s rankings. Reproduction or redistribution of any individual expert&apos;s rankings from this platform without that expert&apos;s own permission is prohibited.
             </p>
           </div>
 

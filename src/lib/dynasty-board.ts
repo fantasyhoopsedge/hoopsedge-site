@@ -4,17 +4,20 @@ import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
  * Types + display helpers for the Dynasty Board editor (/admin/dynasty-board).
  *
  * A DynastyBoardPlayer starts life as one row of src/lib/dynasty-rankings.json,
- * ordered by the hashtag-basketball expert's OWN individual rank (not the
+ * ordered by the FBI-HE expert's OWN rank (`expertRanks.fbihe` — not the
  * multi-expert consensus average) — that's the "FHE/FBI Baseline" shown in the
- * tool (`consensusRank`, name kept for now — the plan is for this baseline to
- * eventually BE the FHE/FBI co-branded rank, replacing hashtag entirely, see
- * the fbi-partnership memory). The current v1.1 multi-expert consensus average
- * rides along separately as `consensusAvgRank`, shown read-only for reference.
- * Both are enriched at seed time with contract/role/production fields from
- * Supabase (see dynasty-board-seed.ts) so the editor can show real context
- * while the owner drags players into their own order. Enrichment fields are a
- * snapshot taken when the doc was (re)seeded, not a live join — same
- * trade-off the rookie board makes for its star ratings.
+ * tool (`consensusRank`, name kept for historical reasons). As of 2026-08-02
+ * this baseline IS the FBI-HE co-branded rank (replacing hashtag, which ended
+ * its FHE partnership — see the fbi-partnership memory) — this tool's own
+ * published output feeds the next cycle's `fbihe` values, so the baseline is
+ * self-referential by design each time it's reseeded. The current v1.1
+ * multi-expert consensus average rides along separately as `consensusAvgRank`,
+ * shown read-only for reference. Both are enriched at seed time with
+ * contract/role/production fields from Supabase (see dynasty-board-seed.ts)
+ * so the editor can show real context while the owner drags players into
+ * their own order. Enrichment fields are a snapshot taken when the doc was
+ * (re)seeded, not a live join — same trade-off the rookie board makes for
+ * its star ratings.
  */
 
 export const ROLE_TAGS = ["starter", "rotation", "reserve", "fringe"] as const;
@@ -36,8 +39,8 @@ export interface DynastyBoardPlayer {
   position: string;
   age: number | null;
   /** Frozen "FHE/FBI Baseline" rank at the time this doc was seeded/reset — sourced from the
-   * hashtag-basketball expert's individual rank (falling back to the v1.1 consensus rank for
-   * the small slice of players hashtag didn't personally rank). null for a player added later
+   * FBI-HE expert's individual rank (falling back to the v1.1 consensus rank for
+   * the small slice of players FBI-HE didn't personally rank). null for a player added later
    * from the ecosystem pool — they have no baseline at all. */
   consensusRank: number | null;
   /** The current v1.1 multi-expert consensus AVERAGE rank — dynasty-rankings.json's own
@@ -101,7 +104,7 @@ export function moveFromConsensusAvg(p: DynastyBoardPlayer): number | null {
 const BASELINE_BY_NAME = new Map<string, { baseline: number; avg: number }>();
 for (const p of DYNASTY_RANKINGS) {
   BASELINE_BY_NAME.set(normalizePlayerName(p.player), {
-    baseline: p.expertRanks.hashtag ?? p.consensusRank,
+    baseline: p.expertRanks.fbihe ?? p.consensusRank,
     avg: p.avgRank,
   });
 }
@@ -111,7 +114,7 @@ for (const p of DYNASTY_RANKINGS) {
  * player on a LOADED doc from the current dynasty-rankings.json, rather than
  * trusting whatever was frozen into the saved doc. Two reasons this matters:
  *   1. A doc saved before this pair of fields existed (or before the baseline
- *      switched from consensus-average to hashtag's own rank) would otherwise
+ *      switched from consensus-average to FBI-HE's own rank) would otherwise
  *      show stale/missing values forever — this makes them self-heal on load.
  *   2. If dynasty-rankings.json gets refreshed later, an already-added player's
  *      baseline/consensus-avg numbers stay current instead of drifting stale —

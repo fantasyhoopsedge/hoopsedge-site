@@ -58,18 +58,22 @@ const VERSIONS: VersionMeta[] = [
       mball:    "July 2026",
       angle:    "July 2026",
       dynatyze: "July 2026",
-      hashtag:  "July 2026",
+      fbihe:    "July Update",
     },
   },
 ];
 
 const CURRENT_VERSION = VERSIONS.find((v) => v.isCurrent) ?? VERSIONS[VERSIONS.length - 1];
 
+// "fbihe" = FBI-HE (Fantasy Basketball International / Hoops Edge) — replaced
+// "hashtag" 2026-08-02 when Hashtag Basketball ended its FHE partnership.
+// Built from the /admin/dynasty-board tool's published order, not scraped
+// from an external site. See docs/dynasty-rankings-refresh.md.
 const EXPERT_NAMES: Record<string, string> = {
   dizzle:   "Dizzle",
   angle:    "Angle",
   mball:    "MBall",
-  hashtag:  "Hashtag",
+  fbihe:    "FBI-HE",
   dynatyze: "Dynatyze",
 };
 

@@ -137,7 +137,7 @@ export async function discardDraft(): Promise<{ doc: DynastyBoardDoc; isSeed: bo
   return { doc: docFrom(await buildDynastyBoardSeed()), isSeed: true };
 }
 
-/** Reset the CURRENT draft back to the hashtag consensus order, discarding any custom order. */
+/** Reset the CURRENT draft back to the FBI-HE baseline order, discarding any custom order. */
 export async function resetToConsensus(): Promise<DynastyBoardDoc> {
   return saveDraft(await buildDynastyBoardSeed());
 }

@@ -5,7 +5,7 @@ import { buildAddablePool } from "@/lib/dynasty-board-seed";
 
 /**
  * "+ Add player" picker data for the Dynasty Board editor: every ecosystem
- * player (nba_roster) NOT already on the hashtag consensus baseline. Same
+ * player (nba_roster) NOT already on the FBI-HE consensus baseline. Same
  * auth gate as the main dynasty-board route.
  */
 export const dynamic = "force-dynamic";

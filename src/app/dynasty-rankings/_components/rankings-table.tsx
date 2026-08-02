@@ -12,7 +12,7 @@ const EXPERT_ORDER: { key: keyof DynastyPlayer["expertRanks"]; label: string; wi
   { key: "dizzle", label: "DIZZLE" },
   { key: "angle", label: "ANGLE" },
   { key: "mball", label: "MBALL" },
-  { key: "hashtag", label: "HASHTAG", wide: true },
+  { key: "fbihe", label: "FBI-HE", wide: true },
   { key: "dynatyze", label: "DYNATYZE", wide: true },
 ];
 
@@ -27,7 +27,7 @@ export type SortKey =
   | "expert:dizzle"
   | "expert:angle"
   | "expert:mball"
-  | "expert:hashtag"
+  | "expert:fbihe"
   | "expert:dynatyze";
 
 // dynasty-rankings.json uses the same canonical codes as TEAM_LOGO's keys
@@ -411,7 +411,7 @@ export function RankingsTable(props: {
                       <th
                         key={key}
                         scope="col"
-                        className={`dr-th dr-th-sort dr-th-expert dr-th-numeric ${wide ? "dr-col-w-hashtag" : "dr-col-w-expert"} ${activeExpertKey === key ? "dr-th-active-sort" : ""}`.trim()}
+                        className={`dr-th dr-th-sort dr-th-expert dr-th-numeric ${wide ? "dr-col-w-fbihe" : "dr-col-w-expert"} ${activeExpertKey === key ? "dr-th-active-sort" : ""}`.trim()}
                       >
                         <button type="button" className="dr-th-btn" onClick={() => onSort(sk)}>
                           <span>{label}</span>
@@ -609,10 +609,17 @@ export function RankingsTable(props: {
               </h2>
               <p>
                 The Fantasy Hoops Edge dynasty consensus rankings aggregate expert dynasty ranks from five
-                sources — Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, Hashtag Basketball, and
+                sources — Dynatyze, Dizzle Dynasty, Angle Fantasy Basketball, FBI-HE, and
                 Moneyballers — into a single consensus list of 446 players, updated each season. The list
                 is built specifically for 9-category roto dynasty leagues of 16 or more teams, where
                 category balance and long-term asset value matter more than simple points production.
+              </p>
+              <p style={{ marginTop: 12 }}>
+                FBI-HE is the newest panel on the board: a strategic partnership between Fantasy Hoops Edge
+                and Fantasy Basketball International (FBI), producing the first co-branded FHE/FBI dynasty
+                rankings. Rather than an external ranking pulled in from a third-party site, the FBI-HE panel
+                is Fantasy Hoops Edge&apos;s own hand-curated dynasty order — built and maintained in-house — and
+                blended into the consensus on equal footing with the other four independent expert panels.
               </p>
               <p style={{ marginTop: 12 }}>
                 Rankings are sorted by average expert rank across all five panels. Victor Wembanyama (SAS)

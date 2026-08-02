@@ -28,7 +28,7 @@ const EXPERT_OPTIONS = [
   { key: "dizzle", label: "Dizzle" },
   { key: "angle", label: "Angle" },
   { key: "mball", label: "MBall" },
-  { key: "hashtag", label: "Hashtag" },
+  { key: "fbihe", label: "FBI-HE" },
   { key: "dynatyze", label: "Dynatyze" },
 ] as const;
 
