@@ -54,6 +54,7 @@ STAGE1 = os.path.join(REPO, "output", "stage1-minutes-2027.json")
 STAGE2 = os.path.join(REPO, "output", "rate-model", "stage2-rates-2027.json")
 STAGE4 = os.path.join(REPO, "output", "rookie-translations-2026.json")
 ROLE_CSV = os.path.join(REPO, "data", "nba-rosters", "role-context-2026-27.csv")
+RATE_OVERRIDE_CSV = os.path.join(REPO, "data", "nba-rosters", "rate-overrides-2026-27.csv")
 OUT = os.path.join(REPO, "output", "season-projections-2026-27.json")
 
 # The 11 counting/volume stats the 9-cat engine consumes. 3PM/FGM/FTM are makes; FGA/
@@ -91,6 +92,22 @@ USG_TIERS = {"won_job": 1.08, "expanded": 1.04, "no_change": 1.00,
 # turnovers. NEVER fg3m / reb / stl / blk (not usage-scaled) or pts (rebuilt from makes).
 USG_MULT_STATS = ["fga", "fgm", "fta", "ftm", "ast", "tov"]
 
+# Manual SHOOTING-EFFICIENCY override -- the third human hook, alongside the depth chart
+# (minutes) and role-context (usage). Those two can move how much a player plays and how
+# often he shoots; neither can say he will shoot it BETTER than his history implies, and
+# some cases genuinely call for that. Read from RATE_OVERRIDE_CSV, applied to the per-36
+# rates BEFORE Stage 3, so the makes ride the reconciled attempts and the team's usage
+# total is conserved -- an override changes a player's efficiency, never his team's volume.
+#
+# USE IT SPARINGLY AND ONLY FOR SHOT-MIX EVIDENCE. The rate model regresses a big one-year
+# efficiency jump because, league-wide, a big jump mostly regresses: a +3 to +5 pp
+# league-adjusted FG% year is followed by -1.72 pp on average (n=414, only 33% hold it).
+# The honest exception is a jump that came from a documented change in WHERE the shots
+# come from rather than from shots simply falling -- shot MIX persists year to year far
+# better than shot-making does, and nothing in Stage 2 can see mix. That is the bar: a
+# measurable diet change, not a hunch that someone will improve.
+OVERRIDE_PCT = {"fg_pct": ("fgm", "fga"), "ft_pct": ("ftm", "fta")}
+
 # hoopR -> canonical FHE codes (the roster CSV's spelling; src/lib/nba-teams.ts is the
 # TS source of truth, not importable here). This is the ONE place roster space (canonical)
 # meets foundation space (hoopR): Stage 3 anchors come out in hoopR codes and are
@@ -112,6 +129,49 @@ def s4_val(v) -> float:
     if isinstance(v, dict):
         return float(v.get("p50"))
     return float(v)
+
+
+def apply_rate_overrides(rates: pd.DataFrame) -> int:
+    """Pin a player's projected FG%/FT% to a hand-set value. See OVERRIDE_PCT.
+
+    Rewrites the MAKE rate to `pct x attempt rate`, leaving attempts alone, so the
+    override survives Stage 3 untouched (reconcile scales a make by the same factor as
+    its attempt). Matching is on normalize_name via name_candidates -- the same alias
+    path Stages 1/2 use -- so a nickname in the CSV resolves like it does everywhere
+    else. An unmatched row is a loud failure, not a silent no-op: a typo'd override
+    that quietly does nothing is worse than no override at all.
+    """
+    if not os.path.exists(RATE_OVERRIDE_CSV):
+        return 0
+    ov = pd.read_csv(RATE_OVERRIDE_CSV)
+    if not len(ov):
+        return 0
+    by_name = {}
+    for i, nm in enumerate(rates["norm_name"]):
+        by_name.setdefault(nm, i)
+    n = 0
+    for _, r in ov.iterrows():
+        stat = str(r["stat"]).strip()
+        if stat not in OVERRIDE_PCT:
+            raise SystemExit(f"rate-override: unknown stat {stat!r} "
+                             f"(expected one of {sorted(OVERRIDE_PCT)})")
+        target = normalize_name(str(r["player"]))
+        idx = next((by_name[c] for c in name_candidates(target) if c in by_name), None)
+        if idx is None:
+            raise SystemExit(f"rate-override: {r['player']!r} is not in the projected "
+                             f"roster -- fix the name or drop the row")
+        pct = float(r["value"])
+        if not 0.0 < pct < 1.0:
+            raise SystemExit(f"rate-override: {r['player']} {stat}={pct} is not a "
+                             f"fraction between 0 and 1")
+        make, att = OVERRIDE_PCT[stat]
+        before = rates.iloc[idx][f"r_{make}"] / max(rates.iloc[idx][f"r_{att}"], 1e-9)
+        rates.iloc[idx, rates.columns.get_loc(f"r_{make}")] = (
+            pct * rates.iloc[idx][f"r_{att}"])
+        print(f"  rate override: {r['player']} {stat} {100*before:.1f}% -> {100*pct:.1f}%"
+              + (f"  ({r['note']})" if "note" in ov.columns and pd.notna(r.get("note")) else ""))
+        n += 1
+    return n
 
 
 def league_median_per36(ps: pd.DataFrame) -> dict[str, float]:
@@ -236,6 +296,13 @@ def main() -> None:
           f"expanded x{USG_TIERS['expanded']}), {n_dn} down (reduced x{USG_TIERS['reduced']} / "
           f"clear_backup x{USG_TIERS['clear_backup']}); Stage 3 conserves each team total")
 
+    # --- manual efficiency overrides (Stage 2.6). Last word on FG%/FT%, applied after the
+    # usage nudge (which moves makes and attempts together and so leaves the percentage
+    # invariant anyway) and before the bottom-up, so Stage 3 carries the override through.
+    n_ov = apply_rate_overrides(rates)
+    if not n_ov:
+        print("  rate overrides: none")
+
     # --- per-game raw + bottom-up per-team-game (for reconciliation).
     for s in STATS:
         rates[f"pg_{s}"] = rates[f"r_{s}"] * rates["proj_mpg"] / 36.0
@@ -309,7 +376,10 @@ def main() -> None:
         "note": ("Per-game makes/attempts (never a bare percentage); PTS = 2*FGM+FTM+3PM. "
                  "Team usage totals reconciled through Stage 3. Role-context USAGE nudge "
                  "applied to tagged players (shot/pass/TOV rate only; FG%/FT% fixed, 3PM flat) "
-                 "before Stage 3. confidenceTier is a real field. Usage-tier magnitudes are a "
+                 "before Stage 3. Stage 2 adds a +0.6pp FG% correction for players with 1-2 "
+                 "qualifying prior seasons aged <=23.5 (rates.YOUNG_FG_OFFSET). Manual FG%/FT% "
+                 "overrides from rate-overrides-2026-27.csv applied before Stage 3. "
+                 "confidenceTier is a real field. Usage-tier magnitudes are a "
                  "provisional v0; team_system_mult pass still pending."),
         "players": sorted(records, key=lambda p: (p["team"], -p["perGame"]["pts"])),
     }

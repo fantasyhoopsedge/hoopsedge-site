@@ -19,6 +19,9 @@ own space, then recombines:
      games), the volume-weighting the gate check called for and the V-score engine
      already applies.
   4. RE-AGE the shrunk skill to the projection season's age.
+  5. YOUNG-PLAYER FG% CORRECTION. Steps 1-4 leave one measured residual: a player
+     with 1-2 qualifying prior seasons who is still 23.5 or younger comes in low on
+     FG%. See YOUNG_FG_OFFSET.
 
 The backtest (main) is the point: it shows, per stat, whether shrinkage and the age
 curve each beat the naive baselines, on held-out seasons the curves never saw. This
@@ -52,6 +55,41 @@ ATT_COL = {"FG%": ("fgm", "fga"), "FT%": ("ftm", "fta")}
 REC = {1: 0.6, 2: 0.3, 3: 0.1}   # recency weight by lag (seasons before target)
 WINDOW = 3
 MIN_TEST_GP = 25                 # a target season needs enough games to score against
+
+# ---------------------------------------------------------------------------
+# Young-player FG% correction. Measured 2026-08-02 by forward-chaining THIS model
+# (fit on every season strictly before the target, 2016-2026, n=3585) and reading the
+# SIGNED error, era-neutralised by subtracting each target season's own mean bias --
+# the model has no era term and the league's FG% has been rising, so a raw bias would
+# be mostly league drift. Era-neutral FG% bias, keyed on exactly what project() sees:
+#
+#     prior qualifying seasons | age <= 23.5        | age > 23.5
+#     1                        | -0.46 +-0.24 pp    | -0.11 +-0.30
+#     2                        | -0.71 +-0.28 pp    | +0.22 +-0.18
+#     3                        | +0.64 +-0.34 pp    | +0.07 +-0.08
+#
+# Combined over the gated cell: -0.56 +-0.18 pp (n=522), and stable split-half
+# (2016-21 -0.66, 2022-26 -0.47). Everyone the rule does NOT touch: +0.10 +-0.07.
+# FT% over the same cell is +0.20 +-0.30 -- indistinguishable from zero, so this is
+# an FG%-only correction and adding an FT% twin would be fitting noise.
+#
+# WHY THIS IS NOT AN "AGE CURVE 2". The same study found that the whole rookie-to-Y4
+# efficiency climb is an AGE effect the curve already prices in: regressing the
+# season-over-season change on age fixed effects PLUS experience dummies leaves every
+# experience dummy insignificant (|t| < 1). Do not generalise this into an experience
+# term -- it is a small residual on top of a curve that is otherwise well calibrated,
+# and the n_hist == 3 row above is POSITIVE, which is why the gate stops at 2.
+#
+# Two mechanically-motivated alternatives were tested and lost. Down-weighting the
+# rookie season inside the recency window moved the bias only -0.98 -> -0.90 while
+# making 3rd-year MAE WORSE (3.167 -> 3.317 pp): the rookie season carries real
+# signal. Volume-weighting the shrink target in neutral_pos_means() (it averages
+# fg_pct unweighted, a mean-of-ratios that sits 0.4-0.8 pp below the attempt-weighted
+# mark for G/F) moved global bias -0.30 -> -0.24 with MAE flat, but left this cell
+# untouched and pushed low-volume FT% to +1.13 over-projection.
+YOUNG_FG_OFFSET = 0.006          # percentage POINTS/100, added to the projected FG%
+YOUNG_MAX_AGE = 23.5             # projection-season age; above this the bias is ~0
+YOUNG_HIST_SEASONS = (1, 2)      # qualifying prior seasons in the window; 3 flips sign
 
 
 def clip_age(a: float) -> int:
@@ -110,6 +148,9 @@ def project(hist: pd.DataFrame, target_age: float, pos: str, curves: dict,
             wt = A / (A + k_att)
             shrunk = wt * base + (1 - wt) * pmeans[pos][sh]
             out[sh] = shrunk + curves[pos][sh][ta]
+    # step 5 -- the young-player FG% residual the age curve does not cover.
+    if len(hist) in YOUNG_HIST_SEASONS and target_age <= YOUNG_MAX_AGE:
+        out["FG%"] += YOUNG_FG_OFFSET
     return out
 
 
