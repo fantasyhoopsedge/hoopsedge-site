@@ -85,7 +85,7 @@
     "player": "Luguentz Dort",
     "class": "veteran",
     "dynRank": 299,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -1354,7 +1354,7 @@
     "player": "Spencer Jones",
     "class": "veteran",
     "dynRank": 354,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
@@ -3172,7 +3172,7 @@
     "player": "Caris LeVert",
     "class": "veteran",
     "dynRank": 360,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "",
     "source": ""
   },
