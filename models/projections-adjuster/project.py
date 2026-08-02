@@ -594,24 +594,47 @@ def main() -> None:
     # in allocate(), a fact about the input. Only fail hard when a team still has
     # real free capacity (unlocked players with a non-trivial raw claim) and STILL
     # misses budget, which means the allocator itself is broken.
+    #
+    # A free player can only ever ADD minutes, so there is a THIRD case that is also not
+    # a code bug: the locked minutes ALONE already exceed the budget. No allocator can
+    # fix that -- it is not allowed to touch an override, and the free players it may
+    # touch are on the wrong side of the gap. Reporting it as "!! ALLOCATOR BUG" sends
+    # the reader into allocate() to look for a defect that is not there, when the real
+    # answer is that a team's hand-set minutes need to come down. Say so, with the exact
+    # surplus, and treat it as input the same way a fully-locked team is treated.
     free_capacity = d.groupby("team").apply(
         lambda g: g.loc[g["locked_load"].isna(), "raw_load"].sum(), include_groups=False)
+    locked_sum = d.groupby("team")["locked_load"].sum(min_count=1).fillna(0.0)
     sums = al.groupby("team")["proj_load"].sum()
     off = sums[(sums - TEAM_MINUTE_BUDGET).abs() > 0.5]
     print(f"\n  team minute budget: {sums.min():.1f}-{sums.max():.1f} "
           f"(target {TEAM_MINUTE_BUDGET})")
     if len(off):
-        locked_explained = off[off.index.map(lambda t: free_capacity.get(t, 0.0) < 2.0)]
-        real_bug = off.drop(locked_explained.index)
+        no_free = [t for t in off.index if free_capacity.get(t, 0.0) < 2.0]
+        oversubscribed = [t for t in off.index
+                          if t not in no_free and locked_sum.get(t, 0.0) > TEAM_MINUTE_BUDGET + 0.5]
+        real_bug = off.drop(no_free + oversubscribed)
         for t, v in off.items():
-            tag = "fully manually-locked, no free capacity" if t in locked_explained.index else "!! ALLOCATOR BUG"
+            if t in no_free:
+                tag = "fully manually-locked, no free capacity"
+            elif t in oversubscribed:
+                tag = (f"OVER-SUBSCRIBED: overrides alone = {locked_sum[t]:.1f}, "
+                       f"{locked_sum[t] - TEAM_MINUTE_BUDGET:+.1f} vs budget — cut manual MPG/GP")
+            else:
+                tag = "!! ALLOCATOR BUG"
             print(f"  !! {t}: {v:.1f}  ({tag})")
         if len(real_bug):
             raise SystemExit(f"{len(real_bug)} team(s) miss budget WITH free capacity available "
-                              f"-- the allocator is broken: {sorted(real_bug.index)}")
-        print(f"  {len(locked_explained)} team(s) off-budget but every player is manually "
-              f"overridden (no free players to rebalance) -- accepted as Ash's own numbers, "
-              f"not an allocator failure: {sorted(locked_explained.index)}")
+                              f"and room under the locked minutes -- the allocator is broken: "
+                              f"{sorted(real_bug.index)}")
+        if no_free:
+            print(f"  {len(no_free)} team(s) off-budget but every player is manually "
+                  f"overridden (no free players to rebalance) -- accepted as Ash's own numbers, "
+                  f"not an allocator failure: {sorted(no_free)}")
+        if oversubscribed:
+            print(f"  {len(oversubscribed)} team(s) off-budget because the MANUAL OVERRIDES "
+                  f"alone exceed the budget -- a depth-chart edit, not an allocator failure: "
+                  f"{sorted(oversubscribed)}")
     if al["proj_mpg"].max() > MPG_CAP + 0.01:
         raise SystemExit(f"projected MPG above the {MPG_CAP} cap: {al['proj_mpg'].max():.1f}")
     neg = al[al["proj_load"] < 0]

@@ -23,6 +23,22 @@ Rows are sorted by (team, dyn_rank, player): within each team the highest-value 
 assets come first, and the unranked deep-bench/two-way players fall to the bottom of the
 team block. Idempotent: preserves every existing tier / note / source.
 
+RECONCILES MEMBERSHIP AND TEAM AGAINST THE ROSTER, because the roster moves under this
+file and nothing else was putting it back in step:
+  - a row for someone no longer on an active roster is DROPPED. Stage 1 hard-refuses to
+    run while one exists ("a role note for someone who is not on the team is either a
+    typo or a roster the CSV has not caught up with"), so leaving them turns a routine
+    roster refresh into a blocked pipeline. Rows carrying a real tier/note are reported
+    individually before they go -- losing a hand-made call silently would be worse than
+    the block.
+  - a rostered player with no row is ADDED at no_change, so he is visible in the tier
+    pass instead of silently defaulting. Adding at no_change cannot move a projection.
+  - `team` is REFRESHED from the roster. A traded player kept his old team here, and a
+    stale team key is what broke the Usage Role publish once already (690d651); the
+    roster is the source of truth for where someone plays, this file only for his role.
+FA is a status, not a team (Stage 1 holds free agents out), so an FA is treated as
+off-roster here -- the row comes back if and when he signs.
+
 Run: python models/projections-adjuster/prep_role_context.py
 """
 
@@ -59,6 +75,14 @@ def classify(yos: str) -> tuple[str, bool]:
     return "veteran", True
 
 
+def load_roster() -> dict[str, dict]:
+    """Active roster by normalized name. FA is held out: Stage 1 drops free agents, so a
+    role note for one is exactly as unusable as a note for someone who was cut."""
+    with open(ROSTER_CSV, encoding="utf-8", newline="") as fh:
+        return {normalize_name(r["player"]): r
+                for r in csv.DictReader(fh) if (r.get("team") or "").strip() != "FA"}
+
+
 def load_yos() -> dict[str, str]:
     with open(ROSTER_CSV, encoding="utf-8", newline="") as fh:
         return {normalize_name(r["player"]): r["yos"] for r in csv.DictReader(fh)}
@@ -80,6 +104,30 @@ def main() -> None:
     for col, after in (("class", "player"), ("dyn_rank", "class")):
         if col not in fields:
             fields.insert(fields.index(after) + 1, col)
+
+    # --- reconcile membership + team against the roster (see module docstring).
+    roster = load_roster()
+    dropped, retiered = [], []
+    kept = []
+    for r in rows:
+        entry = roster.get(normalize_name(r["player"]))
+        if entry is None:
+            dropped.append(r)
+            continue
+        if r["team"] != entry["team"]:
+            retiered.append((r["player"], r["team"], entry["team"]))
+            r["team"] = entry["team"]
+        kept.append(r)
+    rows = kept
+    have = {normalize_name(r["player"]) for r in rows}
+    added = []
+    for norm, entry in roster.items():
+        if norm in have:
+            continue
+        new = {f: "" for f in fields}
+        new.update({"team": entry["team"], "player": entry["player"], "tier": "no_change"})
+        rows.append(new)
+        added.append(entry["player"])
 
     counts = {"rookie": 0, "sophomore": 0, "veteran": 0}
     fallbacks, unmatched, unranked = [], [], 0
@@ -120,6 +168,17 @@ def main() -> None:
         json.dump(bundle, fh, indent=2)
 
     print(f"prepped {len(rows)} role-context rows -> sorted by (team, dynasty rank, name)")
+    if dropped:
+        print(f"  dropped {len(dropped)} no longer on an active roster:")
+        for r in dropped:
+            hand = (r.get("tier") or "no_change") != "no_change" or (r.get("note") or "").strip()
+            print(f"    {r['team']} {r['player']}  tier={r.get('tier') or '-'}"
+                  + (f"  note={r['note']!r}  <-- HAND-SET, re-add it if he signs" if hand else ""))
+    if added:
+        print(f"  added {len(added)} newly rostered at no_change: {', '.join(sorted(added))}")
+    if retiered:
+        print(f"  team refreshed from roster for {len(retiered)}: "
+              + ", ".join(f"{p} {a}->{b}" for p, a, b in retiered))
     print(f"  class:  rookie {counts['rookie']} | sophomore {counts['sophomore']} | "
           f"veteran {counts['veteran']}")
     print(f"  dyn_rank: {len(rows) - unranked} matched, {unranked} unranked "
