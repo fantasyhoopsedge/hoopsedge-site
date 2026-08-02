@@ -13,7 +13,7 @@ import { SalaryContractCard } from "@/app/team-rosters/_components/salary-contra
 import {
   WEIGHT_PRESETS, ARCHETYPE_LABELS, ARCHETYPE_BLURB,
   computeMarketValue, rankBy, deriveValueVerdict,
-  type Archetype, type RealSalaryFactors,
+  type Archetype, type RealSalaryFactors, type ContractClass,
 } from "@/lib/value/real-salary-model";
 
 export type ClassId = "rook" | "soph" | "vet";
@@ -40,7 +40,12 @@ export type RealSalaryInputRow = {
   confidenceTier: string | null;
   consensusRank: number | null;
   classId: ClassId;
+  /** Coarse 3-way filter bucket shown in the Contract pills. */
   contractBucket: ContractBucket;
+  /** The model's own finer contract split — separates Two-Way/Exhibit 10 out
+   *  of "Other" so the cheapness credit can be gated. See
+   *  real-salary-model.ts's CHEAPNESS_CREDIT. */
+  contractClass: ContractClass;
   /** Fractional years, computed fresh from nba_roster.dob on every request —
    *  see page.tsx's ageFromDob. Null when dob is missing/unparseable. */
   age: number | null;
@@ -370,8 +375,36 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
     () => rows.map((r) => ({
       playerId: r.playerId, consensusZ: r.consensusZ,
       productionZ: r.productionZ, salaryZ: r.salaryZ, salary: r.salary,
-      isRookieScale: r.contractBucket === "Rookie Scale",
+      contractClass: r.contractClass,
     })),
+    [rows],
+  );
+
+  /**
+   * Where each player would sit if the model did nothing at all but sort by
+   * dynasty consensus — the baseline Δ is measured against.
+   *
+   * NOT the published consensus rank, and that distinction is the whole point
+   * (Ash, 2026-08-02). The board ranks 493 players; this tool ranks whoever has
+   * BOTH a projection and a salary (515), and only 444 are in both. Every one
+   * of the ~49 ranked players the tool can't score hands a free slot to
+   * everyone below him, so `publishedRank - valueRank` carries an upward bias
+   * that grows with depth — measured that day at +35.3 mean past consensus 400
+   * versus −2.8 in the top 100, across ALL contract classes. Jamarion Sharp
+   * read ↑49 while the model had not moved him a single place.
+   *
+   * Rebasing onto this population removes the artifact entirely (his Δ becomes
+   * 0). Consequence to know about: the CONS column deliberately keeps showing
+   * the PUBLISHED rank — it has to match /dynasty-rankings — so CONS minus RANK
+   * no longer equals the Δ on screen for deep players. Δ answers "did cap
+   * Efficiency move him," which is the question the column exists for.
+   *
+   * Unranked players keep a null Δ (below) — they have no consensus baseline to
+   * move away from. They all share the worst consensusZ, so they sort beneath
+   * every ranked player here and never displace one.
+   */
+  const consensusRankInPool = useMemo(
+    () => rankBy(rows.map((r) => ({ playerId: r.playerId, z: r.consensusZ })), (r) => r.z),
     [rows],
   );
 
@@ -394,12 +427,15 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
         expectedCapHit: c.expectedCapHit,
         // How far cap Efficiency moved him from his pure consensus slot.
         // Positive = nudged UP (a cap-efficient bargain); negative = nudged
-        // DOWN (priced at/above his production). See
-        // docs/real-salary-dynasty-rankings-brief.md.
-        delta: r.consensusRank != null ? r.consensusRank - valueRank : null,
+        // DOWN (priced at/above his production). Measured against
+        // consensusRankInPool, not the published rank — see its doc comment
+        // and docs/real-salary-dynasty-rankings-brief.md.
+        delta: r.consensusRank != null
+          ? consensusRankInPool.get(r.playerId)! - valueRank
+          : null,
       };
     });
-  }, [rows, factors, archetype]);
+  }, [rows, factors, archetype, consensusRankInPool]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -636,7 +672,7 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
                     {showPosColumn ? <PlainTh className="dr-col-pos">POS</PlainTh> : null}
                     {showAgeColumn ? <Th label="AGE" k="age" title="Current age, computed live from date of birth" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="dr-col-age" /> : null}
                     {showConsColumn ? <Th label="CONS" k="consensusRank" title="Dynasty consensus rank (unadjusted)" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="rsr-col-center" /> : null}
-                    <Th label={isMobile ? "VS" : "VS CONSENSUS"} k="delta" title="Consensus rank minus Salary Rank — positive means cap Efficiency nudged him UP from his consensus slot (a bargain), negative means nudged DOWN (priced at/above production)" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="rsr-col-center" />
+                    <Th label={isMobile ? "VS" : "VS CONSENSUS"} k="delta" title="How far cap Efficiency moved him from his consensus slot — positive means nudged UP (a bargain), negative means nudged DOWN (priced at/above production). Measured against where he'd sit on consensus alone among the players ranked HERE, not against the published rank in the Cons column, so it isn't inflated by board players this tool can't score" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="rsr-col-center" />
                     <Th label="SALARY" k="salary" title="Actual current-season (2026-27) cap hit" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="rsr-col-center" />
                     <Th label="SURPLUS" k="surplusValue" title="Market Salary (the real NBA salary sitting at his Salary Rank position, quantile-mapped from real contracts) minus actual Salary" sortKey={sortKey} sortDir={sortDir} onSort={onSort} className="rsr-col-center" />
                     {showFutureYearColumns ? <PlainTh className="rsr-col-center">2027-28</PlainTh> : null}
@@ -745,6 +781,15 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
                   the real highest-paid player earns, #2 at the real 2nd-highest, and
                   so on, which is why the spread looks like real NBA contracts
                   instead of a flatter derived scale.
+                </p>
+                <p style={{ marginTop: 12 }}>
+                  Only a real contract earns that cheapness credit. A rookie-scale
+                  deal is cheap because the CBA caps it while the team holds four
+                  years of control; a two-way or Exhibit 10 is cheap because the
+                  team hasn&apos;t committed at all — not on the 15-man roster, not
+                  guaranteed, waivable at any point. Two-ways and Exhibit 10s
+                  therefore get no cheapness credit, so they sit at roughly their
+                  consensus slot instead of climbing on a $0.7M minimum.
                 </p>
                 <p style={{ marginTop: 12 }}>
                   Surplus is Market Salary minus actual Salary. You can&apos;t stack
