@@ -52,7 +52,7 @@
  *     row's stored z-components — no round trip needed)
  * Keeping the math in one place means both call sites can never drift apart.
  */
-import { REAL_SALARY_CAP } from "../nba-cap";
+import { NBA_MINIMUM_SALARY, REAL_SALARY_CAP } from "../nba-cap";
 
 // ── shared sizing constants (single source, importable server + client) ────
 
@@ -187,7 +187,20 @@ export const EFFICIENCY_BASE_SALARY_WEIGHT = 0.6;
 // prioritised over two-ways and exhibits ... a two-way player should not jump
 // much at all." Observed before the fix: two-ways sitting +35 to +110 spots
 // above their dynasty-consensus rank purely on the $0.7M cheapness credit.
-export type ContractClass = "rookie-scale" | "standard" | "non-guaranteed";
+//
+// Seventh revision (2026-08-03) adds "unsigned". The dynasty board ranks players
+// the roster of record doesn't contain — unsigned free agents (Kuminga, DeRozan,
+// Beal, Ivey, ...) never enter the projection model at all, because Stage 1
+// projects minutes ONTO a team. They were therefore invisible on this page
+// despite carrying real dynasty value. They're admitted now with last season's
+// ACTUAL production standing in for the missing projection, but an unsigned
+// player has no cap hit: the figure sitting in nba_contracts is a cap hold or a
+// last-known contract, not money anyone is paying him this season. So salary is
+// null for them — no cheapness credit (same mechanism as a two-way), no Surplus,
+// and they are kept out of the quantile salary curve entirely so they can't
+// distort anyone else's Market Salary. Ash (2026-08-03): rank them, but don't
+// invent a cap hit for them.
+export type ContractClass = "rookie-scale" | "standard" | "non-guaranteed" | "unsigned";
 
 /** nba_roster.contract_status -> ContractClass. Statuses come from
  *  roster_ingest.ts's deriveStatus(): Rookie Scale | Standard | Two-Way |
@@ -210,12 +223,47 @@ export function contractClassOf(status: string | null | undefined): ContractClas
  * Efficiency adjuster shrinks toward zero for a two-way instead of swinging
  * on a noisy projection. That is precisely "should not jump much at all": a
  * two-way lands at ~his consensus slot, nudged only by production.
+ *
+ * Class is only half the test — call cheapnessCredit() below rather than reading
+ * this map directly, or you'll miss the sub-minimum dollar gate.
  */
 export const CHEAPNESS_CREDIT: Record<ContractClass, number> = {
   "rookie-scale": 1,
   standard: 1,
   "non-guaranteed": 0,
+  // No salary at all to be cheap with — see ContractClass's "unsigned" note.
+  unsigned: 0,
 };
+
+/**
+ * Cheapness credit for a contract, gating on the DOLLAR FIGURE as well as the
+ * contract class (2026-08-03).
+ *
+ * The class check alone had a hole: a handful of rows carry `contract_status`
+ * "Standard" with a salary far below what any full-season NBA contract can pay —
+ * $0.085M (Tyler Smith), $0.091M (Peter Suder, Payton Sandfort), $0.268M (Didi
+ * Louzada), $0.28M (Christian Koloko), $0.707M (EJ Liddell). Those are prorated,
+ * partially-guaranteed or dead-money amounts, and because they are the SMALLEST
+ * numbers in the entire population they were earning a LARGER cheapness credit
+ * than the $0.679M two-way minimum the class gate exists to neutralize — the
+ * same bug, arriving through a different door. Ash (2026-08-03): "these guys
+ * should not get a cheapness credit similar to the two-way treatment."
+ *
+ * Test is "below the league minimum", which is unambiguous: nothing legitimate
+ * falls between the two-way rate and NBA_MINIMUM_SALARY, and genuine minimum
+ * contracts (exactly NBA_MINIMUM_SALARY) still earn full credit — a real
+ * minimum deal IS a cheap asset and should keep counting as one.
+ *
+ * Note what this does NOT do: the figure stays on the row. These players keep a
+ * displayed Salary and a real Surplus, exactly like a two-way. Only the cheapness
+ * sub-score is zeroed, which shrinks the Efficiency adjuster toward zero rather
+ * than reweighting it into production.
+ */
+export function cheapnessCredit(cls: ContractClass, salary: number | null): number {
+  if (salary == null) return 0;
+  if (salary < NBA_MINIMUM_SALARY) return 0;
+  return CHEAPNESS_CREDIT[cls];
+}
 
 // ── the model ────────────────────────────────────────────────────────────
 //
@@ -238,11 +286,18 @@ export const CHEAPNESS_CREDIT: Record<ContractClass, number> = {
 export interface RealSalaryFactors {
   playerId: string;
   consensusZ: number;
-  productionZ: number;
+  /** null when there is NO production data anywhere — no projection and no
+   *  completed-season line to carry forward. Zeroes the ENTIRE Efficiency
+   *  adjuster (not just its production half), leaving consensus as the only
+   *  thing that places him. See blendScore. */
+  productionZ: number | null;
   /** Cheapness — rank-to-z of salary rank ASCENDING (cheapest = rank 1), so
    *  HIGH salaryZ means a LOW actual salary. See EFFICIENCY_BASE_SALARY_WEIGHT. */
   salaryZ: number;
-  salary: number;
+  /** Actual 2026-27 cap hit, or null for an unsigned free agent — no roster
+   *  row, therefore no cap hit to compare against. A null salary is excluded
+   *  from the quantile curve and yields a null surplusValue. */
+  salary: number | null;
   /** Team-commitment class from nba_roster.contract_status — drives both
    *  CHEAPNESS_CREDIT and WeightPreset.rookieScaleAdjustment. Optional;
    *  omitted means "standard", the neutral case. */
@@ -252,10 +307,22 @@ export interface RealSalaryFactors {
 export interface RealSalaryComputed {
   playerId: string;
   expectedCapHit: number;
-  surplusValue: number;
+  /** null for an unsigned free agent — there is no actual salary to subtract. */
+  surplusValue: number | null;
 }
 
 function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
+  // No production data at all (2026-08-03): the whole Efficiency adjuster goes
+  // to zero, so consensus is the only thing placing him. (Not identical to his
+  // published slot — a zero adjuster still ranks against neighbours who have
+  // non-zero ones — but he moves for no reason of his own.) Deliberately not
+  // "keep the cheapness half" — crediting a cheap contract while silently
+  // treating unknown production as league-average would float a player we know
+  // nothing about above players whose production is measured and poor. Same
+  // principle as CHEAPNESS_CREDIT's two-way gate: absent evidence must not read
+  // as positive evidence. Consensus is the only thing we actually know here.
+  if (r.productionZ == null) return preset.consensus * r.consensusZ;
+
   const cls = r.contractClass ?? "standard";
   const baseSalaryWeight = EFFICIENCY_BASE_SALARY_WEIGHT
     + (cls === "rookie-scale" ? preset.rookieScaleAdjustment : 0);
@@ -263,7 +330,7 @@ function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
   // (CHEAPNESS_CREDIT) shrinks Efficiency rather than reweighting it into
   // production — see CHEAPNESS_CREDIT. Identical to the old formula for both
   // rookie-scale and standard deals, where the credit is 1.
-  const salaryWeight = baseSalaryWeight * CHEAPNESS_CREDIT[cls];
+  const salaryWeight = baseSalaryWeight * cheapnessCredit(cls, r.salary);
   const productionWeight = 1 - baseSalaryWeight;
   const efficiencyZ = salaryWeight * r.salaryZ + productionWeight * r.productionZ;
   return preset.consensus * r.consensusZ + preset.efficiency * efficiencyZ;
@@ -293,14 +360,28 @@ export function computeMarketValue(
   preset: WeightPreset,
 ): RealSalaryComputed[] {
   const byBlend = [...rows].sort((a, b) => blendScore(b, preset) - blendScore(a, preset));
-  const salaryCurve = rows.map((r) => r.salary).sort((a, b) => b - a);
+  // The curve is built ONLY from players who actually have a cap hit — an
+  // unsigned free agent contributes no real contract to reassign. Curve
+  // positions are then taken by PERCENTILE rather than by raw index so every
+  // ranked player still lands somewhere on the real distribution even though
+  // the curve is shorter than the population. When no unsigned rows are present
+  // curve.length === rows.length and this reduces exactly to the previous
+  // `salaryCurve[i]`.
+  const salaryCurve = rows
+    .filter((r): r is RealSalaryFactors & { salary: number } => r.salary != null)
+    .map((r) => r.salary)
+    .sort((a, b) => b - a);
+  const lastBlend = byBlend.length - 1;
+  const lastCurve = salaryCurve.length - 1;
 
   return byBlend.map((r, i) => {
-    const expectedCapHit = salaryCurve[i];
+    const expectedCapHit = lastCurve < 0
+      ? 0
+      : salaryCurve[lastBlend <= 0 ? 0 : Math.round((i * lastCurve) / lastBlend)];
     return {
       playerId: r.playerId,
       expectedCapHit,
-      surplusValue: expectedCapHit - r.salary,
+      surplusValue: r.salary == null ? null : expectedCapHit - r.salary,
     };
   });
 }
@@ -358,14 +439,17 @@ function similarVerdict(playerName: string): ValueVerdict {
 
 export function deriveValueVerdict(
   playerName: string,
-  surplusValue: number,
+  /** null for an unsigned free agent — every rule below is a surplus band, so
+   *  with no cap hit there is nothing to band. Falls through to the same
+   *  neutral fill-in every other unmatched case uses. */
+  surplusValue: number | null,
   /** consensusRank - valueRank; null when the player has no consensus rank
    *  to compare against (e.g. unranked) — falls through to the neutral
    *  "Similar value" fill-in below, same as every other unmatched case. */
   delta: number | null,
   valueRank: number,
 ): ValueVerdict {
-  if (delta == null) return similarVerdict(playerName);
+  if (delta == null || surplusValue == null) return similarVerdict(playerName);
 
   if (surplusValue > 0) {
     if (delta >= 0 && valueRank <= 100) {

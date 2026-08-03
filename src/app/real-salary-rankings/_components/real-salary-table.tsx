@@ -33,9 +33,14 @@ export type RealSalaryInputRow = {
   position: string | null;
   headshotId: string | null;
   consensusZ: number;
-  productionZ: number;
+  /** null = no production measurement anywhere; zeroes the whole Efficiency
+   *  adjuster so the player sits at his consensus slot. See blendScore. */
+  productionZ: number | null;
   salaryZ: number;
-  salary: number;
+  /** null = unsigned free agent, no 2026-27 cap hit. See real-salary-model.ts's
+   *  ContractClass "unsigned": no cheapness credit, no Surplus, and kept out of
+   *  the quantile salary curve. */
+  salary: number | null;
   salarySource: string;
   confidenceTier: string | null;
   consensusRank: number | null;
@@ -62,8 +67,9 @@ export type RealSalaryRow = RealSalaryInputRow;
 
 type DisplayRow = RealSalaryInputRow & {
   valueRank: number;
-  surplusRank: number;
-  surplusValue: number;
+  /** null for unsigned free agents — no surplus, so no place in its ranking. */
+  surplusRank: number | null;
+  surplusValue: number | null;
   expectedCapHit: number;
   delta: number | null;
 };
@@ -93,8 +99,12 @@ const SALARY_RANGE_DEFS: { key: SalaryRangeKey; label: string; min: number; max:
   { key: "30-40", label: "$30M–$40M", min: 30_000_000, max: 40_000_000 },
   { key: "40plus", label: "$40M+", min: 40_000_000, max: Infinity },
 ];
-function inSalaryRange(salary: number, key: SalaryRangeKey): boolean {
+function inSalaryRange(salary: number | null, key: SalaryRangeKey): boolean {
   if (key === "all") return true;
+  // An unsigned free agent has no cap hit, so he belongs in no dollar bucket —
+  // any active Salary Range filter excludes him rather than defaulting him into
+  // the cheapest band.
+  if (salary == null) return false;
   const def = SALARY_RANGE_DEFS.find((d) => d.key === key);
   if (!def) return true;
   return salary > def.min && salary <= def.max;
@@ -292,8 +302,8 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
   // time so the "Salary rank vs consensus" stat survives the async fetch.
   const [quickView, setQuickView] = useState<{
     open: boolean; loading: boolean; error: string | null; player: Player | null;
-    name: string; valueRank: number; consensusRank: number | null; delta: number | null; surplusValue: number;
-  }>({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: 0 });
+    name: string; valueRank: number; consensusRank: number | null; delta: number | null; surplusValue: number | null;
+  }>({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: null });
   const openPlayerQuickView = async (r: DisplayRow) => {
     const base = { name: r.name, valueRank: r.valueRank, consensusRank: r.consensusRank, delta: r.delta, surplusValue: r.surplusValue };
     if (!r.team || NON_TEAM_VALUES.has(r.team)) {
@@ -317,7 +327,7 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
       setQuickView({ open: true, loading: false, error: "Couldn't load this player right now.", player: null, ...base });
     }
   };
-  const closeQuickView = () => setQuickView({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: 0 });
+  const closeQuickView = () => setQuickView({ open: false, loading: false, error: null, player: null, name: "", valueRank: 0, consensusRank: null, delta: null, surplusValue: null });
 
   // Team/Contract/Salary Range are single-select native dropdowns, grouped
   // together in row 2. Class/Position/Contract are multi-select pill groups
@@ -411,7 +421,9 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
   const display: DisplayRow[] = useMemo(() => {
     const computed = computeMarketValue(factors, WEIGHT_PRESETS[archetype]);
     const computedById = new Map(computed.map((c) => [c.playerId, c]));
-    const surplusRankById = rankBy(computed, (c) => c.surplusValue);
+    // Unsigned free agents have no surplus; sort them last and show no rank
+    // rather than a misleading last-place integer.
+    const surplusRankById = rankBy(computed, (c) => c.surplusValue ?? -Infinity);
     // Rank = order by expectedCapHit ("Market Salary") directly — it's
     // already the consensus-dominant blend, so Rank and Market Salary are
     // the same number, not two divergent formulas.
@@ -422,7 +434,7 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
       return {
         ...r,
         valueRank,
-        surplusRank: surplusRankById.get(r.playerId)!,
+        surplusRank: c.surplusValue == null ? null : surplusRankById.get(r.playerId)!,
         surplusValue: c.surplusValue,
         expectedCapHit: c.expectedCapHit,
         // How far cap Efficiency moved him from his pure consensus slot.
@@ -728,14 +740,26 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
                         <td className="dr-td dr-mono rsr-col-center">{r.consensusRank ?? "—"}</td>
                       ) : null}
                       <td className="dr-td rsr-col-center"><DeltaCell delta={r.delta} /></td>
-                      <td className={`dr-td dr-mono rsr-col-center ${salaryTintClass(r.salary)}`.trim()} title={fullMoney(r.salary)}>{money(r.salary)}</td>
+                      {/* Unsigned free agents have no cap hit and therefore no
+                          surplus — a dash, not a zero, which would read as
+                          "fairly priced". See real-salary-model.ts. */}
                       <td
-                        className={`dr-td dr-mono rsr-col-center ${surplusTintClass(r.surplusValue)}`.trim()}
-                        style={{ fontWeight: 700, color: r.surplusValue >= 0 ? "var(--green-elite)" : "var(--red-severe)" }}
-                        title={fullMoney(r.surplusValue)}
+                        className={`dr-td dr-mono rsr-col-center ${r.salary != null ? salaryTintClass(r.salary) : ""}`.trim()}
+                        title={r.salary != null ? fullMoney(r.salary) : "Unsigned free agent — no 2026-27 cap hit"}
                       >
-                        {r.surplusValue >= 0 ? "+" : "-"}{money(Math.abs(r.surplusValue))}
+                        {r.salary != null ? money(r.salary) : "—"}
                       </td>
+                      {r.surplusValue == null ? (
+                        <td className="dr-td dr-mono rsr-col-center dr-vs-cons-muted" title="Unsigned free agent — no cap hit to compare against">—</td>
+                      ) : (
+                        <td
+                          className={`dr-td dr-mono rsr-col-center ${surplusTintClass(r.surplusValue)}`.trim()}
+                          style={{ fontWeight: 700, color: r.surplusValue >= 0 ? "var(--green-elite)" : "var(--red-severe)" }}
+                          title={fullMoney(r.surplusValue)}
+                        >
+                          {r.surplusValue >= 0 ? "+" : "-"}{money(Math.abs(r.surplusValue))}
+                        </td>
+                      )}
                       {showFutureYearColumns ? (
                         <td className={`dr-td dr-mono rsr-col-center dr-vs-cons-muted ${salaryTintClass(r.salaryYr2)}`.trim()} title={r.salaryYr2 != null ? fullMoney(r.salaryYr2) : undefined}>
                           {r.salaryYr2 != null ? money(r.salaryYr2) : "—"}
@@ -789,7 +813,32 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
                   team hasn&apos;t committed at all — not on the 15-man roster, not
                   guaranteed, waivable at any point. Two-ways and Exhibit 10s
                   therefore get no cheapness credit, so they sit at roughly their
-                  consensus slot instead of climbing on a $0.7M minimum.
+                  consensus slot instead of climbing on a $0.7M minimum. The same
+                  applies to any figure below the league minimum whatever the
+                  contract says — a $0.09M or $0.27M cap hit is a prorated,
+                  partly-guaranteed or dead-money amount, not a season&apos;s pay,
+                  and it would otherwise earn the biggest cheapness credit on the
+                  board. A genuine minimum contract still counts as cheap.
+                </p>
+                <p style={{ marginTop: 12 }}>
+                  Unsigned free agents are ranked here too, but with a dash for
+                  Salary and Surplus rather than a number. The projection model
+                  only covers players on a roster, so their production comes from
+                  last season&apos;s actuals — and an unsigned player has no cap
+                  hit at all. The figure floating around for him is a cap hold or
+                  a last-known contract, not money anyone is paying him, so
+                  pricing him off it would invent a surplus that doesn&apos;t
+                  exist. They earn no cheapness credit and stay out of the Market
+                  Salary curve entirely.
+                </p>
+                <p style={{ marginTop: 12 }}>
+                  For a veteran aged 32 or older, last season is ignored outright
+                  and consensus alone places him. A projection would have aged him
+                  down; last season&apos;s box score doesn&apos;t, and it describes
+                  a role he no longer has — an unsigned 37-year-old&apos;s next
+                  contract is a smaller job, not the same one. Without that
+                  correction the oldest names on the board climbed hardest, which
+                  is the opposite of what a dynasty format should reward.
                 </p>
                 <p style={{ marginTop: 12 }}>
                   Surplus is Market Salary minus actual Salary. You can&apos;t stack

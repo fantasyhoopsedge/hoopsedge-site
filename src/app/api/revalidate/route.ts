@@ -2,16 +2,24 @@ import { timingSafeEqual } from "node:crypto";
 import { revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { ROSTER_TAG } from "@/app/team-rosters/_components/roster-live-data";
+import { REAL_SALARY_TAG } from "@/lib/value/real-salary-data";
 import { SEASONAL_TAG } from "@/lib/value/seasonal-data";
 
 /**
  * On-demand cache bust for the 15-min unstable_cache data layers (team-rosters,
- * seasonal-rankings). Without this, a data refresh (nba:refresh, nba:salary,
- * roster ingest, seasonal:build) or a shape change to a cached query is only
- * visible after the revalidate window elapses.
+ * seasonal-rankings, real-salary-rankings). Without this, a data refresh
+ * (nba:refresh, nba:salary, roster ingest, seasonal:build, realsalary:build) or
+ * a shape change to a cached query is only visible after the revalidate window
+ * elapses.
  *
  *   POST /api/revalidate?tag=team-rosters
  *   POST /api/revalidate?tag=seasonal-rankings
+ *   POST /api/revalidate?tag=real-salary-rankings
+ *
+ * KNOWN_TAGS must list every tag in the app — real-salary-rankings shipped with
+ * a cached layer but was left out of this set until 2026-08-03, so a rebuild had
+ * no way to be made visible short of waiting out the window. When you add an
+ * unstable_cache tag anywhere, add it here in the same change.
  *
  * Open on localhost (dev convenience, same as /admin/rookie-board). In
  * production, requires the same shared secret as the agent worker:
@@ -20,7 +28,7 @@ import { SEASONAL_TAG } from "@/lib/value/seasonal-data";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const KNOWN_TAGS = new Set([ROSTER_TAG, SEASONAL_TAG]);
+const KNOWN_TAGS = new Set([ROSTER_TAG, SEASONAL_TAG, REAL_SALARY_TAG]);
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 /** Constant-time bearer-token check against CRON_SECRET. */

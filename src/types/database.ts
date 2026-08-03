@@ -535,15 +535,24 @@ export interface Database {
           player_id: string;
           season: number;
           league_size: number;
-          salary: number;
+          /** null = unsigned free agent: no 2026-27 roster row, therefore no
+           *  cap hit. Drives CHEAPNESS_CREDIT "unsigned" and a null surplus —
+           *  see src/lib/value/real-salary-model.ts. */
+          salary: number | null;
+          /** 'nba_roster' | 'nba_contracts' | 'unsigned' */
           salary_source: string;
           confidence_tier: string | null;
           consensus_z: number;
-          production_z: number;
+          /** null when the player has no production measurement anywhere (no
+           *  projection, no completed-season line) — zeroes the whole Efficiency
+           *  adjuster so he sits at his consensus slot. Never write 0 for
+           *  "unknown"; see real-salary-model.ts's blendScore. */
+          production_z: number | null;
           salary_z: number;
           market_value_score: number;
           expected_cap_hit: number;
-          surplus_value: number;
+          /** null when salary is null — nothing to subtract. */
+          surplus_value: number | null;
           surplus_rank: number | null;
           updated_at: string;
         };
