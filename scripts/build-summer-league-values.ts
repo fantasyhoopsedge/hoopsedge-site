@@ -30,6 +30,8 @@
  * (undrafted invitees never seen in a real NBA box score) get a synthesized
  * `sl-<nbaComId>` — stable across re-runs, headshot-less (silhouette fallback).
  */
+import { readFileSync } from "fs";
+import path from "path";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
 import { normalizeTeamAbbr } from "../src/lib/nba-teams";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
@@ -162,9 +164,39 @@ async function fetchEspnIdByName(): Promise<Map<string, string>> {
 
 type ResolvedRow = ApiRow & { playerIdResolved: string; matched: boolean };
 
-function resolveIdentity(rows: ApiRow[], espnByName: Map<string, string>): ResolvedRow[] {
+/**
+ * Hand-approved ESPN athlete ids for players `nba_players` has never seen —
+ * data/player-ids/espn-ids.json, produced by `npm run espn:resolve -- --emit`.
+ *
+ * ESPN issues an athlete id to a prospect long before his NBA debut and keeps it
+ * through the transition, so an id from that file is the SAME id his eventual
+ * hoopR/ESPN game logs will arrive under. Consulting it here means a Summer
+ * League invitee lands on his real, permanent identity instead of the `sl-`
+ * placeholder below — no re-key when he debuts, and ESPN-CDN headshots work.
+ *
+ * Optional by design: a missing file is not an error, it just means nothing has
+ * been approved yet and every unmatched player keeps the `sl-` fallback.
+ */
+function loadApprovedEspnIds(): Map<string, string> {
+  const file = path.join(process.cwd(), "data", "player-ids", "espn-ids.json");
+  try {
+    const raw = JSON.parse(readFileSync(file, "utf8")) as Record<string, string>;
+    return new Map(Object.entries(raw));
+  } catch {
+    return new Map();
+  }
+}
+
+function resolveIdentity(
+  rows: ApiRow[],
+  espnByName: Map<string, string>,
+  approvedEspnIds: Map<string, string>,
+): ResolvedRow[] {
   return rows.map((r) => {
-    const espnId = espnByName.get(normalizeName(r.name));
+    const key = normalizeName(r.name);
+    // nba_players first (a player with real NBA game logs is already canonical),
+    // then the approved-override file, then the synthetic placeholder.
+    const espnId = espnByName.get(key) ?? approvedEspnIds.get(key);
     return { ...r, playerIdResolved: espnId ?? `sl-${r.playerId}`, matched: espnId != null };
   });
 }
@@ -298,6 +330,7 @@ async function upsert(
 async function buildYear(
   year: number,
   espnByName: Map<string, string>,
+  approvedEspnIds: Map<string, string>,
   consensus: Map<string, { rank: number; position: string | null; team: string | null }>,
 ): Promise<void> {
   console.log(`\n══ Summer League ${year} (Vegas) ══`);
@@ -308,7 +341,7 @@ async function buildYear(
     return;
   }
 
-  const resolved = aggregateDuplicates(resolveIdentity(raw, espnByName));
+  const resolved = aggregateDuplicates(resolveIdentity(raw, espnByName, approvedEspnIds));
   const matched = resolved.filter((r) => r.matched).length;
   console.log(`  identity resolved: ${matched}/${resolved.length} matched an existing nba_players id`);
 
@@ -341,9 +374,13 @@ async function main(): Promise<void> {
   console.log(`Building ${years.length} Summer League dataset(s)${DRY_RUN ? " [DRY RUN]" : ""}: ${years.join(", ")}`);
 
   const [espnByName, consensus] = await Promise.all([fetchEspnIdByName(), Promise.resolve(loadConsensus())]);
+  const approvedEspnIds = loadApprovedEspnIds();
+  if (approvedEspnIds.size > 0) {
+    console.log(`Loaded ${approvedEspnIds.size} approved ESPN id override(s) from data/player-ids/espn-ids.json`);
+  }
 
   for (const year of years) {
-    await buildYear(year, espnByName, consensus);
+    await buildYear(year, espnByName, approvedEspnIds, consensus);
     if (year !== years[years.length - 1]) await sleep(750); // be polite to the unofficial endpoint
   }
   console.log(`\n✓ done (${years.length} dataset${years.length === 1 ? "" : "s"})`);

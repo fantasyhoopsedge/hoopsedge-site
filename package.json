@@ -17,6 +17,7 @@
     "projections:build": "tsx scripts/build-projection-values.ts",
     "trends:build": "tsx scripts/build-player-trends.ts",
     "realsalary:build": "tsx scripts/build-real-salary-values.ts",
+    "espn:resolve": "tsx scripts/resolve-espn-ids.ts",
     "dynasty:sync": "npm run seasonal:build && npm run projections:build && npm run trends:build && npm run realsalary:build",
     "rb:seed": "tsx scripts/seed-rookie-board-supabase.ts",
     "role-context:sync": "tsx scripts/sync-role-context.ts",

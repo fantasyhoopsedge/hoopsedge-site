@@ -35,6 +35,8 @@ npm run seasonal:build   # recompute season_player_values for all league sizes (
 npm run projections:build # 2026-27 projection dataset from output/season-projections-2026-27.json
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
 npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
+npm run espn:resolve     # propose ESPN athlete ids for name-only players → data/player-ids/espn-ids.csv
+npm run espn:resolve -- --emit   # approved rows → espn-ids.json (consumed by summerleague:build)
 npm run rb:seed          # seed the rookie board into Supabase
 npm run launch:snapshot  # print the Draft Night signup/play funnel
 ```
