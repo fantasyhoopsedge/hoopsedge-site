@@ -135,6 +135,56 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+/**
+ * Delete rows this ingest orphaned by a NAME CHANGE.
+ *
+ * nba_contracts is keyed on `norm_name`, so when HoopsHype relists a player
+ * under a different name ("Herbert Jones" -> "Herb Jones") the upsert above
+ * inserts a SECOND row and the old one survives, holding a season-stale
+ * contract. Which row a consumer then reads depends on which spelling it joins
+ * with — the same failure mode as the salary-column offset bug.
+ *
+ * That shipped: Herbert Jones, Ronald Holland II and Hansen Yang each carried
+ * two rows a full season apart, found 2026-08-03 by `npm run identity:reconcile`
+ * and cleaned up by scripts/fix-duplicate-contracts.ts. This sweep stops it
+ * recurring.
+ *
+ * Scoped deliberately tightly: only rows sharing a `player_id` with a row this
+ * ingest just wrote, whose `norm_name` is NOT in the current CSV. A player who
+ * simply dropped off the salary sheet keeps his row (that's a data gap, not a
+ * rename), and rows with no player_id are never touched since they can't be
+ * proven duplicates.
+ */
+async function sweepRenamedDuplicates(
+  supabase: ReturnType<typeof getServiceClient>,
+  written: ContractRow[],
+): Promise<void> {
+  const writtenNames = new Set(written.map((c) => c.norm_name));
+  const writtenIds = new Set(written.map((c) => c.player_id).filter((id): id is string => Boolean(id)));
+  if (writtenIds.size === 0) return;
+
+  const { data, error } = await supabase
+    .from("nba_contracts")
+    .select("norm_name,salary_player_name,player_id")
+    .not("player_id", "is", null);
+  if (error) throw new Error(`nba_contracts sweep read: ${error.message}`);
+
+  const stale = (data ?? []).filter(
+    (r) => r.player_id && writtenIds.has(r.player_id as string) && !writtenNames.has(r.norm_name as string),
+  );
+  if (stale.length === 0) return;
+
+  for (const r of stale) {
+    const { error: delErr } = await supabase
+      .from("nba_contracts").delete().eq("norm_name", r.norm_name as string);
+    if (delErr) throw new Error(`nba_contracts sweep delete '${r.norm_name}': ${delErr.message}`);
+  }
+  console.log(
+    `Swept ${stale.length} row(s) orphaned by a name change: ` +
+      stale.map((r) => `'${r.norm_name}'`).join(", "),
+  );
+}
+
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
   if (!existsSync(CSV_PATH)) {
@@ -219,6 +269,7 @@ async function main() {
         .upsert(c, { onConflict: "norm_name" });
       if (error) throw new Error(`nba_contracts upsert: ${error.message}`);
     }
+    await sweepRenamedDuplicates(supabase, deduped);
   }
 
   // Always write the unmatched report — the human's spot-check list.
