@@ -5,6 +5,7 @@
  *   npm run summerleague:build                  # all years, upsert
  *   npm run summerleague:build -- --only 2025    # one year
  *   npm run summerleague:build -- --dry-run      # compute + report, no writes
+ *   npm run summerleague:build -- --apply-espn-ids  # re-key to approved ESPN ids (cascades!)
  *
  * Source: stats.nba.com/stats/leaguedashplayerstats, LeagueID=15 (Vegas Summer
  * League) — the same unofficial, unauthenticated endpoint NBA.com's own
@@ -48,6 +49,18 @@ const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run");
 const onlyArgIdx = argv.indexOf("--only");
 const ONLY = onlyArgIdx >= 0 ? Number(argv[onlyArgIdx + 1]) : null;
+/**
+ * Apply the approved ESPN id overrides (data/player-ids/espn-ids.json).
+ *
+ * OFF by default, and that is a safety decision rather than a preference:
+ * turning it on RE-KEYS players from `sl-<nbaComId>` to their real ESPN id, and
+ * build-projection-values.ts resolves the current draft class against the
+ * Summer League 2026 rows this script writes. Re-keying here without rebuilding
+ * projections (then trends, then real-salary) leaves those datasets pointing at
+ * ids that no longer exist. Use it as a deliberate step with the rest of the
+ * chain, never as a side effect of a routine rebuild.
+ */
+const APPLY_ESPN_IDS = argv.includes("--apply-espn-ids");
 
 // ── stats.nba.com fetch ──────────────────────────────────────────────────────
 
@@ -187,17 +200,60 @@ function loadApprovedEspnIds(): Map<string, string> {
   }
 }
 
+/**
+ * NBA.com person ids that refer to the same human WITHIN one event.
+ *
+ * stats.nba.com can return a player twice under two person records: Dain Dainja
+ * appeared in Summer League 2026 as both `1643120` (4 games) and `27810` (1
+ * game, his older id from the 2025 event), splitting his line across two rows
+ * and listing him twice in the rankings. Found 2026-08-03 by
+ * `npm run identity:reconcile`.
+ *
+ * Collapsed on normalized name AND team, deliberately: same name + same Summer
+ * League roster is one player, whereas the same name on two teams could be a
+ * genuine mid-event trade (which aggregateDuplicates already handles, because a
+ * traded player keeps one person id) or two different people. The survivor is
+ * the id with the most games — the more complete record — with the numerically
+ * larger (newer) id as tiebreak, so the choice is deterministic across re-runs.
+ */
+function canonicalNbaComIds(rows: ApiRow[]): Map<string, string> {
+  const groups = new Map<string, ApiRow[]>();
+  for (const r of rows) {
+    const key = `${normalizeName(r.name)}|${r.team ?? ""}`;
+    const list = groups.get(key) ?? [];
+    list.push(r);
+    groups.set(key, list);
+  }
+  const canonical = new Map<string, string>();
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    const ids = [...new Set(list.map((r) => r.playerId))];
+    if (ids.length < 2) continue; // already one id — aggregateDuplicates handles it
+    const winner = [...list].sort(
+      (a, b) => b.gp - a.gp || Number(b.playerId) - Number(a.playerId),
+    )[0].playerId;
+    for (const id of ids) canonical.set(id, winner);
+    console.log(
+      `  merged duplicate person records for ${list[0].name}: ${ids.join(" + ")} -> ${winner}`,
+    );
+  }
+  return canonical;
+}
+
 function resolveIdentity(
   rows: ApiRow[],
   espnByName: Map<string, string>,
   approvedEspnIds: Map<string, string>,
 ): ResolvedRow[] {
+  const canonical = canonicalNbaComIds(rows);
   return rows.map((r) => {
     const key = normalizeName(r.name);
     // nba_players first (a player with real NBA game logs is already canonical),
-    // then the approved-override file, then the synthetic placeholder.
+    // then the approved-override file, then the synthetic placeholder built on
+    // the canonical NBA.com id.
     const espnId = espnByName.get(key) ?? approvedEspnIds.get(key);
-    return { ...r, playerIdResolved: espnId ?? `sl-${r.playerId}`, matched: espnId != null };
+    const nbaComId = canonical.get(r.playerId) ?? r.playerId;
+    return { ...r, playerIdResolved: espnId ?? `sl-${nbaComId}`, matched: espnId != null };
   });
 }
 
@@ -323,6 +379,53 @@ async function upsert(
   await batchUpsert(supabase, "season_player_stats", statRows, "player_id,season,season_type");
   await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
   console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
+
+  await sweepStaleRows(supabase, year, statRows.map((r) => r.player_id as string));
+}
+
+/**
+ * Delete rows in THIS dataset whose player_id this build no longer produces.
+ *
+ * Both writes above are upserts keyed on player_id, so whenever a player's id
+ * changes — two NBA.com person records collapsing onto one, or a `sl-` id
+ * becoming a real ESPN id — the new row is inserted and the OLD one survives.
+ * The same human then appears twice in the rankings, which is exactly what
+ * happened to Dain Dainja (sl-1643120 and sl-27810 both in 2026/summer).
+ *
+ * Scoped hard to (season, season_type='summer') so it can only ever remove rows
+ * this very build was responsible for. It cannot touch a regular season, a
+ * playoff dataset, or another Summer League year. Same posture as the `cons-`
+ * sweep in build-real-salary-values.ts.
+ */
+async function sweepStaleRows(
+  supabase: ReturnType<typeof getServiceClient>,
+  year: number,
+  writtenIds: string[],
+): Promise<void> {
+  const written = new Set(writtenIds);
+  const { data, error } = await supabase
+    .from("season_player_stats")
+    .select("player_id,name")
+    .eq("season", year)
+    .eq("season_type", "summer");
+  if (error) throw new Error(`sweep read failed: ${error.message}`);
+
+  const stale = (data ?? []).filter((r) => !written.has(r.player_id as string));
+  if (stale.length === 0) return;
+
+  for (const r of stale) {
+    const pid = r.player_id as string;
+    for (const table of ["season_player_values", "season_player_stats"] as const) {
+      const { error: delErr } = await supabase
+        .from(table).delete()
+        .eq("player_id", pid).eq("season", year).eq("season_type", "summer");
+      if (delErr) throw new Error(`sweep delete ${table} ${pid}: ${delErr.message}`);
+    }
+  }
+  console.log(
+    `  swept ${stale.length} stale row(s) this build no longer produces: ` +
+      stale.map((r) => `${r.name} (${r.player_id})`).join(", "),
+  );
 }
 
 // ── per-year build ────────────────────────────────────────────────────────────
@@ -374,9 +477,14 @@ async function main(): Promise<void> {
   console.log(`Building ${years.length} Summer League dataset(s)${DRY_RUN ? " [DRY RUN]" : ""}: ${years.join(", ")}`);
 
   const [espnByName, consensus] = await Promise.all([fetchEspnIdByName(), Promise.resolve(loadConsensus())]);
-  const approvedEspnIds = loadApprovedEspnIds();
-  if (approvedEspnIds.size > 0) {
-    console.log(`Loaded ${approvedEspnIds.size} approved ESPN id override(s) from data/player-ids/espn-ids.json`);
+  const approvedEspnIds = APPLY_ESPN_IDS ? loadApprovedEspnIds() : new Map<string, string>();
+  if (APPLY_ESPN_IDS) {
+    console.log(
+      `Applying ${approvedEspnIds.size} approved ESPN id override(s) — this RE-KEYS players; ` +
+      "rebuild projections -> trends -> realsalary after.",
+    );
+  } else {
+    console.log("ESPN id overrides NOT applied (pass --apply-espn-ids; re-keys players, see the flag docs).");
   }
 
   for (const year of years) {
