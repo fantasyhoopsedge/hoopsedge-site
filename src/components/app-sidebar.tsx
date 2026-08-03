@@ -8,7 +8,7 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 // "profile" doesn't match any NAV_ITEMS key by design — the account/settings
 // page isn't one of the main content sections, so nothing in the rail should
 // highlight while it's active.
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor" | "fantrax";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -127,6 +127,18 @@ const ADMIN_TOOL_LINKS: Array<{ key: AppSidebarActiveKey; href: string; label: s
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" />
         <path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
+      </svg>
+    ),
+  },
+  {
+    key: "fantrax",
+    href: "/admin/fantrax",
+    label: "Fantrax Connector",
+    title: "Fantrax league connector (limited testing)",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
       </svg>
     ),
   },

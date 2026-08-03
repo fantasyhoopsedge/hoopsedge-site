@@ -22,7 +22,7 @@ export async function proxy(request: NextRequest) {
   // These admin tools are "localhost trusted" per their own page.tsx (dev
   // convenience; production still gates on rb_admins) — never bounce them
   // through the auth gate on localhost.
-  const DEV_TRUSTED_ADMIN_PREFIXES = ["/admin/rookie-board", "/admin/depth-chart", "/admin/role-context", "/admin/dynasty-board"];
+  const DEV_TRUSTED_ADMIN_PREFIXES = ["/admin/rookie-board", "/admin/depth-chart", "/admin/role-context", "/admin/dynasty-board", "/admin/fantrax"];
   if (
     process.env.NODE_ENV !== "production" &&
     DEV_TRUSTED_ADMIN_PREFIXES.some((prefix) =>
