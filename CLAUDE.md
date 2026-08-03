@@ -35,6 +35,7 @@ npm run seasonal:build   # recompute season_player_values for all league sizes (
 npm run projections:build # 2026-27 projection dataset from output/season-projections-2026-27.json
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
 npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
+npm run identity:build   # rebuild the canonical player registry (--dry-run to report only)
 npm run espn:resolve     # propose ESPN athlete ids for name-only players → data/player-ids/espn-ids.csv
 npm run espn:resolve -- --emit   # approved rows → espn-ids.json (consumed by summerleague:build)
 npm run rb:seed          # seed the rookie board into Supabase
@@ -174,6 +175,45 @@ one.** Both used to coexist (`dynasty-rankings.json` had 17 "FA" rows and 15
 the UI. `normalizeTeamAbbr()` folds `"UFA"` into `"FA"`; any new ingestion or
 manual edit that sets a player's team/roster status to "no team" must write
 `"FA"`, never `"UFA"`.
+
+### Player identity registry (`npm run identity:build`)
+
+FHE joins ~12 sources on normalized name, across **four disjoint id spaces**.
+Know which one you're holding:
+
+| Space | Lives in | Example |
+|---|---|---|
+| **ESPN athlete id** | `nba_players.id`, `season_player_stats.player_id`, trends, real-salary | `3112335` = Jokić |
+| **NBA Stats id** | `src/lib/nba-player-ids.json`, BBM's "NBA ID", the digits in `sl-<nbaComId>` | `203999` = Jokić |
+| **Basketball Monster id** | `data/player-ids/bbm-players.csv` | `3930` = Jokić |
+| **Fantrax id** (+ Rotowire/SportRadar/StatsInc) | Fantrax `getPlayerIds` | — |
+
+The first two had **zero overlap** (882 vs 587 rows) and were bridged only by
+name. `scripts/build-player-identity.ts` merges all of them into
+`player_identity` — one row per human, keyed by an opaque surrogate `fhe_id`.
+Surrogate rather than a vendor id because no vendor covers everyone (ESPN misses
+~4% of prospects, near-all international; BBM has no id for 332 of its own 1,005
+players until they have NBA service) and vendors carry duplicate records for one
+human (ESPN indexes two Cameron Boozers).
+
+**`data/player-ids/player-identity.json` must stay committed — it is the id
+ledger, not a cache.** The build re-adopts it to keep `fhe_id`s stable; delete it
+and every player renumbers. Verified idempotent: consecutive runs are
+byte-identical with zero id churn.
+
+Merge order is strongest-evidence-first and **reordering it silently downgrades
+exact joins to name joins**: the NBA Stats ids land before BBM specifically so
+that BBM's 673 id-carrying players merge by id rather than by name.
+
+Nothing guesses. A name matching two identities, a provider id that would move
+between humans, or a DOB disagreement all go to `player_identity_unresolved` for
+a person to settle — a confidently wrong id attaches a real stat line to the
+wrong player, which is strictly worse than a missing one.
+
+Phase 1 is additive: no existing table changed, nothing reads it yet. Migration
+`20260803020000_player_identity.sql` is **not yet applied**, so the build writes
+the JSON artifact and skips Supabase with a warning until it is. Full plan and
+remaining phases: `docs/player-identity-layer.md`.
 
 ### NBA data pipeline
 

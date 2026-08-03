@@ -1,9 +1,27 @@
 # Player Identity Layer — proposal
 
-**Status:** proposal, for review. Nothing built.
+**Status:** **Phase 1 BUILT** (2026-08-03). Phases 2–4 still proposals, for review.
 **Date:** 2026-08-03
 **Prompted by:** the Fantrax connector build, which paid the identity tax for the
 eighth time and made the pattern impossible to ignore.
+
+> ### What now exists
+>
+> - `supabase/migrations/20260803020000_player_identity.sql` — `player_identity`,
+>   `player_name_alias`, `player_identity_unresolved`. **Not yet applied.**
+> - `scripts/build-player-identity.ts` (`npm run identity:build`) — merges every
+>   source into the registry, writes `data/player-ids/player-identity.json`, and
+>   skips the Supabase write with a warning until the migration lands.
+> - `scripts/bbm/extract_bbm_ids.py` + `data/player-ids/bbm-players.csv` —
+>   Basketball Monster ids, extracted from BBM's `.xls` exports.
+>
+> **First build: 1,199 identities.** 882 ESPN ids, 692 NBA Stats ids, 1,005 BBM
+> ids; **683 rows now carry both an ESPN and an NBA Stats id** — two spaces that
+> previously had zero overlap — and 700 carry both a BBM and an ESPN id.
+> Idempotent: consecutive runs are byte-identical, zero id churn.
+>
+> Section 3 below is the design as proposed; it was implemented essentially as
+> written, with `bbm_id` promoted to a first-class column (§2.2).
 
 ---
 
@@ -140,6 +158,32 @@ already have — plus SportRadar/Rotowire ids, which are the join keys most futu
 data partners (injury feeds, odds, news) will speak.
 
 ---
+
+## 2.2 Basketball Monster — a third id space, and a verified bridge
+
+Added 2026-08-03 from three BBM "Export to Excel" files (2024-25, 2025-26, and
+2026 Summer League). BBM's export carries two id columns:
+
+- `ID` — Basketball Monster's own player id, stable across seasons.
+- `NBA ID` — **the NBA Stats id**, verified: Nikola Jokić = `203999`. It shares
+  **97%** of the ids in `nba-player-ids.json`, which independently confirms both
+  sources are describing the same namespace.
+
+Coverage: **1,005 distinct BBM players**, 673 with an NBA Stats id. The 332
+without are players with no NBA service yet — BBM issues its own id immediately
+but cannot supply an NBA Stats id until the league does, the same shape of gap
+ESPN has for international prospects.
+
+BBM is therefore both a new id and a corroborating bridge: because 673 of its
+players carry an NBA Stats id, they merge into the registry by **exact id**
+rather than by name. That is why the build merges `nba-player-ids.json` before
+BBM — doing it the other way round turns 673 exact joins into name guesses.
+
+One caution the data surfaced: BBM export **filenames carry no season**
+(`BBM_PlayerRankings (3).xls`), so `extract_bbm_ids.py` fingerprints the season
+from the roster instead — Summer League by game counts, then Cooper Flagg
+(debuted 2025-26) vs Damian Lillard / Kyrie Irving (both missed it injured).
+Pass `--season` explicitly if a future export defeats that heuristic.
 
 ## 3. Proposal
 
