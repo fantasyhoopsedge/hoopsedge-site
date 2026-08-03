@@ -37,13 +37,37 @@ function ageFromDob(dob: string | null | undefined): number | null {
 
 const SEASON = 2027;
 const SEASON_TYPE = "projection";
+// Identity fallback for players the projection dataset has no row for — unsigned
+// free agents, who never enter the projection model because its Stage 1 universe
+// is the roster of record. build-real-salary-values.ts admits them on last
+// season's actual production (see its loadCarryForward), but their name/team/
+// position still have to come from somewhere: the last COMPLETED season.
+// hoopR numbering, 2026 = the 2025-26 season.
+const FALLBACK_SEASON = 2026;
+const FALLBACK_SEASON_TYPE = "regular";
 
 // Consensus rank for the comparison column, keyed by normalized name — NEVER
 // by rank number (a refresh reassigns rank numbers to different players; see
 // CLAUDE.md's James Harden incident).
+type BoardPlayer = { player: string; consensusRank: number; team?: string | null; position?: string | null };
 const CONSENSUS_RANK_BY_NAME: Record<string, number> = {};
-for (const p of rankings as Array<{ player: string; consensusRank: number }>) {
-  CONSENSUS_RANK_BY_NAME[normalizePlayerName(p.player)] = p.consensusRank;
+// Display identity of last resort. A `cons-<normalized name>` row exists
+// precisely because the player has no resolvable id and therefore no
+// season_player_stats row in ANY season — so the bundled board, which is where
+// he came from, is the only place a name/team/position can be read. See
+// build-real-salary-values.ts's third admission pass.
+const BOARD_BY_NAME = new Map<string, BoardPlayer>();
+for (const p of rankings as BoardPlayer[]) {
+  const key = normalizePlayerName(p.player);
+  CONSENSUS_RANK_BY_NAME[key] = p.consensusRank;
+  if (!BOARD_BY_NAME.has(key)) BOARD_BY_NAME.set(key, p);
+}
+
+/** `cons-thomas-sorber` -> `thomas sorber`, the normalized board key. */
+const SYNTHETIC_ID_PREFIX = "cons-";
+function boardKeyFromSyntheticId(playerId: string): string | null {
+  if (!playerId.startsWith(SYNTHETIC_ID_PREFIX)) return null;
+  return playerId.slice(SYNTHETIC_ID_PREFIX.length).replace(/-/g, " ");
 }
 
 // Cached, cookieless reads (see @/lib/value/real-salary-data). Served from a
@@ -51,13 +75,15 @@ for (const p of rankings as Array<{ player: string; consensusRank: number }>) {
 export const dynamic = "force-dynamic";
 
 export default async function RealSalaryRankingsPage() {
-  const [stats, values, rosterExtras] = await Promise.all([
+  const [stats, fallbackStats, values, rosterExtras] = await Promise.all([
     getStats(SEASON, SEASON_TYPE),
+    getStats(FALLBACK_SEASON, FALLBACK_SEASON_TYPE),
     getRealSalaryValues(SEASON),
     getRosterExtras(),
   ]);
 
   const statsById = new Map(stats.map((s) => [s.player_id, s]));
+  const fallbackStatsById = new Map(fallbackStats.map((s) => [s.player_id, s]));
 
   // player_id first (precise); normalized-name fallback catches brand-new
   // rookies whose nba_roster row has no player_id yet — same identity gap
@@ -75,15 +101,40 @@ export default async function RealSalaryRankingsPage() {
   // the three raw z-components (consensusZ/productionZ/salaryZ) the client
   // needs to instantly recompute all of that for the other manager-archetype
   // presets — see src/lib/value/real-salary-model.ts.
+  // A synthetic row is a placeholder for a player with no id; if that same human
+  // ALSO appears under a real id (he earned one between builds and the sweep in
+  // build-real-salary-values.ts hasn't run yet), the real row wins and the
+  // placeholder is dropped — otherwise he'd be listed twice.
+  const realNameKeys = new Set<string>();
+  for (const v of values) {
+    if (v.player_id.startsWith(SYNTHETIC_ID_PREFIX)) continue;
+    const s = statsById.get(v.player_id) ?? fallbackStatsById.get(v.player_id);
+    if (s) realNameKeys.add(normalizePlayerName(s.name));
+  }
+
   const rows: RealSalaryRow[] = [];
   for (const v of values) {
-    const s = statsById.get(v.player_id);
+    // Projection identity first; last completed season fills in for the
+    // unsigned free agents the projection dataset doesn't cover; the bundled
+    // board is the last resort for forced-in players with no stats row at all.
+    const boardKey = boardKeyFromSyntheticId(v.player_id);
+    const board = boardKey != null ? BOARD_BY_NAME.get(boardKey) : undefined;
+    if (boardKey != null && (!board || realNameKeys.has(boardKey))) continue;
+    const s = statsById.get(v.player_id) ?? fallbackStatsById.get(v.player_id)
+      ?? (board
+        ? { name: board.player, team: board.team ?? null, position: board.position ?? null, headshot_id: null }
+        : null);
     if (!s) continue; // no display identity (name/team/position) to show
     const extra = extrasByPlayerId.get(v.player_id) ?? extrasByName.get(normalizePlayerName(s.name));
+    // A null salary IS the unsigned marker (see real-salary-model.ts). "FA" is
+    // the one non-team placeholder ecosystem-wide — never "UFA" — and a
+    // fallback row's team is last season's team, which would read as a roster
+    // spot he no longer holds.
+    const unsigned = v.salary == null;
     rows.push({
       playerId: v.player_id,
       name: s.name,
-      team: s.team,
+      team: unsigned ? "FA" : s.team,
       position: s.position,
       headshotId: s.headshot_id,
       consensusZ: v.consensus_z,
@@ -94,8 +145,8 @@ export default async function RealSalaryRankingsPage() {
       confidenceTier: v.confidence_tier,
       consensusRank: CONSENSUS_RANK_BY_NAME[normalizePlayerName(s.name)] ?? null,
       classId: classOf(extra),
-      contractBucket: contractBucketOf(extra?.contract_status ?? null),
-      contractClass: contractClassOf(extra?.contract_status ?? null),
+      contractBucket: unsigned ? "Other" : contractBucketOf(extra?.contract_status ?? null),
+      contractClass: unsigned ? "unsigned" : contractClassOf(extra?.contract_status ?? null),
       age: ageFromDob(extra?.dob),
       salaryYr2: extra?.salary_yr2 ?? null,
       salaryYr3: extra?.salary_yr3 ?? null,

@@ -314,6 +314,42 @@ is exactly "should not jump much at all." After the fix, the 32 two-ways move
 **mean −5.7 / max +0** spots off their consensus slot within the same population:
 not one of them gains a place any more.
 
+### 3.3.3b The dollar gate — sub-minimum figures aren't cheap either (2026-08-03)
+
+3.3.3 gated the cheapness credit on contract *class*, which left a hole the same
+size. A handful of rows carry `contract_status` "Standard" with a figure no
+full-season NBA contract can pay — prorated, partially-guaranteed or dead-money
+amounts:
+
+| Player | Salary | Source |
+| --- | --- | --- |
+| Tyler Smith | $0.085M | `nba_roster` |
+| Peter Suder | $0.091M | `nba_roster` |
+| David Roddy | $0.129M | `nba_contracts` |
+| Trevor Keels | $0.174M | `nba_contracts` |
+| Nate Williams | $0.177M | `nba_contracts` |
+| Christian Koloko | $0.268M | `nba_contracts` |
+| Curtis Jones | $0.639M | `nba_contracts` |
+| Chris Manon | $0.639M | `nba_contracts` |
+| EJ Liddell | $0.707M | `nba_roster` |
+
+Being the smallest numbers in the whole population, they were earning a *larger*
+cheapness credit than the $0.679M two-way minimum 3.3.3 exists to neutralize —
+the identical bug through a different door. Ash (2026-08-03): *"these guys should
+not get a cheapness credit similar to the two-way treatment."*
+
+`cheapnessCredit(class, salary)` now gates on both. The test is **below the league
+minimum**, which is unambiguous: nothing legitimate falls between the two-way rate
+and `NBA_MINIMUM_SALARY`, and a genuine minimum contract (exactly at it) keeps
+full credit — a real minimum deal *is* a cheap asset. Treatment matches a
+two-way exactly: the figure still displays, Surplus still computes, only the
+cheapness sub-score is zeroed.
+
+⚠️ **`NBA_MINIMUM_SALARY` must be the exact figure, not a rounded one.** The first
+pass used $1,358,000 against a real minimum of **$1,357,763**, and that $237 gap
+silently stripped the credit from every genuine minimum contract in the league.
+Take it from the data on each cap rollover.
+
 ### 3.3.4 "Vs Consensus" is rebased onto the scored population (2026-08-02)
 
 Shipped alongside 3.3.3, and a separate issue from it — this one was never about
@@ -322,7 +358,10 @@ numbers came from **different-sized populations**:
 
 - `dynasty-rankings.json` ranks **493** players.
 - The tool ranks whoever has *both* a projection and a salary — **515**.
-- Only **444** are in both, so ~49 ranked players can't be scored here.
+- Only **446** are in both, so 47 ranked players can't be scored here.
+
+(§3.3.5 later shrank that 47 to 12 by admitting the missing players outright. The
+rebase below is still required — the two populations are still different sizes.)
 
 Each of those 49 sitting above you hands you a free slot, so the column carried
 an upward bias that grew with depth. Measured 2026-08-02, across *all* contract
@@ -353,6 +392,138 @@ the question the column exists for. The same rebased Δ feeds
 
 `build-real-salary-values.ts` prints both Δs on every run — a large `rawΔ` there
 is expected and is *not* what users see.
+
+### 3.3.5 Unsigned free agents are admitted, but priced at nothing (2026-08-03)
+
+The population gap 3.3.4 works around had a second half nobody had looked at: the
+players who *can't* be scored. The projections model's Stage 1 universe is the
+**roster of record** — it projects minutes ONTO a team — so anyone without a
+2026-27 roster spot never enters the pipeline and was invisible here. Measured
+2026-08-03: **41** board-ranked players had no projection row, among them
+Jonathan Kuminga (consensus **182**) and DeMar DeRozan (**205**). Separately, 4
+players *were* in the artifact but were dropped by `resolvePlayers()` for having
+no resolvable id anywhere — Thomas Sorber (173) the worst of them.
+
+Ash's call (2026-08-03): wire them in regardless. Two pieces:
+
+1. **Production carries forward.** `loadCarryForward()` in
+   `build-real-salary-values.ts` admits any consensus-ranked player the
+   projection dataset lacks, using last COMPLETED season's *actual* Minus1V.
+   Scale caveat, accepted: those figures are standardized against the 2025-26
+   real-season 450 pool, not the 2027 projection 450 pool. Tolerable only because
+   production is 40% of Efficiency, itself ≤37.5% of the blend (≤15% of a
+   player's score). **Do not reuse this as a general-purpose production source.**
+2. **Salary is null, not guessed.** An unsigned player has no cap hit. The figure
+   in `nba_contracts` is a cap hold or a last-known contract — pricing him off it
+   invents a large phantom negative surplus (Kuminga would have read −$22.5M),
+   and assigning the minimum instead would hand the biggest cheapness credit in
+   the model to a player with no team, which is exactly the artifact 3.3.3 fixes
+   for two-ways. So `ContractClass` gains **`unsigned`**: `CHEAPNESS_CREDIT` 0,
+   `surplusValue` null, and excluded from the quantile salary curve entirely so
+   he can't shift anyone else's Market Salary. `computeMarketValue()` maps curve
+   positions by **percentile** rather than raw index to absorb the shorter curve;
+   with no unsigned rows it reduces exactly to the previous `salaryCurve[i]`.
+
+Signed-vs-unsigned is decided by presence of an `nba_roster` row for the season —
+the ecosystem's documented source of truth for roster status — *not* by whether
+some salary figure exists somewhere. A contracts-only hit means no roster spot.
+
+Kuminga lands at #184 against consensus 182, i.e. the model moves him essentially
+nowhere, which is the point — with no cheapness credit only production nudges him.
+
+### 3.3.6 Consensus membership alone earns a row (2026-08-03)
+
+3.3.5 left 12 board players out: 2026 draftees and internationals with no NBA
+minutes anywhere — no projection, no completed season to carry forward, and (the
+real blocker) **no `player_id` in `nba_players`, no Summer League row, no game
+logs**. Ash's rule, seeing Sorber at 12.0 MPG / 22 GP in the depth-chart tool:
+*"if a player exists in consensus, he must get forced into salary rank too."*
+
+- **Synthetic ids.** A third admission pass gives them `cons-<normalized name>`,
+  deliberately shaped like the existing `sl-<nbaComId>` scheme rather than a
+  third dialect. Stable across refreshes (the normalized name is the ecosystem
+  join key) and prefix-identifiable, which the post-upsert sweep depends on: the
+  moment such a player earns a real id he's written under it, and the stale
+  placeholder must be deleted or he appears twice. The page independently drops a
+  `cons-` row whose name already arrived under a real id, so a not-yet-swept
+  duplicate can't reach the UI.
+- **No production ⇒ no Efficiency at all.** `productionZ` is null and
+  `blendScore()` zeroes the *entire* adjuster, cheapness included. Keeping the
+  cheapness half would credit a cheap contract while treating unknown production
+  as league-average, floating a player we've never measured above players whose
+  production is measured and poor. Absent evidence must not read as positive
+  evidence — the same principle as the two-way cheapness gate.
+- **Identity from the board.** These rows have no `season_player_stats` row in
+  any season, so `page.tsx` reads name/team/position from the bundled
+  `dynasty-rankings.json` — the only place they exist.
+
+**Every board player now has a row**, asserted at build time: the script throws
+if any consensus rank is missing rather than quietly shipping short. That
+assertion immediately earned its keep — it caught Taelon Peter (465) being
+dropped whenever a projected player's artifact name didn't match the board, since
+pass 2 saw his id already used and skipped him instead of backfilling the rank.
+
+Side effect worth noting: with the populations finally equal, the `rawΔ`/`modelΔ`
+gap from 3.3.4 collapses at source — the 401+ band went from **+14.6 vs +3.3** to
+**+4.5 vs +4.2**. The rebase stays (the two lists still aren't identical), but the
+artifact it was compensating for is largely gone.
+
+**Still open (Ash, 2026-08-03):** Sorber and the other draftees *should* get real
+projections built the way a 2026 rookie is projected, off the GP/MPG already
+assigned in the depth chart. Once that lands they resolve through the normal path
+and this pass shrinks toward empty.
+
+### 3.3.7 Carried-forward veterans discard last season (2026-08-03)
+
+3.3.5 shipped with a flaw Ash spotted on the page: DeMar DeRozan jumping **+35**
+spots. The cause is that carrying production forward skips the aging step. Every
+normally-scored player's production is a *projection*, which ages him down; a
+carried player's is last season's *actuals*, which don't. Dynasty consensus prices
+a 3–5 year window and has already discounted a veteran hard, so the gap between
+"what he did" and "what the board thinks of his future" is widest exactly for old
+players — and Efficiency converted that gap into upward movement:
+
+| Carried players | Mean move vs consensus | n |
+| --- | --- | --- |
+| Age 32+ | **+15.8** | 6 |
+| Under 32 | −2.6 | 10 |
+
+**Not a scale artifact**, which was the first suspicion. Paired on the same
+players, 2026-actual minus 2027-projection is mean **+0.004** (sd 0.245, actuals
+higher only 52% of the time) — the two distributions are effectively identical.
+
+Ash's reading (2026-08-03), which is why the fix discards rather than discounts: a
+veteran the projection model didn't include has no established 2026-27 role.
+Valanciunas has left for Europe and will likely fall off the next consensus
+refresh; DeRozan is expected to sign somewhere at lower usage than last season;
+Westbrook will probably take a minimum bench role. Last season describes a role
+none of them still has, and for an older player the next one is *smaller*. A
+younger carried player might see his role grow instead, so the carry still applies
+below the line.
+
+`CARRY_FORWARD_AGE_LIMIT = 32` (where the data flips sign, not a round number
+picked first). Above it, `productionRaw` is null, which zeroes the whole Efficiency
+adjuster — identical to the forced-in players of 3.3.6. Age comes from the board
+(`loadBoardMeta`), since these players often have no `nba_roster` row to read a dob
+from; an **unknown age keeps its carried production**, so the gate only fires on
+positive evidence that a player is old.
+
+Result — 8 veterans anchored, none moving more than 11 spots:
+
+| Player | Age | Cons | Rank | Δ before | Δ after |
+| --- | --- | --- | --- | --- | --- |
+| DeMar DeRozan | 36.8 | 205 | 200 | +35 | **+5** |
+| Bradley Beal | 32.9 | 274 | 273 | −23 | **+1** |
+| Russell Westbrook | 37.6 | 366 | 361 | +17 | **+5** |
+| Jonas Valanciunas | 34.1 | 393 | 382 | +56 | **+11** |
+| Buddy Hield | 33.5 | 412 | 409 | — | **+3** |
+| Gary Payton II | 33.6 | 414 | 411 | +7 | **+3** |
+| Kelly Olynyk | 35.1 | 473 | 468 | — | **+5** |
+| Maxi Kleber | 34.5 | 475 | 470 | −20 | **+5** |
+
+The residual few spots are the same effect the forced-in players show: a
+zero-Efficiency player still ranks against neighbours whose adjusters aren't zero.
+The whole `unsigned` class now spans −18 to **+9**, down from −23 to +35.
 
 ### 3.4 What NOT to do
 
