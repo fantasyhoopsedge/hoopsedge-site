@@ -343,6 +343,9 @@ export interface Database {
           salary_estimated: boolean; // any year even-split estimated
           salary_note: string | null;
           source: string;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -383,6 +386,9 @@ export interface Database {
           // per season+season_type+team, computed by build-seasonal-values.ts for
           // every dataset (regular/playoffs/summer league, all seasons).
           usg_pct: number | null;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -484,6 +490,9 @@ export interface Database {
           is_sophomore: boolean;
           new_to_team: boolean;
           source: string;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -508,6 +517,9 @@ export interface Database {
           player_name: string;
           generated_at: string;
           payload: Json;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -554,6 +566,9 @@ export interface Database {
           /** null when salary is null — nothing to subtract. */
           surplus_value: number | null;
           surplus_rank: number | null;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
