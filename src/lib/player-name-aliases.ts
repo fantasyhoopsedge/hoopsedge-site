@@ -31,6 +31,14 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   "robert dillingham": "rob dillingham",
   "hansen yang": "yang hansen",
   "pelle larrson": "pelle larsson",
+  // Fantrax dialect, found 2026-08-03 wiring up the league connector
+  // (src/lib/fantrax/): its player feed uses legal first names where hoopR and
+  // the dynasty board use the nickname. These two were the ONLY name-shaped
+  // misses across a 422-player league import — every other unmatched player was
+  // genuinely absent from FHE's datasets (unsigned FA or a 2026 rookie), not
+  // misnamed. Re-run that diff when adding a new league source.
+  "cameron thomas": "cam thomas",
+  "nicolas claxton": "nic claxton",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(

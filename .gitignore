@@ -60,6 +60,10 @@ src/data/rookie-board.draft.json
 src/data/dynasty-board.json
 src/data/dynasty-board.draft.json
 
+# Fantrax connector: a user's linked leagues, local-dev storage only (fx_leagues
+# in Supabase is the source of truth in production). Personal data — never commit.
+src/data/fantrax-leagues.json
+
 # Generated build artifacts (regeneratable from Supabase, not committed source data).
 # player-trends now lives in the nba_player_trends table (trends:build pushes it);
 # the local JSON is a --file debug artifact only.

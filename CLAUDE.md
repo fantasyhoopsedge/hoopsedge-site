@@ -214,6 +214,50 @@ Phase 1 is additive: no existing table changed, nothing reads it yet. Migration
 `20260803020000_player_identity.sql` is **not yet applied**, so the build writes
 the JSON artifact and skips Supabase with a warning until it is. Full plan and
 remaining phases: `docs/player-identity-layer.md`.
+### Fantrax league connector (`src/lib/fantrax/`, `/admin/fantrax`)
+
+Links a user's real Fantrax league and re-scores FHE's category values against
+that league's actual rules. Admin-gated for now (`src/lib/fantrax/guard.ts`
+documents how to graduate it); the migration is
+`20260803010000_fantrax_leagues.sql`.
+
+**The Secret ID must never touch a FantasyHoopsEdge server.** `/privacy` §4
+publishes this as a commitment ("never transmitted to, stored on, or logged by
+any FantasyHoopsEdge server at any point"), and the architecture is built to
+honour it, not to approximate it. It works because Fantrax's external API
+(`fantrax.com/fxea/general/*`) serves `access-control-allow-origin: *`, so the
+BROWSER calls `getLeagues?userSecretId=…` itself and keeps the secret in
+`sessionStorage`. Every other endpoint (`getLeagueInfo`, `getTeamRosters`,
+`getStandings`, `getDraftResults`, `getPlayerIds`) is **key-less** — a league id
+alone is sufficient, which is why "paste a league code" works with no account
+link at all. So the server is only ever told a league id. Never add a
+Secret-ID column to `fx_leagues`, and never proxy `getLeagues`.
+
+**LeagueV** is the point of the feature: 9CatV is just the mean of nine
+per-category z-scores, so a league scoring a subset gets those same z-scores
+averaged over its own subset. A 9-cat league gets 9CatV back exactly; an 8-cat
+(punt-TO) league gets a genuinely re-ordered board (Jokić passes Wembanyama).
+Unmapped Fantrax categories (DD, TD, MIN…) are reported as unmodelled rather
+than silently dropped.
+
+Two identity hazards, both real and both already bitten:
+- **Duplicate names.** The test league carries two Jalen Johnsons and two Jaylin
+  Williamses (one rostered, one teamless free agent). A pure name join gave the
+  namesakes the stars' z-scores and floated a consensus-rank-10 player to the
+  top of the waiver board. `blockedAmbiguousIds()` breaks ties on NBA team, and
+  withholds data entirely when it can't tell. Team is deliberately NOT a general
+  match requirement — FHE rows carry the team a player produced for, Fantrax the
+  team he's on now.
+- **Small samples.** Per-game z-scores ignore sample size, so 3-game call-ups
+  outranked every genuine free agent. `MIN_SAMPLE_GAMES` filters the waiver
+  board and flags roster rows; consistent with FHE convention, it never enters
+  the value math.
+
+Coverage on the 30-team test league (2026-08-03): 419/422 rostered players
+joined, via projections → 2025-26 actuals, with the dynasty board supplying
+consensus rank only (never values). Joins key on `normalizePlayerName()` plus
+`player-name-aliases.ts`; Fantrax ships names "Last, First" and uses legal first
+names, which is where `cameron thomas`/`nicolas claxton` came from.
 
 ### NBA data pipeline
 
