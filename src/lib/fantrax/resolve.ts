@@ -1,8 +1,9 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
-import { isNbaTeam, normalizeTeamAbbr } from "@/lib/nba-teams";
 import { lookupWithNameAlias } from "@/lib/player-name-aliases";
 import { getStats, getValuesForSize } from "@/lib/value/seasonal-data";
+import { createAdminClient } from "@/utils/supabase/admin";
 import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import {
   buildTeamProfile, byLeagueValue, categoryEdges, leagueValueOf, MIN_SAMPLE_GAMES,
@@ -16,28 +17,42 @@ import {
 export { FANTRAX_DATASETS, type FantraxDatasetKey };
 
 /**
- * Joins a Fantrax league to FHE's category values.
+ * Joins a Fantrax league to FHE's category values, through the player identity
+ * registry.
  *
- * Identity is the whole game here, and it is a NAME join — Fantrax has its own
- * player-id space with no overlap with nba.com ids. Every lookup therefore goes
- * through normalizePlayerName() plus the nickname/legal-name alias map, exactly
- * as CLAUDE.md requires of anything joining an outside source to FHE data.
+ * ── Migrated to fhe_id (Phase 3, 2026-08-03) ────────────────────────────────
+ * This used to be a NAME join: Fantrax has its own id space with no overlap with
+ * anything FHE held, so every roster import matched ~1,800 players by normalized
+ * name and needed a runtime guard against duplicate names — the two Jalen
+ * Johnsons that put a consensus-rank-10 player on the waiver board.
  *
- * Coverage is layered because no single dataset covers a whole roster:
- *   • 2026-27 projections — the season being played, but it omits unsigned
- *     free agents and anyone without a projection.
- *   • 2025-26 regular — real production, but blank for 2026 rookies and for
- *     players who missed the season injured (Lillard, Haliburton, Irving…).
- * Whichever the caller picks leads; the other backfills. Measured against the
- * 30-team test league on 2026-08-03: 386/422 from projections alone, 412/422
- * from last season alone, 419/422 (99.3%) layered. The last three were
- * genuinely off both value datasets, and surface in the UI as "no data" rather
- * than as zeroes.
+ * It is now an exact id join end to end:
  *
- * The dynasty board is a THIRD name index here but not a fourth fallback: it
- * carries a consensus rank, not category values, so it can label a player the
- * value engine has never scored (a just-drafted rookie) without pretending to
- * know his production.
+ *     Fantrax player id -> player_identity.fantrax_id -> fhe_id
+ *     fhe_id -> season_player_stats.fhe_id -> season_player_values
+ *
+ * `npm run fantrax:snapshot` + `npm run identity:build` link the ids ahead of
+ * time (972 of Fantrax's 1,816 players, the rest being outside FHE's ecosystem),
+ * so the work happens once at build time instead of on every league import.
+ *
+ * ── There is deliberately NO name fallback ──────────────────────────────────
+ * A Fantrax player whose id the registry didn't link is unlinked for a REASON:
+ * either he isn't in FHE's ecosystem at all (809 such), or the registry
+ * blocked him as a duplicate name it couldn't safely resolve (35). Falling back
+ * to a name join for exactly those players would reintroduce, precisely on the
+ * population most likely to trigger it, the bug this migration removes. A blank
+ * row is the correct answer.
+ *
+ * Coverage is layered across datasets because no single one covers a roster:
+ *   • 2026-27 projections — the season being played, but omits unsigned free
+ *     agents and anyone without a projection.
+ *   • 2025-26 regular — real production, but blank for 2026 rookies and anyone
+ *     who missed the season injured.
+ * Whichever the caller picks leads; the other backfills.
+ *
+ * The dynasty board is still a name index here, but for consensus RANK only —
+ * it carries no category values, so it can label a player the engine has never
+ * scored without pretending to know his production.
  */
 
 interface DatasetIndex {
@@ -45,8 +60,8 @@ interface DatasetIndex {
   label: string;
   season: number;
   type: string;
-  /** normalized name → stats row */
-  byName: Map<string, SeasonPlayerStats>;
+  /** fhe_id → stats row. Rows without an fhe_id are simply not indexed. */
+  byFheId: Map<string, SeasonPlayerStats>;
   /** player_id → values row */
   valuesById: Map<string, SeasonPlayerValues>;
 }
@@ -59,11 +74,11 @@ async function loadDataset(
     getStats(spec.season, spec.type),
     getValuesForSize(spec.season, spec.type, poolSize),
   ]);
-  const byName = new Map<string, SeasonPlayerStats>();
-  for (const row of stats) byName.set(normalizePlayerName(row.name), row);
+  const byFheId = new Map<string, SeasonPlayerStats>();
+  for (const row of stats) if (row.fhe_id) byFheId.set(row.fhe_id, row);
   const valuesById = new Map<string, SeasonPlayerValues>();
   for (const row of values) valuesById.set(row.player_id, row);
-  return { key: spec.key, label: spec.label, season: spec.season, type: spec.type, byName, valuesById };
+  return { key: spec.key, label: spec.label, season: spec.season, type: spec.type, byFheId, valuesById };
 }
 
 /** consensus rank by normalized name, read fresh from the bundled board (never
@@ -88,48 +103,46 @@ function catsFrom(values: SeasonPlayerValues): Partial<Record<FheCategory, numbe
 }
 
 /**
- * Fantrax player ids that must NOT be name-joined, because another player in the
- * same league pool shares their name.
+ * Fantrax player id → canonical identity, from the registry.
  *
- * This is not hypothetical: the 30-team test league carries two Jalen Johnsons
- * (Atlanta's, rostered; and a teamless free agent) and two Jaylin Williamses
- * (OKC's, rostered; and a teamless free agent). A pure name join handed the
- * free-agent duplicates the star's z-scores and floated them to the top of the
- * waiver board — a consensus-rank-10 player apparently sitting unowned.
+ * Built once at `npm run identity:build` time, where the duplicate-name problem
+ * is solved properly: the registry blocks any Fantrax id whose name it cannot
+ * safely attribute (35 of 1,816), and never mints identities for Fantrax's
+ * out-of-ecosystem players (809). Anything left in this map is an exact link.
  *
- * The tiebreak is the NBA team, which Fantrax supplies and prints as "(N/A)" for
- * anyone without one. Within an ambiguous group, if exactly one entry has a real
- * NBA team, that entry is the player everyone means and the rest are blocked. If
- * none or several do, nobody in the group can be told apart, so all are blocked
- * — better a blank row than a confidently wrong one.
- *
- * Deliberately scoped to duplicated names only: team is NOT a general match
- * requirement, because FHE's rows carry the team a player produced for while
- * Fantrax carries the team he's on now, and every offseason move would look like
- * a mismatch.
+ * Cached for an hour — it only changes when the registry is rebuilt.
  */
-function blockedAmbiguousIds(spots: LeagueRosterSpot[]): Set<string> {
-  const groups = new Map<string, LeagueRosterSpot[]>();
-  for (const spot of spots) {
-    const key = normalizePlayerName(spot.name);
-    const group = groups.get(key);
-    if (group) group.push(spot);
-    else groups.set(key, [spot]);
-  }
-
-  const blocked = new Set<string>();
-  for (const group of groups.values()) {
-    if (group.length < 2) continue;
-    const identifiable = group.filter((s) => isNbaTeam(normalizeTeamAbbr(s.nbaTeam)));
-    if (identifiable.length === 1) {
-      for (const s of group) if (s.fantraxId !== identifiable[0].fantraxId) blocked.add(s.fantraxId);
-    } else {
-      for (const s of group) blocked.add(s.fantraxId);
+const getIdentityByFantraxId = unstable_cache(
+  async (): Promise<Record<string, { fheId: string; name: string }>> => {
+    // Service role, not anon: player_identity has RLS enabled with NO policies
+    // (see its migration), so an anon read silently returns zero rows — which
+    // presents as "no player matched" rather than as an error. This runs only
+    // inside the already-authorized /api/fantrax route.
+    const supabase = createAdminClient();
+    const out: Record<string, { fheId: string; name: string }> = {};
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await supabase
+        .from("player_identity")
+        .select("fhe_id,display_name,fantrax_id")
+        .not("fantrax_id", "is", null)
+        .range(from, from + PAGE - 1);
+      // Never swallow this. Returning an empty map on error makes every player
+      // in the league look unlinked, which is indistinguishable from a genuine
+      // coverage problem — exactly how the RLS mistake above hid itself.
+      if (error) throw new Error(`player_identity read failed: ${error.message}`);
+      const rows = data ?? [];
+      for (const row of rows) {
+        const fx = row.fantrax_id;
+        if (fx) out[fx] = { fheId: row.fhe_id, name: row.display_name };
+      }
+      if (rows.length < PAGE) break;
     }
-  }
-  return blocked;
-}
-
+    return out;
+  },
+  ["fantrax-identity-map"],
+  { revalidate: 3600, tags: ["player-identity"] },
+);
 
 /**
  * Resolve one Fantrax roster spot against the datasets, in the given priority
@@ -142,11 +155,15 @@ function resolveOne(
   order: DatasetIndex[],
   consensus: Map<string, number>,
   scored: readonly FheCategory[],
-  blocked: Set<string>,
+  identityByFantraxId: Record<string, { fheId: string; name: string }>,
 ): ResolvedPlayer {
   const norm = normalizePlayerName(spot.name);
   const consensusRank = lookupWithNameAlias(consensus, norm) ?? null;
-  const ambiguousName = blocked.has(spot.fantraxId);
+  const identity = identityByFantraxId[spot.fantraxId];
+  // Unlinked means the registry either doesn't know him or refused to guess.
+  // Either way there is no safe join — see the file header on why there is no
+  // name fallback.
+  const ambiguousName = !identity;
 
   const blank: ResolvedPlayer = {
     ...spot,
@@ -157,16 +174,16 @@ function resolveOne(
     nineCatV: null,
     // An ambiguous name can't safely claim a consensus rank either — that's the
     // same name join by a different route.
-    consensusRank: ambiguousName ? null : consensusRank,
+    consensusRank,
     gamesPlayed: null,
     minutesPerGame: null,
     ambiguousName,
     smallSample: false,
   };
-  if (ambiguousName) return blank;
+  if (!identity) return blank;
 
   for (const ds of order) {
-    const stats = lookupWithNameAlias(ds.byName, norm);
+    const stats = ds.byFheId.get(identity.fheId);
     if (!stats) continue;
     const values = ds.valuesById.get(stats.player_id);
     if (!values) continue;
@@ -209,18 +226,14 @@ export async function analyzeLeague(
   const order = [primary, fallback];
   const consensus = consensusIndex();
 
-  // Ambiguity is a property of the whole pool, so it must be computed across
-  // rosters AND free agents — the duplicate pairs seen so far are one rostered
-  // player and one unowned namesake.
-  const blocked = blockedAmbiguousIds([
-    ...league.rosters.flatMap((r) => r.players),
-    ...league.freeAgents,
-  ]);
+  // Fantrax id → identity. Duplicate names were already resolved (or refused)
+  // when the registry was built, so nothing has to be recomputed per import.
+  const identityByFantraxId = await getIdentityByFantraxId();
 
   const rosters = league.rosters.map((r) => ({
     teamId: r.teamId,
     teamName: r.teamName,
-    players: r.players.map((p) => resolveOne(p, order, consensus, scored, blocked)).sort(byLeagueValue),
+    players: r.players.map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId)).sort(byLeagueValue),
   }));
 
   // Only active slots accumulate, so the projected lineup is the league's own
@@ -232,7 +245,7 @@ export async function analyzeLeague(
   const edges = myTeamId ? categoryEdges(myTeamId, profiles, standings, scored) : [];
 
   const waiverBoard = league.freeAgents
-    .map((p) => resolveOne(p, order, consensus, scored, blocked))
+    .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId))
     // Small samples are excluded here rather than de-ranked: a 3-game call-up
     // isn't a better pickup than every real free agent, and showing him as one
     // discredits the whole board.

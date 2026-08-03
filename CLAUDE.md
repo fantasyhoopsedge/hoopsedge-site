@@ -36,6 +36,11 @@ npm run projections:build # 2026-27 projection dataset from output/season-projec
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
 npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
 npm run identity:build   # rebuild the canonical player registry (--dry-run to report only)
+npm run identity:reconcile # read-only: does an fhe_id join match today's join? (validation gate)
+npm run identity:backfill # write fhe_id onto the consumer tables (--apply)
+npm run fantrax:snapshot # refresh data/player-ids/fantrax-players.csv from the Fantrax feed
+npm run contracts:dedupe # find/remove nba_contracts rows orphaned by a name change (--apply)
+npm run typecheck:scripts # tsc over scripts/ — tsconfig.json excludes them
 npm run espn:resolve     # propose ESPN athlete ids for name-only players → data/player-ids/espn-ids.csv
 npm run espn:resolve -- --emit   # approved rows → espn-ids.json (consumed by summerleague:build)
 npm run rb:seed          # seed the rookie board into Supabase
@@ -240,14 +245,29 @@ averaged over its own subset. A 9-cat league gets 9CatV back exactly; an 8-cat
 Unmapped Fantrax categories (DD, TD, MIN…) are reported as unmodelled rather
 than silently dropped.
 
-Two identity hazards, both real and both already bitten:
+**Migrated to `fhe_id` (Phase 3, 2026-08-03).** The connector no longer name-joins
+at all: `npm run fantrax:snapshot` writes `data/player-ids/fantrax-players.csv`,
+`identity:build` links 972 of Fantrax's 1,816 players into `player_identity`
+(match-only — it never mints identities for the 809 outside FHE's ecosystem), and
+the runtime join is `fantrax_id → fhe_id → season_player_stats.fhe_id`. Verified
+behaviour-preserving: the same league projects the same 173.0 roto points and the
+same 5th of 30, at 423/426 coverage and roughly half the request time.
+
+**There is deliberately no name fallback.** A Fantrax id the registry didn't link
+is unlinked for a reason — outside the ecosystem, or a duplicate name it refused
+to guess at. Falling back to names for exactly those players would reintroduce
+the bug the migration removes, on the population most likely to trigger it.
+
+`player_identity` has RLS on with **no policies**, so it must be read with the
+service-role client; an anon read returns zero rows *silently*, which presents as
+"no player matched" rather than as an error. That cost a debugging cycle here.
+
+The one historic hazard worth remembering:
 - **Duplicate names.** The test league carries two Jalen Johnsons and two Jaylin
   Williamses (one rostered, one teamless free agent). A pure name join gave the
   namesakes the stars' z-scores and floated a consensus-rank-10 player to the
-  top of the waiver board. `blockedAmbiguousIds()` breaks ties on NBA team, and
-  withholds data entirely when it can't tell. Team is deliberately NOT a general
-  match requirement — FHE rows carry the team a player produced for, Fantrax the
-  team he's on now.
+  top of the waiver board. That guard now lives in the registry build
+  (`blockedFantraxNames()`), applied once rather than on every league import.
 - **Small samples.** Per-game z-scores ignore sample size, so 3-game call-ups
   outranked every genuine free agent. `MIN_SAMPLE_GAMES` filters the waiver
   board and flags roster rows; consistent with FHE convention, it never enters

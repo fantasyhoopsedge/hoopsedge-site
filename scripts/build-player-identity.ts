@@ -39,7 +39,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
-import { normalizeTeamAbbr } from "../src/lib/nba-teams";
+import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
 import { nameKeyCandidates } from "../src/lib/player-name-aliases";
 
 loadEnv();
@@ -51,6 +51,7 @@ const DATA_DIR = path.join(process.cwd(), "data", "player-ids");
 const ARTIFACT = path.join(DATA_DIR, "player-identity.json");
 const BBM_CSV = path.join(DATA_DIR, "bbm-players.csv");
 const ESPN_CSV = path.join(DATA_DIR, "espn-ids.csv");
+const FANTRAX_CSV = path.join(DATA_DIR, "fantrax-players.csv");
 
 // ── shape ────────────────────────────────────────────────────────────────────
 
@@ -85,6 +86,16 @@ interface Candidate extends Partial<Omit<Identity, "fhe_id" | "sources">> {
   display_name: string;
   norm_name: string;
   source: string;
+  /**
+   * Attach to an existing identity or do nothing — never create one.
+   *
+   * For sources whose player universe is WIDER than FHE's. Fantrax lists 1,816
+   * NBA-eligible players against the registry's ~1,200; merging it normally
+   * would mint 844 new identities for G-League and deep-international players
+   * FHE holds no stats, values or rankings for, growing the registry 70% with a
+   * vendor's roster rather than its own ecosystem.
+   */
+  matchOnly?: boolean;
 }
 
 interface Unresolved {
@@ -109,6 +120,8 @@ class Registry {
   private nameIndex = new Map<string, Set<string>>();
   private seq = 0;
   readonly unresolved: Unresolved[] = [];
+  /** matchOnly candidates that matched nothing — expected, not a problem. */
+  skippedMatchOnly = 0;
 
   /** Re-seed from a previous run so fhe_ids stay stable. */
   adopt(prev: Identity[]): void {
@@ -172,6 +185,7 @@ class Registry {
     }
 
     if (hits.size === 0) {
+      if (c.matchOnly) { this.skippedMatchOnly += 1; return; }
       const fheId = this.mint();
       const row: Identity = {
         fhe_id: fheId,
@@ -338,6 +352,38 @@ async function fetchAll<T>(
 
 // ── build ────────────────────────────────────────────────────────────────────
 
+/**
+ * Fantrax ids that must not be name-joined because another Fantrax player shares
+ * their name.
+ *
+ * The same guard src/lib/fantrax/resolve.ts needed at runtime, moved here so it
+ * runs once at build time rather than on every league import: the feed carries
+ * 38 duplicated names, including two Jalen Johnsons and two Jaylin Williamses
+ * (one rostered, one teamless). Resolved by NBA team when exactly one candidate
+ * has a real one; otherwise every candidate is blocked, because a wrong provider
+ * id is worse than a missing one.
+ */
+function blockedFantraxNames(rows: Record<string, string>[]): Set<string> {
+  const groups = new Map<string, Record<string, string>[]>();
+  for (const r of rows) {
+    if (!r.norm_name) continue;
+    const list = groups.get(r.norm_name) ?? [];
+    list.push(r);
+    groups.set(r.norm_name, list);
+  }
+  const blocked = new Set<string>();
+  for (const group of groups.values()) {
+    if (group.length < 2) continue;
+    const identifiable = group.filter((r) => isNbaTeam(normalizeTeamAbbr(r.team)));
+    if (identifiable.length === 1) {
+      for (const r of group) if (r.fantrax_id !== identifiable[0].fantrax_id) blocked.add(r.fantrax_id);
+    } else {
+      for (const r of group) blocked.add(r.fantrax_id);
+    }
+  }
+  return blocked;
+}
+
 async function main(): Promise<void> {
   const supabase = getServiceClient();
   const reg = new Registry();
@@ -431,6 +477,32 @@ async function main(): Promise<void> {
     });
   }
   console.log(`dynasty-rankings   : ${dynasty.length} rows`);
+
+  // 7. Fantrax — LAST, and match-only. It is the only source carrying no id FHE
+  //    already holds, so it can join by name alone: weakest evidence, largest
+  //    feed. Merging it earlier would let a name guess claim an identity before
+  //    a stronger source could. What it brings back is Rotowire / SportRadar /
+  //    StatsInc ids for the players it does match — the keys most future data
+  //    partners speak.
+  const fantrax = await readCsv(FANTRAX_CSV);
+  const blockedFx = blockedFantraxNames(fantrax);
+  let fantraxConsidered = 0;
+  for (const r of fantrax) {
+    if (blockedFx.has(r.fantrax_id)) continue;
+    fantraxConsidered += 1;
+    reg.merge({
+      display_name: r.name, norm_name: r.norm_name || normalizeName(r.name), source: "fantrax",
+      matchOnly: true,
+      fantrax_id: r.fantrax_id || undefined,
+      rotowire_id: r.rotowire_id || undefined,
+      sportradar_id: r.sportradar_id || undefined,
+      statsinc_id: r.statsinc_id || undefined,
+    });
+  }
+  console.log(
+    `fantrax-players.csv: ${fantrax.length} rows — ${blockedFx.size} blocked (duplicate names), ` +
+    `${fantraxConsidered} considered, ${reg.skippedMatchOnly} not in FHE's ecosystem (skipped, never minted)`,
+  );
 
   // ── report ────────────────────────────────────────────────────────────────
   const all = reg.all();
