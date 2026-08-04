@@ -25,8 +25,17 @@ eighth time and made the pattern impossible to ignore.
 > `cons-` placeholders in `real_salary_values`.
 >
 > **Phase 3 — consumer migration** — Fantrax connector (2026-08-03),
-> real-salary, team-rosters and seasonal (2026-08-04). Remaining: dynasty →
-> models.
+> real-salary, team-rosters, seasonal and dynasty (2026-08-04). Remaining: models.
+>
+> **Dynasty is the one that mostly should NOT be migrated, and that is a
+> finding.** `/dynasty-rankings/page.tsx` is a CLIENT component rendering the
+> bundled board, so getting `fhe_id`s to its joins means either shipping the
+> ~230 KB registry to the browser or adding a server wrapper. Measured first, and
+> the case never materialised: the board has **zero** duplicate names, all 493
+> players resolve to an identity, and sophomore tagging by name and by id agree
+> exactly (60/60, none gained, none lost). The one join with real headroom was
+> headshots — fixed at the DATA layer instead (open question 4 below), which cost
+> no client change and fixed every other surface too.
 >
 > **Phase 4 — the shared layer** (2026-08-04) — see §3.3 below, now built:
 > - `src/lib/player-identity/` — `normalize.ts` (THE normalizer), `registry.ts`
@@ -456,4 +465,16 @@ invisible risk into a monitored one.
 1. **Opaque serial or readable slug** for `fhe_id`? Recommendation: opaque, slug in its own column.
 2. **Does Basketball Monster expose a player id** on the subscriber API? If so it belongs in the registry from day one.
 3. **Should the registry cover non-NBA prospects** (international, NCAA underclassmen not yet draft-eligible)? Recommendation: yes — that's precisely where name-only identity hurts most.
-4. **Retire `nba-player-ids.json`** in Phase 4, or keep it as a generated view of the registry? Recommendation: regenerate it from the registry so nothing downstream breaks.
+4. ~~**Retire `nba-player-ids.json`** in Phase 4, or keep it as a generated view of the registry?~~ **ANSWERED 2026-08-04: neither, quite.** It stays as the scraper-written INPUT to the build, and a *separate* generated view — `src/lib/nba-headshot-ids.json` — is what the app reads. Regenerating the input in place would have made the build self-feeding: it could never learn an id it hadn't already been given. Measured before switching: all 587 existing keys preserved with identical ids, none dropped, no name collisions, +105 entries.
+
+   Two things worth knowing that this turned up:
+   - **101 of the 105 additions resolve to a real photo** — mostly veterans and
+     fringe players the scraper missed (Ben Simmons, Malcolm Brogdon, Terry
+     Rozier, Spencer Dinwiddie, P.J. Tucker), because it queries
+     `IsOnlyCurrentSeason=1`.
+   - **`cdn.nba.com` returns HTTP 200 for *any* id**, including a made-up one,
+     serving a grey silhouette of exactly 4,937 bytes when it has no photo. So
+     an id resolving is not evidence a headshot exists; the 3 additions that are
+     placeholders are 2026 draftees, and they are `isRookie` on the board, where
+     `playerHeadshotUrl` short-circuits to the local prospect image and never
+     consults this index at all.

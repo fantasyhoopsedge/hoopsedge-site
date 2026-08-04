@@ -1,10 +1,23 @@
 import dynastyRankingsJson from "./dynasty-rankings.json";
-import nbaPlayerIds from "./nba-player-ids.json";
+import nbaHeadshotIds from "./nba-headshot-ids.json";
 import { normalizePlayerName } from "./player-identity/normalize";
 import { nameKeyCandidates } from "./player-name-aliases";
 
-type NbaPlayerEntry = { id: string; name: string; team: string | null; position: string | null };
-const NBA_PLAYER_IDS = nbaPlayerIds as Record<string, NbaPlayerEntry>;
+/**
+ * Headshot ids, GENERATED from the player identity registry by
+ * `npm run identity:build` — not the hand/scraper-maintained
+ * `src/lib/nba-player-ids.json`, which is now only an INPUT to that build.
+ *
+ * The distinction is the point: the scraper knows whoever stats.nba.com listed
+ * when it last ran; the registry knows that PLUS Basketball Monster's NBA ID
+ * column and every approved ESPN resolution. Switching this import to the
+ * registry's view was measured to preserve all 587 previous ids exactly and add
+ * 105 more — 7 of them on the dynasty board, who until now rendered no headshot
+ * at all (Caleb Wilson, Kingston Flemings, Bennett Stirtz, Tyler Bilodeau, Keon
+ * Johnson, Trey Lyles, Brandon Boston).
+ */
+type NbaPlayerEntry = { id: string; name: string };
+const NBA_PLAYER_IDS = nbaHeadshotIds as Record<string, NbaPlayerEntry>;
 
 /**
  * Re-exported, not defined here. This used to be one of four hand-maintained

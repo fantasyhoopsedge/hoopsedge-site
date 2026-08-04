@@ -63,6 +63,23 @@ const ARTIFACT = path.join(DATA_DIR, "player-identity.json");
  * drift, which is the exact failure this layer removes.
  */
 const RUNTIME_INDEX = path.join(process.cwd(), "src", "lib", "player-identity", "registry.json");
+/**
+ * The headshot index the app reads — normalized name → NBA Stats id, which is
+ * the namespace `cdn.nba.com/headshots/...` is keyed on.
+ *
+ * A GENERATED VIEW of the registry, and deliberately NOT the same file as
+ * `src/lib/nba-player-ids.json`. That one is an INPUT to this build (the
+ * stats.nba.com scraper writes it, see scripts/sync-nba-players.js), so writing
+ * it here would make the build self-feeding: it could never learn an id it
+ * hadn't already been given.
+ *
+ * Splitting them means the app reads ids the registry has assembled from ALL its
+ * sources — the scraper, Basketball Monster's NBA ID column, approved ESPN
+ * resolutions — rather than from the scraper alone. Measured when introduced:
+ * every one of the scraper file's 587 keys resolves to the identical id, none
+ * are dropped, and 105 more players gain one.
+ */
+const HEADSHOT_INDEX = path.join(process.cwd(), "src", "lib", "nba-headshot-ids.json");
 const BBM_CSV = path.join(DATA_DIR, "bbm-players.csv");
 const ESPN_CSV = path.join(DATA_DIR, "espn-ids.csv");
 const FANTRAX_CSV = path.join(DATA_DIR, "fantrax-players.csv");
@@ -443,6 +460,43 @@ async function writeRuntimeIndex(all: Identity[]): Promise<void> {
   console.log(`Wrote ${path.relative(process.cwd(), RUNTIME_INDEX)} (${players.length} players, ${kb} KB)`);
 }
 
+/**
+ * Emit the headshot index (see HEADSHOT_INDEX above).
+ *
+ * Carries `id` and `name` only. The file it replaces also had `team` and
+ * `position`, and neither was ever read — `position` was null on all 587 rows,
+ * and the single consumer (`nbaIdFor` in src/lib/dynasty-rankings.ts) reads
+ * `.id`. Regenerating a `team` nobody reads would just churn the committed diff
+ * every time a player moved.
+ *
+ * A normalized name that maps to two different NBA Stats ids is DROPPED rather
+ * than resolved to whichever identity was seen first — a headshot index keyed on
+ * a name it cannot attribute would put the wrong player's face on the page,
+ * which is worse than the blank the caller already handles. (Currently zero such
+ * names; the guard is for the day there is one.)
+ */
+async function writeHeadshotIndex(all: Identity[]): Promise<void> {
+  const byNorm = new Map<string, { id: string; name: string }>();
+  const ambiguous = new Set<string>();
+  for (const r of all) {
+    if (!r.nba_stats_id) continue;
+    const prev = byNorm.get(r.norm_name);
+    if (prev && prev.id !== r.nba_stats_id) ambiguous.add(r.norm_name);
+    else if (!prev) byNorm.set(r.norm_name, { id: r.nba_stats_id, name: r.display_name });
+  }
+  for (const name of ambiguous) byNorm.delete(name);
+
+  const keys = [...byNorm.keys()].sort();
+  const body = [
+    "{",
+    keys.map((k) => `${JSON.stringify(k)}: ${JSON.stringify(byNorm.get(k))}`).join(",\n"),
+    "}",
+  ].join("\n");
+  await fs.writeFile(HEADSHOT_INDEX, `${body}\n`, "utf8");
+  console.log(`Wrote ${path.relative(process.cwd(), HEADSHOT_INDEX)} (${keys.length} headshot ids`
+    + `${ambiguous.size ? `, ${ambiguous.size} dropped as ambiguous: ${[...ambiguous].join(", ")}` : ""})`);
+}
+
 async function main(): Promise<void> {
   const supabase = getServiceClient();
   const reg = new Registry();
@@ -599,6 +653,7 @@ async function main(): Promise<void> {
   console.log(`\nWrote ${path.relative(process.cwd(), ARTIFACT)}`);
 
   await writeRuntimeIndex(all);
+  await writeHeadshotIndex(all);
 
   // Supabase is best-effort: Phase 1 is additive and nothing reads these tables
   // yet, so a missing migration must not fail the build that produces the
