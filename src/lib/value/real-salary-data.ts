@@ -57,6 +57,7 @@ const ROSTER_SEASON = "2026-27";
 
 export interface RosterExtra {
   player_id: string | null;
+  fhe_id: string | null;
   full_name: string;
   dob: string | null;
   salary_yr2: number | null;
@@ -78,10 +79,11 @@ export interface RosterExtra {
  * docs/real-salary-dynasty-rankings-brief.md) — so 2030-31 has no data
  * source at all; the table shows a dash for it.
  *
- * Includes full_name deliberately: player_id is null for brand-new
- * incoming rookies (not yet linked to a resolved nba_players.id — same gap
- * documented in build-real-salary-values.ts's loadSalaries()), so the
- * caller needs a normalized-name fallback join, not player_id alone.
+ * Joined on `fhe_id` (2026-08-04). `player_id` is null for brand-new incoming
+ * rookies not yet linked to a resolved nba_players.id, which is why this used to
+ * also carry `full_name` for a normalized-name fallback join. `fhe_id` covers
+ * those rookies (619/619 of this table), so the fallback is gone. `full_name` is
+ * kept only as the display name of last resort.
  */
 export const getRosterExtras = unstable_cache(
   async () => {
@@ -91,7 +93,7 @@ export const getRosterExtras = unstable_cache(
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await supabase
         .from("nba_roster")
-        .select("player_id,full_name,dob,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore")
+        .select("player_id,fhe_id,full_name,dob,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore")
         .eq("season", ROSTER_SEASON)
         .range(from, from + PAGE - 1);
       if (error || !data?.length) break;

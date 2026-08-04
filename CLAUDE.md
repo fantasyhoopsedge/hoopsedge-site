@@ -129,13 +129,38 @@ class's ids against the Summer League 2026 rows that build writes) and BEFORE
 
 `npm run realsalary:build` (`scripts/build-real-salary-values.ts`) computes
 `/real-salary-rankings`' cap-aware values (`src/lib/value/real-salary-model.ts`)
-into `real_salary_values`. It reads `dynasty-rankings.json` via `loadConsensus()`
-(`scripts/build-seasonal-values.ts`), keyed by normalized name — safe from the
-rank-reuse corruption below — but `consensus_z`/rank/surplus are still a
-**build-time snapshot**: `/real-salary-rankings`' own consensus-rank display
-(`page.tsx`'s `CONSENSUS_RANK_BY_NAME`) reads the bundled JSON fresh on every
-render, so a stale `real_salary_values` table will show a mismatched Consensus
-column/Δ against a freshly-published dynasty-rankings.json until rebuilt.
+into `real_salary_values`. `consensus_z`/rank/surplus are a **build-time
+snapshot**: the page's own consensus-rank display reads the bundled JSON fresh on
+every render, so a stale `real_salary_values` table will show a mismatched
+Consensus column/Δ against a freshly-published dynasty-rankings.json until
+rebuilt.
+
+**Joined on `fhe_id` (Phase 3, 2026-08-04).** This build assembles one row per
+human out of five sources that share no id — the projection artifact,
+`season_player_values`, `nba_roster`, `nba_contracts`, `dynasty-rankings.json` —
+and all five used to meet on normalized name. They now meet on `fhe_id`, and the
+build WRITES `real_salary_values.fhe_id` itself rather than leaving it to
+`identity:backfill`. `page.tsx` joins roster extras and consensus rank on that
+column (server-side, so the registry never reaches the browser).
+
+The single remaining name lookup is the dynasty board, and it belongs there: the
+board is a hand-published list of names with no id column, so it is resolved once
+through `player_identity` instead of four times against four maps. A `cons-<name>`
+row still falls back to the board by name — that row exists *because* the player
+has no id, and its own id encodes the board name.
+
+**Use `--dump` to prove a change is safe:**
+
+```bash
+npm run realsalary:build -- --dry-run --dump before.csv
+```
+
+The console readouts show 15 of 562 rows, so they hide a reshuffle in the middle
+of the board; the dump is the whole board, deterministic and diffable. The
+fhe_id migration was gated on it (byte-identical) and the next change to this
+model should be too. When diffing the rendered PAGE, compare row payloads field
+by field rather than bytes — `age` is recomputed from `Date.now()` per render by
+design, so a byte diff reports 535 of 562 rows changed.
 
 **Rerun `dynasty:sync` after every `dynasty-rankings.json` edit — not optional.**
 `season_player_stats.consensus_rank` is a snapshot written once, at build time,

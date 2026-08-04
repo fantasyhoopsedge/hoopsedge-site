@@ -24,8 +24,9 @@ eighth time and made the pattern impossible to ignore.
 > `nba_roster`); the only gaps are dead historical Summer-League rows and 11
 > `cons-` placeholders in `real_salary_values`.
 >
-> **Phase 3 — consumer migration** — Fantrax connector done (2026-08-03).
-> Remaining: real-salary → team-rosters → seasonal → dynasty → models.
+> **Phase 3 — consumer migration** — Fantrax connector (2026-08-03),
+> real-salary (2026-08-04). Remaining: team-rosters → seasonal → dynasty →
+> models.
 >
 > **Phase 4 — the shared layer** (2026-08-04) — see §3.3 below, now built:
 > - `src/lib/player-identity/` — `normalize.ts` (THE normalizer), `registry.ts`
@@ -361,6 +362,24 @@ already useful on day one: it's a standing report of every identity hole.
 **Phase 3 — migrate consumers one at a time,** newest first (Fantrax connector →
 real-salary → team-rosters → seasonal → dynasty → models), verifying row counts
 match the name join before switching. Any regression is one file to revert.
+
+> **Verification pattern, established on real-salary (2026-08-04) — reuse it.**
+> "Row counts match" turned out to be too weak a gate: this model has 562 rows
+> and the console readouts show 15, so a reshuffle in the middle is invisible.
+> What actually earns confidence is a full, deterministic dump captured BEFORE
+> any edit and diffed after — `npm run realsalary:build -- --dry-run --dump
+> out.csv` exists for exactly this and should be the template for the next
+> consumer.
+>
+> Two gotchas that will recur:
+> - Diff the SERVER-RENDERED page too, not just the build. Parse the row payload
+>   and compare field by field rather than comparing bytes: `/real-salary-
+>   rankings` computes `age` from `Date.now()` on every render by design, so a
+>   byte diff shows 535 of 562 rows "changed" and buries a real regression.
+> - Have the build write `fhe_id` itself rather than leaving it to
+>   `identity:backfill`. The build already resolved the human in order to score
+>   him; re-deriving that afterwards from the stored `player_id` is redundant and
+>   can silently fall behind between runs.
 
 **Phase 4 — delete** the three alias maps and the four normalizer copies, and
 make `player_name_alias` the only place a name variant can be recorded.

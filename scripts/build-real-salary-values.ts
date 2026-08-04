@@ -28,14 +28,41 @@
  *
  *   npm run realsalary:build              # compute + upsert to Supabase
  *   npm run realsalary:build -- --dry-run # compute + print, no writes
+ *   npm run realsalary:build -- --dry-run --dump out.csv   # + full board as CSV
+ *
+ * ── Joined on fhe_id (Phase 3, 2026-08-04) ──────────────────────────────────
+ * This script assembles ONE row per human out of five sources that share no id:
+ * the projection artifact (ESPN ids, or `sl-` for players without one),
+ * `season_player_values` (same), `nba_roster` (often no id at all for incoming
+ * rookies), `nba_contracts` (HoopsHype names), and `dynasty-rankings.json` (pure
+ * names). Every one of those five joins used to be a normalized-name match with
+ * an alias map bolted on, which is why this file's history is a list of names
+ * that didn't join: the entire 2026 draft class vanishing (2026-07-30), Duke
+ * Miles scored twice under two ids (2026-08-03), Taelon Peter silently dropped.
+ *
+ * Now each source is resolved to an `fhe_id` once, and the assembly is an exact
+ * id join:
+ *
+ *     projection/carry player_id -> season_player_stats.fhe_id
+ *     nba_roster.fhe_id / nba_contracts.fhe_id
+ *     dynasty board name         -> player_identity -> fhe_id
+ *
+ * Only the LAST of those is still a name lookup, and it happens once, in the
+ * registry, where duplicate names are settled by a human instead of guessed at.
+ * Verified board-identical against the name-joined build: all 562 rows, same
+ * ranks, same dollars.
+ *
+ * `player_id` remains the stored key — this migration changed how rows FIND each
+ * other, not how they are stored. Re-keying the table is a separate decision and
+ * would orphan every existing row.
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
 import { loadArtifact, resolvePlayers, loadFallbackIds } from "./build-projection-values";
 import { batchUpsert, loadConsensus } from "./build-seasonal-values";
-import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
+import { playerIdentity } from "../src/lib/player-identity/bundled";
 import { NBA_MINIMUM_SALARY } from "../src/lib/nba-cap";
 import {
   WEIGHT_PRESETS, rankToZ, selectPool, computeMarketValue, rankBy, contractClassOf,
@@ -100,6 +127,20 @@ const ROSTER_SEASON = "2026-27";
 const PRODUCTION_BLEND = { perGame: 0.5, totals: 0.5 };
 
 const DRY_RUN = process.argv.includes("--dry-run");
+/**
+ * `--dump <path>` writes every computed row as CSV, ordered by valueRank.
+ *
+ * The console readouts below are a good sanity check but a poor regression
+ * check: they show 15 rows of ~560, so a change that reshuffles the middle of
+ * the board is invisible in them. This dump is the whole board, deterministic
+ * and diffable, which is what a "prove it changed nothing" claim actually needs.
+ * Added 2026-08-04 to gate the fhe_id migration; kept because the next change to
+ * this model will want it too.
+ */
+const DUMP_PATH = (() => {
+  const i = process.argv.indexOf("--dump");
+  return i >= 0 ? process.argv[i + 1] : null;
+})();
 
 type Tier = "High" | "Medium" | "Low";
 
@@ -175,40 +216,68 @@ function loadBoardMeta(): Map<string, { name: string; age: number | null }> {
  * via Duke Miles, board rank 491, who ended up with both). Resolving the real name
  * here fixes all three symptoms at the source.
  */
-async function loadProjectionNames(): Promise<Map<string, string>> {
+interface ProjectionIdentity { name: string; fheId: string | null }
+
+async function loadProjectionNames(): Promise<Map<string, ProjectionIdentity>> {
   const supabase = getServiceClient();
-  const out = new Map<string, string>();
+  const out = new Map<string, ProjectionIdentity>();
+  let missingFheId = 0;
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("season_player_stats")
-      .select("player_id,name")
+      .select("player_id,name,fhe_id")
       .eq("season", SEASON)
       .eq("season_type", SOURCE_SEASON_TYPE)
       .range(from, from + 999);
     if (error) throw new Error(`projection name fetch failed: ${error.message}`);
     if (!data?.length) break;
-    for (const r of data) out.set(r.player_id, r.name);
+    for (const r of data) {
+      out.set(r.player_id, { name: r.name, fheId: r.fhe_id ?? null });
+      if (!r.fhe_id) missingFheId++;
+    }
     if (data.length < 1000) break;
+  }
+  if (missingFheId > 0) {
+    console.log(`  ⚠ ${missingFheId} ${SEASON}/${SOURCE_SEASON_TYPE} row(s) carry no fhe_id `
+      + `— they can reach neither a salary nor a consensus rank`);
   }
   return out;
 }
 
 interface CarryForward { playerId: string; name: string; minus1v: number; minus1vTot: number; }
 
+/**
+ * Last completed season's producers, keyed by `fhe_id`.
+ *
+ * Was keyed by normalized name, which made the second admission pass a name
+ * join against the dynasty board — the join that decides whether a
+ * consensus-ranked veteran appears on this page at all.
+ */
 async function loadCarryForward(): Promise<Map<string, CarryForward>> {
   const supabase = getServiceClient();
-  const idByName = new Map<string, { playerId: string; name: string }>();
+  const identByFhe = new Map<string, { playerId: string; name: string }>();
+  let missingFheId = 0;
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("season_player_stats")
-      .select("player_id,name")
+      .select("player_id,name,fhe_id")
       .eq("season", CARRY_SEASON)
       .eq("season_type", CARRY_SEASON_TYPE)
       .range(from, from + 999);
     if (error) throw new Error(`carry-forward stats fetch failed: ${error.message}`);
     if (!data?.length) break;
-    for (const r of data) idByName.set(normalizeName(r.name), { playerId: r.player_id, name: r.name });
+    for (const r of data) {
+      if (!r.fhe_id) { missingFheId++; continue; }
+      identByFhe.set(r.fhe_id, { playerId: r.player_id, name: r.name });
+    }
     if (data.length < 1000) break;
+  }
+  // Loud rather than silent: this dataset is 100% covered as of 2026-08-04, so a
+  // non-zero count means the registry lost ground and players are about to go
+  // missing from the board.
+  if (missingFheId > 0) {
+    console.log(`  ⚠ ${missingFheId} ${CARRY_SEASON}/${CARRY_SEASON_TYPE} row(s) carry no fhe_id `
+      + `— run \`npm run identity:backfill -- --apply\``);
   }
 
   const valueById = new Map<string, { minus1v: number; minus1vTot: number }>();
@@ -229,9 +298,9 @@ async function loadCarryForward(): Promise<Map<string, CarryForward>> {
   }
 
   const out = new Map<string, CarryForward>();
-  for (const [key, ident] of idByName) {
+  for (const [fheId, ident] of identByFhe) {
     const v = valueById.get(ident.playerId);
-    if (v) out.set(key, { ...ident, ...v });
+    if (v) out.set(fheId, { ...ident, ...v });
   }
   return out;
 }
@@ -245,60 +314,108 @@ interface SalaryInfo {
    *  contractClassOf(). */
   contractClass: ContractClass;
 }
-interface SalaryLookup { byPlayerId: Map<string, SalaryInfo>; byName: Map<string, SalaryInfo>; }
+/** fhe_id -> salary. One key, because both sources now carry one. */
+type SalaryLookup = Map<string, SalaryInfo>;
 
 /**
  * nba_roster.salary_yr1 (2026-27) preferred; nba_contracts.salary_current fills
  * in anyone missing from the roster CSV — matches the salary-roster-pipeline
  * skill's precedence.
  *
- * Keyed by BOTH player_id and normalized name — never player_id alone.
- * nba_roster.player_id is null for brand-new incoming rookies (not yet linked
- * to a resolved nba_players.id), while resolvePlayers() resolves those exact
- * players via the Summer League fallback scheme (sl-<nbaComId>), a completely
- * different id. A player_id-only join silently drops every such rookie —
- * caught 2026-07-30 when the entire incoming draft class (Cameron Boozer, AJ
- * Dybantsa, ...) turned out to have zero rows in real_salary_values despite
- * having both a real salary and a real projection. Name is the fallback,
- * exactly the ecosystem-wide join-key rule (see CLAUDE.md/salary-roster-
- * pipeline skill) — not a one-off patch.
+ * Keyed on `fhe_id` (2026-08-04). It used to be keyed by BOTH player_id and
+ * normalized name, and the dual key was load-bearing rather than belt-and-braces:
+ * `nba_roster.player_id` is null for brand-new incoming rookies while
+ * resolvePlayers() gives those same rookies an `sl-<nbaComId>` id, so a
+ * player_id join missed every one of them — the entire incoming draft class
+ * (Cameron Boozer, AJ Dybantsa, …) had zero rows here until the name fallback
+ * was added on 2026-07-30.
+ *
+ * `fhe_id` closes that gap properly instead of routing around it. It is exactly
+ * the same human on both sides of the join whether or not ESPN has issued him an
+ * id yet, which is the entire point of a surrogate key — see
+ * docs/player-identity-layer.md §3.1. Both tables are backfilled: nba_roster at
+ * 619/619, nba_contracts at 681/693.
+ *
+ * The 12 unbackfilled contract rows are not a coverage hole to patch with a name
+ * fallback: they are rows whose `salary_player_name` is an ABBREVIATION
+ * ("M. Johnson", "J. Quaintance"), so they never joined by name either. A name
+ * fallback would not reach them; it would only reintroduce the duplicate-name
+ * hazard on everyone else.
  */
 async function loadSalaries(): Promise<SalaryLookup> {
   const supabase = getServiceClient();
-  const byPlayerId = new Map<string, SalaryInfo>();
-  const byName = new Map<string, SalaryInfo>();
+  const byFheId: SalaryLookup = new Map();
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .from("nba_roster")
-      .select("player_id,full_name,salary_yr1,contract_status")
+      .select("fhe_id,full_name,salary_yr1,contract_status")
       .eq("season", ROSTER_SEASON)
       .range(from, from + 999);
     if (error) throw new Error(`nba_roster fetch failed: ${error.message}`);
     if (!data?.length) break;
     for (const r of data) {
-      if (r.salary_yr1 == null) continue;
-      const info: SalaryInfo = {
+      if (r.salary_yr1 == null || !r.fhe_id) continue;
+      byFheId.set(r.fhe_id, {
         salary: r.salary_yr1,
         source: "nba_roster",
         contractClass: contractClassOf(r.contract_status),
-      };
-      if (r.player_id) byPlayerId.set(r.player_id, info);
-      byName.set(normalizeName(r.full_name), info);
+      });
     }
     if (data.length < 1000) break;
   }
   const { data: contracts, error } = await supabase
     .from("nba_contracts")
-    .select("player_id,salary_player_name,salary_current");
+    .select("fhe_id,salary_player_name,salary_current");
   if (error) throw new Error(`nba_contracts fetch failed: ${error.message}`);
   for (const r of contracts ?? []) {
-    if (r.salary_current == null) continue;
-    const info: SalaryInfo = { salary: r.salary_current, source: "nba_contracts", contractClass: "standard" };
-    if (r.player_id && !byPlayerId.has(r.player_id)) byPlayerId.set(r.player_id, info);
-    const nameKey = normalizeName(r.salary_player_name);
-    if (!byName.has(nameKey)) byName.set(nameKey, info);
+    if (r.salary_current == null || !r.fhe_id) continue;
+    // Roster wins — first writer keeps the key, and the roster loop ran first.
+    if (byFheId.has(r.fhe_id)) continue;
+    byFheId.set(r.fhe_id, { salary: r.salary_current, source: "nba_contracts", contractClass: "standard" });
   }
-  return { byPlayerId, byName };
+  return byFheId;
+}
+
+interface BoardEntry {
+  /** normalized board name — still the key for boardMeta and the `cons-` id */
+  nameKey: string;
+  rank: number;
+  fheId: string | null;
+}
+
+/**
+ * The dynasty board, resolved to identities ONCE.
+ *
+ * This is the only name lookup left in the build, and it is the right place for
+ * the last one: `dynasty-rankings.json` is a hand-published list of names with no
+ * id column of any kind, so somewhere a name must become a player. Doing it here,
+ * through the registry, means it happens once against a curated index that
+ * refuses to guess on a duplicate name — rather than four separate times against
+ * four different maps, which is what the admission passes below used to do.
+ *
+ * A board name the registry can't place keeps `fheId: null` and still gets a row
+ * (via the `cons-` path) — Ash's guarantee is that consensus membership alone
+ * earns a row, and that must not become contingent on the registry.
+ */
+function resolveBoard(consensus: ReturnType<typeof loadConsensus>): {
+  entries: BoardEntry[];
+  unresolvedNames: string[];
+  ambiguousNames: string[];
+} {
+  const index = playerIdentity();
+  const entries: BoardEntry[] = [];
+  const unresolvedNames: string[] = [];
+  const ambiguousNames: string[] = [];
+  for (const [nameKey, info] of consensus) {
+    const res = index.resolve({ name: nameKey });
+    if (res.kind === "matched") {
+      entries.push({ nameKey, rank: info.rank, fheId: res.identity.fheId });
+    } else {
+      entries.push({ nameKey, rank: info.rank, fheId: null });
+      (res.kind === "ambiguous" ? ambiguousNames : unresolvedNames).push(nameKey);
+    }
+  }
+  return { entries, unresolvedNames, ambiguousNames };
 }
 
 function round0(n: number): number {
@@ -324,14 +441,21 @@ async function main(): Promise<void> {
   const [projections, salaries, carryForward, projectionNames] = await Promise.all([
     loadProjectedMinus1V(), loadSalaries(), loadCarryForward(), loadProjectionNames(),
   ]);
-  console.log(`  ${projections.size} players with projected Minus1V, `
-    + `${salaries.byPlayerId.size} salaried by id + ${salaries.byName.size} salaried by name`);
+  const board = resolveBoard(consensus);
+  const boardByFheId = new Map<string, BoardEntry>();
+  for (const e of board.entries) if (e.fheId) boardByFheId.set(e.fheId, e);
+  console.log(`  ${projections.size} players with projected Minus1V, ${salaries.size} salaried (by fhe_id)`);
+  console.log(`  board: ${board.entries.length} ranked, ${boardByFheId.size} resolved to an identity`
+    + (board.unresolvedNames.length ? `, ${board.unresolvedNames.length} unknown to the registry` : "")
+    + (board.ambiguousNames.length ? `, ${board.ambiguousNames.length} AMBIGUOUS: ${board.ambiguousNames.join(", ")}` : ""));
 
   // Scoreable population: a projection + a salary, OR (since 2026-08-03) a
   // consensus rank + last season's actual production — see loadCarryForward().
   // This is the universe every z-score/rank transform below is computed over.
   interface Scoreable {
     playerId: string; name: string;
+    /** null only when nothing in the ecosystem could place this human. */
+    fheId: string | null;
     /** null = unsigned free agent, no cap hit. See ContractClass's "unsigned". */
     salary: number | null;
     salarySource: "nba_roster" | "nba_contracts" | "unsigned";
@@ -356,13 +480,20 @@ async function main(): Promise<void> {
   // wrote. Falling through to a bare player id here is what broke consensus
   // matching for those rows — see loadProjectionNames().
   const carryNameById = new Map([...carryForward.values()].map((c) => [c.playerId, c.name]));
+  // fhe_id for a projection row, from the stats table's own column. The
+  // carry-forward map is keyed BY fhe_id, so its entry is found by scanning for
+  // this player_id only in the rare case the projection dataset lacks the row.
+  const fheByCarryPlayerId = new Map([...carryForward].map(([fheId, c]) => [c.playerId, fheId]));
   for (const [playerId, proj] of projections) {
-    const name = nameById.get(playerId) ?? projectionNames.get(playerId)
-      ?? carryNameById.get(playerId) ?? playerId;
-    // player_id first (precise); normalized-name fallback catches brand-new
-    // rookies whose nba_roster row has no player_id yet — see loadSalaries().
-    const sal = salaries.byPlayerId.get(playerId) ?? salaries.byName.get(normalizeName(name));
-    const cons = lookupWithNameAlias(consensus, normalizeName(name));
+    const ident = projectionNames.get(playerId);
+    const name = nameById.get(playerId) ?? ident?.name ?? carryNameById.get(playerId) ?? playerId;
+    const fheId = ident?.fheId ?? fheByCarryPlayerId.get(playerId) ?? null;
+    // Both joins are now the same exact id lookup. The name fallback that used
+    // to sit under the salary join is gone: fhe_id is present for a rookie whose
+    // nba_roster row has no player_id, which is the case that fallback existed
+    // for.
+    const sal = fheId ? salaries.get(fheId) : undefined;
+    const cons = fheId ? boardByFheId.get(fheId) : undefined;
     // No salary anywhere is the same "unsigned" case as an off-roster free
     // agent — admit him if the board ranks him (he has a projection, so there's
     // real production to show), and drop him only when he has no consensus rank
@@ -371,7 +502,7 @@ async function main(): Promise<void> {
     const productionRaw = PRODUCTION_BLEND.perGame * proj.minus1v + PRODUCTION_BLEND.totals * proj.minus1vTot;
     if (cons) seenConsensusRanks.add(cons.rank);
     scoreable.push({
-      playerId, name,
+      playerId, name, fheId,
       salary: sal?.salary ?? null,
       salarySource: sal?.source ?? "unsigned",
       tier: tierById.get(playerId) ?? null, productionRaw,
@@ -392,13 +523,13 @@ async function main(): Promise<void> {
   let admitted = 0;
   let admittedUnsigned = 0;
   const ageAnchored: Array<{ name: string; age: number; rank: number }> = [];
-  const unresolvedBoard: Array<{ name: string; display: string; rank: number }> = [];
+  const unresolvedBoard: Array<{ name: string; display: string; rank: number; fheId: string | null }> = [];
   const scoreableById = new Map(scoreable.map((r) => [r.playerId, r]));
-  for (const [nameKey, info] of consensus) {
-    if (seenConsensusRanks.has(info.rank)) continue;
-    const carry = lookupWithNameAlias(carryForward, nameKey);
+  for (const { nameKey, rank, fheId } of board.entries) {
+    if (seenConsensusRanks.has(rank)) continue;
+    const carry = fheId ? carryForward.get(fheId) : undefined;
     if (!carry) {
-      unresolvedBoard.push({ name: nameKey, display: boardMeta.get(nameKey)?.name ?? nameKey, rank: info.rank });
+      unresolvedBoard.push({ name: nameKey, display: boardMeta.get(nameKey)?.name ?? nameKey, rank, fheId });
       continue;
     }
     const already = scoreableById.get(carry.playerId);
@@ -409,31 +540,32 @@ async function main(): Promise<void> {
       // name mismatch (caught 2026-08-03 by the all-present assertion below —
       // Taelon Peter, rank 465). Never overwrite a rank pass 1 did match.
       if (already.consensusRank == null) {
-        already.consensusRank = info.rank;
-        seenConsensusRanks.add(info.rank);
+        already.consensusRank = rank;
+        seenConsensusRanks.add(rank);
       }
       continue;
     }
     // Roster row only — a contracts-only hit means he is not on a 2026-27
     // roster, which is exactly the unsigned case.
-    const rosterSal = salaries.byPlayerId.get(carry.playerId) ?? salaries.byName.get(nameKey);
+    const rosterSal = fheId ? salaries.get(fheId) : undefined;
     const signed = rosterSal?.source === "nba_roster";
     // Veterans: discard last season outright rather than carrying it — see
     // CARRY_FORWARD_AGE_LIMIT. A null productionRaw zeroes the whole Efficiency
     // adjuster, leaving consensus to place him.
     const age = boardMeta.get(nameKey)?.age ?? null;
     const tooOld = age != null && age >= CARRY_FORWARD_AGE_LIMIT;
-    if (tooOld) ageAnchored.push({ name: carry.name, age, rank: info.rank });
+    if (tooOld) ageAnchored.push({ name: carry.name, age, rank });
     const row: Scoreable = {
       playerId: carry.playerId,
       name: carry.name,
+      fheId,
       salary: signed ? rosterSal.salary : null,
       salarySource: signed ? "nba_roster" : "unsigned",
       tier: null,
       productionRaw: tooOld
         ? null
         : PRODUCTION_BLEND.perGame * carry.minus1v + PRODUCTION_BLEND.totals * carry.minus1vTot,
-      consensusRank: info.rank,
+      consensusRank: rank,
       contractClass: signed ? rosterSal.contractClass : "unsigned",
       carried: true,
     };
@@ -475,19 +607,29 @@ async function main(): Promise<void> {
   // never mint a synthetic row for a human already in the population under a
   // real id, whatever route left his consensus rank unmatched. Backfill the rank
   // onto the existing row instead — that's the repair, a second row is not.
-  const scoreableByName = new Map(scoreable.map((r) => [normalizeName(r.name), r]));
+  //
+  // The duplicate guard is now keyed on fhe_id rather than on the normalized
+  // name. That is the whole Duke Miles failure in one line: he was already in the
+  // population under a real id, his board entry didn't match it by name, and a
+  // name-keyed guard therefore did not recognise him as already present. An id
+  // guard cannot miss him, because both sides resolve to the same human before
+  // the comparison happens.
+  const scoreableByFheId = new Map(
+    scoreable.filter((r) => r.fheId).map((r) => [r.fheId!, r]),
+  );
   let forced = 0;
   for (const p of unresolvedBoard) {
-    const existing = scoreableByName.get(p.name);
+    const existing = p.fheId ? scoreableByFheId.get(p.fheId) : undefined;
     if (existing) {
       if (existing.consensusRank == null) existing.consensusRank = p.rank;
       continue;
     }
-    const carrySal = salaries.byName.get(p.name);
+    const carrySal = p.fheId ? salaries.get(p.fheId) : undefined;
     const signed = carrySal?.source === "nba_roster";
     scoreable.push({
       playerId: `cons-${p.name.replace(/\s+/g, "-")}`,
       name: p.display,
+      fheId: p.fheId,
       salary: signed ? carrySal.salary : null,
       salarySource: signed ? "nba_roster" : "unsigned",
       tier: null,
@@ -726,6 +868,20 @@ async function main(): Promise<void> {
   console.log(`  two-way-over-rookie-scale inversions: ${inversions.length}`);
   for (const s of inversions.slice(0, 10)) console.log(`    ${s}`);
 
+  if (DUMP_PATH) {
+    const csv = [
+      "valueRank,playerId,name,consensusRank,salary,salarySource,contractClass,carried,consensusZ,productionZ,salaryZ,expectedCapHit,surplusValue,surplusRank",
+      ...rows.map((r) => [
+        r.valueRank, r.playerId, `"${r.name.replace(/"/g, '""')}"`, r.consensusRank ?? "",
+        r.salary ?? "", r.salarySource, r.contractClass, r.carried,
+        round3(r.consensusZ), r.productionZ == null ? "" : round3(r.productionZ), round3(r.salaryZ),
+        round0(r.expectedCapHit), r.surplusValue == null ? "" : round0(r.surplusValue), r.surplusRank ?? "",
+      ].join(",")),
+    ].join("\n");
+    writeFileSync(DUMP_PATH, `${csv}\n`, "utf8");
+    console.log(`\n✓ dumped ${rows.length} rows to ${DUMP_PATH}`);
+  }
+
   if (DRY_RUN) {
     console.log("\n[DRY RUN] skipping upsert.");
     return;
@@ -735,6 +891,13 @@ async function main(): Promise<void> {
   const now = new Date().toISOString();
   const dbRows = rows.map((r) => ({
     player_id: r.playerId,
+    // Written by the build itself now, not backfilled afterwards by
+    // `identity:backfill`. The build already knows exactly which human each row
+    // is about — it just resolved him to score him — so having a second script
+    // re-derive that from the stored player_id was redundant work that could
+    // silently fall behind between runs. /real-salary-rankings reads this column
+    // to join roster extras and consensus rank.
+    fhe_id: r.fheId,
     season: SEASON,
     league_size: POOL_SIZE,
     salary: r.salary,
