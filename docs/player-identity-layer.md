@@ -24,8 +24,23 @@ eighth time and made the pattern impossible to ignore.
 > `nba_roster`); the only gaps are dead historical Summer-League rows and 11
 > `cons-` placeholders in `real_salary_values`.
 >
-> **Phase 3 — consumer migration** — Fantrax connector (2026-08-03),
-> real-salary, team-rosters, seasonal and dynasty (2026-08-04). Remaining: models.
+> **Phase 3 — consumer migration COMPLETE** (2026-08-04). Fantrax connector,
+> real-salary, team-rosters, seasonal, dynasty, models.
+>
+> **models/ was measured, not converted, and that is the right outcome.** Its
+> ~20 scripts join on name, but the failure mode identity prevents does not occur
+> there: resolving every live source against the registry gives **zero ambiguous
+> names anywhere**, and 100% resolution on the roster CSV (619), depth chart
+> (607), role context (607), salary CSV (516) and projection artifact (520). The
+> two genuine misses — `EJ Harkless` and `Jaden Quaintance`, both HoopsHype
+> spellings — were fixed as aliases, which is a two-line change rather than a
+> twenty-script rewrite. The models had already taken the part that mattered in
+> Phase 4: one normalizer and one alias list, shared with TypeScript.
+>
+> `data/draft-model/draft_model_data.csv` resolves 492 of 774, and the 282 misses
+> are correct: it spans the 2010–2025 draft classes and those are retired players
+> the registry has no reason to carry. That is scope, not drift — which is why
+> the standing check below covers current-season sources only.
 >
 > **Dynasty is the one that mostly should NOT be migrated, and that is a
 > finding.** `/dynasty-rankings/page.tsx` is a CLIENT component rendering the

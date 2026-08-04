@@ -36,7 +36,7 @@ npm run projections:build # 2026-27 projection dataset from output/season-projec
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
 npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
 npm run identity:build   # rebuild the canonical player registry (--dry-run to report only)
-npm run identity:verify  # read-only drift check: one normalizer, one alias list, no dupes
+npm run identity:verify  # read-only drift check — RUN AFTER EVERY ROSTER/SALARY/BOARD REFRESH
 npm run identity:reconcile # read-only: does an fhe_id join match today's join? (validation gate)
 npm run identity:backfill # write fhe_id onto the consumer tables (--apply)
 npm run fantrax:snapshot # refresh data/player-ids/fantrax-players.csv from the Fantrax feed
@@ -299,11 +299,22 @@ Aliases are authored **only** in `src/lib/player-name-aliases.ts`. The build
 copies them into the index, so a pair added there reaches Python as well. Add a
 pair → re-run `npm run identity:build`.
 
-**`npm run identity:verify` is the guard** — read-only, no DB, ~1 second. Nine
-checks: snapshot freshness, TS/Python normalizer parity over 1,225 real names,
-alias collisions, provider-id uniqueness, stored-`norm_name` consistency, and a
-grep that fails if the suffix-strip rule reappears in any non-canonical file.
-Run it after anything that touches a name.
+**`npm run identity:verify` is the guard** — read-only, no DB, no network, ~1
+second. Fourteen checks: snapshot freshness, TS/Python normalizer parity over
+1,225 real names, alias collisions, provider-id uniqueness, stored-`norm_name`
+consistency, a grep that fails if the suffix-strip rule reappears in any
+non-canonical file, and — the one that will catch the next real bug — **every
+name in every current-season source must resolve** (roster CSV, depth chart,
+role context, salary CSV, dynasty board).
+
+That last check exists because the recurring failure here has never been a wrong
+id; it's a refresh quietly introducing a new spelling. The July 2026 Angle merge
+shipped four at once; the salary CSV had two more as of 2026-08-04 (`EJ Harkless`,
+`Jaden Quaintance`). Nothing surfaced them until a join silently returned
+nothing. **Run this after every roster/salary/board refresh** — a failure means
+add the pair to `player-name-aliases.ts` and re-run `identity:build`. Historical
+sources are deliberately out of scope (`draft_model_data.csv` spans the 2010–2025
+draft classes; 282 of its names are retired players, and that's correct).
 
 Phase status: 1–3 built (Fantrax is the one migrated consumer), 4 substantially
 built. Full plan: `docs/player-identity-layer.md`.

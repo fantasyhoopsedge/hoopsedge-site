@@ -120,6 +120,43 @@ async function findSuffixStripOutsideCanonical(): Promise<string[]> {
   return hits;
 }
 
+/** Read one column out of a CSV. Returns null when the file isn't there. */
+async function csvColumn(relPath: string, column: string | number): Promise<string[] | null> {
+  let text: string;
+  try {
+    text = await fs.readFile(path.join(process.cwd(), relPath), "utf8");
+  } catch {
+    return null;
+  }
+  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim());
+  if (!lines.length) return [];
+  // Deliberately naive: these columns are player names in the FIRST fields, none
+  // of which are quoted in any of these files. A real CSV parser here would be
+  // more machinery than the check is worth.
+  const header = lines[0].split(",");
+  const idx = typeof column === "number" ? column : header.indexOf(column);
+  if (idx < 0) return [];
+  return lines.slice(1).map((l) => l.split(",")[idx]?.trim()).filter(Boolean);
+}
+
+/**
+ * Current-season name sources. A name here that doesn't resolve is a real gap —
+ * some join downstream is about to return nothing for that player.
+ */
+const LIVE_NAME_SOURCES: { label: string; load: () => Promise<string[] | null> }[] = [
+  { label: "nba-rosters/2026-27.csv", load: () => csvColumn("data/nba-rosters/2026-27.csv", "player") },
+  { label: "nba-rosters/depth-chart-2026-27.csv", load: () => csvColumn("data/nba-rosters/depth-chart-2026-27.csv", "player") },
+  { label: "nba-rosters/role-context-2026-27.csv", load: () => csvColumn("data/nba-rosters/role-context-2026-27.csv", "player") },
+  { label: "nba-salaries/current.csv", load: () => csvColumn("data/nba-salaries/current.csv", 0) },
+  {
+    label: "dynasty-rankings.json",
+    load: async () => {
+      const raw = await fs.readFile(path.join(process.cwd(), "src", "lib", "dynasty-rankings.json"), "utf8");
+      return (JSON.parse(raw) as { player: string }[]).map((p) => p.player);
+    },
+  },
+];
+
 async function main(): Promise<void> {
   const index = playerIdentity();
   console.log(`Registry snapshot: ${index.size} identities, generated ${REGISTRY_GENERATED_AT}\n`);
@@ -237,6 +274,43 @@ async function main(): Promise<void> {
     reimplementations.length === 0,
     `${reimplementations.join("; ")} — import normalizePlayerName instead of re-declaring it.`,
   );
+
+  // ── 7. every LIVE name source still resolves ──────────────────────────────
+  // The recurring failure this layer exists for is not a bad id — it is a
+  // refresh quietly introducing a new spelling. The July 2026 Angle merge found
+  // four at once (Dereck Lively, Bub Carrington, Yang Hansen, Pelle Larsson); the
+  // salary CSV had two more as recently as today (EJ Harkless, Jaden Quaintance).
+  // Nothing catches those until a join silently returns nothing, so check the
+  // sources directly: every name in a CURRENT-season file must resolve.
+  //
+  // Historical sources are deliberately NOT checked. models/'s
+  // draft_model_data.csv spans the 2010-2025 draft classes and 282 of its 774
+  // names are retired players the registry has no reason to carry — that is
+  // scope, not drift.
+  for (const src of LIVE_NAME_SOURCES) {
+    const names = await src.load();
+    if (names === null) {
+      warnings.push(`${src.label} not found — skipped`);
+      console.log(`  ! ${src.label} SKIPPED (file missing)`);
+      continue;
+    }
+    const unresolved: string[] = [];
+    const ambiguous: string[] = [];
+    for (const raw of new Set(names.filter(Boolean))) {
+      const candidates = index.candidatesByName(raw);
+      if (candidates.length === 0) unresolved.push(raw);
+      else if (candidates.length > 1) ambiguous.push(`${raw} (${candidates.length})`);
+    }
+    check(
+      `${src.label}: every name resolves (${new Set(names.filter(Boolean)).size} distinct)`,
+      unresolved.length === 0 && ambiguous.length === 0,
+      [
+        unresolved.length ? `unresolved: ${unresolved.slice(0, 8).join(", ")}` : "",
+        ambiguous.length ? `AMBIGUOUS: ${ambiguous.slice(0, 8).join(", ")}` : "",
+        "add the pair to src/lib/player-name-aliases.ts, then re-run `npm run identity:build`",
+      ].filter(Boolean).join("\n      "),
+    );
+  }
 
   console.log("");
   for (const w of warnings) console.log(`!  ${w}`);

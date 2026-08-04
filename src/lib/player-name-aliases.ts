@@ -56,6 +56,14 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   // under his legal name, hoopR under the nickname. Moved here 2026-08-04 when the
   // alias map became the shared artifact both languages read.
   "gregory jackson": "gg jackson",
+  // HoopsHype's salary CSV against everything else, found 2026-08-04 by resolving
+  // every models-layer source against the registry. `data/nba-salaries/current.csv`
+  // was the ONLY live source with unresolved names — these two, out of 516. The
+  // roster CSV, the depth chart, the role-context file, the projection artifact
+  // and the dynasty board all spell them the long way. "jaden" is a missing "y",
+  // i.e. a source-side typo, not a nickname.
+  "ej harkless": "elijah harkless",
+  "jaden quaintance": "jayden quaintance",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(
