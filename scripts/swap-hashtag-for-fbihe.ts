@@ -34,17 +34,9 @@ const V11_GHOST_PATH = resolve(REPO_ROOT, "public", "data", "versions", "v1.1(GH
 
 const DRY_RUN = process.argv.includes("--dry-run");
 
-// Byte-identical to src/lib/dynasty-rankings.ts's normalizePlayerName — see CLAUDE.md.
-function normalizePlayerName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[.,'’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// Imported, not re-declared. This was one of the copies the comment "byte-identical
+// to ... — see CLAUDE.md" was holding in parity by hand.
+import { normalizePlayerName } from "../src/lib/player-identity/normalize";
 
 interface ExpertRanks {
   dizzle?: number;

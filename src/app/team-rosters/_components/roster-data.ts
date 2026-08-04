@@ -22,6 +22,13 @@ export type PlayerTag = "rookie" | "soph" | null;
 
 export type Player = {
   id: string;
+  /**
+   * Canonical player_identity.fhe_id — the key to match this player against any
+   * other FHE surface. `id` above is an ESPN id OR an `n_<name>` placeholder for
+   * a roster row with no resolved id, so it is not safe to join on; this is.
+   * Null only if the registry has no identity for him at all.
+   */
+  fheId: string | null;
   name: string;
   team: string;
   jersey: number;

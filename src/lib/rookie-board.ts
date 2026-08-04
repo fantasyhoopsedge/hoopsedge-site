@@ -111,18 +111,20 @@ export function ageFromBirthdate(dob: string | null | undefined): number | null 
   return Number.isNaN(t) ? null : (Date.now() - t) / MS_PER_YEAR;
 }
 
-/** Loose name key for matching a player across board versions/sources:
- * lowercased, accents removed, punctuation and Jr/Sr/II/III/IV suffixes stripped.
- * Players have no stable id, so this is how movement + roster diffs match them. */
-export function normalizeName(name: string): string {
-  return name
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[.,'‘’]/g, "")
-    .replace(/\b(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+/**
+ * Name key for matching a player across board versions/sources. Board players
+ * have no stable id, so this is how movement + roster diffs match them.
+ *
+ * Now the canonical normalizer. It used to be a near-copy that stripped the
+ * generational suffix on a word boundary rather than after whitespace, and also
+ * stripped a left single quote — the one copy that had actually drifted, and it
+ * drifted in the LOOSER direction, which is the direction that quietly merges
+ * two different people into one key. Converging was measured
+ * first, not assumed: across all 1,238 distinct names in the board, the prospect
+ * pool, the dynasty board and the registry, the two rules agree on every one, so
+ * this is a no-op on today's data and strictly safer on tomorrow's.
+ */
+export { normalizePlayerName as normalizeName } from "@/lib/player-identity/normalize";
 
 /** Rank movement of a player on the live board vs the previous published
  * version. `delta` is positive when the player moved UP (lower rank number);

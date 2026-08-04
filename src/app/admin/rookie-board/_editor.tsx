@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
+import { normalizePlayerName } from "@/lib/player-identity/normalize";
 import {
   CATS, CAT_LABELS, MAX_BOARD_SIZE, tierInfo, PROSPECT_POOL, ageFromBirthdate,
   type BoardPlayer, type BoardTier, type PoolProspect,
@@ -20,17 +21,11 @@ const bumpMinor = (v: string): string => {
   return `${maj || "1"}.${(parseInt(min || "0", 10) || 0) + 1}`;
 };
 
-/** Loose name key for matching across sources: lowercased, accents removed,
- * punctuation and Jr/Sr/II/III/IV suffixes stripped. */
-function normalizeName(name: string): string {
-  return name
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[.,'‘’]/g, "")
-    .replace(/\b(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+/** Name key for matching across sources — the canonical normalizer, imported
+ *  rather than re-declared. This file held a verbatim copy of the divergent
+ *  rookie-board rule, which made it copy five of a normalizer there should only
+ *  ever have been one of. */
+const normalizeName = normalizePlayerName;
 
 /** Recompute rank + pick from array position. */
 function renumber(players: BoardPlayer[]): BoardPlayer[] {

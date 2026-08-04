@@ -35,6 +35,15 @@ npm run seasonal:build   # recompute season_player_values for all league sizes (
 npm run projections:build # 2026-27 projection dataset from output/season-projections-2026-27.json
 npm run trends:build     # per-player 2-week-block value trends → nba_player_trends (--dry-run / --file)
 npm run dynasty:sync     # seasonal → projections → trends → realsalary, in order — run after ANY dynasty-rankings.json edit
+npm run identity:build   # rebuild the canonical player registry (--dry-run to report only)
+npm run identity:verify  # read-only drift check: one normalizer, one alias list, no dupes
+npm run identity:reconcile # read-only: does an fhe_id join match today's join? (validation gate)
+npm run identity:backfill # write fhe_id onto the consumer tables (--apply)
+npm run fantrax:snapshot # refresh data/player-ids/fantrax-players.csv from the Fantrax feed
+npm run contracts:dedupe # find/remove nba_contracts rows orphaned by a name change (--apply)
+npm run typecheck:scripts # tsc over scripts/ — tsconfig.json excludes them
+npm run espn:resolve     # propose ESPN athlete ids for name-only players → data/player-ids/espn-ids.csv
+npm run espn:resolve -- --emit   # approved rows → espn-ids.json (consumed by summerleague:build)
 npm run rb:seed          # seed the rookie board into Supabase
 npm run launch:snapshot  # print the Draft Night signup/play funnel
 ```
@@ -120,13 +129,38 @@ class's ids against the Summer League 2026 rows that build writes) and BEFORE
 
 `npm run realsalary:build` (`scripts/build-real-salary-values.ts`) computes
 `/real-salary-rankings`' cap-aware values (`src/lib/value/real-salary-model.ts`)
-into `real_salary_values`. It reads `dynasty-rankings.json` via `loadConsensus()`
-(`scripts/build-seasonal-values.ts`), keyed by normalized name — safe from the
-rank-reuse corruption below — but `consensus_z`/rank/surplus are still a
-**build-time snapshot**: `/real-salary-rankings`' own consensus-rank display
-(`page.tsx`'s `CONSENSUS_RANK_BY_NAME`) reads the bundled JSON fresh on every
-render, so a stale `real_salary_values` table will show a mismatched Consensus
-column/Δ against a freshly-published dynasty-rankings.json until rebuilt.
+into `real_salary_values`. `consensus_z`/rank/surplus are a **build-time
+snapshot**: the page's own consensus-rank display reads the bundled JSON fresh on
+every render, so a stale `real_salary_values` table will show a mismatched
+Consensus column/Δ against a freshly-published dynasty-rankings.json until
+rebuilt.
+
+**Joined on `fhe_id` (Phase 3, 2026-08-04).** This build assembles one row per
+human out of five sources that share no id — the projection artifact,
+`season_player_values`, `nba_roster`, `nba_contracts`, `dynasty-rankings.json` —
+and all five used to meet on normalized name. They now meet on `fhe_id`, and the
+build WRITES `real_salary_values.fhe_id` itself rather than leaving it to
+`identity:backfill`. `page.tsx` joins roster extras and consensus rank on that
+column (server-side, so the registry never reaches the browser).
+
+The single remaining name lookup is the dynasty board, and it belongs there: the
+board is a hand-published list of names with no id column, so it is resolved once
+through `player_identity` instead of four times against four maps. A `cons-<name>`
+row still falls back to the board by name — that row exists *because* the player
+has no id, and its own id encodes the board name.
+
+**Use `--dump` to prove a change is safe:**
+
+```bash
+npm run realsalary:build -- --dry-run --dump before.csv
+```
+
+The console readouts show 15 of 562 rows, so they hide a reshuffle in the middle
+of the board; the dump is the whole board, deterministic and diffable. The
+fhe_id migration was gated on it (byte-identical) and the next change to this
+model should be too. When diffing the rendered PAGE, compare row payloads field
+by field rather than bytes — `age` is recomputed from `Date.now()` per render by
+design, so a byte diff reports 535 of 562 rows changed.
 
 **Rerun `dynasty:sync` after every `dynasty-rankings.json` edit — not optional.**
 `season_player_stats.consensus_rank` is a snapshot written once, at build time,
@@ -172,6 +206,138 @@ one.** Both used to coexist (`dynasty-rankings.json` had 17 "FA" rows and 15
 the UI. `normalizeTeamAbbr()` folds `"UFA"` into `"FA"`; any new ingestion or
 manual edit that sets a player's team/roster status to "no team" must write
 `"FA"`, never `"UFA"`.
+
+### Player identity registry (`npm run identity:build`)
+
+FHE joins ~12 sources on normalized name, across **four disjoint id spaces**.
+Know which one you're holding:
+
+| Space | Lives in | Example |
+|---|---|---|
+| **ESPN athlete id** | `nba_players.id`, `season_player_stats.player_id`, trends, real-salary | `3112335` = Jokić |
+| **NBA Stats id** | `src/lib/nba-player-ids.json`, BBM's "NBA ID", the digits in `sl-<nbaComId>` | `203999` = Jokić |
+| **Basketball Monster id** | `data/player-ids/bbm-players.csv` | `3930` = Jokić |
+| **Fantrax id** (+ Rotowire/SportRadar/StatsInc) | Fantrax `getPlayerIds` | — |
+
+The first two had **zero overlap** (882 vs 587 rows) and were bridged only by
+name. `scripts/build-player-identity.ts` merges all of them into
+`player_identity` — one row per human, keyed by an opaque surrogate `fhe_id`.
+Surrogate rather than a vendor id because no vendor covers everyone (ESPN misses
+~4% of prospects, near-all international; BBM has no id for 332 of its own 1,005
+players until they have NBA service) and vendors carry duplicate records for one
+human (ESPN indexes two Cameron Boozers).
+
+**`data/player-ids/player-identity.json` must stay committed — it is the id
+ledger, not a cache.** The build re-adopts it to keep `fhe_id`s stable; delete it
+and every player renumbers. Verified idempotent: consecutive runs are
+byte-identical with zero id churn.
+
+Merge order is strongest-evidence-first and **reordering it silently downgrades
+exact joins to name joins**: the NBA Stats ids land before BBM specifically so
+that BBM's 673 id-carrying players merge by id rather than by name.
+
+Nothing guesses. A name matching two identities, a provider id that would move
+between humans, or a DOB disagreement all go to `player_identity_unresolved` for
+a person to settle — a confidently wrong id attaches a real stat line to the
+wrong player, which is strictly worse than a missing one.
+
+#### The shared layer — one normalizer, one alias list, one resolver
+
+`src/lib/player-identity/` is the only place any of the three lives. **Never
+re-declare a name normalizer or an alias map anywhere else** — that is how this
+got to six copies of the normalizer in two languages, one of which had silently
+drifted to a looser rule.
+
+| Need | Import |
+|---|---|
+| normalizer, resolver, types (**data-free**, client-safe) | `@/lib/player-identity` |
+| the registry snapshot itself (~230 KB) | `@/lib/player-identity/bundled` |
+| Python | `models/player_identity.py` |
+
+Two entry points so the bundle cost is a decision, not an accident.
+`normalizePlayerName` is still exported from `@/lib/dynasty-rankings`,
+`normalizeName` from `scripts/nba-data/client` and `@/lib/rookie-board` — those
+are now **re-exports**, kept only so existing call sites don't churn.
+
+Two generated files, and they are not interchangeable:
+`data/player-ids/player-identity.json` is the **id ledger** (full, carries
+provenance, keeps `fhe_id`s stable); `src/lib/player-identity/registry.json` is
+the **resolution index** (slim, what runtimes read, and what Python reads too —
+it deliberately has no `models/` copy, because a second copy is a second thing
+to drift).
+
+Aliases are authored **only** in `src/lib/player-name-aliases.ts`. The build
+copies them into the index, so a pair added there reaches Python as well. Add a
+pair → re-run `npm run identity:build`.
+
+**`npm run identity:verify` is the guard** — read-only, no DB, ~1 second. Nine
+checks: snapshot freshness, TS/Python normalizer parity over 1,225 real names,
+alias collisions, provider-id uniqueness, stored-`norm_name` consistency, and a
+grep that fails if the suffix-strip rule reappears in any non-canonical file.
+Run it after anything that touches a name.
+
+Phase status: 1–3 built (Fantrax is the one migrated consumer), 4 substantially
+built. Full plan: `docs/player-identity-layer.md`.
+
+### Fantrax league connector (`src/lib/fantrax/`, `/admin/fantrax`)
+
+Links a user's real Fantrax league and re-scores FHE's category values against
+that league's actual rules. Admin-gated for now (`src/lib/fantrax/guard.ts`
+documents how to graduate it); the migration is
+`20260803010000_fantrax_leagues.sql`.
+
+**The Secret ID must never touch a FantasyHoopsEdge server.** `/privacy` §4
+publishes this as a commitment ("never transmitted to, stored on, or logged by
+any FantasyHoopsEdge server at any point"), and the architecture is built to
+honour it, not to approximate it. It works because Fantrax's external API
+(`fantrax.com/fxea/general/*`) serves `access-control-allow-origin: *`, so the
+BROWSER calls `getLeagues?userSecretId=…` itself and keeps the secret in
+`sessionStorage`. Every other endpoint (`getLeagueInfo`, `getTeamRosters`,
+`getStandings`, `getDraftResults`, `getPlayerIds`) is **key-less** — a league id
+alone is sufficient, which is why "paste a league code" works with no account
+link at all. So the server is only ever told a league id. Never add a
+Secret-ID column to `fx_leagues`, and never proxy `getLeagues`.
+
+**LeagueV** is the point of the feature: 9CatV is just the mean of nine
+per-category z-scores, so a league scoring a subset gets those same z-scores
+averaged over its own subset. A 9-cat league gets 9CatV back exactly; an 8-cat
+(punt-TO) league gets a genuinely re-ordered board (Jokić passes Wembanyama).
+Unmapped Fantrax categories (DD, TD, MIN…) are reported as unmodelled rather
+than silently dropped.
+
+**Migrated to `fhe_id` (Phase 3, 2026-08-03).** The connector no longer name-joins
+at all: `npm run fantrax:snapshot` writes `data/player-ids/fantrax-players.csv`,
+`identity:build` links 972 of Fantrax's 1,816 players into `player_identity`
+(match-only — it never mints identities for the 809 outside FHE's ecosystem), and
+the runtime join is `fantrax_id → fhe_id → season_player_stats.fhe_id`. Verified
+behaviour-preserving: the same league projects the same 173.0 roto points and the
+same 5th of 30, at 423/426 coverage and roughly half the request time.
+
+**There is deliberately no name fallback.** A Fantrax id the registry didn't link
+is unlinked for a reason — outside the ecosystem, or a duplicate name it refused
+to guess at. Falling back to names for exactly those players would reintroduce
+the bug the migration removes, on the population most likely to trigger it.
+
+`player_identity` has RLS on with **no policies**, so it must be read with the
+service-role client; an anon read returns zero rows *silently*, which presents as
+"no player matched" rather than as an error. That cost a debugging cycle here.
+
+The one historic hazard worth remembering:
+- **Duplicate names.** The test league carries two Jalen Johnsons and two Jaylin
+  Williamses (one rostered, one teamless free agent). A pure name join gave the
+  namesakes the stars' z-scores and floated a consensus-rank-10 player to the
+  top of the waiver board. That guard now lives in the registry build
+  (`blockedFantraxNames()`), applied once rather than on every league import.
+- **Small samples.** Per-game z-scores ignore sample size, so 3-game call-ups
+  outranked every genuine free agent. `MIN_SAMPLE_GAMES` filters the waiver
+  board and flags roster rows; consistent with FHE convention, it never enters
+  the value math.
+
+Coverage on the 30-team test league (2026-08-03): 419/422 rostered players
+joined, via projections → 2025-26 actuals, with the dynasty board supplying
+consensus rank only (never values). Joins key on `normalizePlayerName()` plus
+`player-name-aliases.ts`; Fantrax ships names "Last, First" and uses legal first
+names, which is where `cameron thomas`/`nicolas claxton` came from.
 
 ### NBA data pipeline
 
@@ -219,6 +385,11 @@ prediction game with OG-image cards and a grader in `src/lib/draftNight/`),
 `dynasty-rankings`, `seasonal-rankings`, `draft-board`, `prospects/[slug]`,
 `team-rosters/[team]` (per-team roster analysis joining `nba_roster` + stats +
 values + trends; sidebar layout via `src/components/app-sidebar.tsx`), and
-the `admin` review panels. SEO metadata, JSON-LD, sitemap, and robots are
+the `admin` review panels.
+
+`/api/team-rosters/[team]` returns the same rich `Player[]` the page renders, and
+every player now carries **`fheId`** — use that to match a player against another
+FHE surface, never `id` (which is an ESPN id OR an `n_<name>` placeholder for a
+roster row with no resolved id, so it is not safe to join on). SEO metadata, JSON-LD, sitemap, and robots are
 first-class (`src/app/layout.tsx`, `sitemap.ts`, `robots.ts`); canonical URLs are
 the `www` host.

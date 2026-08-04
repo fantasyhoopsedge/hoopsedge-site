@@ -8,9 +8,17 @@ rookie board.
 from __future__ import annotations
 
 import os
-import re
-import unicodedata
+import sys
 import urllib.request
+
+# models/ is not a package, so reach the shared identity layer by path. Every
+# model script already imports this module, which is why the re-export lives here
+# rather than each script growing its own sys.path dance.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from player_identity import (  # noqa: E402
+    name_candidates as _shared_name_candidates,
+    normalize_name as _normalize_name,
+)
 
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DRAFT_MODEL_CSV = os.path.join(REPO, "data", "draft-model", "draft_model_data.csv")
@@ -75,54 +83,32 @@ HOOPR_NBA_TEAMS = {
 
 
 def normalize_name(name: str) -> str:
-    """Byte-identical to normalizePlayerName() in src/lib/dynasty-rankings.ts.
+    """Re-export of the one normalizer (models/player_identity.py).
 
-    lowercase -> strip diacritics -> strip .,'’ -> strip jr/sr/ii/iii/iv -> collapse ws
+    This used to be a fourth hand-maintained copy of the rule, kept in parity
+    with three others by comment. Call sites keep importing it from here — the
+    implementation just isn't here any more.
     """
-    s = unicodedata.normalize("NFD", str(name).lower())
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"[.,'’]", "", s)
-    s = re.sub(r"\s+(jr|sr|ii|iii|iv)\b", "", s)
-    return re.sub(r"\s+", " ", s).strip()
-
-
-# Draft-model name -> hoopR display name, for players hoopR lists under a nickname.
-# Same class of bug as src/lib/player-name-aliases.ts (which maps nickname -> legal
-# and is TypeScript-side only, so it cannot be imported here). Keys and values are
-# already normalize_name()'d. Found by fuzzy-diffing the two name lists, not guessed —
-# re-run that diff whenever either source is refreshed.
-DRAFT_NAME_TO_HOOPR: dict[str, str] = {
-    "gregory jackson": "gg jackson",
-    "carlton carrington": "bub carrington",
-}
-
-# The roster CSV's nicknames -> hoopR's legal names. Same job as the map above
-# (an FHE-side name -> the name hoopR files him under), different source, so it is
-# kept separate to keep each one's provenance readable.
-#
-# MIRROR of NICKNAME_TO_LEGAL_NAME in src/lib/player-name-aliases.ts — same three
-# players, same normalized keys. It is duplicated only because TypeScript cannot be
-# imported here; it is NOT an independent map and must not drift. If you add a
-# player to one, add him to the other. That file documents the bug this class of
-# miss already caused once: these three players' consensus_rank silently stayed
-# null in season_player_stats because a join went straight across without
-# resolving the nickname.
-ROSTER_NAME_TO_HOOPR: dict[str, str] = {
-    "cam johnson": "cameron johnson",
-    "herb jones": "herbert jones",
-    "ron holland": "ronald holland",
-}
+    return _normalize_name(name)
 
 
 def name_candidates(norm: str) -> list[str]:
     """Normalized names worth trying for `norm`, best first.
 
-    Consults both alias maps: a caller joining against hoopR does not care whether
-    a given name came from the draft model or the roster CSV, only that the join
-    resolves.
+    Now reads the SHARED alias list — authored once in
+    src/lib/player-name-aliases.ts and carried into
+    src/lib/player-identity/registry.json by `npm run identity:build`.
+
+    This replaces DRAFT_NAME_TO_HOOPR and ROSTER_NAME_TO_HOOPR, which were
+    "mirrors" of the TypeScript map that had already drifted: the TS map held ten
+    pairs, ROSTER_NAME_TO_HOOPR held three of them, and DRAFT_NAME_TO_HOOPR held
+    one pair (gregory jackson -> gg jackson) that the TS side had never heard of.
+    All eleven now live in the one authored list, so this function returns a
+    superset of what it used to — verified collision-free against the registry
+    before the merge (no alias pair has both of its forms present as separate
+    identities, so no name became ambiguous).
     """
-    alt = DRAFT_NAME_TO_HOOPR.get(norm) or ROSTER_NAME_TO_HOOPR.get(norm)
-    return [norm, alt] if alt else [norm]
+    return _shared_name_candidates(norm)
 
 
 # --- upstream draft-slot corrections -----------------------------------------

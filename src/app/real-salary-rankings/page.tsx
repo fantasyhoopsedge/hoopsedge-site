@@ -2,6 +2,7 @@ import { getStats } from "@/lib/value/seasonal-data";
 import { getRealSalaryValues, getRosterExtras, type RosterExtra } from "@/lib/value/real-salary-data";
 import rankings from "@/lib/dynasty-rankings.json";
 import { normalizePlayerName } from "@/lib/dynasty-rankings";
+import { playerIdentity } from "@/lib/player-identity/bundled";
 import { contractClassOf } from "@/lib/value/real-salary-model";
 import { RealSalaryTable, type RealSalaryRow } from "./_components/real-salary-table";
 
@@ -46,21 +47,32 @@ const SEASON_TYPE = "projection";
 const FALLBACK_SEASON = 2026;
 const FALLBACK_SEASON_TYPE = "regular";
 
-// Consensus rank for the comparison column, keyed by normalized name — NEVER
-// by rank number (a refresh reassigns rank numbers to different players; see
-// CLAUDE.md's James Harden incident).
+// Consensus rank for the comparison column. Read fresh from the bundled board on
+// every render and keyed by IDENTITY — NEVER by rank number, which a refresh
+// reassigns to a different player (see CLAUDE.md's James Harden incident).
+//
+// The board itself has no id column, so its names are resolved through the
+// player identity registry once at module load. This runs server-side only
+// (`page.tsx` is a server component), so the ~230 KB registry never reaches the
+// browser — see @/lib/player-identity/bundled.
 type BoardPlayer = { player: string; consensusRank: number; team?: string | null; position?: string | null };
-const CONSENSUS_RANK_BY_NAME: Record<string, number> = {};
-// Display identity of last resort. A `cons-<normalized name>` row exists
-// precisely because the player has no resolvable id and therefore no
-// season_player_stats row in ANY season — so the bundled board, which is where
-// he came from, is the only place a name/team/position can be read. See
-// build-real-salary-values.ts's third admission pass.
+const CONSENSUS_RANK_BY_FHE_ID = new Map<string, number>();
+// Display identity of last resort, still keyed by NAME on purpose. A
+// `cons-<normalized name>` row exists precisely because the player has no
+// resolvable id and therefore no season_player_stats row in ANY season — its own
+// id encodes a board name, so the board is both where he came from and the only
+// place a name/team/position can be read. See build-real-salary-values.ts's
+// third admission pass.
 const BOARD_BY_NAME = new Map<string, BoardPlayer>();
+const CONSENSUS_RANK_BY_NAME = new Map<string, number>();
 for (const p of rankings as BoardPlayer[]) {
   const key = normalizePlayerName(p.player);
-  CONSENSUS_RANK_BY_NAME[key] = p.consensusRank;
   if (!BOARD_BY_NAME.has(key)) BOARD_BY_NAME.set(key, p);
+  if (!CONSENSUS_RANK_BY_NAME.has(key)) CONSENSUS_RANK_BY_NAME.set(key, p.consensusRank);
+  const res = playerIdentity().resolve({ name: p.player });
+  if (res.kind === "matched" && !CONSENSUS_RANK_BY_FHE_ID.has(res.identity.fheId)) {
+    CONSENSUS_RANK_BY_FHE_ID.set(res.identity.fheId, p.consensusRank);
+  }
 }
 
 /** `cons-thomas-sorber` -> `thomas sorber`, the normalized board key. */
@@ -85,15 +97,12 @@ export default async function RealSalaryRankingsPage() {
   const statsById = new Map(stats.map((s) => [s.player_id, s]));
   const fallbackStatsById = new Map(fallbackStats.map((s) => [s.player_id, s]));
 
-  // player_id first (precise); normalized-name fallback catches brand-new
-  // rookies whose nba_roster row has no player_id yet — same identity gap
-  // build-real-salary-values.ts's loadSalaries() already documents.
-  const extrasByPlayerId = new Map<string, RosterExtra>();
-  const extrasByName = new Map<string, RosterExtra>();
+  // Joined on fhe_id — one key that covers brand-new incoming rookies (whose
+  // nba_roster row has no player_id) as well as everyone else, replacing the
+  // player_id-then-name pair this used to need.
+  const extrasByFheId = new Map<string, RosterExtra>();
   for (const e of rosterExtras) {
-    if (e.player_id) extrasByPlayerId.set(e.player_id, e);
-    const nameKey = normalizePlayerName(e.full_name);
-    if (!extrasByName.has(nameKey)) extrasByName.set(nameKey, e);
+    if (e.fhe_id && !extrasByFheId.has(e.fhe_id)) extrasByFheId.set(e.fhe_id, e);
   }
 
   // The stored row already carries the "Balanced" preset's precomputed
@@ -105,9 +114,15 @@ export default async function RealSalaryRankingsPage() {
   // ALSO appears under a real id (he earned one between builds and the sweep in
   // build-real-salary-values.ts hasn't run yet), the real row wins and the
   // placeholder is dropped — otherwise he'd be listed twice.
+  //
+  // Keyed by identity where the row has one, with the normalized name kept as a
+  // second key: a synthetic row's whole reason for existing is that its player
+  // had no id, so name is sometimes the only thing the two rows share.
+  const realFheIds = new Set<string>();
   const realNameKeys = new Set<string>();
   for (const v of values) {
     if (v.player_id.startsWith(SYNTHETIC_ID_PREFIX)) continue;
+    if (v.fhe_id) realFheIds.add(v.fhe_id);
     const s = statsById.get(v.player_id) ?? fallbackStatsById.get(v.player_id);
     if (s) realNameKeys.add(normalizePlayerName(s.name));
   }
@@ -119,13 +134,15 @@ export default async function RealSalaryRankingsPage() {
     // board is the last resort for forced-in players with no stats row at all.
     const boardKey = boardKeyFromSyntheticId(v.player_id);
     const board = boardKey != null ? BOARD_BY_NAME.get(boardKey) : undefined;
-    if (boardKey != null && (!board || realNameKeys.has(boardKey))) continue;
+    const supersededByRealRow = boardKey != null
+      && (realNameKeys.has(boardKey) || (v.fhe_id != null && realFheIds.has(v.fhe_id)));
+    if (boardKey != null && (!board || supersededByRealRow)) continue;
     const s = statsById.get(v.player_id) ?? fallbackStatsById.get(v.player_id)
       ?? (board
         ? { name: board.player, team: board.team ?? null, position: board.position ?? null, headshot_id: null }
         : null);
     if (!s) continue; // no display identity (name/team/position) to show
-    const extra = extrasByPlayerId.get(v.player_id) ?? extrasByName.get(normalizePlayerName(s.name));
+    const extra = v.fhe_id ? extrasByFheId.get(v.fhe_id) : undefined;
     // A null salary IS the unsigned marker (see real-salary-model.ts). "FA" is
     // the one non-team placeholder ecosystem-wide — never "UFA" — and a
     // fallback row's team is last season's team, which would read as a roster
@@ -133,6 +150,7 @@ export default async function RealSalaryRankingsPage() {
     const unsigned = v.salary == null;
     rows.push({
       playerId: v.player_id,
+      fheId: v.fhe_id ?? null,
       name: s.name,
       team: unsigned ? "FA" : s.team,
       position: s.position,
@@ -143,7 +161,10 @@ export default async function RealSalaryRankingsPage() {
       salary: v.salary,
       salarySource: v.salary_source,
       confidenceTier: v.confidence_tier,
-      consensusRank: CONSENSUS_RANK_BY_NAME[normalizePlayerName(s.name)] ?? null,
+      // Identity first; the board name is the fallback for a `cons-` row, which
+      // by definition has no identity to key on.
+      consensusRank: (v.fhe_id ? CONSENSUS_RANK_BY_FHE_ID.get(v.fhe_id) : undefined)
+        ?? CONSENSUS_RANK_BY_NAME.get(normalizePlayerName(s.name)) ?? null,
       classId: classOf(extra),
       contractBucket: unsigned ? "Other" : contractBucketOf(extra?.contract_status ?? null),
       contractClass: unsigned ? "unsigned" : contractClassOf(extra?.contract_status ?? null),

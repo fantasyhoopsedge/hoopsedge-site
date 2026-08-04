@@ -4,13 +4,19 @@
  *
  * Output shape: { "<normalized name>": { id, name, team, position } }
  *
- * Run: node scripts/sync-nba-players.js
+ * Run: npx tsx scripts/sync-nba-players.js
+ *
+ * (tsx rather than node, because the normalizer below is a TypeScript module.
+ * This script's output is the headshot id map the registry merges, so it must
+ * key on exactly the same normalized names as everything else — worth one
+ * loader for.)
  *
  * The NBA Stats API requires browser-like headers or it returns 403/hangs.
  */
 
 const fs = require("fs");
 const path = require("path");
+const { normalizePlayerName: normalizeName } = require("../src/lib/player-identity/normalize");
 
 const URL =
   "https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=2025-26&IsOnlyCurrentSeason=1";
@@ -39,17 +45,7 @@ function normalizeTeamAbbr(raw) {
   return TEAM_ALIASES[t] || t || null;
 }
 
-/** Normalize a player name to a stable key (lowercase, strip punctuation/suffixes). */
-function normalizeName(name) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // strip accents
-    .replace(/[.,'’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// normalizeName is imported at the top — see the header note on running under tsx.
 
 async function main() {
   process.stdout.write("Fetching NBA player list... ");

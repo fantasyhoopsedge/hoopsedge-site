@@ -111,10 +111,14 @@ OVERRIDE_PCT = {"fg_pct": ("fgm", "fga"), "ft_pct": ("ftm", "fta")}
 # hoopR -> canonical FHE codes (the roster CSV's spelling; src/lib/nba-teams.ts is the
 # TS source of truth, not importable here). This is the ONE place roster space (canonical)
 # meets foundation space (hoopR): Stage 3 anchors come out in hoopR codes and are
-# translated here so they join the roster's teams. It mirrors nba-teams.ts the same way
-# ROSTER_NAME_TO_HOOPR mirrors the TS name-alias map -- not a new dialect, a bridge to the
+# translated here so they join the roster's teams. Not a new dialect -- a bridge to the
 # existing standard. Only the 7 franchises hoopR spells differently appear; the rest are
 # identity.
+#
+# The name-alias map used to be mirrored here the same way and is no longer: it now
+# travels to Python inside the generated registry (models/player_identity.py). Team
+# codes have no such artifact yet, so this one is still hand-kept -- if a third
+# mirror of nba-teams.ts ever appears, that is the signal to give it one.
 HOOPR_TO_CANONICAL = {"GS": "GSW", "NO": "NOR", "NY": "NYK", "PHX": "PHO",
                       "SA": "SAS", "UTAH": "UTA", "WSH": "WAS"}
 

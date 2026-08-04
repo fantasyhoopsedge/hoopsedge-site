@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
-import { nameKeyCandidates } from "@/lib/player-name-aliases";
+import { playerIdentity } from "@/lib/player-identity/bundled";
 import { ROOKIE_BOARD, tierInfo } from "@/lib/rookie-board";
 import type { Player } from "./roster-data";
 import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "./trend-insight";
@@ -16,6 +16,25 @@ import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag 
 //   - dynasty-rankings.json → consensus rank/tier/trend + master-source position
 //   - rookie-board.json     → projected 9-cat star profile for incoming rookies
 // PUBLIC + read-only → cookieless anon client cached 15 min (mirrors seasonal-data.ts).
+//
+// ── Joined on fhe_id (Phase 3, 2026-08-04) ──────────────────────────────────
+// The two BUNDLED sources above (dynasty board, rookie board) are name-only
+// files, and they used to be joined to the roster by normalized name with an
+// alias map seeded in both directions. They now resolve through the player
+// identity registry, so the name form each source happens to use stops
+// mattering. `nba_roster.fhe_id` is 619/619, and the board join was measured to
+// agree with the name join on all 475 rows either could resolve, with none
+// gained or lost.
+//
+// Still name-keyed, deliberately:
+//   - getSophomoreNames() / getDraftYears() return norm_name-keyed maps that
+//     /dynasty-rankings and /seasonal-rankings consume. Re-keying them is those
+//     pages' migration, not this one — changing the key here without changing
+//     both callers would just break them.
+//   - depth-chart-body.tsx matches the depth-chart JSON to players by name. It
+//     is a CLIENT component, so resolving identities there would ship the ~230 KB
+//     registry to the browser; the fix is an fhe_id in the depth-chart artifact
+//     itself, at build time.
 
 export const ROSTER_TAG = "team-rosters";
 const ROSTER_SEASON = "2026-27";
@@ -49,18 +68,34 @@ function createReadClient() {
   );
 }
 
-// Dynasty rows (veterans) indexed by the pipeline's normalized name.
+/**
+ * Dynasty rows indexed by IDENTITY (Phase 3, 2026-08-04).
+ *
+ * This join decides a player's consensus rank, and a miss doesn't fail loudly —
+ * it silently demotes a ranked player to the 999 fallback, which then feeds the
+ * tone/BUY-SELL-HOLD derivation as if he were unranked. It used to be a
+ * normalized-name lookup with every known nickname/legal-name pair seeded in as
+ * an extra key in both directions, precisely because the roster CSV and the
+ * dynasty board disagree about which form of a name to use (R2, trend-tag
+ * audit). That alias-seeding is now unnecessary: both sides resolve to an
+ * `fhe_id` first, so the name form each source happens to use stops mattering.
+ *
+ * Measured before switching: across all 619 roster rows the id join and the
+ * name join agree on 475 and disagree on none — no row gains or loses a
+ * consensus rank. The value is structural, not a fix to today's numbers.
+ *
+ * Board names are resolved through the registry once here; the board itself has
+ * no id column (a hand-published list of names), which is why the name→identity
+ * step exists at all. Server-only module, so the ~230 KB registry never reaches
+ * the browser.
+ */
+const DYN_BY_FHE_ID = new Map<string, (typeof DYNASTY_RANKINGS)[number]>();
+/** Kept for the handful of lookups that only ever have a name — see byNameFallback. */
 const DYN_BY_NORM = new Map(DYNASTY_RANKINGS.map((d) => [normalizePlayerName(d.player), d]));
-
-// R2 (trend-tag audit): the roster CSV and the dynasty list occasionally use
-// different name forms for the same player (nickname vs. legal name — see
-// src/lib/player-name-aliases.ts); a missed join silently demotes a ranked
-// player to the 999 fallback. Seed every known nickname/legal-name pair as an
-// extra key, in whichever direction dynasty-rankings.json happens to use, so
-// a lookup by either form succeeds regardless of which source changes first.
-for (const [norm, row] of [...DYN_BY_NORM.entries()]) {
-  for (const altKey of nameKeyCandidates(norm)) {
-    if (!DYN_BY_NORM.has(altKey)) DYN_BY_NORM.set(altKey, row);
+for (const d of DYNASTY_RANKINGS) {
+  const res = playerIdentity().resolve({ name: d.player });
+  if (res.kind === "matched" && !DYN_BY_FHE_ID.has(res.identity.fheId)) {
+    DYN_BY_FHE_ID.set(res.identity.fheId, d);
   }
 }
 
@@ -78,6 +113,16 @@ function humanizeTierLabel(raw: string): string {
     .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
 }
+/**
+ * Rookie board, indexed by identity where one exists and by name otherwise.
+ *
+ * The name index is NOT vestigial here the way it is for the dynasty board: 2 of
+ * the 58 board players (Noam Yaacov, Darrion Williams) are international
+ * prospects the registry has no identity for at all, and dropping them would
+ * blank the projected 9-cat profile the page shows for an incoming rookie. So
+ * both indexes are built and identity is simply tried first.
+ */
+const ROOKIE_BY_FHE_ID = new Map<string, RookieProj>();
 const ROOKIE_BY_NORM = new Map<string, RookieProj>(
   ROOKIE_BOARD.players.map((r) => [
     normalizePlayerName(r.name),
@@ -92,6 +137,13 @@ const ROOKIE_BY_NORM = new Map<string, RookieProj>(
     },
   ]),
 );
+for (const r of ROOKIE_BOARD.players) {
+  const res = playerIdentity().resolve({ name: r.name });
+  const proj = ROOKIE_BY_NORM.get(normalizePlayerName(r.name));
+  if (res.kind === "matched" && proj && !ROOKIE_BY_FHE_ID.has(res.identity.fheId)) {
+    ROOKIE_BY_FHE_ID.set(res.identity.fheId, proj);
+  }
+}
 
 function ageFromDob(dob: string | null): number | null {
   if (!dob) return null;
@@ -332,7 +384,27 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     .eq("team", team.toUpperCase());
   if (!roster?.length) return [];
 
-  const ids = roster.map((r) => r.player_id).filter((v): v is string => v != null);
+  /**
+   * The ESPN id to read stats/values/trends under.
+   *
+   * `nba_roster.player_id` is null for 129 of 619 rows — brand-new incoming
+   * rookies, who are on a roster before they are in `nba_players`. The registry
+   * already knows the ESPN id for 121 of those 129, so ask it rather than
+   * treating the null as "this player has no data".
+   *
+   * Today this rescues nothing measurable: none of those 121 have a stat row in
+   * 2024, 2025 or 2026 regular season, because they have not played an NBA game.
+   * It matters the day one of them does — `player_id` stays null until the next
+   * roster CSV ingest, while `fhe_id` links him the moment his first box score
+   * lands. That gap is exactly the rookie hand-off in
+   * docs/player-identity-layer.md §3.4, and it costs nothing to close: the
+   * registry is a bundled snapshot, so this is a map lookup, not a round trip.
+   */
+  const espnIdOf = (r: { player_id: string | null; fhe_id: string | null }): string | null =>
+    r.player_id ?? (r.fhe_id ? playerIdentity().byFheId(r.fhe_id)?.espnId ?? null : null);
+
+  const pidByRow = roster.map(espnIdOf);
+  const ids = pidByRow.filter((v): v is string => v != null);
 
   const [statsRes, valuesRes, priorStatsRes, priorValuesRes, priorPriorStatsRes, trendsRes, poolRanks, priorPoolRanks, priorPriorPoolRanks] = await Promise.all([
     ids.length
@@ -397,24 +469,34 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   const valuesById = new Map((valuesRes.data ?? []).map((v) => [v.player_id, v]));
   const trendsById = new Map((trendsRes.data ?? []).map((t) => [t.player_id, t.payload as unknown as TrendPayload]));
 
+  // The board rows for this roster, resolved by identity. Name is not consulted:
+  // every one of the 619 roster rows carries an fhe_id, and the id join was
+  // measured to agree with the name join on all 475 rows either could resolve.
+  const dynByRow = roster.map((r) => (r.fhe_id ? DYN_BY_FHE_ID.get(r.fhe_id) : undefined));
+
   // Consensus rank + age gate the tone derivation (age drives the aging-decline
   // read — see trend-insight.ts), so resolve them once per row first.
-  const consensusByRow = roster.map((r) => DYN_BY_NORM.get(r.norm_name)?.consensusRank ?? 999);
-  const ageByRow = roster.map((r) => ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? DYN_BY_NORM.get(r.norm_name)?.age ?? 0));
-  const tags = roster.map((r, i) => tagsFrom(r.player_id ? trendsById.get(r.player_id) : undefined, consensusByRow[i], ageByRow[i], r.is_sophomore === true));
+  const consensusByRow = dynByRow.map((d) => d?.consensusRank ?? 999);
+  const ageByRow = roster.map((r, i) => ageFromDob(r.dob) ?? Math.round(r.age_at_ingest ?? dynByRow[i]?.age ?? 0));
+  const tags = roster.map((r, i) => tagsFrom(pidByRow[i] ? trendsById.get(pidByRow[i]!) : undefined, consensusByRow[i], ageByRow[i], r.is_sophomore === true));
 
   return roster.map((r, i): Player => {
-    const st = r.player_id ? statsById.get(r.player_id) : undefined;
-    const val = r.player_id ? valuesById.get(r.player_id) : undefined;
-    const priorSt = r.player_id ? priorStatsById.get(r.player_id) : undefined;
-    const priorVal = r.player_id ? priorValuesById.get(r.player_id) : undefined;
-    const rank = r.player_id ? poolRanks[r.player_id] : undefined;
-    const priorRank = r.player_id ? priorPoolRanks[r.player_id] : undefined;
-    const priorPriorRank = r.player_id ? priorPriorPoolRanks[r.player_id] : undefined;
-    const priorPriorSt = r.player_id ? priorPriorStatsById.get(r.player_id) : undefined;
-    const dyn = DYN_BY_NORM.get(r.norm_name);
+    const pid = pidByRow[i];
+    const st = pid ? statsById.get(pid) : undefined;
+    const val = pid ? valuesById.get(pid) : undefined;
+    const priorSt = pid ? priorStatsById.get(pid) : undefined;
+    const priorVal = pid ? priorValuesById.get(pid) : undefined;
+    const rank = pid ? poolRanks[pid] : undefined;
+    const priorRank = pid ? priorPoolRanks[pid] : undefined;
+    const priorPriorRank = pid ? priorPriorPoolRanks[pid] : undefined;
+    const priorPriorSt = pid ? priorPriorStatsById.get(pid) : undefined;
+    const dyn = dynByRow[i];
     const trendTags = tags[i];
-    const rookie = r.is_incoming_rookie ? ROOKIE_BY_NORM.get(r.norm_name) : undefined;
+    // Identity first, board name as the fallback — see ROOKIE_BY_FHE_ID on why
+    // the name index survives here and not for the dynasty board.
+    const rookie = r.is_incoming_rookie
+      ? (r.fhe_id ? ROOKIE_BY_FHE_ID.get(r.fhe_id) : undefined) ?? ROOKIE_BY_NORM.get(r.norm_name)
+      : undefined;
 
     // Position from the master source: dynasty consensus (veterans) → rookie board
     // (incoming rookies) → nba_roster coarse G/F/C.
@@ -477,7 +559,12 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       : [];
 
     return {
+      // `id` deliberately unchanged: it is a DISPLAY/React key that other
+      // surfaces already persist and compare, so re-keying it is a separate
+      // decision from re-keying the joins. fheId is added alongside rather than
+      // replacing it.
       id: r.player_id ?? `n_${r.norm_name.replace(/\s+/g, "-")}`,
+      fheId: r.fhe_id ?? null,
       name: r.full_name,
       team: r.team,
       jersey: Number(r.jersey) || 0,

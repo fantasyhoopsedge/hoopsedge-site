@@ -1,4 +1,16 @@
 /**
+ * ── The one authored alias list ─────────────────────────────────────────────
+ * This file is hand-maintained; everything else is generated from it.
+ * `npm run identity:build` copies this map into
+ * `src/lib/player-identity/registry.json`, which the Python models read through
+ * `models/player_identity.py`. So a pair added here reaches BOTH languages, and
+ * the "TypeScript-side only, so it cannot be imported here" comment that used to
+ * justify a mirrored Python copy no longer applies.
+ *
+ * Adding a pair therefore means: edit this map, then re-run `npm run
+ * identity:build`. `npm run identity:verify` fails if the generated snapshot has
+ * fallen behind this file, or if a new pair would make some name ambiguous.
+ *
  * Nickname <-> legal-name aliases for players whose common name doesn't match
  * their nba_players/hoopR record. hoopR's box-score feed uses the NBA's legal
  * name ("Cameron Johnson", "Herbert Jones", "Ronald Holland II"); dynasty
@@ -31,6 +43,19 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   "robert dillingham": "rob dillingham",
   "hansen yang": "yang hansen",
   "pelle larrson": "pelle larsson",
+  // Fantrax dialect, found 2026-08-03 wiring up the league connector
+  // (src/lib/fantrax/): its player feed uses legal first names where hoopR and
+  // the dynasty board use the nickname. These two were the ONLY name-shaped
+  // misses across a 422-player league import — every other unmatched player was
+  // genuinely absent from FHE's datasets (unsigned FA or a 2026 rookie), not
+  // misnamed. Re-run that diff when adding a new league source.
+  "cameron thomas": "cam thomas",
+  "nicolas claxton": "nic claxton",
+  // Was Python-only (`DRAFT_NAME_TO_HOOPR` in models/rookie-translation/common.py),
+  // which is precisely the split this file now closes: the draft model files him
+  // under his legal name, hoopR under the nickname. Moved here 2026-08-04 when the
+  // alias map became the shared artifact both languages read.
+  "gregory jackson": "gg jackson",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(

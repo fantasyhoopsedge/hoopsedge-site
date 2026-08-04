@@ -343,6 +343,9 @@ export interface Database {
           salary_estimated: boolean; // any year even-split estimated
           salary_note: string | null;
           source: string;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -383,6 +386,9 @@ export interface Database {
           // per season+season_type+team, computed by build-seasonal-values.ts for
           // every dataset (regular/playoffs/summer league, all seasons).
           usg_pct: number | null;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -484,6 +490,9 @@ export interface Database {
           is_sophomore: boolean;
           new_to_team: boolean;
           source: string;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -508,6 +517,9 @@ export interface Database {
           player_name: string;
           generated_at: string;
           payload: Json;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
         };
         Insert: never;
@@ -554,7 +566,79 @@ export interface Database {
           /** null when salary is null — nothing to subtract. */
           surplus_value: number | null;
           surplus_rank: number | null;
+          /** Phase 2 dual-key: canonical player_identity.fhe_id. Written by
+           *  `npm run identity:backfill`; read by nothing yet. */
+          fhe_id: string | null;
           updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      // Canonical player registry (migration 20260803020000_player_identity).
+      // One row per human, holding every provider id FHE knows. Built by
+      // scripts/build-player-identity.ts. RLS is ON with NO policies, so this is
+      // readable ONLY through the service-role client — an anon read returns
+      // zero rows rather than an error.
+      player_identity: {
+        Row: {
+          fhe_id: string;
+          display_name: string;
+          norm_name: string;
+          slug: string;
+          /** 'prospect' | 'nba' | 'former' */
+          status: string;
+          dob: string | null;
+          draft_year: number | null;
+          draft_pick: number | null;
+          current_team: string | null;
+          espn_id: string | null;
+          nba_stats_id: string | null;
+          bbm_id: string | null;
+          fantrax_id: string | null;
+          rotowire_id: string | null;
+          sportradar_id: string | null;
+          statsinc_id: string | null;
+          confidence: string;
+          sources: string[];
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      player_name_alias: {
+        Row: {
+          norm_name: string;
+          fhe_id: string;
+          raw_name: string;
+          source: string;
+          kind: string;
+          note: string | null;
+          added_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "player_name_alias_fhe_id_fkey";
+            columns: ["fhe_id"];
+            referencedRelation: "player_identity";
+            referencedColumns: ["fhe_id"];
+          },
+        ];
+      };
+      // Review queue: names the build refused to attach to a single player.
+      player_identity_unresolved: {
+        Row: {
+          norm_name: string;
+          raw_name: string;
+          source: string;
+          /** 'ambiguous' | 'no_match' | 'id_conflict' | 'dob_conflict' */
+          reason: string;
+          candidates: Json;
+          detail: string | null;
+          seen_at: string;
         };
         Insert: never;
         Update: never;
@@ -698,3 +782,8 @@ export type SeasonPlayerValues = Database["public"]["Tables"]["season_player_val
 
 // ── Real Salary Rankings convenience alias ──────────────────────────────────
 export type RealSalaryValues = Database["public"]["Tables"]["real_salary_values"]["Row"];
+
+// Player identity registry (migration 20260803020000_player_identity).
+export type PlayerIdentity = Database["public"]["Tables"]["player_identity"]["Row"];
+export type PlayerNameAlias = Database["public"]["Tables"]["player_name_alias"]["Row"];
+export type PlayerIdentityUnresolved = Database["public"]["Tables"]["player_identity_unresolved"]["Row"];

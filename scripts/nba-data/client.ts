@@ -22,6 +22,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
+import { normalizePlayerName as normalizeName } from "../../src/lib/player-identity/normalize";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -82,21 +83,14 @@ export function getServiceClient(): SupabaseClient {
 }
 
 /**
- * Aggressive name normalization — IDENTICAL to normalizePlayerName() in
- * src/lib/dynasty-rankings.ts. Keep these in lockstep: lowercase -> strip
- * diacritics -> strip . , ' ’ -> strip jr/sr/ii/iii/iv suffix -> collapse
- * whitespace. This is the salary <-> stats join key.
+ * Aggressive name normalization — the salary ↔ stats ↔ rankings join key.
+ *
+ * No longer a second implementation kept "in lockstep" by comment: it forwards
+ * to the single one in `src/lib/player-identity/normalize.ts`, which the app,
+ * the scripts and (via the generated registry) the Python models all share. The
+ * alias `normalizeName` stays because ~20 script call sites use that name.
  */
-export function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[.,'’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+export { normalizeName };
 
 /** Parse hoopR minutes: number passthrough, "MM:SS" -> decimal, else null. */
 export function parseMinutes(v: unknown): number | null {
