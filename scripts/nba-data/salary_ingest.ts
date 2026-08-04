@@ -23,7 +23,8 @@ import { dirname, resolve } from "node:path";
 import { parse } from "csv-parse/sync";
 import { CURRENT_SEASON, getServiceClient, normalizeName } from "./client";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
-import { lookupWithNameAlias } from "../../src/lib/player-name-aliases";
+import { lookupWithNameAlias, NICKNAME_TO_LEGAL_NAME } from "../../src/lib/player-name-aliases";
+import { identityFromRow, PlayerIdentityIndex } from "../../src/lib/player-identity";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -136,6 +137,33 @@ function chunk<T>(arr: T[], size: number): T[][] {
 }
 
 /**
+ * The player registry, for the sweep below. Null (with a warning) when it isn't
+ * populated yet — see the sweep's note on why that degrades rather than throws.
+ */
+async function loadIdentityIndex(
+  supabase: ReturnType<typeof getServiceClient>,
+): Promise<PlayerIdentityIndex | null> {
+  const rows: Parameters<typeof identityFromRow>[0][] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from("player_identity")
+      .select("fhe_id,display_name,norm_name,espn_id,nba_stats_id,bbm_id,dob,draft_year,current_team")
+      .range(from, from + 999);
+    if (error) {
+      console.warn(`player_identity unreadable (${error.message}) — sweep falls back to player_id only.`);
+      return null;
+    }
+    rows.push(...((data ?? []) as typeof rows));
+    if ((data?.length ?? 0) < 1000) break;
+  }
+  if (rows.length === 0) {
+    console.warn("player_identity is empty — sweep falls back to player_id only. Run `npm run identity:build`.");
+    return null;
+  }
+  return new PlayerIdentityIndex(rows.map(identityFromRow), NICKNAME_TO_LEGAL_NAME);
+}
+
+/**
  * Delete rows this ingest orphaned by a NAME CHANGE.
  *
  * nba_contracts is keyed on `norm_name`, so when HoopsHype relists a player
@@ -149,31 +177,69 @@ function chunk<T>(arr: T[], size: number): T[][] {
  * and cleaned up by scripts/fix-duplicate-contracts.ts. This sweep stops it
  * recurring.
  *
- * Scoped deliberately tightly: only rows sharing a `player_id` with a row this
- * ingest just wrote, whose `norm_name` is NOT in the current CSV. A player who
- * simply dropped off the salary sheet keeps his row (that's a data gap, not a
- * rename), and rows with no player_id are never touched since they can't be
- * proven duplicates.
+ * Scoped deliberately tightly: only rows resolving to the same PLAYER as a row
+ * this ingest just wrote, whose `norm_name` is NOT in the current CSV. A player
+ * who simply dropped off the salary sheet keeps his row (that's a data gap, not
+ * a rename), and a row that resolves to nobody is never touched since it can't
+ * be proven a duplicate.
+ *
+ * ── Why "same player" is resolved, not read off player_id ───────────────────
+ * This used to compare `player_id` alone, and so missed the half of the bug it
+ * matters most on. `player_id` is filled by `matchPlayer` — a NAME join against
+ * nba_players — so a rename that ALSO breaks that join writes the new row with a
+ * null id, and the two rows then share nothing to group on. The guard was keyed
+ * on the very thing the rename breaks.
+ *
+ * That is exactly how Nic Claxton got past it: HoopsHype relisted him as
+ * "Nicolas Claxton" on 2026-07-29, the `nicolas claxton` alias didn't exist until
+ * 2026-08-03, so the new row landed with player_id null, this sweep saw nothing,
+ * and a stale $25.5M row survived beside the real $23.3M one until
+ * `identity:reconcile` found them resolving to one fhe_id on 2026-08-04.
+ *
+ * So identity comes from the shared resolver (`src/lib/player-identity`) —
+ * provider id first, then the alias-aware name, ambiguity refused — which is the
+ * same rule `identity:reconcile` and `contracts:dedupe` use. player_id remains a
+ * fallback key, so nothing previously swept stops being swept. If the registry
+ * is empty the sweep degrades to the old id-only behaviour rather than failing
+ * the ingest: a missed sweep is a stale row, an aborted ingest is no salaries.
  */
 async function sweepRenamedDuplicates(
   supabase: ReturnType<typeof getServiceClient>,
   written: ContractRow[],
+  dryRun = false,
 ): Promise<void> {
+  const index = await loadIdentityIndex(supabase);
+  const keyOf = (playerId: string | null, name: string | null, team: string | null): string | null => {
+    const hit = index?.resolveOrNull({ espnId: playerId, name, team });
+    if (hit) return `fhe:${hit.fheId}`;
+    return playerId ? `espn:${playerId}` : null;
+  };
+
   const writtenNames = new Set(written.map((c) => c.norm_name));
-  const writtenIds = new Set(written.map((c) => c.player_id).filter((id): id is string => Boolean(id)));
-  if (writtenIds.size === 0) return;
+  const writtenKeys = new Set(
+    written.map((c) => keyOf(c.player_id, c.salary_player_name, c.team)).filter((k): k is string => Boolean(k)),
+  );
+  if (writtenKeys.size === 0) return;
 
   const { data, error } = await supabase
     .from("nba_contracts")
-    .select("norm_name,salary_player_name,player_id")
-    .not("player_id", "is", null);
+    .select("norm_name,salary_player_name,player_id,team");
   if (error) throw new Error(`nba_contracts sweep read: ${error.message}`);
 
-  const stale = (data ?? []).filter(
-    (r) => r.player_id && writtenIds.has(r.player_id as string) && !writtenNames.has(r.norm_name as string),
-  );
+  const stale = (data ?? []).filter((r) => {
+    if (writtenNames.has(r.norm_name as string)) return false;
+    const key = keyOf(r.player_id as string | null, r.salary_player_name as string, r.team as string | null);
+    return key != null && writtenKeys.has(key);
+  });
   if (stale.length === 0) return;
 
+  if (dryRun) {
+    console.log(
+      `Would sweep ${stale.length} row(s) orphaned by a name change: ` +
+        stale.map((r) => `'${r.norm_name}'`).join(", "),
+    );
+    return;
+  }
   for (const r of stale) {
     const { error: delErr } = await supabase
       .from("nba_contracts").delete().eq("norm_name", r.norm_name as string);
@@ -270,6 +336,12 @@ async function main() {
       if (error) throw new Error(`nba_contracts upsert: ${error.message}`);
     }
     await sweepRenamedDuplicates(supabase, deduped);
+  } else {
+    // Report-only sweep. The sweep is the one part of this script whose blast
+    // radius is a DELETE, and it used to be unobservable without writing —
+    // which is precisely why its player_id blind spot went unnoticed. --dry-run
+    // now shows what it would remove.
+    await sweepRenamedDuplicates(supabase, deduped, true);
   }
 
   // Always write the unmatched report — the human's spot-check list.

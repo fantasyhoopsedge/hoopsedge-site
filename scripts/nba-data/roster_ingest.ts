@@ -331,7 +331,18 @@ async function main() {
     // step from yr1 across the contract length (rising/falling to sum exactly
     // to the total). Either way the filled years are flagged as estimates so
     // they're never mistaken for real cap figures.
-    const rs = real.get(norm);
+    // Alias-aware on purpose. The roster sheet and current.csv are two of exactly
+    // the sources CLAUDE.md requires to meet through player-name-aliases.ts, and
+    // a plain .get() here silently skipped the AUTHORITATIVE source for anyone
+    // whose two sheets spell him differently — falling through to the roster
+    // sheet's own yr1 and then ESTIMATING every out-year from contract_total.
+    // Measured 2026-08-04, 3 players affected, 2 materially: Nic Claxton's
+    // 2027-28 stored as $73.7M against a real $21.1M, Yang Hansen's as $7.1M
+    // against $4.9M. Both were flagged EST, so the display was honest about
+    // being an estimate — but the real figure was sitting in current.csv the
+    // whole time, one alias lookup away. `matchPlayer` below already resolves
+    // through the same map; this was the one join in the file that didn't.
+    const rs = lookupWithNameAlias(real, norm);
 
     // Large YoY jump between consecutive KNOWN current.csv years — flagged for
     // human review (jumpFlags, reported below the main loop) AND used to
