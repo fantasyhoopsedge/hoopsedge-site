@@ -28,6 +28,9 @@ export type ContractBucket = "Rookie Scale" | "Standard" | "Other";
 // no round trip.
 export type RealSalaryInputRow = {
   playerId: string;
+  /** Canonical identity, for matching this row against other FHE surfaces.
+   *  Null on a `cons-` placeholder the registry couldn't place. */
+  fheId: string | null;
   name: string;
   team: string | null;
   position: string | null;
@@ -316,8 +319,12 @@ export function RealSalaryTable({ rows }: { rows: RealSalaryInputRow[] }) {
       const res = await fetch(`/api/team-rosters/${team}`);
       if (!res.ok) throw new Error("failed");
       const roster: Player[] = await res.json();
+      // Identity first — /api/team-rosters now returns fheId for every player.
+      // The name match stays as a fallback for the `cons-` placeholder rows,
+      // which exist precisely because the registry has no identity for them.
       const target = normalizePlayerName(r.name);
-      const match = roster.find((p) => normalizePlayerName(p.name) === target);
+      const match = (r.fheId ? roster.find((p) => p.fheId === r.fheId) : undefined)
+        ?? roster.find((p) => normalizePlayerName(p.name) === target);
       if (!match) {
         setQuickView({ open: true, loading: false, error: "Couldn't find this player's team-rosters data.", player: null, ...base });
         return;

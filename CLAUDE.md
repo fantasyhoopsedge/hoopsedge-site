@@ -385,6 +385,11 @@ prediction game with OG-image cards and a grader in `src/lib/draftNight/`),
 `dynasty-rankings`, `seasonal-rankings`, `draft-board`, `prospects/[slug]`,
 `team-rosters/[team]` (per-team roster analysis joining `nba_roster` + stats +
 values + trends; sidebar layout via `src/components/app-sidebar.tsx`), and
-the `admin` review panels. SEO metadata, JSON-LD, sitemap, and robots are
+the `admin` review panels.
+
+`/api/team-rosters/[team]` returns the same rich `Player[]` the page renders, and
+every player now carries **`fheId`** — use that to match a player against another
+FHE surface, never `id` (which is an ESPN id OR an `n_<name>` placeholder for a
+roster row with no resolved id, so it is not safe to join on). SEO metadata, JSON-LD, sitemap, and robots are
 first-class (`src/app/layout.tsx`, `sitemap.ts`, `robots.ts`); canonical URLs are
 the `www` host.

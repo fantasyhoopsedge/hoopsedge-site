@@ -150,6 +150,7 @@ export default async function RealSalaryRankingsPage() {
     const unsigned = v.salary == null;
     rows.push({
       playerId: v.player_id,
+      fheId: v.fhe_id ?? null,
       name: s.name,
       team: unsigned ? "FA" : s.team,
       position: s.position,

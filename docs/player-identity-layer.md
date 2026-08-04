@@ -25,7 +25,7 @@ eighth time and made the pattern impossible to ignore.
 > `cons-` placeholders in `real_salary_values`.
 >
 > **Phase 3 — consumer migration** — Fantrax connector (2026-08-03),
-> real-salary (2026-08-04). Remaining: team-rosters → seasonal → dynasty →
+> real-salary and team-rosters (2026-08-04). Remaining: seasonal → dynasty →
 > models.
 >
 > **Phase 4 — the shared layer** (2026-08-04) — see §3.3 below, now built:
@@ -371,7 +371,15 @@ match the name join before switching. Any regression is one file to revert.
 > out.csv` exists for exactly this and should be the template for the next
 > consumer.
 >
-> Two gotchas that will recur:
+> Three gotchas that will recur:
+> - **Next 16 dev caches under `.next/dev/cache/`, not `.next/cache/`.** Clearing
+>   the old path does nothing, and `unstable_cache` will happily serve a
+>   pre-change payload that looks like a passing diff. This cost a full
+>   before/after cycle on team-rosters: the "after" capture was byte-identical to
+>   the "before" because BOTH came from a cache populated before the edit. Stop
+>   the server, clear `.next/dev/cache/fetch-cache`, restart, THEN capture — and
+>   sanity-check that a field you know you added is actually present before
+>   trusting any diff.
 > - Diff the SERVER-RENDERED page too, not just the build. Parse the row payload
 >   and compare field by field rather than comparing bytes: `/real-salary-
 >   rankings` computes `age` from `Date.now()` on every render by design, so a
