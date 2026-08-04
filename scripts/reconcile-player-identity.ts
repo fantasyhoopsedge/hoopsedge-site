@@ -40,8 +40,9 @@
  */
 import { promises as fs } from "fs";
 import path from "path";
-import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
-import { nameKeyCandidates } from "../src/lib/player-name-aliases";
+import { getServiceClient, loadEnv } from "./nba-data/client";
+import { identityFromRow, PlayerIdentityIndex, type IdentityRecord } from "../src/lib/player-identity";
+import { NICKNAME_TO_LEGAL_NAME } from "../src/lib/player-name-aliases";
 
 loadEnv();
 
@@ -56,37 +57,29 @@ interface RegistryRow {
   bbm_id: string | null;
 }
 
-/** Resolves a row two independent ways so they can be compared. */
+/**
+ * Resolves a row two independent ways so they can be compared.
+ *
+ * The comparison is the whole point, so the two paths must be *separate* here
+ * even though `PlayerIdentityIndex.resolve()` would combine them — asking the
+ * combined resolver twice would compare it against itself. What the shared index
+ * supplies is the id lookup and the alias-aware name lookup; the decision to run
+ * them independently and diff the answers is this script's job.
+ */
 class Resolver {
-  private byEspn = new Map<string, RegistryRow>();
-  private byNorm = new Map<string, RegistryRow[]>();
-
-  constructor(rows: RegistryRow[]) {
-    for (const r of rows) {
-      if (r.espn_id) this.byEspn.set(r.espn_id, r);
-      const list = this.byNorm.get(r.norm_name) ?? [];
-      list.push(r);
-      this.byNorm.set(r.norm_name, list);
-    }
-  }
+  constructor(private readonly index: PlayerIdentityIndex) {}
 
   /** By provider id only — null when the key isn't an ESPN id (sl-/cons-). */
-  byId(playerId: string | null): RegistryRow | null {
-    if (!playerId) return null;
-    return this.byEspn.get(playerId) ?? null;
+  byId(playerId: string | null): IdentityRecord | null {
+    return this.index.byProviderId("espnId", playerId);
   }
 
   /** By name only, through the alias map. Null when absent OR ambiguous —
    *  an ambiguous name is not a resolution, it's a coin flip. */
-  byName(name: string | null): RegistryRow | null | "ambiguous" {
-    if (!name) return null;
-    const norm = normalizeName(name);
-    for (const key of nameKeyCandidates(norm)) {
-      const hit = this.byNorm.get(key);
-      if (hit?.length === 1) return hit[0];
-      if (hit && hit.length > 1) return "ambiguous";
-    }
-    return null;
+  byName(name: string | null): IdentityRecord | null | "ambiguous" {
+    const candidates = this.index.candidatesByName(name);
+    if (candidates.length === 0) return null;
+    return candidates.length === 1 ? candidates[0] : "ambiguous";
   }
 }
 
@@ -149,10 +142,10 @@ function reconcile(table: string, rows: Row[], resolver: Resolver): TableResult 
     }
 
     // THE check: both paths resolved, to different humans.
-    if (viaId && viaName && viaName !== "ambiguous" && viaId.fhe_id !== viaName.fhe_id) {
+    if (viaId && viaName && viaName !== "ambiguous" && viaId.fheId !== viaName.fheId) {
       res.disagreements.push({
         scope: row.scope, key: row.playerId ?? "—", name: row.name ?? "—",
-        detail: `id join -> ${viaId.fhe_id} (${viaId.display_name}); name join -> ${viaName.fhe_id} (${viaName.display_name})`,
+        detail: `id join -> ${viaId.fheId} (${viaId.displayName}); name join -> ${viaName.fheId} (${viaName.displayName})`,
       });
     }
 
@@ -160,9 +153,9 @@ function reconcile(table: string, rows: Row[], resolver: Resolver): TableResult 
     if (resolved) {
       res.resolvedEither += 1;
       const byScope = seen.get(row.scope) ?? new Map<string, Row[]>();
-      const list = byScope.get(resolved.fhe_id) ?? [];
+      const list = byScope.get(resolved.fheId) ?? [];
       list.push(row);
-      byScope.set(resolved.fhe_id, list);
+      byScope.set(resolved.fheId, list);
       seen.set(row.scope, byScope);
     } else {
       res.unresolved.push({
@@ -220,7 +213,9 @@ async function main(): Promise<void> {
     throw new Error("player_identity is empty — run `npm run identity:build` first.");
   }
   console.log(`Registry: ${registry.length} identities\n`);
-  const resolver = new Resolver(registry);
+  const resolver = new Resolver(
+    new PlayerIdentityIndex(registry.map(identityFromRow), NICKNAME_TO_LEGAL_NAME),
+  );
 
   const results: TableResult[] = [];
 

@@ -1,20 +1,19 @@
 import dynastyRankingsJson from "./dynasty-rankings.json";
 import nbaPlayerIds from "./nba-player-ids.json";
+import { normalizePlayerName } from "./player-identity/normalize";
 import { nameKeyCandidates } from "./player-name-aliases";
 
 type NbaPlayerEntry = { id: string; name: string; team: string | null; position: string | null };
 const NBA_PLAYER_IDS = nbaPlayerIds as Record<string, NbaPlayerEntry>;
 
-export function normalizePlayerName(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[.,'’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+/**
+ * Re-exported, not defined here. This used to be one of four hand-maintained
+ * copies of the same rule; it now forwards to the single implementation in
+ * `player-identity/normalize.ts`, so the parity CLAUDE.md asks for is structural
+ * rather than a promise. The export stays at this path because ~15 call sites
+ * import it from here — moving them would be churn with no behaviour change.
+ */
+export { normalizePlayerName };
 
 /** Returns the NBA Stats player id for a given display name, or null. */
 export function nbaIdFor(playerName: string): string | null {

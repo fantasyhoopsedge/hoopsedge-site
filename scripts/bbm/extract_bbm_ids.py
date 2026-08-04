@@ -30,9 +30,7 @@ from __future__ import annotations
 import argparse
 import csv
 import os
-import re
 import sys
-import unicodedata
 
 try:
     import pandas as pd
@@ -50,16 +48,10 @@ OUT_CSV = os.path.join(REPO_ROOT, "data", "player-ids", "bbm-players.csv")
 COLUMNS = ["bbm_id", "nba_stats_id", "name", "norm_name", "team", "pos", "seasons"]
 
 
-def normalize_name(name: str) -> str:
-    """Byte-identical to normalizePlayerName() in src/lib/dynasty-rankings.ts.
-
-    lowercase -> strip diacritics -> strip .,'’ -> strip jr/sr/ii/iii/iv -> collapse ws
-    """
-    s = unicodedata.normalize("NFD", str(name).lower())
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"[.,'’]", "", s)
-    s = re.sub(r"\s+(jr|sr|ii|iii|iv)\b", "", s)
-    return re.sub(r"\s+", " ", s).strip()
+# The one normalizer, not a copy of it. `models/` is not a package, so reach it
+# by path the same way models/rookie-translation/common.py does.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models")))
+from player_identity import normalize_name  # noqa: E402,F401
 
 
 def infer_season(df: "pd.DataFrame") -> str:

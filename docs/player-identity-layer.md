@@ -1,24 +1,42 @@
-# Player Identity Layer — proposal
+# Player Identity Layer
 
-**Status:** **Phase 1 BUILT** (2026-08-03). Phases 2–4 still proposals, for review.
-**Date:** 2026-08-03
+**Status:** **Phases 1–3 built, Phase 4 substantially built** (last updated
+2026-08-04).
+**Started:** 2026-08-03
 **Prompted by:** the Fantrax connector build, which paid the identity tax for the
 eighth time and made the pattern impossible to ignore.
 
 > ### What now exists
 >
+> **Phase 1 — the registry** (2026-08-03)
 > - `supabase/migrations/20260803020000_player_identity.sql` — `player_identity`,
->   `player_name_alias`, `player_identity_unresolved`. **Not yet applied.**
+>   `player_name_alias`, `player_identity_unresolved`. Applied.
 > - `scripts/build-player-identity.ts` (`npm run identity:build`) — merges every
->   source into the registry, writes `data/player-ids/player-identity.json`, and
->   skips the Supabase write with a warning until the migration lands.
+>   source into the registry and writes `data/player-ids/player-identity.json`.
 > - `scripts/bbm/extract_bbm_ids.py` + `data/player-ids/bbm-players.csv` —
 >   Basketball Monster ids, extracted from BBM's `.xls` exports.
+> - `npm run identity:reconcile` — read-only validation gate.
 >
-> **First build: 1,199 identities.** 882 ESPN ids, 692 NBA Stats ids, 1,005 BBM
-> ids; **683 rows now carry both an ESPN and an NBA Stats id** — two spaces that
-> previously had zero overlap — and 700 carry both a BBM and an ESPN id.
-> Idempotent: consecutive runs are byte-identical, zero id churn.
+> **Phase 2 — dual-key** (2026-08-03) — `fhe_id` on all five consumer tables via
+> `20260803030000_player_identity_dual_key.sql` + `npm run identity:backfill`.
+> Coverage as of 2026-08-04 is 100% on every dataset the app actually reads
+> (2024/2025/2026 regular + postseason, 2027/projection, `nba_player_trends`,
+> `nba_roster`); the only gaps are dead historical Summer-League rows and 11
+> `cons-` placeholders in `real_salary_values`.
+>
+> **Phase 3 — consumer migration** — Fantrax connector done (2026-08-03).
+> Remaining: real-salary → team-rosters → seasonal → dynasty → models.
+>
+> **Phase 4 — the shared layer** (2026-08-04) — see §3.3 below, now built:
+> - `src/lib/player-identity/` — `normalize.ts` (THE normalizer), `registry.ts`
+>   (THE resolver), `bundled.ts` (the snapshot), `registry.json` (generated).
+> - `models/player_identity.py` — the Python side, reading the same snapshot.
+> - `npm run identity:verify` — nine read-only checks, ~1s, no DB.
+>
+> **Registry: 1,206 identities.** 1,150 ESPN ids, 692 NBA Stats ids, 1,005 BBM
+> ids, 972 Fantrax ids; **691 rows carry both an ESPN and an NBA Stats id** — two
+> spaces that previously had zero overlap — and 959 carry both a BBM and an ESPN
+> id. Idempotent: consecutive runs are byte-identical, zero id churn.
 >
 > Section 3 below is the design as proposed; it was implemented essentially as
 > written, with `bbm_id` promoted to a first-class column (§2.2).
@@ -241,24 +259,65 @@ create table player_name_alias (
 `player_name_alias` **replaces all three** existing alias maps. It is additive
 by nature: every new source contributes its dialect instead of forking a map.
 
-### 3.3 One generated artifact, three consumers
+### 3.3 One generated artifact, three consumers — **BUILT 2026-08-04**
 
 The TS/Python split is the reason the alias maps diverged, so solve it directly:
 the build emits **one JSON snapshot** that every runtime reads.
 
 ```
-scripts/build-player-identity.ts   →  src/lib/player-identity.json   (bundled, like nba-player-ids.json)
-                                   →  models/data/player-identity.json (same bytes, for Python)
+scripts/build-player-identity.ts   →  data/player-ids/player-identity.json    (the id LEDGER, full)
+                                   →  src/lib/player-identity/registry.json   (the resolution INDEX, slim)
 ```
 
-- **TS runtime** — `src/lib/player-identity/` resolves from the bundled JSON. No
-  DB round trip; same pattern `nba-player-ids.json` already uses successfully.
-- **Python models** — read the same file. The "cannot be imported here" comment
-  goes away.
-- **SQL** — joins against the tables directly.
+Two files, not three. The proposal called for a copy under `models/`; that was
+dropped, because a second copy of the same data is a second thing to drift and
+Python can read the generated index where it lies. Reading a file out of `src/`
+from Python looks odd and is the point: one producer, two consumers, no mirror.
 
-The normalizer ships in that module and is *called*, not copied. Add a CI check
-that fails if the four current implementations drift, until they're all deleted.
+- **TS app/scripts** — `@/lib/player-identity` for the resolver and normalizer
+  (data-free, safe in a client component); `@/lib/player-identity/bundled` when
+  you actually want the ~230 KB snapshot. Two entry points so the bundle cost is
+  a decision rather than an accident.
+- **Python models** — `models/player_identity.py` reads the same index and
+  mirrors the same resolution ladder. `models/rookie-translation/common.py`
+  re-exports from it, so model scripts needed no change.
+- **SQL** — joins against `player_identity` directly (service-role only: RLS is
+  on with no policies, and an anon read returns zero rows *silently*).
+
+The ledger and the index have different jobs and should not be merged. The
+ledger exists to keep `fhe_id`s stable across rebuilds and carries provenance
+(`sources`, `confidence`, rotowire/sportradar/statsinc ids); the index carries
+only what a resolver needs, so it can be imported without shipping the trail.
+
+**The normalizer ships in that module and is called, not copied.** All six
+copies are gone — the four in the proposal plus `src/lib/dynasty-board.ts`
+(which already delegated) and a verbatim duplicate inside
+`src/app/admin/rookie-board/_editor.tsx`. `src/lib/rookie-board.ts`'s was the one
+that had genuinely drifted, and converging it was **measured before it was done**:
+across all 1,238 distinct names in the board, the prospect pool, the dynasty
+board and the registry, the two rules agree on every one.
+
+`npm run identity:verify` is the drift check, and it is READ-ONLY — no DB, no
+network, ~1 second, so it is cheap enough to run on any change touching a name:
+
+1. the generated snapshot carries the authored alias list (catches "edited the
+   aliases, forgot to rebuild", which would strand Python on the old list);
+2. TS and Python normalizers agree on all 1,225 registry names plus adversarial
+   cases (diacritics, suffixes, initials, whitespace);
+3. no alias pair has both forms present as separate identities;
+4. every provider id is unique across identities;
+5. every stored `norm_name` is what the normalizer actually returns;
+6. the suffix-strip rule appears in no file but the two canonical ones.
+
+Check 6 is a grep, and crude on purpose: it is the one most likely to still be
+working in a year, and it found four copies that hand enumeration had missed
+(`scripts/sync-nba-players.js`, `scripts/swap-experts.js`,
+`scripts/swap-hashtag-for-fbihe.ts`, `scripts/bbm/extract_bbm_ids.py`).
+
+One wrinkle worth keeping: check 2 shells out to Python, and Python on Windows
+defaults its stdio to the console codepage. The naive version reported every
+accented name as a mismatch. It now forces UTF-8 both ways and returns
+ASCII-escaped JSON — a check that cries wolf is a check nobody runs.
 
 ### 3.4 How each source attaches
 
@@ -308,6 +367,19 @@ make `player_name_alias` the only place a name variant can be recorded.
 
 Phases 1–2 are safe to do now. Phase 3 should wait until the Fantrax connector
 graduates from admin-only, so the two changes don't land on top of each other.
+
+> **Phase 4 status (2026-08-04).** Normalizer copies: all six deleted, one
+> implementation per language, drift-checked. Alias maps: the two Python maps are
+> gone; `src/lib/player-name-aliases.ts` is now the ONE authored list and the
+> build carries it into the snapshot both languages read. The merge added
+> `gregory jackson ⇄ gg jackson` (previously Python-only) to the shared list —
+> verified collision-free first, so `name_candidates()` on the Python side now
+> returns a superset of what it used to.
+>
+> Still outstanding: `player_name_alias` (the TABLE) is written by the build but
+> nothing reads it yet — the authored TS map is still the source. Promoting the
+> table to source-of-truth means giving the admin panel a way to add a pair, and
+> is the last piece of Phase 4.
 
 ---
 

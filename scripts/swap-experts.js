@@ -7,7 +7,7 @@
  *   - Drop players who end up with 0 expert ranks
  *
  * Source: https://dynatyze.com/api/rankings?limit=150
- * Run:    node scripts/swap-experts.js
+ * Run:    npx tsx scripts/swap-experts.js
  */
 
 const fs = require("fs");
@@ -29,16 +29,9 @@ const ALIASES = {
   // populate after first pass shows misses
 };
 
-function normalize(name) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // strip diacritics
-    .replace(/[.,'’]/g, "")
-    .replace(/\s+(jr|sr|ii|iii|iv)\b/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
+// A spent one-off migration, but it still keys on the ecosystem's join key, so it
+// imports the normalizer rather than carrying the sixth copy of it. Now needs tsx.
+const { normalizePlayerName: normalize } = require("../src/lib/player-identity/normalize");
 
 async function fetchDynatyze() {
   process.stdout.write("Fetching Dynatyze top 150… ");

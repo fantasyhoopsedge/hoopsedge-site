@@ -20,6 +20,7 @@
     "realsalary:build": "tsx scripts/build-real-salary-values.ts",
     "espn:resolve": "tsx scripts/resolve-espn-ids.ts",
     "identity:build": "tsx scripts/build-player-identity.ts",
+    "identity:verify": "tsx scripts/verify-player-identity.ts",
     "identity:reconcile": "tsx scripts/reconcile-player-identity.ts",
     "identity:backfill": "tsx scripts/backfill-fhe-id.ts",
     "fantrax:snapshot": "tsx scripts/snapshot-fantrax-ids.ts",

@@ -553,7 +553,8 @@ def main() -> None:
         # silent failure: he is projected as a rookie and his real minutes go to
         # his team-mates. Surface every one.
         print(f"  !! {len(vets_no_history)} NON-rookie(s) have no 3-year history — check for a "
-              f"name-join miss (add to ROSTER_NAME_TO_HOOPR in common.py + its TS mirror):")
+              f"name-join miss (add the pair to src/lib/player-name-aliases.ts, "
+              f"then re-run `npm run identity:build`):")
         for _, p in vets_no_history.iterrows():
             print(f"       {p['team']:>3} {p['player']} (yos {p['yos']})")
 

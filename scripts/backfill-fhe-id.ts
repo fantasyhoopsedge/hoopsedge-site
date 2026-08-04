@@ -26,8 +26,9 @@
  * distinct player key, which updates all that player's rows at once and only
  * ever writes the single fhe_id column.
  */
-import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
-import { nameKeyCandidates } from "../src/lib/player-name-aliases";
+import { getServiceClient, loadEnv } from "./nba-data/client";
+import { identityFromRow, PlayerIdentityIndex, type IdentityRecord } from "../src/lib/player-identity";
+import { NICKNAME_TO_LEGAL_NAME } from "../src/lib/player-name-aliases";
 
 loadEnv();
 
@@ -48,6 +49,19 @@ interface RegistryRow {
 
 type Client = ReturnType<typeof getServiceClient>;
 
+/**
+ * One resolution rule, shared with the app and the reconcile gate
+ * (`src/lib/player-identity`). It used to be a local class here and a
+ * near-identical one in reconcile — which is how the real_salary_values gap in
+ * the header note above stayed hidden until the two were compared. Same code
+ * now, so a divergence between the two reports means the DATA moved, not that
+ * the scripts disagree.
+ */
+function resolveVia(index: PlayerIdentityIndex, playerId: string | null, name: string | null): IdentityRecord | null {
+  // espnId first, then name — and an ambiguous name is refused, not coin-flipped.
+  return index.resolveOrNull({ espnId: playerId, name });
+}
+
 async function fetchAll<T>(
   build: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>,
   label: string,
@@ -62,34 +76,6 @@ async function fetchAll<T>(
     if (rows.length < PAGE) break;
   }
   return out;
-}
-
-class Resolver {
-  private byEspn = new Map<string, RegistryRow>();
-  private byNorm = new Map<string, RegistryRow[]>();
-
-  constructor(rows: RegistryRow[]) {
-    for (const r of rows) {
-      if (r.espn_id) this.byEspn.set(r.espn_id, r);
-      const list = this.byNorm.get(r.norm_name) ?? [];
-      list.push(r);
-      this.byNorm.set(r.norm_name, list);
-    }
-  }
-
-  resolve(playerId: string | null, name: string | null): RegistryRow | null {
-    if (playerId) {
-      const hit = this.byEspn.get(playerId);
-      if (hit) return hit;
-    }
-    if (!name) return null;
-    for (const key of nameKeyCandidates(normalizeName(name))) {
-      const hit = this.byNorm.get(key);
-      if (hit?.length === 1) return hit[0];
-      if (hit && hit.length > 1) return null; // ambiguous is not an answer
-    }
-    return null;
-  }
 }
 
 /** One PATCH target: all rows sharing this key get this fhe_id. */
@@ -174,7 +160,7 @@ async function main(): Promise<void> {
     "player_identity",
   );
   if (!registry.length) throw new Error("player_identity is empty — run `npm run identity:build` first.");
-  const resolver = new Resolver(registry);
+  const index = new PlayerIdentityIndex(registry.map(identityFromRow), NICKNAME_TO_LEGAL_NAME);
   console.log(`Registry: ${registry.length} identities`);
   console.log(APPLY ? "Mode: APPLY (writing fhe_id)\n" : "Mode: report only (nothing written)\n");
 
@@ -196,15 +182,15 @@ async function main(): Promise<void> {
     const patches: Patch[] = [];
     const unresolved: string[] = [];
     for (const [key, e] of byKey) {
-      const hit = resolver.resolve(e.playerId, e.name);
-      if (hit) patches.push({ column: spec.keyColumn, key, fheId: hit.fhe_id });
+      const hit = resolveVia(index, e.playerId, e.name);
+      if (hit) patches.push({ column: spec.keyColumn, key, fheId: hit.fheId });
       else unresolved.push(e.name ?? key);
     }
 
     const coveredRows = rows.filter((r) => {
       if (!r.key) return false;
       const e = byKey.get(r.key)!;
-      return resolver.resolve(e.playerId, e.name) !== null;
+      return resolveVia(index, e.playerId, e.name) !== null;
     }).length;
 
     console.log(`${spec.table}`);

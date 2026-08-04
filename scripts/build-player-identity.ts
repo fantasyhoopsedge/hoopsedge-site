@@ -40,7 +40,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { getServiceClient, loadEnv, normalizeName } from "./nba-data/client";
 import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
-import { nameKeyCandidates } from "../src/lib/player-name-aliases";
+import { NICKNAME_TO_LEGAL_NAME, nameKeyCandidates } from "../src/lib/player-name-aliases";
 
 loadEnv();
 
@@ -49,6 +49,20 @@ const DRY_RUN = argv.includes("--dry-run");
 
 const DATA_DIR = path.join(process.cwd(), "data", "player-ids");
 const ARTIFACT = path.join(DATA_DIR, "player-identity.json");
+/**
+ * The slim resolution index every runtime reads (docs §3.3). Distinct from
+ * ARTIFACT above, which is the full id LEDGER — the ledger exists to keep
+ * `fhe_id`s stable across rebuilds and carries fields (sources, confidence,
+ * rotowire/sportradar/statsinc ids) no resolver needs. This one carries exactly
+ * the ids and disambiguators `PlayerIdentityIndex` resolves on, so it can be
+ * imported into a bundle without shipping the provenance trail.
+ *
+ * It lives under src/lib because TypeScript imports it directly, the same way
+ * nba-player-ids.json and dynasty-rankings.json already do. Python reads THIS
+ * file too rather than getting its own copy — a second copy is a second thing to
+ * drift, which is the exact failure this layer removes.
+ */
+const RUNTIME_INDEX = path.join(process.cwd(), "src", "lib", "player-identity", "registry.json");
 const BBM_CSV = path.join(DATA_DIR, "bbm-players.csv");
 const ESPN_CSV = path.join(DATA_DIR, "espn-ids.csv");
 const FANTRAX_CSV = path.join(DATA_DIR, "fantrax-players.csv");
@@ -384,6 +398,51 @@ function blockedFantraxNames(rows: Record<string, string>[]): Set<string> {
   return blocked;
 }
 
+/**
+ * Emit the slim resolution index (see RUNTIME_INDEX above).
+ *
+ * Null fields are omitted rather than written: at 1,200 identities × 11 fields
+ * the nulls are most of the file, and the loader restores them, so the committed
+ * diff shows only ids that actually exist. The alias map travels with it so the
+ * TypeScript and Python sides read ONE authored list — `player-name-aliases.ts`
+ * remains the only place a nickname pair is written by hand, and the Python
+ * comment about it being "TypeScript-side only, so it cannot be imported here"
+ * stops being true.
+ */
+async function writeRuntimeIndex(all: Identity[]): Promise<void> {
+  const players = all.map((r) => {
+    const slim: Record<string, unknown> = {
+      fheId: r.fhe_id,
+      displayName: r.display_name,
+      normName: r.norm_name,
+      status: r.status,
+    };
+    const optional: [string, unknown][] = [
+      ["espnId", r.espn_id], ["nbaStatsId", r.nba_stats_id], ["bbmId", r.bbm_id],
+      ["fantraxId", r.fantrax_id], ["dob", r.dob], ["draftYear", r.draft_year],
+      ["currentTeam", r.current_team],
+    ];
+    for (const [k, v] of optional) if (v != null) slim[k] = v;
+    return slim;
+  });
+
+  const body = [
+    "{",
+    `"generatedAt": ${JSON.stringify(new Date().toISOString())},`,
+    `"count": ${players.length},`,
+    `"aliases": ${JSON.stringify(NICKNAME_TO_LEGAL_NAME, null, 2)},`,
+    '"players": [',
+    players.map((p) => JSON.stringify(p)).join(",\n"),
+    "]",
+    "}",
+  ].join("\n");
+
+  await fs.mkdir(path.dirname(RUNTIME_INDEX), { recursive: true });
+  await fs.writeFile(RUNTIME_INDEX, `${body}\n`, "utf8");
+  const kb = (Buffer.byteLength(body) / 1024).toFixed(0);
+  console.log(`Wrote ${path.relative(process.cwd(), RUNTIME_INDEX)} (${players.length} players, ${kb} KB)`);
+}
+
 async function main(): Promise<void> {
   const supabase = getServiceClient();
   const reg = new Registry();
@@ -538,6 +597,8 @@ async function main(): Promise<void> {
   // not as hundreds of reindented field lines. Still ordinary JSON.
   await fs.writeFile(ARTIFACT, `[\n${all.map((r) => JSON.stringify(r)).join(",\n")}\n]\n`, "utf8");
   console.log(`\nWrote ${path.relative(process.cwd(), ARTIFACT)}`);
+
+  await writeRuntimeIndex(all);
 
   // Supabase is best-effort: Phase 1 is additive and nothing reads these tables
   // yet, so a missing migration must not fail the build that produces the
