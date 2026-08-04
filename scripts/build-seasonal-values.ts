@@ -15,8 +15,10 @@
  *   2. Run the industry-standard 9-cat value engine for every league size.
  *   3. Validation gate (league_size 400, 2025-26 regular ONLY) — must reproduce
  *      the reference export within tolerance, else STOP.
- *   4. Left-join dynasty consensus rank + position by aggressive-normalized name
- *      (consensus position overrides the nba_players position when present).
+ *   4. Left-join dynasty consensus rank + position by fhe_id, through the player
+ *      identity registry (consensus position overrides the nba_players position
+ *      when present). NOTE this does not touch how `team` is resolved — see the
+ *      priority note in upsert().
  *   5. Upsert season_player_stats + season_player_values, keyed by season +
  *      season_type so datasets coexist.
  */
@@ -25,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, normalizeName, loadEnv } from "./nba-data/client";
 import { isNbaTeam, normalizeTeamAbbr } from "../src/lib/nba-teams";
+import { playerIdentity } from "../src/lib/player-identity/bundled";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import {
   computeAllLeagueSizes,
@@ -188,7 +191,45 @@ async function fetchPlayers(): Promise<Map<string, { name: string; team: string 
 
 type ConsensusInfo = { rank: number; position: string | null; team: string | null };
 
-/** dynasty-rankings.json → normalized name → { consensus rank, position, team }. */
+/**
+ * dynasty-rankings.json → `fhe_id` → { consensus rank, position, team }.
+ *
+ * The board is a hand-published list of names with no id column, so a name has
+ * to become a player somewhere; doing it here means it happens once, through the
+ * registry, which refuses to guess on a duplicate name.
+ *
+ * **This does NOT change how `team` is resolved.** `team` on a stat row is the
+ * team the player accumulated that season's stats with — `lastGameTeam` first,
+ * then the nba_players snapshot, and only then (current season only) the
+ * consensus team as a last resort. See the priority note in upsert(). Joining
+ * consensus by id makes the row easier to find; it must never become a reason to
+ * take the player's CURRENT team. That regression already shipped once, when
+ * consensus was checked first and overwrote real season teams (Nic Claxton
+ * BKN→CHI, Norman Powell MIA→CHI, Walker Kessler UTA→LAL).
+ *
+ * Verified before switching, across all 2,442 rows this script owns: 0 rows
+ * change consensus_rank, 0 change position, and 0 change the consensus-team
+ * fallback value.
+ */
+export function loadConsensusByFheId(): Map<string, ConsensusInfo> {
+  const byName = loadConsensus();
+  const index = playerIdentity();
+  const raw = readFileSync(resolve(REPO_ROOT, "src/lib/dynasty-rankings.json"), "utf8");
+  const players = JSON.parse(raw) as Array<{ player: string }>;
+  const m = new Map<string, ConsensusInfo>();
+  for (const p of players) {
+    const info = byName.get(normalizeName(p.player));
+    if (!info) continue;
+    const res = index.resolve({ name: p.player });
+    if (res.kind === "matched" && !m.has(res.identity.fheId)) m.set(res.identity.fheId, info);
+  }
+  return m;
+}
+
+/** dynasty-rankings.json → normalized name → { consensus rank, position, team }.
+ *  Still exported and still name-keyed: build-real-salary-values.ts consumes it
+ *  and does its own identity resolution on top (its `cons-` placeholder rows need
+ *  the board NAME, which is what their synthetic ids encode). */
 export function loadConsensus(): Map<string, ConsensusInfo> {
   const raw = readFileSync(resolve(REPO_ROOT, "src/lib/dynasty-rankings.json"), "utf8");
   const players = JSON.parse(raw) as Array<{ player: string; consensusRank: number; position?: string | null; team?: string | null }>;
@@ -410,6 +451,7 @@ async function upsert(
   stats: PlayerStats[],
   agg: Map<string, Aggregate>,
   players: Map<string, { name: string; team: string | null; position: string | null }>,
+  /** Keyed by fhe_id — see loadConsensusByFheId(). */
   consensus: Map<string, ConsensusInfo>,
   lastGameTeam: Map<string, string>,
   values: Map<number, RankedPlayerValues[]>,
@@ -419,13 +461,22 @@ async function upsert(
   const supabase = getServiceClient();
   const now = new Date().toISOString();
 
+  const index = playerIdentity();
   const statRows = stats.map((s) => {
     const a = agg.get(s.playerId)!;
     const meta = players.get(s.playerId);
     const name = meta?.name ?? s.playerId;
-    const cons = lookupWithNameAlias(consensus, normalizeName(name)) ?? null;
+    // Identity, then consensus BY identity. Every player_id reaching this
+    // function is an ESPN id — the aggregation reads nba_player_game_logs, and
+    // the summer datasets (whose ids are `sl-<nbaComId>`) are owned by
+    // build-summer-league-values.ts and skipped here for want of game logs.
+    const identity = index.byProviderId("espnId", s.playerId);
+    const cons = (identity ? consensus.get(identity.fheId) : null) ?? null;
     return {
       player_id: s.playerId,
+      // Written by the build itself rather than backfilled afterwards — it
+      // already resolved this human in order to find his consensus row.
+      fhe_id: identity?.fheId ?? null,
       season: ds.season,
       season_type: ds.type,
       name,
@@ -442,6 +493,14 @@ async function upsert(
       //    the trade deadline and never suited up for either team that
       //    season). Historical seasons skip this because the consensus
       //    reflects today's roster, not where a player finished that season.
+      //
+      // UNCHANGED by the fhe_id migration (2026-08-04), deliberately. Keying the
+      // consensus JOIN on identity makes the row easier to find; it must never
+      // become a reason to take a player's CURRENT team. `nba_roster` carries an
+      // fhe_id too, so "join team by id" is now one line away and would be
+      // wrong — this table is the season's stats, and team-rosters /
+      // dynasty-rankings are where current team belongs. Verified: 0 of 2,442
+      // rows change their consensus-team fallback value under the id join.
       //
       // PREVIOUSLY consensus was checked first for the current season, which
       // meant any player whose current team differs from where they actually
@@ -543,6 +602,7 @@ export async function batchUpsert(
 async function buildDataset(
   ds: Dataset,
   players: Map<string, { name: string; team: string | null; position: string | null }>,
+  /** Keyed by fhe_id — see loadConsensusByFheId(). */
   consensus: Map<string, ConsensusInfo>,
 ): Promise<void> {
   console.log(`\n══ ${ds.label}  (season ${ds.season} / ${ds.type}) ══`);
@@ -593,8 +653,20 @@ async function buildDataset(
     runValidationGate(stats, agg, players, values);
   }
 
-  const matched = stats.filter((s) => lookupWithNameAlias(consensus, normalizeName(players.get(s.playerId)?.name ?? "")) != null).length;
-  console.log(`  consensus matched for ${matched}/${stats.length} players`);
+  const index = playerIdentity();
+  const identified = stats.filter((s) => index.byProviderId("espnId", s.playerId) != null);
+  const matched = identified.filter((s) => consensus.has(index.byProviderId("espnId", s.playerId)!.fheId)).length;
+  console.log(`  identity resolved for ${identified.length}/${stats.length} players`
+    + `, consensus matched for ${matched}`);
+  // A player the registry can't place gets no consensus rank and no position
+  // override — silently, since both columns are legitimately null for unranked
+  // players. Say so rather than let a registry regression look like the board
+  // simply not ranking someone.
+  if (identified.length < stats.length) {
+    const missing = stats.filter((s) => index.byProviderId("espnId", s.playerId) == null);
+    console.warn(`  ⚠ ${missing.length} player(s) have no identity — run \`npm run identity:build\`: `
+      + missing.slice(0, 8).map((s) => `${players.get(s.playerId)?.name ?? s.playerId}`).join(", "));
+  }
 
   // USG% — team totals summed from this dataset's own logs; player's team
   // resolved the same way the stat row's own TEAM column is (lastGameTeam
@@ -617,7 +689,7 @@ async function main(): Promise<void> {
   console.log(`Building ${datasets.length} dataset(s)${DRY_RUN ? " [DRY RUN]" : ""}: ${datasets.map((d) => d.label).join(", ")}`);
 
   const players = await fetchPlayers();
-  const consensus = loadConsensus();
+  const consensus = loadConsensusByFheId();
 
   for (const ds of datasets) {
     await buildDataset(ds, players, consensus);

@@ -7,7 +7,7 @@ import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import { shortenPlayerName } from "@/lib/shorten-name";
-import { normalizePlayerName, prospectHeadshotUrl, nbaHeadshotUrl } from "@/lib/dynasty-rankings";
+import { prospectHeadshotUrl, nbaHeadshotUrl } from "@/lib/dynasty-rankings";
 import { initials } from "@/app/team-rosters/_components/roster-helpers";
 
 type SeasonOption = { key: string; label: string };
@@ -240,20 +240,22 @@ export function SeasonalRankingsTable(props: {
   canonicalSize: number;
   seasons: SeasonOption[];
   activeSeason: string;
-  ageByName: Record<string, number>;
-  draftYearByName: Record<string, number>;
+  /** Keyed by fhe_id, resolved server-side in page.tsx — see its AGE_BY_FHE_ID
+   *  note on why this is neither a rank nor a name join. */
+  ageByFheId: Record<string, number>;
+  draftYearByFheId: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByName, draftYearByName } = props;
+  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByFheId, draftYearByFheId } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
   // back one year per prior season so the displayed age is dynamic to the dataset.
-  // Keyed by normalized name, NOT consensus_rank — rank numbers get reassigned
-  // to a different player on every dynasty refresh, so joining on rank instead
-  // of name would silently attach a stale rank's *new* owner's age to this row.
+  // Keyed by fhe_id, NOT consensus_rank — rank numbers get reassigned to a
+  // different player on every dynasty refresh, so joining on rank would silently
+  // attach a stale rank's *new* owner's age to this row (it did: Harden at 19).
   const seasonNum = parseInt(activeSeason, 10) || 2026;
   const ageOf = (s: SeasonPlayerStats): number | null => {
-    const base = ageByName[normalizePlayerName(s.name)];
+    const base = s.fhe_id ? ageByFheId[s.fhe_id] : undefined;
     if (base == null) return null;
     return base - (2026 - seasonNum);
   };
@@ -275,7 +277,7 @@ export function SeasonalRankingsTable(props: {
   const isSummerDataset = activeSeason.split(":")[1] === "summer";
   const classSeasonNum = isSummerDataset ? seasonNum + 1 : seasonNum;
   const classOf = (s: SeasonPlayerStats): "rookie" | "soph" | null => {
-    const draftYear = draftYearByName[normalizePlayerName(s.name)];
+    const draftYear = s.fhe_id ? draftYearByFheId[s.fhe_id] : undefined;
     if (draftYear == null) return null;
     if (classSeasonNum === draftYear + 1) return "rookie";
     if (classSeasonNum === draftYear + 2) return "soph";
