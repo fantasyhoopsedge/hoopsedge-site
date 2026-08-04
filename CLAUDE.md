@@ -109,6 +109,21 @@ don't change the conventions without re-validating. `/seasonal-rankings` reads
 the precomputed values on demand per size (`src/lib/value/seasonal-data.ts`),
 cached 15 min per `(season, type, size)` under tag `SEASONAL_TAG`.
 
+**Joined on `fhe_id` (Phase 3, 2026-08-04)** — consensus rank/position in the
+build, and age + rookie/soph badge on the page. The build writes
+`season_player_stats.fhe_id` itself. It owns regular + postseason only; summer
+datasets belong to `build-summer-league-values.ts` (their ids are
+`sl-<nbaComId>`, not ESPN ids) and 2027/projection to `build-projection-values.ts`.
+
+**A stat row's `team` is the team he played that season for — never his current
+team.** Priority is `lastGameTeam` → `nba_players` snapshot → consensus team
+(current season only, last resort). `nba_roster` now carries an `fhe_id`, so
+"join team by id" is one line away and would be **wrong**: this table is the
+season's stats, and `/team-rosters` + `/dynasty-rankings` are where current team
+belongs. Checking consensus first already shipped once and silently overwrote
+real season teams (Nic Claxton BKN→CHI, Norman Powell MIA→CHI, Walker Kessler
+UTA→LAL). Don't reintroduce it by a different route.
+
 `npm run trends:build` builds on top of that: per player, 12 two-week blocks of
 9CatV/Minus1V/8CatV scored against the FROZEN 400-player pool via the unmodified
 engine (rolling windows re-sum raw game totals — never average z-scores — so

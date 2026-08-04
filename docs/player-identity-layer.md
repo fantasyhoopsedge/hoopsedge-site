@@ -25,7 +25,7 @@ eighth time and made the pattern impossible to ignore.
 > `cons-` placeholders in `real_salary_values`.
 >
 > **Phase 3 — consumer migration** — Fantrax connector (2026-08-03),
-> real-salary and team-rosters (2026-08-04). Remaining: seasonal → dynasty →
+> real-salary, team-rosters and seasonal (2026-08-04). Remaining: dynasty →
 > models.
 >
 > **Phase 4 — the shared layer** (2026-08-04) — see §3.3 below, now built:
@@ -388,6 +388,16 @@ match the name join before switching. Any regression is one file to revert.
 >   `identity:backfill`. The build already resolved the human in order to score
 >   him; re-deriving that afterwards from the stored `player_id` is redundant and
 >   can silently fall behind between runs.
+>
+> **An id join makes wrong joins easy too.** Every consumer table now carries an
+> `fhe_id`, so any two of them can be joined in one line — including pairs that
+> should NOT be joined. `/seasonal-rankings` is the live example: a stat row's
+> `team` must stay the team the player accumulated that season with, and
+> `nba_roster.fhe_id` now makes "join his current team" trivial and wrong. That
+> exact regression already shipped once by a different route (consensus checked
+> first, overwriting real season teams). When migrating a consumer, list the
+> columns whose value is *historical* before starting, and treat them as
+> off-limits to the new key.
 
 **Phase 4 — delete** the three alias maps and the four normalizer copies, and
 make `player_name_alias` the only place a name variant can be recorded.

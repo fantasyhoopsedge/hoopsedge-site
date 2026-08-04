@@ -27,10 +27,10 @@ import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag 
 // gained or lost.
 //
 // Still name-keyed, deliberately:
-//   - getSophomoreNames() / getDraftYears() return norm_name-keyed maps that
-//     /dynasty-rankings and /seasonal-rankings consume. Re-keying them is those
-//     pages' migration, not this one — changing the key here without changing
-//     both callers would just break them.
+//   - getSophomoreNames() returns a norm_name-keyed list that /api/nba/sophomores
+//     serves to /dynasty-rankings. Re-keying it is that page's migration, not
+//     this one. (getDraftYears() moved to fhe_id on 2026-08-04 along with its one
+//     caller, /seasonal-rankings.)
 //   - depth-chart-body.tsx matches the depth-chart JSON to players by name. It
 //     is a CLIENT component, so resolving identities there would ship the ~230 KB
 //     registry to the browser; the fix is an fhe_id in the depth-chart artifact
@@ -90,8 +90,6 @@ function createReadClient() {
  * the browser.
  */
 const DYN_BY_FHE_ID = new Map<string, (typeof DYNASTY_RANKINGS)[number]>();
-/** Kept for the handful of lookups that only ever have a name — see byNameFallback. */
-const DYN_BY_NORM = new Map(DYNASTY_RANKINGS.map((d) => [normalizePlayerName(d.player), d]));
 for (const d of DYNASTY_RANKINGS) {
   const res = playerIdentity().resolve({ name: d.player });
   if (res.kind === "matched" && !DYN_BY_FHE_ID.has(res.identity.fheId)) {
@@ -333,27 +331,33 @@ export const getSophomoreNames = unstable_cache(
   CACHE_OPTS,
 );
 
-/** Every current roster player's draft year, keyed by normalized name. Draft year is a
+/** Every current roster player's draft year, keyed by `fhe_id`. Draft year is a
  * fixed historical fact (unlike is_sophomore, which only describes TODAY's status), so
  * this lets a caller derive "was this player a rookie/sophomore in season N" for ANY
  * season N — used by /seasonal-rankings, which shows historical per-season stat rows
  * (hoopR season N covers the (N-1)/N year; a player is a rookie in season draftYear+1,
- * a sophomore in season draftYear+2). Only covers players still on a 2026-27 roster. */
+ * a sophomore in season draftYear+2). Only covers players still on a 2026-27 roster.
+ *
+ * Re-keyed from norm_name to fhe_id (Phase 3, 2026-08-04). Measured across all 12
+ * datasets first: the id join loses nobody and gains three per season — Herbert
+ * Jones, Cameron Johnson and Ronald Holland II, whose stat rows carry their legal
+ * names while the roster carries the nicknames. This function has exactly one
+ * caller, so the key changed rather than a second key being added. */
 export const getDraftYears = unstable_cache(
   async (): Promise<Record<string, number>> => {
     const supabase = createReadClient();
     const { data } = await supabase
       .from("nba_roster")
-      .select("norm_name,draft_year")
+      .select("fhe_id,draft_year")
       .eq("season", ROSTER_SEASON)
       .not("draft_year", "is", null);
     const out: Record<string, number> = {};
     for (const r of data ?? []) {
-      if (r.draft_year != null) out[r.norm_name] = r.draft_year;
+      if (r.draft_year != null && r.fhe_id) out[r.fhe_id] = r.draft_year;
     }
     return out;
   },
-  ["team-roster-draft-years"],
+  ["team-roster-draft-years-by-fhe-id"],
   CACHE_OPTS,
 );
 
