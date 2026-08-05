@@ -379,6 +379,23 @@ script, and the JSON artifact. Ship a `/admin/player-identity` review panel
 listing unresolved names and conflicts. Nothing in the app reads it yet. This is
 already useful on day one: it's a standing report of every identity hole.
 
+> **The panel shipped 2026-08-05**, last of the Phase 1 deliverables. Six
+> sections: registry health (with a bundle-vs-database drift check), the review
+> queue grouped by reason, dynasty-board resolution, `fhe_id` coverage per
+> consumer table, the unattributed rows *by name*, and the authored alias list.
+>
+> **It is a report, not a merge tool, and that is deliberate.**
+> `player_identity_unresolved` is a QUEUE — `identity:build` upserts it from
+> scratch every run — so a decision recorded there would be erased by the next
+> build. Giving it a "resolve" button means first choosing where a decision lives
+> durably, and the right fix differs per reason: a `dob_conflict` wants
+> verification against a third source and an edit to the roster CSV (ESPN is not
+> authoritative — it has real DOB errors), a `no_match` wants an alias pair in a
+> committed, reviewable file, and `ambiguous`/`id_conflict` must never
+> auto-resolve at all (§5). Every one of those is a repo edit plus
+> `npm run identity:build`, so the panel names the exact edit per section instead
+> of pretending to a one-click merge it shouldn't have.
+
 **Phase 2 — dual-key.** Add a nullable `fhe_id` column beside the existing key on
 `nba_roster`, `nba_contracts`, `season_player_stats`, `nba_player_trends`,
 `real_salary_values`. Backfill. Existing joins untouched.
