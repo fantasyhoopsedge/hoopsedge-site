@@ -676,12 +676,59 @@ async function main(): Promise<void> {
   if (aliasErr) console.warn(`! player_name_alias write skipped: ${aliasErr.message}`);
   else console.log(`Upserted ${aliases.length} name aliases`);
 
-  if (reg.unresolved.length) {
+  // ── player_identity_unresolved: upsert current, then SWEEP what cleared ────
+  //
+  // Found 2026-08-05 fixing five DOB conflicts end to end: this used to be an
+  // upsert with no sweep, which contradicts the comment on the table itself
+  // ("Review queue for names the build refused to attach") and the doc's claim
+  // that the queue is "rewritten every run" — it wasn't. A name that stopped
+  // being a problem stayed in the table forever, because upsert only writes
+  // rows that still exist in reg.unresolved; it never removes a row that no
+  // longer does. Verified against the failure it would have caused here: five
+  // roster DOBs were corrected and the registry rebuilt, but the admin panel
+  // still reported 11 unresolved until this fix — the exact "still there after
+  // being fixed" bug already caught once on nba_contracts (see
+  // scripts/fix-duplicate-contracts.ts).
+  //
+  // Deduped by norm_name before the upsert for the same reason: the primary key
+  // is norm_name, and one player CAN legitimately generate two rows in one run
+  // (e.g. both nba_roster and espn_resolve disagreeing with the stored DOB in
+  // the same build) — Postgres rejects "ON CONFLICT DO UPDATE" touching the same
+  // row twice in one statement, which is exactly the error this threw before the
+  // dedupe was added.
+  const dedupedUnresolved = new Map<string, (typeof reg.unresolved)[number]>();
+  for (const u of reg.unresolved) {
+    const prior = dedupedUnresolved.get(u.norm_name);
+    // Keep the most specific: an id/ambiguous conflict is a stronger signal
+    // than a dob_conflict, so don't let a later dob_conflict silently replace
+    // an earlier ambiguous/id_conflict finding for the same name.
+    if (!prior || (prior.reason === "dob_conflict" && u.reason !== "dob_conflict")) {
+      dedupedUnresolved.set(u.norm_name, u);
+    }
+  }
+  const unresolvedRows = [...dedupedUnresolved.values()];
+
+  if (unresolvedRows.length) {
     const { error: unErr } = await supabase
       .from("player_identity_unresolved")
-      .upsert(reg.unresolved.map((u) => ({ ...u, candidates: u.candidates })) as never, { onConflict: "norm_name" });
+      .upsert(unresolvedRows.map((u) => ({ ...u, candidates: u.candidates })) as never, { onConflict: "norm_name" });
     if (unErr) console.warn(`! player_identity_unresolved write skipped: ${unErr.message}`);
-    else console.log(`Upserted ${reg.unresolved.length} unresolved row(s) for review`);
+    else console.log(`Upserted ${unresolvedRows.length} unresolved row(s) for review`);
+  }
+
+  const liveKeys = new Set(unresolvedRows.map((u) => u.norm_name));
+  const { data: existingUnresolved, error: fetchUnErr } = await supabase
+    .from("player_identity_unresolved").select("norm_name");
+  if (fetchUnErr) {
+    console.warn(`! could not check player_identity_unresolved for stale rows: ${fetchUnErr.message}`);
+  } else {
+    const stale = (existingUnresolved ?? []).map((r) => r.norm_name).filter((k) => !liveKeys.has(k));
+    if (stale.length) {
+      const { error: sweepErr } = await supabase
+        .from("player_identity_unresolved").delete().in("norm_name", stale);
+      if (sweepErr) console.warn(`! stale unresolved sweep failed: ${sweepErr.message}`);
+      else console.log(`Swept ${stale.length} resolved row(s) out of the review queue: ${stale.join(", ")}`);
+    }
   }
 }
 

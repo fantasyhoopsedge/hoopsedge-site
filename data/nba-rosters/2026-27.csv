@@ -12,7 +12,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,ATL,Corey Kispert,24,F,6'6,225,03/03/99,27.34,5,2021-15,USA,WA - Edmonds,Gonzaga,Atlanta Hawks,4 yr / $54M,2029,13975000
 2026-27,ATL,Jock Landale,31,C,6'11,255,10/25/95,30.71,5,2018-ND,AUS,Australia - Melbourne,Saint Mary's,Atlanta Hawks,1 yr / $14.1M,2027,14100000
 2026-27,ATL,CJ McCollum,3,G,6'3,190,09/19/91,34.80,13,2013-10,USA,OH - Canton,Lehigh,Atlanta Hawks,1 yr / $21.0M,2027,21000000
-2026-27,ATL,Isaac McKneely,,G,6'4,205,11/10/02,22.65,R,2026-ND,USA,WV - Poca,Louisville,Louisville,Exhibit 10,,
+2026-27,ATL,Isaac McKneely,,G,6'4,205,11/10/03,21.65,R,2026-ND,USA,WV - Poca,Louisville,Louisville,Exhibit 10,,
 2026-27,ATL,Asa Newell,14,F,6'10,220,10/05/05,20.75,1,2025-23,USA,GA - Atlanta,Georgia,Atlanta Hawks,4 yr / $16.2M,2027 +2,3399480
 2026-27,ATL,Onyeka Okongwu,17,C,6'10,240,12/11/00,25.56,6,2020-06,USA,CA - Los Angeles,USC,Atlanta Hawks,4 yr / $62M,2028,16120000
 2026-27,DAL,Zaccharie Risacher,10,F,6'8,200,04/08/05,21.24,2,2024-01,FRA,Spain - Malaga,Bourg (France),Atlanta Hawks,4 yr / $57M,2027 +1,13826040
@@ -78,7 +78,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,CHA,Hannes Steinbach,22,F,6'10,250,05/01/06,20.18,R,2026-14,GER,Germany - Wurzburg,Washington,Washington,4 yr / $25.0M,2028 +2,5227200
 2026-27,CHA,Coby White,3,G,6'4,195,02/16/00,26.38,7,2019-07,USA,NC - Goldsboro,North Carolina,Charlotte Hornets,3 yr / $74.0M,2029,26811593
 2026-27,CHA,Grant Williams,2,F,6'7,235,11/30/98,27.60,7,2019-22,USA,TX - Houston,Tennessee,Charlotte Hornets,4 yr / $53.3M,2027,14265750
-2026-27,CHA,Latrell Wrightsell Jr.,,G,6'3,190,05/18/01,25.13,R,2026-ND,USA,NE - Omaha,Alabama,Alabama,Exhibit 10,,
+2026-27,CHA,Latrell Wrightsell Jr.,,G,6'3,190,05/18/02,24.13,R,2026-ND,USA,NE - Omaha,Alabama,Alabama,Exhibit 10,,
 2026-27,CHI,Donovan Atwell,,G,6'5,200,04/27/03,23.19,R,2026-ND,USA,NC - Davidson,Texas Tech,Texas Tech,Exhibit 10,,
 2026-27,CHI,Tobe Awaka,,F,6'8,260,01/30/04,22.43,R,2026-ND,USA,NY - Poughkeepsie,Arizona,Arizona,Two-Way,,678882
 2026-27,CHI,Matas Buzelis,14,F,6'8,210,10/13/04,21.72,2,2024-11,"LTU, USA",IL - Chicago,G League Ignite,Chicago Bulls,4 yr / $24M,2027 +1,5715360
@@ -124,7 +124,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,DAL,Cooper Flagg,32,F,6'9,205,12/21/06,19.53,1,2025-01,USA,ME - Newport,Duke,Dallas Mavericks,4 yr / $62.7M,2027 +2,14517480
 2026-27,DAL,Daniel Gafford,21,C,6'10,265,10/01/98,27.76,7,2019-38,USA,AR - El Dorado,Arkansas,Dallas Mavericks,3 yr / $54.4M,2029,17263584
 2026-27,DAL,Kyrie Irving,11,G,6'2,195,03/23/92,34.29,14,2011-01,AUS,Australia - Melbourne,Duke,Dallas Mavericks,3 yr / $118M,2027 +1,39491282
-2026-27,DAL,Vsevolod Ishchenko,13,F,6'6,190,02/10/04,21.39,R,2026-56,RUS,Russia - Rostov-on-Don,Lokomotiv Kuban (Russia),Lokomotiv Kuban (Russia),2nd Rd Pick,,
+2026-27,DAL,Vsevolod Ishchenko,13,F,6'6,190,02/10/05,20.39,R,2026-56,RUS,Russia - Rostov-on-Don,Lokomotiv Kuban (Russia),Lokomotiv Kuban (Russia),2nd Rd Pick,,
 2026-27,MEM,AJ Johnson,8,G,6'6,160,12/01/04,21.59,2,2024-23,USA,CA - Fresno,Illawarra (Australia),Memphis Grizzlies,4 yr / $14.6M,2027 +1,3237120
 2026-27,DAL,Morez Johnson Jr.,14,F,6'9,250,01/25/06,20.44,R,2026-09,USA,IL - Riverdale,Michigan,Michigan,4 yr / $30.8M,2028 +2,6754800
 2026-27,DAL,Tobi Lawal,33,F,6'7,215,05/01/03,23.18,R,2026-48,ENG,England - London,Virginia Tech,Virginia Tech,Two-Way,,678882
@@ -456,7 +456,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,PHO,Koby Brea,14,G,6'5,215,11/06/02,23.66,1,2025-41,USA,NY - New York City,Kentucky,Phoenix Suns,Two-Way,,678882
 2026-27,PHO,Miles Bridges,22,F,6'7,225,03/21/98,28.30,7,2018-12,USA,MI - Flint,Michigan State,Charlotte Hornets,3 yr / $75M,2027,22826087
 2026-27,PHO,Dillon Brooks,3,F,6'7,235,01/22/96,30.46,9,2017-45,CAN,Canada - Mississauga,Oregon,Phoenix Suns,4 yr / $86M,2027,20992727
-2026-27,PHO,Corey Camper Jr.,,G,6'5,185,04/17/02,24.22,R,2026-ND,USA,AR - Little Rock,Nevada,Nevada,Exhibit 10,,
+2026-27,PHO,Corey Camper Jr.,,G,6'5,185,04/17/03,23.22,R,2026-ND,USA,AR - Little Rock,Nevada,Nevada,Exhibit 10,,
 2026-27,PHO,Ryan Dunn,0,F,6'7,215,01/07/03,23.49,2,2024-ND,USA,NV - Baldwin,Virginia,Phoenix Suns,4 yr / $13M,2027 +1,2784240
 2026-27,PHO,Rasheer Fleming,20,F,6'9,240,07/10/04,21.99,1,2025-31,USA,NJ - Camden,Saint Joseph's,Phoenix Suns,4 yr / $8.7M,2028 +1,2150917
 2026-27,PHO,Collin Gillespie,12,G,6'1,195,06/25/99,27.03,3,2023-ND,USA,PA - Philadelphia,Villanova,Phoenix Suns,4 yr / $48.0M,2030,10714286
@@ -489,7 +489,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,POR,Robert Williams III,35,C,6'9,250,10/17/97,28.73,8,2018-27,USA,LA - Shreveport,Texas A&M,Portland Trail Blazers,3 yr / $44M,2029,14000000
 2026-27,POR,Chris Youngblood,11,G,6'4,220,02/09/02,24.40,1,2025-ND,USA,AL - Tuscaloosa,Alabama,Oklahoma City Thunder,Two-Way,,678882
 2026-27,SAC,Precious Achiuwa,,C,6'8,245,09/19/99,26.81,6,2020-20,NGR,Nigeria - Port Harcourt,Memphis,Sacramento Kings,2 yr / $11.5M,2028,5477000
-2026-27,SAC,Darius Acuff Jr.,5,G,6'2,185,11/16/07,18.63,R,2026-07,USA,MI - Detroit,Arkansas,Arkansas,4 yr / $36.5M,2028 +2,8021640
+2026-27,SAC,Darius Acuff Jr.,5,G,6'2,185,11/16/06,19.63,R,2026-07,USA,MI - Detroit,Arkansas,Arkansas,4 yr / $36.5M,2028 +2,8021640
 2026-27,SAC,Patrick Baldwin Jr.,23,F,7'0,220,11/18/02,23.63,4,2022-28,USA,WI - Green Bay,Milwaukee,Sacramento Kings,RFA,,
 2026-27,SAC,Dylan Cardwell,32,C,6'10,255,12/16/01,24.55,1,2025-ND,USA,GA - Augusta,Auburn,Sacramento Kings,4 yr / $8.3M,2028 +1,2150917
 2026-27,SAC,Nique Clifford,5,G,6'5,175,02/09/02,24.40,1,2025-24,USA,CO - Colorado Springs,Colorado State,Sacramento Kings,4 yr / $15.8M,2027 +2,3263400
