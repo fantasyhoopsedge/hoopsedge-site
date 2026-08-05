@@ -1,6 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { createClient as createSb, type SupabaseClient } from "@supabase/supabase-js";
+import type { FantraxDatasetKey } from "./league";
+import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "./league-tags";
+
+export { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat };
 
 /**
  * Storage for a user's linked Fantrax leagues.
@@ -47,6 +51,16 @@ export interface SavedLeagueSettings {
   maxActivePlayers: number;
   hasSalaries: boolean;
   poolSize: number;
+  /** User-set tags below — Fantrax's API doesn't expose any of these, so they
+   *  default from the closest auto-detected signal and the user can override.
+   *  Optional: leagues saved before these existed have none of them in their
+   *  stored jsonb — callers should fall back with DEFAULT_LEAGUE_TAGS, never
+   *  assume presence. */
+  format?: LeagueFormat;
+  leagueType?: LeagueType;
+  salaryFormat?: SalaryFormat;
+  /** Which FHE dataset this league opens to by default next time it's loaded. */
+  defaultDataset?: FantraxDatasetKey;
 }
 
 export interface SavedLeague {

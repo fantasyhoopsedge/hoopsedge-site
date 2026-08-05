@@ -36,6 +36,9 @@ export async function GET(request: Request) {
   const leagueId = (searchParams.get("leagueId") ?? "").trim();
   const teamId = searchParams.get("teamId")?.trim() || null;
   const datasetParam = searchParams.get("dataset") ?? FANTRAX_DATASETS[0].key;
+  const leagueTypeParam = searchParams.get("leagueType");
+  const leagueType: "redraft" | "keeper" | "dynasty" =
+    leagueTypeParam === "keeper" || leagueTypeParam === "dynasty" ? leagueTypeParam : "redraft";
 
   if (!isLeagueId(leagueId)) {
     return NextResponse.json(
@@ -66,7 +69,7 @@ export async function GET(request: Request) {
     }
 
     const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds);
-    const analysis = await analyzeLeague(league, teamId, dataset);
+    const analysis = await analyzeLeague(league, teamId, dataset, leagueType);
     return NextResponse.json(analysis);
   } catch (err) {
     if (err instanceof FantraxError) {

@@ -4,12 +4,17 @@ import {
   FANTRAX_SECRET_ID_HELP_URL, fetchUserLeagues, isLeagueId,
   type FxLeagueSummary,
 } from "@/lib/fantrax/api";
-import { MIN_SAMPLE_GAMES, type CategoryEdge, type LeagueAnalysis, type ResolvedPlayer } from "@/lib/fantrax/analyze";
+import {
+  MIN_SAMPLE_GAMES, type CategoryEdge, type LeagueAnalysis, type ResolvedPlayer,
+  type TeamStatTotals, type TradeSuggestion,
+} from "@/lib/fantrax/analyze";
 import {
   CATEGORY_LABEL, FANTRAX_DATASETS, scoringTypeLabel,
   type FantraxDatasetKey, type FheCategory,
 } from "@/lib/fantrax/league";
+import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import type { SavedLeague } from "@/lib/fantrax/store";
+import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 
 /**
  * The Fantrax league connector.
@@ -30,13 +35,51 @@ import type { SavedLeague } from "@/lib/fantrax/store";
 const SECRET_KEY = "fhe.fantrax.secretId";
 const USER_KEY = "fhe.fantrax.username";
 
-type Tab = "team" | "standings" | "waivers" | "settings";
+type Tab = "team" | "standings" | "waivers" | "edge" | "settings";
 
 const fmtV = (v: number | null | undefined): string =>
   v === null || v === undefined ? "—" : `${v > 0 ? "+" : ""}${v.toFixed(2)}`;
 
 const fmtMoney = (v: number | null): string =>
   v === null ? "—" : v >= 1_000_000 ? `$${(v / 1_000_000).toFixed(1)}M` : `$${Math.round(v / 1000)}K`;
+
+const fmtRank = (v: number | null | undefined): string => (v == null ? "—" : `#${v}`);
+const f1 = (v: number | null | undefined): string => (v == null ? "—" : v.toFixed(1));
+const fInt = (v: number | null | undefined): string => (v == null ? "—" : String(Math.round(v)));
+const fPct = (v: number | null | undefined): string => (v == null ? "—" : v.toFixed(3).replace(/^0(?=\.)/, ""));
+
+/** Diverging background anchored to a z-score-ish value — positive green, negative
+ *  red, magnitude-scaled. Same formula/anchors as /seasonal-rankings' vBg(). */
+function vBg(v: number | null | undefined, posAnchor = 2.0, negAnchor = 2.0): string {
+  if (v == null || !Number.isFinite(v)) return "transparent";
+  if (v >= 0) {
+    const t = Math.min(v / posAnchor, 1);
+    return `rgba(34, 197, 94, ${(t * 0.34).toFixed(3)})`;
+  }
+  const t = Math.min(-v / negAnchor, 1);
+  return `rgba(239, 68, 68, ${(t * 0.34).toFixed(3)})`;
+}
+
+/** CatV flavors the roster table can rank/display by, and their rank-mode key
+ *  on ResolvedPlayer.catV / catVRank. */
+type CatMode = "nineCatV" | "minus1V" | "eightCatV";
+const CAT_MODE_LABEL: Record<CatMode, string> = { nineCatV: "9CatV", minus1V: "Minus1V", eightCatV: "8CatV" };
+const CAT_MODE_RANK_LABEL: Record<CatMode, string> = { nineCatV: "9CatRank", minus1V: "Minus1Rank", eightCatV: "8CatRank" };
+
+type PlayerSortKey = "name" | "leagueV" | "catV" | "catVRank" | FheCategory;
+
+/** Trend badge — emoji + label from the site's existing tone system (see
+ *  team-rosters/_components/trend-insight.ts TAG_META), so a Fantrax roster
+ *  reads the exact same signal /team-rosters already uses. */
+function TrendBadge({ tag }: { tag: TrendTag | null | undefined }) {
+  if (!tag) return <span className="fx-trend-none">—</span>;
+  const meta = TAG_META[tag];
+  return (
+    <span className="fx-trend" style={{ color: meta.color }} title={meta.label}>
+      {meta.emoji} {meta.label}
+    </span>
+  );
+}
 
 export function FantraxConnector() {
   // ── connection (browser-only credentials) ────────────────────────────────
@@ -51,13 +94,21 @@ export function FantraxConnector() {
 
   // ── loaded league ─────────────────────────────────────────────────────────
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
-  const [dataset, setDataset] = useState<FantraxDatasetKey>("2027:projection");
+  const [dataset, setDataset] = useState<FantraxDatasetKey>(DEFAULT_LEAGUE_TAGS.defaultDataset);
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState<SavedLeague[]>([]);
   const [savingLeague, setSavingLeague] = useState(false);
   const [tab, setTab] = useState<Tab>("team");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+
+  // ── user-set league tags (League settings tab) — Fantrax's API exposes none
+  // of these; they default per DEFAULT_LEAGUE_TAGS and persist via the saved-
+  // league store once a league is imported. `leagueType` also drives the Edge
+  // tool's dynasty-consensus weighting server-side.
+  const [leagueType, setLeagueType] = useState<LeagueType>(DEFAULT_LEAGUE_TAGS.leagueType);
+  const [format, setFormat] = useState<LeagueFormat>(DEFAULT_LEAGUE_TAGS.format);
+  const [salaryFormat, setSalaryFormat] = useState<SalaryFormat>(DEFAULT_LEAGUE_TAGS.salaryFormat);
 
   // Restore the session's credentials on mount. sessionStorage is per-tab, so
   // a fresh tab correctly starts disconnected.
@@ -111,11 +162,11 @@ export function FantraxConnector() {
   }
 
   const loadLeague = useCallback(
-    async (leagueId: string, teamId: string | null, ds: FantraxDatasetKey) => {
+    async (leagueId: string, teamId: string | null, ds: FantraxDatasetKey, lt: LeagueType) => {
       setLoading(true);
       setError("");
       try {
-        const params = new URLSearchParams({ leagueId, dataset: ds });
+        const params = new URLSearchParams({ leagueId, dataset: ds, leagueType: lt });
         if (teamId) params.set("teamId", teamId);
         const res = await fetch(`/api/fantrax/league?${params}`);
         const data = await res.json();
@@ -131,25 +182,49 @@ export function FantraxConnector() {
     [],
   );
 
+  /** Loads a league the user picked from the Fantrax account list or the
+   *  saved-leagues list, seeding the tag state from any prior save so the
+   *  league opens on the user's own defaults rather than resetting them. */
+  function loadFromEntry(leagueId: string, teamId: string | null) {
+    const prior = saved.find((l) => l.leagueId === leagueId)?.settings;
+    const ds = prior?.defaultDataset ?? dataset;
+    const lt = prior?.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType;
+    setDataset(ds);
+    setLeagueType(lt);
+    setFormat(prior?.format ?? DEFAULT_LEAGUE_TAGS.format);
+    setSalaryFormat(prior?.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat);
+    void loadLeague(leagueId, teamId, ds, lt);
+  }
+
   function importByCode() {
     const code = codeInput.trim();
     if (!isLeagueId(code)) {
       setError("A Fantrax league ID is 16 letters and numbers, e.g. l2ftp82kmo6w41ci.");
       return;
     }
-    void loadLeague(code, null, dataset);
+    loadFromEntry(code, null);
   }
 
   function changeDataset(next: FantraxDatasetKey) {
     setDataset(next);
-    if (analysis) void loadLeague(analysis.league.leagueId, analysis.myTeamId, next);
+    if (analysis) void loadLeague(analysis.league.leagueId, analysis.myTeamId, next, leagueType);
   }
 
   function selectMyTeam(teamId: string) {
-    if (analysis) void loadLeague(analysis.league.leagueId, teamId, dataset);
+    if (analysis) void loadLeague(analysis.league.leagueId, teamId, dataset, leagueType);
   }
 
-  async function saveCurrentLeague() {
+  function changeLeagueType(next: LeagueType) {
+    setLeagueType(next);
+    if (analysis) void loadLeague(analysis.league.leagueId, analysis.myTeamId, dataset, next);
+    void persistSettings({ leagueType: next });
+  }
+
+  /** Upserts the saved-league record with whatever settings overrides are
+   *  passed, merged onto the currently-imported league's auto-detected
+   *  settings plus the current tag state — used by the explicit Save button
+   *  AND by every League Settings control (auto-saves on change). */
+  async function persistSettings(overrides: Partial<SavedLeague["settings"]> = {}) {
     if (!analysis) return;
     setSavingLeague(true);
     try {
@@ -172,6 +247,11 @@ export function FantraxConnector() {
             maxActivePlayers: league.maxActivePlayers,
             hasSalaries: league.hasSalaries,
             poolSize: league.poolSize,
+            format,
+            leagueType,
+            salaryFormat,
+            defaultDataset: dataset,
+            ...overrides,
           },
         }),
       });
@@ -225,7 +305,7 @@ export function FantraxConnector() {
               ))}
             </select>
             <button className="fx-btn ghost" onClick={() => setAnalysis(null)}>Change league</button>
-            <button className="fx-btn primary" disabled={savingLeague} onClick={saveCurrentLeague}>
+            <button className="fx-btn primary" disabled={savingLeague} onClick={() => void persistSettings()}>
               {savingLeague ? "Saving…" : isSaved ? "Update saved league" : "Save league"}
             </button>
           </div>
@@ -285,7 +365,7 @@ export function FantraxConnector() {
                   <button
                     key={l.leagueId}
                     className="fx-league-row"
-                    onClick={() => void loadLeague(l.leagueId, l.teamId, dataset)}
+                    onClick={() => loadFromEntry(l.leagueId, l.teamId)}
                   >
                     <span className="fx-league-name">{l.leagueName}</span>
                     <span className="fx-league-team">{l.teamName}</span>
@@ -321,7 +401,7 @@ export function FantraxConnector() {
                 <div className="fx-list-head">Saved leagues</div>
                 {saved.map((l) => (
                   <div key={l.leagueId} className="fx-saved-row">
-                    <button className="fx-league-row flat" onClick={() => void loadLeague(l.leagueId, l.teamId, dataset)}>
+                    <button className="fx-league-row flat" onClick={() => loadFromEntry(l.leagueId, l.teamId)}>
                       <span className="fx-league-name">{l.leagueName}</span>
                       <span className="fx-league-team">
                         {l.teamName ?? "no team selected"} · {l.settings?.categories?.length ?? 0}-cat ·{" "}
@@ -351,6 +431,7 @@ export function FantraxConnector() {
               ["team", myTeam ? myTeam.teamName : "My team"],
               ["standings", "Projected standings"],
               ["waivers", "Best available"],
+              ["edge", "F Hoops Edge"],
               ["settings", "League settings"],
             ] as [Tab, string][]).map(([key, label]) => (
               <button
@@ -390,7 +471,31 @@ export function FantraxConnector() {
             <WaiverBoard players={analysis.waiverBoard} scored={analysis.league.categories.scored} />
           )}
 
-          {tab === "settings" && <SettingsPanel analysis={analysis} />}
+          {tab === "edge" && (
+            myTeam ? (
+              <EdgeTool
+                suggestions={analysis.tradeSuggestions}
+                edges={analysis.edges}
+                teamCount={analysis.league.teamCount}
+                isDynasty={leagueType === "dynasty"}
+              />
+            ) : (
+              <div className="fx-empty">Pick your team above to get trade-target suggestions.</div>
+            )
+          )}
+
+          {tab === "settings" && (
+            <SettingsPanel
+              analysis={analysis}
+              format={format}
+              leagueType={leagueType}
+              salaryFormat={salaryFormat}
+              onFormatChange={(v) => { setFormat(v); void persistSettings({ format: v }); }}
+              onLeagueTypeChange={changeLeagueType}
+              onSalaryFormatChange={(v) => { setSalaryFormat(v); void persistSettings({ salaryFormat: v }); }}
+              onSetDefaultDataset={() => void persistSettings({ defaultDataset: dataset })}
+            />
+          )}
         </>
       )}
 
@@ -529,6 +634,57 @@ function MyTeam({
   );
 }
 
+/** One category's raw counting/rate cell, per-game or totals, colored by the
+ *  matching per-game/totals z-score (never re-derived — same number the rest
+ *  of FHE would color that cell with). */
+function StatCell({
+  cat, player, perGame,
+}: { cat: FheCategory; player: ResolvedPlayer; perGame: boolean }) {
+  const g = player.gamesPlayed ?? 0;
+  const raw = player.statLine;
+  const z = (perGame ? player.cats : player.catsTotals)[cat];
+  if (!raw) return <td className="num cat" style={{ background: vBg(z) }}>—</td>;
+  let display: string;
+  switch (cat) {
+    case "PTS": display = perGame ? f1(raw.pts) : fInt((raw.pts ?? 0) * g); break;
+    case "FG3": display = perGame ? f1(raw.fg3m) : fInt((raw.fg3m ?? 0) * g); break;
+    case "REB": display = perGame ? f1(raw.reb) : fInt((raw.reb ?? 0) * g); break;
+    case "AST": display = perGame ? f1(raw.ast) : fInt((raw.ast ?? 0) * g); break;
+    case "STL": display = perGame ? f1(raw.stl) : fInt((raw.stl ?? 0) * g); break;
+    case "BLK": display = perGame ? f1(raw.blk) : fInt((raw.blk ?? 0) * g); break;
+    case "TO": display = perGame ? f1(raw.tov) : fInt((raw.tov ?? 0) * g); break;
+    case "FG": display = fPct(raw.fg_pct); break;
+    case "FT": display = fPct(raw.ft_pct); break;
+    default: display = "—";
+  }
+  return <td className="num cat" style={{ background: vBg(z) }}>{display}</td>;
+}
+
+/** Sortable numeric header cell — click toggles asc/desc, clicking a new
+ *  column resets to that column's natural direction. Generic over whichever
+ *  sort-key union the table it's used in needs (PlayerSortKey, StandingsSortKey). */
+function SortTh<K extends string>({
+  label, sortKey, sort, onSort, title,
+}: {
+  label: string;
+  sortKey: K;
+  sort: { key: K; dir: "asc" | "desc" };
+  onSort: (k: K) => void;
+  title?: string;
+}) {
+  const active = sort.key === sortKey;
+  return (
+    <th
+      className={`num cat fx-th-sortable${active ? " fx-th-active" : ""}`}
+      onClick={() => onSort(sortKey)}
+      title={title}
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+      {label}<span className="fx-sort-arrow">{active ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}</span>
+    </th>
+  );
+}
+
 function PlayerTable({
   players, scored, hasSalaries, starterIds,
 }: {
@@ -537,94 +693,199 @@ function PlayerTable({
   hasSalaries: boolean;
   starterIds?: Set<string>;
 }) {
+  const [perGame, setPerGame] = useState(true);
+  const [catMode, setCatMode] = useState<CatMode>("nineCatV");
+  const [sort, setSort] = useState<{ key: PlayerSortKey; dir: "asc" | "desc" }>({ key: "leagueV", dir: "desc" });
+
+  const onSort = (key: PlayerSortKey) =>
+    setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }));
+
+  const mode = perGame ? "perGame" : "totals";
+  const sorted = useMemo(() => {
+    const valueOf = (p: ResolvedPlayer): number | null => {
+      switch (sort.key) {
+        case "name": return null; // handled separately below
+        case "leagueV": return p.leagueV;
+        case "catV": return p.catV?.[mode][catMode] ?? null;
+        case "catVRank": return p.catVRank?.[mode][catMode] ?? null;
+        default: return (perGame ? p.cats : p.catsTotals)[sort.key] ?? null;
+      }
+    };
+    if (sort.key === "name") {
+      const rows = [...players].sort((a, b) => a.name.localeCompare(b.name));
+      return sort.dir === "desc" ? rows.reverse() : rows;
+    }
+    return [...players].sort((a, b) => {
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      if (av === null && bv === null) return 0;
+      if (av === null) return 1;
+      if (bv === null) return -1;
+      return sort.dir === "asc" ? av - bv : bv - av;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [players, sort, perGame, catMode]);
+
   return (
-    <div className="fx-table-wrap">
-      <table className="fx-table">
-        <thead>
-          <tr>
-            <th className="l">Player</th>
-            <th>Pos</th>
-            <th>NBA</th>
-            {hasSalaries && <th>Salary</th>}
-            <th>Status</th>
-            <th className="num">LeagueV</th>
-            <th className="num">9CatV</th>
-            <th className="num">Rank</th>
-            {scored.map((c) => <th key={c} className="num cat">{CATEGORY_LABEL[c]}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {players.map((p) => (
-            <tr key={p.fantraxId} className={starterIds?.has(p.fantraxId) ? "starter" : undefined}>
-              <td className="l">
-                {p.name}
-                {p.ambiguousName ? (
-                  <span className="fx-nodata warn" title="Another player in this league's pool has the same name — FHE data withheld rather than risk attaching the wrong player's">
-                    same name
-                  </span>
-                ) : p.playerId === null ? (
-                  <span className="fx-nodata" title="No FHE data for this player">no data</span>
-                ) : null}
-                {p.source === "regular" && <span className="fx-src" title="Fell back to 2025-26 actuals">25-26</span>}
-                {p.smallSample && (
-                  <span className="fx-src warn" title={`Fewer than ${MIN_SAMPLE_GAMES} games — small-sample rates`}>
-                    {p.gamesPlayed}g
-                  </span>
-                )}
-              </td>
-              <td>{p.eligible.filter((e) => e !== "Flx").join("/") || "—"}</td>
-              <td className="dim">{p.nbaTeam === "(N/A)" ? "—" : p.nbaTeam}</td>
-              {hasSalaries && <td className="dim">{fmtMoney(p.salary)}</td>}
-              <td className="dim">{p.status.replace("INJURED_RESERVE", "IR").replace("_", " ")}</td>
-              <td className="num strong">{fmtV(p.leagueV)}</td>
-              <td className="num dim">{fmtV(p.nineCatV)}</td>
-              <td className="num dim">{p.consensusRank ?? "—"}</td>
-              {scored.map((c) => {
-                const v = p.cats[c];
-                return (
-                  <td key={c} className={`num cat${v === undefined ? "" : v >= 0 ? " pos" : " neg"}`}>
-                    {fmtV(v)}
-                  </td>
-                );
-              })}
-            </tr>
+    <>
+      <div className="fx-table-controls">
+        <div className="fx-pill-row">
+          <button type="button" className={`fx-pill${perGame ? " on" : ""}`} onClick={() => setPerGame(true)}>Per Game</button>
+          <button type="button" className={`fx-pill${!perGame ? " on" : ""}`} onClick={() => setPerGame(false)}>Totals</button>
+        </div>
+        <div className="fx-pill-row">
+          {(["nineCatV", "eightCatV", "minus1V"] as CatMode[]).map((m) => (
+            <button key={m} type="button" className={`fx-pill${catMode === m ? " on" : ""}`} onClick={() => setCatMode(m)}>
+              {CAT_MODE_LABEL[m]}
+            </button>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </div>
+      </div>
+      <div className="fx-table-wrap">
+        <table className="fx-table">
+          <thead>
+            <tr>
+              <th className="l fx-th-sortable" onClick={() => onSort("name")}>Player</th>
+              <th>Pos</th>
+              <th>NBA</th>
+              {hasSalaries && <th>Salary</th>}
+              <th>Status</th>
+              <SortTh label="LeagueV" sortKey="leagueV" sort={sort} onSort={onSort} title="This league's own scoring — mean z across the categories it scores, per-game" />
+              <SortTh label={CAT_MODE_LABEL[catMode]} sortKey="catV" sort={sort} onSort={onSort} />
+              <SortTh label={CAT_MODE_RANK_LABEL[catMode]} sortKey="catVRank" sort={sort} onSort={onSort} title="Rank within the full FHE baseline pool" />
+              <th>Trend</th>
+              {scored.map((c) => <SortTh key={c} label={CATEGORY_LABEL[c]} sortKey={c} sort={sort} onSort={onSort} />)}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((p) => (
+              <tr key={p.fantraxId} className={starterIds?.has(p.fantraxId) ? "starter" : undefined}>
+                <td className="l">
+                  {p.name}
+                  {p.ambiguousName ? (
+                    <span className="fx-nodata warn" title="Another player in this league's pool has the same name — FHE data withheld rather than risk attaching the wrong player's">
+                      same name
+                    </span>
+                  ) : p.playerId === null ? (
+                    <span className="fx-nodata" title="No FHE data for this player">no data</span>
+                  ) : null}
+                  {p.source === "regular" && <span className="fx-src" title="Fell back to 2025-26 actuals">25-26</span>}
+                  {p.smallSample && (
+                    <span className="fx-src warn" title={`Fewer than ${MIN_SAMPLE_GAMES} games — small-sample rates`}>
+                      {p.gamesPlayed}g
+                    </span>
+                  )}
+                </td>
+                <td>{p.eligible.filter((e) => e !== "Flx").join("/") || "—"}</td>
+                <td className="dim">{p.nbaTeam === "(N/A)" ? "—" : p.nbaTeam}</td>
+                {hasSalaries && <td className="dim">{fmtMoney(p.salary)}</td>}
+                <td className="dim">{p.status.replace("INJURED_RESERVE", "IR").replace("_", " ")}</td>
+                <td className="num strong">{fmtV(p.leagueV)}</td>
+                <td className="num strong" style={{ background: vBg(p.catV?.[mode][catMode] ?? null, 1.0, 0.6) }}>
+                  {fmtV(p.catV?.[mode][catMode])}
+                </td>
+                <td className="num dim">{fmtRank(p.catVRank?.[mode][catMode])}</td>
+                <td className="dim"><TrendBadge tag={p.trendTags?.[catMode]} /></td>
+                {scored.map((c) => <StatCell key={c} cat={c} player={p} perGame={perGame} />)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 
 // ── projected standings ─────────────────────────────────────────────────────
 
+type StandingsView = "points" | "totals";
+type StandingsSortKey = "rank" | "team" | "primary" | FheCategory;
+
+/** Which TeamStatTotals field a category's raw-number column reads. */
+function statTotalValue(st: TeamStatTotals, cat: FheCategory): number | null {
+  switch (cat) {
+    case "PTS": return st.pts;
+    case "FG3": return st.fg3m;
+    case "REB": return st.reb;
+    case "AST": return st.ast;
+    case "STL": return st.stl;
+    case "BLK": return st.blk;
+    case "TO": return st.tov;
+    case "FG": return st.fg_pct;
+    case "FT": return st.ft_pct;
+    default: return null;
+  }
+}
+
+function statTotalDisplay(st: TeamStatTotals, cat: FheCategory): string {
+  if (cat === "FG" || cat === "FT") return fPct(statTotalValue(st, cat));
+  return fInt(statTotalValue(st, cat));
+}
+
 function Standings({ analysis, scored }: { analysis: LeagueAnalysis; scored: readonly FheCategory[] }) {
+  const [view, setView] = useState<StandingsView>("points");
+  const [sort, setSort] = useState<{ key: StandingsSortKey; dir: "asc" | "desc" }>({ key: "rank", dir: "asc" });
+
+  const onSort = (key: StandingsSortKey) =>
+    setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: key === "rank" || key === "team" ? "asc" : "desc" }));
+
+  const rows = useMemo(() => {
+    const statTotalsByTeam = new Map(analysis.profiles.map((p) => [p.teamId, p.statTotals]));
+    return analysis.standings.map((s) => ({ ...s, statTotals: statTotalsByTeam.get(s.teamId)! }));
+  }, [analysis]);
+
+  const sorted = useMemo(() => {
+    const valueOf = (r: (typeof rows)[number]): number | string => {
+      switch (sort.key) {
+        case "rank": return r.projectedRank;
+        case "team": return r.teamName;
+        case "primary": return view === "points" ? r.totalPoints : r.statTotals.gamesPlayed;
+        default: return view === "points" ? (r.points[sort.key] ?? 0) : (statTotalValue(r.statTotals, sort.key) ?? 0);
+      }
+    };
+    return [...rows].sort((a, b) => {
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      const cmp = typeof av === "string" || typeof bv === "string"
+        ? String(av).localeCompare(String(bv))
+        : av - bv;
+      return sort.dir === "asc" ? cmp : -cmp;
+    });
+  }, [rows, sort, view]);
+
   return (
     <section className="fx-panel">
       <h3 className="fx-panel-title">
-        Projected rotisserie standings
+        Projected standings
         <span className="fx-panel-note">
           each team&apos;s top {analysis.league.maxActivePlayers} by LeagueV, scored the way roto scores
         </span>
       </h3>
+      <div className="fx-table-controls">
+        <div className="fx-pill-row">
+          <button type="button" className={`fx-pill${view === "points" ? " on" : ""}`} onClick={() => setView("points")}>Roto Points</button>
+          <button type="button" className={`fx-pill${view === "totals" ? " on" : ""}`} onClick={() => setView("totals")}>Stat Totals</button>
+        </div>
+      </div>
       <div className="fx-table-wrap">
         <table className="fx-table">
           <thead>
             <tr>
-              <th className="num">#</th>
-              <th className="l">Team</th>
-              <th className="num">Roto pts</th>
-              {scored.map((c) => <th key={c} className="num cat">{CATEGORY_LABEL[c]}</th>)}
+              <SortTh label="#" sortKey="rank" sort={sort} onSort={onSort} />
+              <th className="l fx-th-sortable" onClick={() => onSort("team")}>Team</th>
+              <SortTh label={view === "points" ? "Roto pts" : "GP"} sortKey="primary" sort={sort} onSort={onSort} />
+              {scored.map((c) => <SortTh key={c} label={CATEGORY_LABEL[c]} sortKey={c} sort={sort} onSort={onSort} />)}
             </tr>
           </thead>
           <tbody>
-            {analysis.standings.map((s) => (
+            {sorted.map((s) => (
               <tr key={s.teamId} className={s.teamId === analysis.myTeamId ? "mine" : undefined}>
                 <td className="num dim">{s.projectedRank}</td>
                 <td className="l">{s.teamName}</td>
-                <td className="num strong">{s.totalPoints.toFixed(1)}</td>
+                <td className="num strong">{view === "points" ? s.totalPoints.toFixed(1) : s.statTotals.gamesPlayed}</td>
                 {scored.map((c) => (
-                  <td key={c} className="num cat dim" title={`rank ${s.ranks[c] ?? "—"}`}>
-                    {(s.points[c] ?? 0).toFixed(0)}
+                  <td key={c} className="num cat dim" title={view === "points" ? `rank ${s.ranks[c] ?? "—"}` : undefined}>
+                    {view === "points" ? (s.points[c] ?? 0).toFixed(0) : statTotalDisplay(s.statTotals, c)}
                   </td>
                 ))}
               </tr>
@@ -652,10 +913,92 @@ function WaiverBoard({ players, scored }: { players: ResolvedPlayer[]; scored: r
   );
 }
 
+// ── F Hoops Edge: trade-target suggestions ──────────────────────────────────
+
+function EdgeTool({
+  suggestions, edges, teamCount, isDynasty,
+}: {
+  suggestions: TradeSuggestion[];
+  edges: CategoryEdge[];
+  teamCount: number;
+  isDynasty: boolean;
+}) {
+  const weak = edges.filter((e) => e.rank > Math.ceil((teamCount * 2) / 3));
+
+  if (weak.length === 0) {
+    return (
+      <div className="fx-empty">
+        No clear weak categories to target — this roster is well-balanced across every category this league scores.
+      </div>
+    );
+  }
+  if (suggestions.length === 0) {
+    return (
+      <div className="fx-empty">
+        No rostered player on another team clearly fills {weak.map((e) => CATEGORY_LABEL[e.category]).join("/")} right now.
+      </div>
+    );
+  }
+
+  return (
+    <section className="fx-panel">
+      <h3 className="fx-panel-title">
+        Trade targets
+        <span className="fx-panel-note">
+          rostered players elsewhere in the league who&apos;d fill your {weak.map((e) => CATEGORY_LABEL[e.category]).join("/")}
+          {isDynasty ? " · dynasty consensus lightly tie-breaks these" : ""}
+        </span>
+      </h3>
+      <div className="fx-edge-list">
+        {suggestions.map((s) => (
+          <div key={s.target.fantraxId} className="fx-edge-card">
+            <div className="fx-edge-card-main">
+              <div className="fx-edge-card-name">
+                {s.target.name}
+                <span className="fx-edge-card-team">{s.targetTeamName}</span>
+              </div>
+              <div className="fx-edge-card-helps">
+                Helps {s.helps.length ? s.helps.map((c) => CATEGORY_LABEL[c]).join(", ") : "your weak categories"}
+              </div>
+              <div className="fx-edge-card-meta">
+                <span>LeagueV {fmtV(s.target.leagueV)}</span>
+                <span>Consensus {s.target.consensusRank ?? "—"}</span>
+                <TrendBadge tag={s.target.trendTags?.nineCatV} />
+              </div>
+            </div>
+            <div className="fx-edge-card-fit">
+              <div className="fx-edge-fit-label">Fit</div>
+              <div className="fx-edge-fit-value">{fmtV(s.fitScore)}</div>
+            </div>
+            {s.suggestedGiveUp && (
+              <div className="fx-edge-card-give">
+                <div className="fx-edge-give-label">Realistic ask</div>
+                <div className="fx-edge-give-name">{s.suggestedGiveUp.name}</div>
+                <div className="fx-edge-give-note">similar LeagueV ({fmtV(s.suggestedGiveUp.leagueV)}) — surplus in what you have</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ── settings ────────────────────────────────────────────────────────────────
 
-function SettingsPanel({ analysis }: { analysis: LeagueAnalysis }) {
-  const { league } = analysis;
+function SettingsPanel({
+  analysis, format, leagueType, salaryFormat, onFormatChange, onLeagueTypeChange, onSalaryFormatChange, onSetDefaultDataset,
+}: {
+  analysis: LeagueAnalysis;
+  format: LeagueFormat;
+  leagueType: LeagueType;
+  salaryFormat: SalaryFormat;
+  onFormatChange: (v: LeagueFormat) => void;
+  onLeagueTypeChange: (v: LeagueType) => void;
+  onSalaryFormatChange: (v: SalaryFormat) => void;
+  onSetDefaultDataset: () => void;
+}) {
+  const { league, dataset } = analysis;
   const rows: [string, string][] = [
     ["League ID", league.leagueId],
     ["Season", String(league.seasonYear)],
@@ -677,7 +1020,54 @@ function SettingsPanel({ analysis }: { analysis: LeagueAnalysis }) {
   ];
 
   return (
-    <section className="fx-panel">
+    <>
+      <section className="fx-panel">
+        <h3 className="fx-panel-title">
+          League settings <span className="fx-panel-note">Fantrax doesn&apos;t expose these — set them yourself; they persist with the saved league</span>
+        </h3>
+        <div className="fx-tagrow">
+          <label className="fx-label">
+            Scoring format
+            <select className="fx-select" value={format} onChange={(e) => onFormatChange(e.target.value as LeagueFormat)}>
+              <option value="roto">Rotisserie</option>
+              <option value="h2h">Head-to-head</option>
+            </select>
+          </label>
+          <label className="fx-label">
+            League type
+            <select className="fx-select" value={leagueType} onChange={(e) => onLeagueTypeChange(e.target.value as LeagueType)}>
+              <option value="redraft">Redraft</option>
+              <option value="keeper">Keeper</option>
+              <option value="dynasty">Dynasty</option>
+            </select>
+          </label>
+          <label className="fx-label">
+            Salary format
+            <select className="fx-select" value={salaryFormat} onChange={(e) => onSalaryFormatChange(e.target.value as SalaryFormat)}>
+              <option value="none">Non-salary</option>
+              <option value="real">Real salary</option>
+              <option value="custom">Custom salary</option>
+            </select>
+          </label>
+          <label className="fx-label">
+            Default value driver
+            <div className="fx-row">
+              <span className="fx-setting-current">{dataset.label}</span>
+              <button type="button" className="fx-btn ghost sm" onClick={onSetDefaultDataset}>
+                Make default
+              </button>
+            </div>
+          </label>
+        </div>
+        {leagueType === "dynasty" && (
+          <p className="fx-card-note">
+            Dynasty leagues get a small dynasty-consensus tie-break on the F Hoops Edge trade tool, on top of the
+            category fit that always drives it.
+          </p>
+        )}
+      </section>
+
+      <section className="fx-panel">
       <h3 className="fx-panel-title">Imported settings</h3>
       <dl className="fx-settings">
         {rows.map(([k, v]) => (
@@ -705,7 +1095,8 @@ function SettingsPanel({ analysis }: { analysis: LeagueAnalysis }) {
           </p>
         </>
       )}
-    </section>
+      </section>
+    </>
   );
 }
 
@@ -839,4 +1230,40 @@ const STYLES = `
   .fx-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
     background: var(--rt-surface-strong); border: 1px solid var(--rt-hairline); border-radius: 10px;
     padding: 10px 18px; font-size: 13px; color: var(--rt-body-strong); z-index: 50; }
+
+  .fx-table-controls { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .fx-pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .fx-pill { font-family: var(--rt-font-sans); font-size: 11.5px; font-weight: 600; padding: 5px 11px;
+    border-radius: 999px; cursor: pointer; border: 1px solid var(--rt-hairline);
+    background: var(--rt-surface-soft); color: var(--rt-muted); }
+  .fx-pill.on { background: var(--rt-primary); border-color: var(--rt-primary); color: var(--rt-on-primary); }
+
+  .fx-th-sortable { cursor: pointer; user-select: none; }
+  .fx-th-sortable:hover { color: var(--rt-body-strong); }
+  .fx-th-active { color: var(--rt-primary) !important; }
+  .fx-sort-arrow { font-size: 9px; }
+
+  .fx-trend { font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .fx-trend-none { color: var(--rt-muted-soft); }
+
+  .fx-tagrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+  .fx-setting-current { font-size: 12.5px; color: var(--rt-body-strong); }
+
+  .fx-edge-list { display: flex; flex-direction: column; gap: 10px; }
+  .fx-edge-card { display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    border: 1px solid var(--rt-hairline); border-radius: 10px; padding: 12px 14px; background: var(--rt-canvas); }
+  .fx-edge-card-main { flex: 1 1 260px; min-width: 0; }
+  .fx-edge-card-name { font-size: 13.5px; font-weight: 700; color: var(--rt-body-strong); }
+  .fx-edge-card-team { font-size: 11.5px; font-weight: 400; color: var(--rt-muted); margin-left: 8px; }
+  .fx-edge-card-helps { font-size: 11.5px; color: var(--rt-primary); margin-top: 3px; }
+  .fx-edge-card-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 11px; color: var(--rt-muted);
+    margin-top: 5px; font-family: var(--rt-font-mono); }
+  .fx-edge-card-fit { text-align: center; padding: 0 12px; border-left: 1px solid var(--rt-hairline);
+    border-right: 1px solid var(--rt-hairline); }
+  .fx-edge-fit-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--rt-muted-soft); }
+  .fx-edge-fit-value { font-size: 16px; font-weight: 700; color: var(--rt-up); font-family: var(--rt-font-mono); }
+  .fx-edge-card-give { text-align: right; min-width: 140px; }
+  .fx-edge-give-label { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--rt-muted-soft); }
+  .fx-edge-give-name { font-size: 13px; font-weight: 700; color: var(--rt-body-strong); }
+  .fx-edge-give-note { font-size: 10.5px; color: var(--rt-muted); max-width: 160px; }
 `;

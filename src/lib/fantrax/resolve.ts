@@ -1,13 +1,16 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
+import { createClient as createPublicClient } from "@supabase/supabase-js";
+import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
 import { lookupWithNameAlias } from "@/lib/player-name-aliases";
 import { getStats, getValuesForSize } from "@/lib/value/seasonal-data";
 import { createAdminClient } from "@/utils/supabase/admin";
-import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
+import type { Database, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import {
   buildTeamProfile, byLeagueValue, categoryEdges, leagueValueOf, MIN_SAMPLE_GAMES,
-  projectRotoStandings, scoredOrDefault, type LeagueAnalysis, type ResolvedPlayer,
+  projectRotoStandings, scoredOrDefault, suggestTradeTargets, type CatVRanks, type CatVSet,
+  type LeagueAnalysis, type ResolvedPlayer, type StatLine, type TrendTags,
 } from "./analyze";
 import {
   CATEGORY_VALUE_COLUMN, FANTRAX_DATASETS, FHE_CATEGORIES,
@@ -55,6 +58,13 @@ export { FANTRAX_DATASETS, type FantraxDatasetKey };
  * scored without pretending to know his production.
  */
 
+/** player_id → 1-based finish within the FULL baseline pool for one CatV flavor. */
+type RankMap = Map<string, number>;
+interface PoolRanks {
+  perGame: { nineCatV: RankMap; minus1V: RankMap; eightCatV: RankMap };
+  totals: { nineCatV: RankMap; minus1V: RankMap; eightCatV: RankMap };
+}
+
 interface DatasetIndex {
   key: FantraxDatasetKey;
   label: string;
@@ -64,6 +74,46 @@ interface DatasetIndex {
   byFheId: Map<string, SeasonPlayerStats>;
   /** player_id → values row */
   valuesById: Map<string, SeasonPlayerValues>;
+  /** Rank of every player in the pool, precomputed once per dataset load rather
+   *  than per resolved player — see rankOf() below. */
+  ranks: PoolRanks;
+}
+
+/** value = mean of the 9 category z-scores (sum/9); 8CatV re-averages over 8 by
+ *  dropping the turnover z-score from the sum: (value·9 − v_to)/8 — same formula
+ *  /seasonal-rankings uses, so 8CatV reads identically everywhere in FHE. */
+function eightCatVOf(value: number | null, vTo: number | null): number | null {
+  if (value == null || !Number.isFinite(value) || vTo == null || !Number.isFinite(vTo)) return null;
+  return (value * 9 - vTo) / 8;
+}
+
+/** 1-based finish (best first) of every player in `rows` by `pick`, ignoring
+ *  players `pick` returns null/NaN for — the "rank in dataset" every
+ *  /seasonal-rankings column means, computed here so every resolved player in
+ *  this league can look its own rank up in O(1). */
+function rankOf(rows: SeasonPlayerValues[], pick: (v: SeasonPlayerValues) => number | null): RankMap {
+  const withVal = rows
+    .map((r) => ({ id: r.player_id, v: pick(r) }))
+    .filter((x): x is { id: string; v: number } => x.v !== null && Number.isFinite(x.v));
+  withVal.sort((a, b) => b.v - a.v);
+  const map: RankMap = new Map();
+  withVal.forEach((x, i) => map.set(x.id, i + 1));
+  return map;
+}
+
+function buildPoolRanks(values: SeasonPlayerValues[]): PoolRanks {
+  return {
+    perGame: {
+      nineCatV: rankOf(values, (v) => v.value),
+      minus1V: rankOf(values, (v) => v.minus1v),
+      eightCatV: rankOf(values, (v) => eightCatVOf(v.value, v.v_to)),
+    },
+    totals: {
+      nineCatV: rankOf(values, (v) => v.value_tot),
+      minus1V: rankOf(values, (v) => v.minus1v_tot),
+      eightCatV: rankOf(values, (v) => eightCatVOf(v.value_tot, v.v_to_tot)),
+    },
+  };
 }
 
 async function loadDataset(
@@ -78,7 +128,10 @@ async function loadDataset(
   for (const row of stats) if (row.fhe_id) byFheId.set(row.fhe_id, row);
   const valuesById = new Map<string, SeasonPlayerValues>();
   for (const row of values) valuesById.set(row.player_id, row);
-  return { key: spec.key, label: spec.label, season: spec.season, type: spec.type, byFheId, valuesById };
+  return {
+    key: spec.key, label: spec.label, season: spec.season, type: spec.type,
+    byFheId, valuesById, ranks: buildPoolRanks(values),
+  };
 }
 
 /** consensus rank by normalized name, read fresh from the bundled board (never
@@ -92,15 +145,27 @@ function consensusIndex(): Map<string, number> {
 const CAT_ACCESSOR: Record<FheCategory, keyof SeasonPlayerValues> = Object.fromEntries(
   FHE_CATEGORIES.map((cat) => [cat, CATEGORY_VALUE_COLUMN[cat] as keyof SeasonPlayerValues]),
 ) as Record<FheCategory, keyof SeasonPlayerValues>;
+/** Totals-mode counterpart of CAT_ACCESSOR (v_pts_tot, v_fg3_tot, …) — same
+ *  columns compute-values.ts standardizes against season totals rather than
+ *  per-game, matching /seasonal-rankings' Totals toggle. */
+const CAT_ACCESSOR_TOT: Record<FheCategory, keyof SeasonPlayerValues> = Object.fromEntries(
+  FHE_CATEGORIES.map((cat) => [cat, `${CATEGORY_VALUE_COLUMN[cat]}_tot` as keyof SeasonPlayerValues]),
+) as Record<FheCategory, keyof SeasonPlayerValues>;
 
-function catsFrom(values: SeasonPlayerValues): Partial<Record<FheCategory, number>> {
+function catsFromAccessor(
+  values: SeasonPlayerValues,
+  accessor: Record<FheCategory, keyof SeasonPlayerValues>,
+): Partial<Record<FheCategory, number>> {
   const out: Partial<Record<FheCategory, number>> = {};
   for (const cat of FHE_CATEGORIES) {
-    const v = values[CAT_ACCESSOR[cat]];
+    const v = values[accessor[cat]];
     if (typeof v === "number" && Number.isFinite(v)) out[cat] = v;
   }
   return out;
 }
+
+const catsFrom = (values: SeasonPlayerValues) => catsFromAccessor(values, CAT_ACCESSOR);
+const catsFromTotals = (values: SeasonPlayerValues) => catsFromAccessor(values, CAT_ACCESSOR_TOT);
 
 /**
  * Fantrax player id → canonical identity, from the registry.
@@ -170,13 +235,16 @@ function resolveOne(
     playerId: null,
     source: null,
     cats: {},
+    catsTotals: {},
     leagueV: null,
     nineCatV: null,
-    // An ambiguous name can't safely claim a consensus rank either — that's the
-    // same name join by a different route.
     consensusRank,
     gamesPlayed: null,
     minutesPerGame: null,
+    statLine: null,
+    catV: null,
+    catVRank: null,
+    trendTags: null,
     ambiguousName,
     smallSample: false,
   };
@@ -188,22 +256,128 @@ function resolveOne(
     const values = ds.valuesById.get(stats.player_id);
     if (!values) continue;
     const cats = catsFrom(values);
+    const catsTotals = catsFromTotals(values);
     const isProjection = ds.type === "projection";
+
+    const statLine: StatLine = {
+      pts: stats.pts, fg3m: stats.fg3m, reb: stats.reb, ast: stats.ast, stl: stats.stl,
+      blk: stats.blk, tov: stats.tov, fga: stats.fga, fg_pct: stats.fg_pct,
+      fta: stats.fta, ft_pct: stats.ft_pct,
+    };
+    const catV: { perGame: CatVSet; totals: CatVSet } = {
+      perGame: { nineCatV: values.value, minus1V: values.minus1v, eightCatV: eightCatVOf(values.value, values.v_to) },
+      totals: {
+        nineCatV: values.value_tot, minus1V: values.minus1v_tot,
+        eightCatV: eightCatVOf(values.value_tot, values.v_to_tot),
+      },
+    };
+    const catVRank: { perGame: CatVRanks; totals: CatVRanks } = {
+      perGame: {
+        nineCatV: ds.ranks.perGame.nineCatV.get(stats.player_id) ?? null,
+        minus1V: ds.ranks.perGame.minus1V.get(stats.player_id) ?? null,
+        eightCatV: ds.ranks.perGame.eightCatV.get(stats.player_id) ?? null,
+      },
+      totals: {
+        nineCatV: ds.ranks.totals.nineCatV.get(stats.player_id) ?? null,
+        minus1V: ds.ranks.totals.minus1V.get(stats.player_id) ?? null,
+        eightCatV: ds.ranks.totals.eightCatV.get(stats.player_id) ?? null,
+      },
+    };
+
     return {
       ...spot,
       playerId: stats.player_id,
       source: isProjection ? "projection" : "regular",
       cats,
+      catsTotals,
       leagueV: leagueValueOf(cats, scored),
       nineCatV: values.value,
       consensusRank,
       gamesPlayed: stats.g,
       minutesPerGame: stats.mpg,
+      statLine,
+      catV,
+      catVRank,
+      trendTags: null, // filled in by applyTrendTags() — needs an async batch query
       ambiguousName: false,
       smallSample: !isProjection && (stats.g ?? 0) < MIN_SAMPLE_GAMES,
     };
   }
   return blank;
+}
+
+// ── trend tags ──────────────────────────────────────────────────────────────
+
+// Trend tags always read off real 2025-26 production, independent of which
+// value dataset (projection vs. actual) the connector is currently valuing the
+// league against — a trend tag is a "is his real production trending up or
+// down vs. the market" read, which projections don't have an answer to yet.
+const TRENDS_SEASON = 2026;
+const TRENDS_TYPE = "regular";
+
+function createTrendsClient() {
+  return createPublicClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
+
+type TrendPayload = { blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] };
+
+/** normalized name → {age, isRookie}, from the bundled dynasty board (read
+ *  fresh, never persisted — same convention as consensusIndex() above). */
+function dynastyBioIndex(): Map<string, { age: number | null; isRookie: boolean }> {
+  const map = new Map<string, { age: number | null; isRookie: boolean }>();
+  for (const p of DYNASTY_RANKINGS) map.set(normalizePlayerName(p.player), { age: p.age, isRookie: p.isRookie });
+  return map;
+}
+
+/**
+ * One batched nba_player_trends query for every distinct playerId across the
+ * WHOLE league (every roster plus the waiver board) — a single round trip
+ * rather than one per team, since Fantrax leagues run to 30 teams and this
+ * would otherwise be 30 separate queries per page load.
+ */
+async function fetchTrendPayloads(ids: string[]): Promise<Map<string, TrendPayload>> {
+  const trendsById = new Map<string, TrendPayload>();
+  if (ids.length === 0) return trendsById;
+
+  const supabase = createTrendsClient();
+  const { data } = await supabase
+    .from("nba_player_trends")
+    .select("player_id, payload")
+    .eq("season", TRENDS_SEASON)
+    .eq("season_type", TRENDS_TYPE)
+    .in("player_id", ids);
+
+  for (const row of data ?? []) {
+    const payload = row.payload as unknown as TrendPayload;
+    if (payload?.blocks) trendsById.set(row.player_id, payload);
+  }
+  return trendsById;
+}
+
+/** Attaches a trendTags read to every already-resolved player that has a
+ *  playerId, from the ALREADY-FETCHED trendsById map (see fetchTrendPayloads
+ *  above). Players with no FHE data, or no trend payload built for them yet,
+ *  keep trendTags: null — same "absence, not a zero" convention as the rest
+ *  of this module. Pure/sync so it can run per roster without another round trip. */
+function applyTrendTags(
+  players: ResolvedPlayer[],
+  trendsById: Map<string, TrendPayload>,
+  bio: Map<string, { age: number | null; isRookie: boolean }>,
+): ResolvedPlayer[] {
+  return players.map((p) => {
+    if (!p.playerId) return p;
+    const trend = trendsById.get(p.playerId);
+    if (!trend) return p;
+    const b = lookupWithNameAlias(bio, normalizePlayerName(p.name)) ?? { age: null, isRookie: false };
+    const tagOf = (metric: "nineCatV" | "minus1V" | "eightCatV"): TrendTag | null =>
+      deriveFinalTake(trend.blocks, trend.seasonHistory ?? [], b.age, metric, p.consensusRank, null, b.isRookie)?.tag ?? null;
+    const trendTags: TrendTags = { nineCatV: tagOf("nineCatV"), minus1V: tagOf("minus1V"), eightCatV: tagOf("eightCatV") };
+    return { ...p, trendTags };
+  });
 }
 
 /** How many available players to score for the waiver board. Scoring all ~1,360
@@ -214,6 +388,7 @@ export async function analyzeLeague(
   league: FantraxLeague,
   myTeamId: string | null,
   datasetKey: FantraxDatasetKey = "2027:projection",
+  leagueType: "redraft" | "keeper" | "dynasty" = "redraft",
 ): Promise<LeagueAnalysis> {
   const scored = scoredOrDefault(league.categories.scored);
 
@@ -230,7 +405,7 @@ export async function analyzeLeague(
   // when the registry was built, so nothing has to be recomputed per import.
   const identityByFantraxId = await getIdentityByFantraxId();
 
-  const rosters = league.rosters.map((r) => ({
+  let rosters = league.rosters.map((r) => ({
     teamId: r.teamId,
     teamName: r.teamName,
     players: r.players.map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId)).sort(byLeagueValue),
@@ -244,7 +419,7 @@ export async function analyzeLeague(
   const standings = projectRotoStandings(profiles, scored);
   const edges = myTeamId ? categoryEdges(myTeamId, profiles, standings, scored) : [];
 
-  const waiverBoard = league.freeAgents
+  let waiverBoard = league.freeAgents
     .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId))
     // Small samples are excluded here rather than de-ranked: a 3-game call-up
     // isn't a better pickup than every real free agent, and showing him as one
@@ -252,6 +427,21 @@ export async function analyzeLeague(
     .filter((p) => p.leagueV !== null && !p.smallSample)
     .sort(byLeagueValue)
     .slice(0, WAIVER_BOARD_SIZE);
+
+  // Trend tags need one more round trip — ONE query for every distinct
+  // playerId across the whole league, not one per team — so they're layered
+  // on after every roster/waiver-board player is otherwise resolved.
+  const trendIds = Array.from(new Set(
+    [...rosters.flatMap((r) => r.players), ...waiverBoard].map((p) => p.playerId).filter((id): id is string => id !== null),
+  ));
+  const trendsById = await fetchTrendPayloads(trendIds);
+  const bio = dynastyBioIndex();
+  rosters = rosters.map((r) => ({ ...r, players: applyTrendTags(r.players, trendsById, bio) }));
+  waiverBoard = applyTrendTags(waiverBoard, trendsById, bio);
+
+  const tradeSuggestions = myTeamId
+    ? suggestTradeTargets(myTeamId, rosters, edges, scored, { isDynasty: leagueType === "dynasty" })
+    : [];
 
   const allRostered = rosters.flatMap((r) => r.players);
   return {
@@ -263,6 +453,7 @@ export async function analyzeLeague(
     standings,
     edges,
     waiverBoard,
+    tradeSuggestions,
     coverage: {
       rostered: allRostered.length,
       matched: allRostered.filter((p) => p.playerId !== null).length,
