@@ -379,6 +379,53 @@ script, and the JSON artifact. Ship a `/admin/player-identity` review panel
 listing unresolved names and conflicts. Nothing in the app reads it yet. This is
 already useful on day one: it's a standing report of every identity hole.
 
+> **The panel shipped 2026-08-05**, last of the Phase 1 deliverables. Six
+> sections: registry health (with a bundle-vs-database drift check), the review
+> queue grouped by reason, dynasty-board resolution, `fhe_id` coverage per
+> consumer table, the unattributed rows *by name*, and the authored alias list.
+>
+> **It is a report, not a merge tool, and that is deliberate.**
+> `player_identity_unresolved` is a QUEUE — `identity:build` upserts it from
+> scratch every run — so a decision recorded there would be erased by the next
+> build. Giving it a "resolve" button means first choosing where a decision lives
+> durably, and the right fix differs per reason: a `dob_conflict` wants
+> verification against a third source and an edit to the roster CSV (ESPN is not
+> authoritative — it has real DOB errors), a `no_match` wants an alias pair in a
+> committed, reviewable file, and `ambiguous`/`id_conflict` must never
+>
+> **2026-08-05 — used the panel to close 5 of the 11 DOB conflicts, and it found
+> a second real bug.** All five (Camper, Acuff, McKneely, Wrightsell, Ishchenko)
+> turned out to differ from the roster CSV by exactly one calendar year — same
+> month, same day. Verified independently per player (`draft_model_data.csv`'s
+> own `age` column, calibrated against 34 undisputed 2026-class players, plus
+> ESPN/RealGM/Rotowire/Wikipedia via search): **the roster CSV was wrong and ESPN
+> was right in all five** — notable, since the working assumption elsewhere is
+> the opposite. Fixed `data/nba-rosters/2026-27.csv`, re-ingested, rebuilt.
+>
+> That exposed that the queue could never actually clear. DOB is write-once by
+> design (correct — a wrong value confidently held is worse than a missing one),
+> but the registry's *own stored* value is exactly as sticky, and nothing
+> re-derives it once a source is corrected. Re-running the build after fixing the
+> CSV didn't clear the conflict — it added a SECOND one (`nba_roster` now also
+> disagreed with the still-wrong stored value) and broke the upsert outright:
+> `ON CONFLICT DO UPDATE... cannot affect row a second time`, two rows sharing
+> one `norm_name` in one batch.
+>
+> Fixed properly: (1) hand-corrected the five stuck values in the ledger,
+> `data/player-ids/player-identity.json` — the documented way to fix a stored
+> value that build logic will never touch again; (2) `build-player-identity.ts`
+> now dedupes `reg.unresolved` by `norm_name` before upserting; (3) it **sweeps
+> the table afterward**, deleting any row no longer in the current run's
+> unresolved set — which was simply missing before. The table's own comment says
+> the queue is "rewritten every run"; it wasn't. Same class of bug as the stale
+> `nba_contracts` row the Claxton fix caught, in a different table, caught here
+> only because the panel was used to close the loop end-to-end for the first
+> time. Verified in the browser: WAITING dropped from 11 to 6, matching the
+> database exactly.
+> auto-resolve at all (§5). Every one of those is a repo edit plus
+> `npm run identity:build`, so the panel names the exact edit per section instead
+> of pretending to a one-click merge it shouldn't have.
+
 **Phase 2 — dual-key.** Add a nullable `fhe_id` column beside the existing key on
 `nba_roster`, `nba_contracts`, `season_player_stats`, `nba_player_trends`,
 `real_salary_values`. Backfill. Existing joins untouched.

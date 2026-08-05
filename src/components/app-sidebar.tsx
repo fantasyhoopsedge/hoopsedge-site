@@ -8,7 +8,7 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 // "profile" doesn't match any NAV_ITEMS key by design — the account/settings
 // page isn't one of the main content sections, so nothing in the rail should
 // highlight while it's active.
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor" | "fantrax";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor" | "fantrax" | "player-identity";
 
 type NavItem = {
   key: AppSidebarActiveKey;
@@ -139,6 +139,26 @@ const ADMIN_TOOL_LINKS: Array<{ key: AppSidebarActiveKey; href: string; label: s
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+    ),
+  },
+  {
+    key: "player-identity",
+    href: "/admin/player-identity",
+    label: "Player Identity",
+    title: "Player identity review queue (admins only)",
+    icon: (
+      // fingerprint — the registry is one row per human
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+        <path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+        <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+        <path d="M2 12a10 10 0 0 1 18-6" />
+        <path d="M2 16h.01" />
+        <path d="M21.8 16c.2-2 .131-5.354 0-6" />
+        <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+        <path d="M8.65 22c.21-.66.45-1.32.57-2" />
+        <path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
       </svg>
     ),
   },

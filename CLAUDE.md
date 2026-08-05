@@ -316,8 +316,22 @@ add the pair to `player-name-aliases.ts` and re-run `identity:build`. Historical
 sources are deliberately out of scope (`draft_model_data.csv` spans the 2010–2025
 draft classes; 282 of its names are retired players, and that's correct).
 
-Phase status: 1–3 built (Fantrax is the one migrated consumer), 4 substantially
-built. Full plan: `docs/player-identity-layer.md`.
+**`/admin/player-identity`** is the review panel — registry health (including a
+bundle-vs-database drift check), the unresolved queue, dynasty-board resolution,
+`fhe_id` coverage per consumer table, unattributed rows by name, and the alias
+list. Gated like the other admin tools (localhost trusted; production needs
+`rb_admins`), and listed in `DEV_TRUSTED_ADMIN_PREFIXES` in `src/proxy.ts` — a
+new `/admin/*` route that isn't in that array gets bounced to the auth gate even
+on localhost.
+
+It is a **report, not a merge tool**, on purpose: `player_identity_unresolved` is
+a queue the build rewrites every run, so a decision stored there would be erased.
+Every fix is a repo edit (alias pair, or the roster CSV) followed by
+`npm run identity:build`, and the panel names which one per section.
+
+Phase status: 1–4 built; all six consumers migrated. Full plan and the remaining
+Phase 4 item (`player_name_alias` as source of truth):
+`docs/player-identity-layer.md`.
 
 ### Fantrax league connector (`src/lib/fantrax/`, `/admin/fantrax`)
 
