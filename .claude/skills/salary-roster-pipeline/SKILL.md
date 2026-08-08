@@ -16,7 +16,7 @@ it appears.
 | | Salary source | Feeds | Ingest script | Read by |
 |---|---|---|---|---|
 | **Salary** | `data/nba-salaries/current.csv` (HoopsHype, hand-refreshed) | `nba_contracts` | `npm run nba:salary` (`salary_ingest.ts`) | `/api/nba/rosters`, `/api/nba/trade-candidates`, `/api/nba/free-agents` |
-| **Roster** | `data/nba-rosters/<season>.csv` (owner's gated cap-sheet screenshot) | `nba_roster` | `npm run nba:roster` (`roster_ingest.ts`) | `/team-rosters` (the live app people actually use) |
+| **Roster** | `data/nba-rosters/<season>.csv` ("Pocaro's sheet" — a shared Google Sheets cap table; the owner shares the view-only link, read directly via the Browser MCP technique below) | `nba_roster` | `npm run nba:roster` (`roster_ingest.ts`) | `/team-rosters` (the live app people actually use) |
 
 `roster_ingest.ts` **reads current.csv too** (via `loadRealSalaries()`) and treats
 it as the authoritative salary source, falling back to the cap-sheet's own
@@ -67,12 +67,47 @@ extension. Confirmed as a repeating pattern across dozens of players once
 looked for deliberately, not a one-off.
 
 **The fix is a team-by-team audit**, cross-referencing each team's roster
-rows against a fresh full-roster cap-sheet screenshot (the owner calls this
+rows against a fresh full-roster cap-sheet pull (the owner calls this
 source "Pocaro's sheet" — a HoopsHype-derived per-team cap table with
 CONTRACT / FA YEAR / 26-27 SALARY columns, plus full bio: jersey, position,
 height, weight, DOB, age, years-of-service, draft, nationality). Progress is
 tracked as one task per team; see the project memory for current status
 (which teams are done, which are pending, and open flags).
+
+**Pulling Pocaro's sheet directly (2026-08-08, supersedes screenshots as the
+default method).** The sheet is a Google Sheets document (shared as a
+view-only "anyone with the link" URL, currently reached via a t.co shortlink)
+with one tab per competition — the NBA tab holds all 30 teams back to back,
+each starting with a `TEAM NAME` header row. Its grid is canvas-rendered, so
+the normal `read_page`/`get_page_text` tools see only chrome (menus, sheet
+tab names) and not a single cell — and navigating straight to
+`.../export?format=csv` triggers a file download, which is blocked (downloads
+require explicit user permission, and shouldn't be routine here anyway).
+What works:
+
+```
+https://docs.google.com/spreadsheets/d/<DOC_ID>/gviz/tq?gid=<GID>&tqx=out:html
+```
+
+This is Google's internal query endpoint; requesting `tqx=out:html` returns
+the sheet as a plain HTML table, which the browser renders normally (not a
+download) and `get_page_text` reads in full — every team, every column, in
+one pull, exactly as typed (no OCR-by-eye transcription risk). `<DOC_ID>` is
+the fixed id in the sheet's URL; `<GID>` is per-tab and not visible from the
+tab bar's accessible name — get it by clicking the target tab (e.g. "NBA")
+and reading `window.location.href` via the browser's JS-eval tool
+immediately after, since Sheets updates the URL fragment client-side on tab
+switch without a real navigation.
+
+This is an attended, Claude-driven browser session reading a document the
+owner already has share access to — the same posture as the manual
+browser-console snippet in "The hard rule" below, just faster and exact
+instead of eyeballed off a screenshot. It does not change any of the
+precedence rules in this file (Pocaro's sheet still only wins for
+`contract_raw`/`fa_year`, never for `salary_26_27`) — it only changes how the
+sheet's text reaches you. Keep it attended and one-off per refresh, same as
+every other manual input in this pipeline — never wire this into a script,
+cron job, or unattended fetch.
 
 **The rule for this specific rebuild — memorize the precedence, it's easy to
 get backwards:**
@@ -179,6 +214,11 @@ someone runs by hand" — it's a human copying data out of their own browser,
 same as if they'd typed it in. Never turn this into an automated fetch, a
 cron job, a headless-browser script, or anything that runs unattended against
 a salary site. See the reference file for the actual snippet.
+
+This rule is about salary *websites* (HoopsHype, Spotrac) — it does not cover
+Pocaro's sheet, which is a Google Sheets document the owner already shares
+access to, not a scraped third-party site. See "Pulling Pocaro's sheet
+directly" above for that source's own attended-session method.
 
 ## Player identity: one source of truth, two consumers
 
