@@ -8,13 +8,14 @@ import { getStats, getValuesForSize } from "@/lib/value/seasonal-data";
 import { createAdminClient } from "@/utils/supabase/admin";
 import type { Database, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import {
-  buildTeamProfile, byLeagueValue, categoryEdges, leagueValueOf, MIN_SAMPLE_GAMES,
-  projectRotoStandings, scoredOrDefault, suggestTradeTargets, type CatVRanks, type CatVSet,
+  buildTeamProfile, byLeagueValue, byPointsValue, categoryEdges, leagueValueOf, MIN_SAMPLE_GAMES,
+  pointsValueOf, projectPointsStandings, projectRotoStandings, scoredOrDefault, suggestPointsTradeTargets,
+  suggestTradeTargets, type CategoryEdge, type CatVRanks, type CatVSet,
   type LeagueAnalysis, type ResolvedPlayer, type StatLine, type TrendTags,
 } from "./analyze";
 import {
   CATEGORY_VALUE_COLUMN, FANTRAX_DATASETS, FHE_CATEGORIES,
-  type FantraxDatasetKey, type FantraxLeague, type FheCategory, type LeagueRosterSpot,
+  type FantraxDatasetKey, type FantraxLeague, type FheCategory, type LeaguePointsFormula, type LeagueRosterSpot,
 } from "./league";
 
 export { FANTRAX_DATASETS, type FantraxDatasetKey };
@@ -221,6 +222,7 @@ function resolveOne(
   consensus: Map<string, number>,
   scored: readonly FheCategory[],
   identityByFantraxId: Record<string, { fheId: string; name: string }>,
+  pointsFormula: LeaguePointsFormula | null,
 ): ResolvedPlayer {
   const norm = normalizePlayerName(spot.name);
   const consensusRank = lookupWithNameAlias(consensus, norm) ?? null;
@@ -237,6 +239,7 @@ function resolveOne(
     cats: {},
     catsTotals: {},
     leagueV: null,
+    pointsValue: null,
     nineCatV: null,
     consensusRank,
     gamesPlayed: null,
@@ -291,6 +294,7 @@ function resolveOne(
       cats,
       catsTotals,
       leagueV: leagueValueOf(cats, scored),
+      pointsValue: pointsFormula ? pointsValueOf(statLine, pointsFormula) : null,
       nineCatV: values.value,
       consensusRank,
       gamesPlayed: stats.g,
@@ -390,7 +394,9 @@ export async function analyzeLeague(
   datasetKey: FantraxDatasetKey = "2027:projection",
   leagueType: "redraft" | "keeper" | "dynasty" = "redraft",
 ): Promise<LeagueAnalysis> {
+  const isPoints = league.scoringMode === "points";
   const scored = scoredOrDefault(league.categories.scored);
+  const pointsFormula = league.pointsFormula;
 
   const primarySpec = FANTRAX_DATASETS.find((d) => d.key === datasetKey) ?? FANTRAX_DATASETS[0];
   const fallbackSpec = FANTRAX_DATASETS.find((d) => d.key !== primarySpec.key)!;
@@ -405,27 +411,42 @@ export async function analyzeLeague(
   // when the registry was built, so nothing has to be recomputed per import.
   const identityByFantraxId = await getIdentityByFantraxId();
 
+  const byValue = isPoints ? byPointsValue : byLeagueValue;
+  const hasValue = (p: ResolvedPlayer) => (isPoints ? p.pointsValue !== null : p.leagueV !== null);
+
   let rosters = league.rosters.map((r) => ({
     teamId: r.teamId,
     teamName: r.teamName,
-    players: r.players.map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId)).sort(byLeagueValue),
+    players: r.players
+      .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula))
+      .sort(byValue),
   }));
 
   // Only active slots accumulate, so the projected lineup is the league's own
   // active-slot count (falling back to the roster limit for leagues that don't
   // declare one).
   const starterCount = league.maxActivePlayers || Math.min(10, league.maxTotalPlayers);
-  const profiles = rosters.map((r) => buildTeamProfile(r.teamId, r.teamName, r.players, starterCount, scored));
-  const standings = projectRotoStandings(profiles, scored);
-  const edges = myTeamId ? categoryEdges(myTeamId, profiles, standings, scored) : [];
+  const profiles = rosters.map((r) => buildTeamProfile(r.teamId, r.teamName, r.players, starterCount, scored, pointsFormula));
+
+  // Points leagues have no category dimension: standings are a flat points
+  // sort, and category edges (what Edge tool's category-mode path targets)
+  // simply don't exist.
+  let edges: CategoryEdge[] = [];
+  const standings = isPoints
+    ? projectPointsStandings(profiles)
+    : (() => {
+        const rotoStandings = projectRotoStandings(profiles, scored);
+        edges = myTeamId ? categoryEdges(myTeamId, profiles, rotoStandings, scored) : [];
+        return rotoStandings;
+      })();
 
   let waiverBoard = league.freeAgents
-    .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId))
+    .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula))
     // Small samples are excluded here rather than de-ranked: a 3-game call-up
     // isn't a better pickup than every real free agent, and showing him as one
     // discredits the whole board.
-    .filter((p) => p.leagueV !== null && !p.smallSample)
-    .sort(byLeagueValue)
+    .filter((p) => hasValue(p) && !p.smallSample)
+    .sort(byValue)
     .slice(0, WAIVER_BOARD_SIZE);
 
   // Trend tags need one more round trip — ONE query for every distinct
@@ -440,7 +461,9 @@ export async function analyzeLeague(
   waiverBoard = applyTrendTags(waiverBoard, trendsById, bio);
 
   const tradeSuggestions = myTeamId
-    ? suggestTradeTargets(myTeamId, rosters, edges, scored, { isDynasty: leagueType === "dynasty" })
+    ? (isPoints
+        ? suggestPointsTradeTargets(myTeamId, rosters, { isDynasty: leagueType === "dynasty" })
+        : suggestTradeTargets(myTeamId, rosters, edges, scored, { isDynasty: leagueType === "dynasty" }))
     : [];
 
   const allRostered = rosters.flatMap((r) => r.players);

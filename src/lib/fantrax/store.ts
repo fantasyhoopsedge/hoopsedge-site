@@ -59,6 +59,14 @@ export interface SavedLeagueSettings {
   format?: LeagueFormat;
   leagueType?: LeagueType;
   salaryFormat?: SalaryFormat;
+  /** True once the user has explicitly confirmed `format` — Fantrax's API
+   *  can't tell roto from head-to-head-categories (verified live 2026-08-09:
+   *  both report scoringType "rotisserie"), so `format` otherwise silently
+   *  carries DEFAULT_LEAGUE_TAGS.format ("roto") with no signal that it was
+   *  ever actually checked. Missing/false on any league saved before this
+   *  field existed — correctly, since those saves may never have had the
+   *  format looked at. */
+  formatConfirmed?: boolean;
   /** Which FHE dataset this league opens to by default next time it's loaded. */
   defaultDataset?: FantraxDatasetKey;
 }

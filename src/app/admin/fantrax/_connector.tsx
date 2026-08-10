@@ -5,12 +5,13 @@ import {
   type FxLeagueSummary,
 } from "@/lib/fantrax/api";
 import {
-  MIN_SAMPLE_GAMES, type CategoryEdge, type LeagueAnalysis, type ResolvedPlayer,
-  type TeamStatTotals, type TradeSuggestion,
+  MIN_SAMPLE_GAMES, type CategoryEdge, type LeagueAnalysis, type PointsStandingRow,
+  type PointsTradeSuggestion, type ResolvedPlayer, type RotoStandingRow, type TeamStatTotals,
+  type TradeSuggestion,
 } from "@/lib/fantrax/analyze";
 import {
-  CATEGORY_LABEL, FANTRAX_DATASETS, scoringTypeLabel,
-  type FantraxDatasetKey, type FheCategory,
+  CATEGORY_LABEL, FANTRAX_DATASETS, FHE_CATEGORIES, scoringTypeLabel,
+  type FantraxDatasetKey, type FheCategory, type PointsStat,
 } from "@/lib/fantrax/league";
 import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import type { SavedLeague } from "@/lib/fantrax/store";
@@ -66,7 +67,7 @@ type CatMode = "nineCatV" | "minus1V" | "eightCatV";
 const CAT_MODE_LABEL: Record<CatMode, string> = { nineCatV: "9CatV", minus1V: "Minus1V", eightCatV: "8CatV" };
 const CAT_MODE_RANK_LABEL: Record<CatMode, string> = { nineCatV: "9CatRank", minus1V: "Minus1Rank", eightCatV: "8CatRank" };
 
-type PlayerSortKey = "name" | "leagueV" | "catV" | "catVRank" | FheCategory;
+type PlayerSortKey = "name" | "leagueV" | "pointsValue" | "catV" | "catVRank" | FheCategory;
 
 /** Trend badge — emoji + label from the site's existing tone system (see
  *  team-rosters/_components/trend-insight.ts TAG_META), so a Fantrax roster
@@ -109,6 +110,13 @@ export function FantraxConnector() {
   const [leagueType, setLeagueType] = useState<LeagueType>(DEFAULT_LEAGUE_TAGS.leagueType);
   const [format, setFormat] = useState<LeagueFormat>(DEFAULT_LEAGUE_TAGS.format);
   const [salaryFormat, setSalaryFormat] = useState<SalaryFormat>(DEFAULT_LEAGUE_TAGS.salaryFormat);
+  // Fantrax's API can't tell roto from head-to-head-categories (verified live
+  // 2026-08-09 against real leagues of each — both report the same
+  // scoringType). `format` therefore defaults to "roto" with no signal it was
+  // ever actually checked; this tracks whether the USER has confirmed it, so
+  // Standings/Edge can require that confirmation instead of silently scoring
+  // an unconfirmed league as roto.
+  const [formatConfirmed, setFormatConfirmed] = useState(false);
 
   // Restore the session's credentials on mount. sessionStorage is per-tab, so
   // a fresh tab correctly starts disconnected.
@@ -193,6 +201,7 @@ export function FantraxConnector() {
     setLeagueType(lt);
     setFormat(prior?.format ?? DEFAULT_LEAGUE_TAGS.format);
     setSalaryFormat(prior?.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat);
+    setFormatConfirmed(prior?.formatConfirmed ?? false);
     void loadLeague(leagueId, teamId, ds, lt);
   }
 
@@ -218,6 +227,14 @@ export function FantraxConnector() {
     setLeagueType(next);
     if (analysis) void loadLeague(analysis.league.leagueId, analysis.myTeamId, dataset, next);
     void persistSettings({ leagueType: next });
+  }
+
+  /** Explicit user choice of Roto/H2H — from either the blocking first-connect
+   *  prompt or the League Settings dropdown. Both count as confirmation. */
+  function confirmFormat(next: LeagueFormat) {
+    setFormat(next);
+    setFormatConfirmed(true);
+    void persistSettings({ format: next, formatConfirmed: true });
   }
 
   /** Upserts the saved-league record with whatever settings overrides are
@@ -248,6 +265,7 @@ export function FantraxConnector() {
             hasSalaries: league.hasSalaries,
             poolSize: league.poolSize,
             format,
+            formatConfirmed,
             leagueType,
             salaryFormat,
             defaultDataset: dataset,
@@ -282,6 +300,10 @@ export function FantraxConnector() {
     [analysis],
   );
   const isSaved = analysis ? saved.some((l) => l.leagueId === analysis.league.leagueId) : false;
+  const pointsMode = analysis?.league.scoringMode === "points";
+  // Points leagues don't have a roto/H2H question at all — only categories
+  // leagues need the confirmation gate.
+  const needsFormatConfirm = !pointsMode && !formatConfirmed;
 
   return (
     <div className="fx-shell">
@@ -453,10 +475,11 @@ export function FantraxConnector() {
                 edges={analysis.edges}
                 teamCount={analysis.league.teamCount}
                 starters={analysis.league.maxActivePlayers}
-                rotoPoints={myStanding?.totalPoints ?? null}
-                rotoRank={myStanding?.projectedRank ?? null}
+                totalValue={myStanding?.totalPoints ?? null}
+                rank={myStanding?.projectedRank ?? null}
                 hasSalaries={analysis.league.hasSalaries}
-                scored={analysis.league.categories.scored}
+                scored={pointsMode ? FHE_CATEGORIES : analysis.league.categories.scored}
+                pointsMode={pointsMode}
               />
             ) : (
               <div className="fx-empty">Pick your team above to see its category profile.</div>
@@ -464,23 +487,40 @@ export function FantraxConnector() {
           )}
 
           {tab === "standings" && (
-            <Standings analysis={analysis} scored={analysis.league.categories.scored} />
+            needsFormatConfirm ? (
+              <FormatConfirmPrompt onConfirm={confirmFormat} />
+            ) : pointsMode ? (
+              <PointsStandings standings={analysis.standings as PointsStandingRow[]} myTeamId={analysis.myTeamId} />
+            ) : (
+              <Standings analysis={analysis} scored={analysis.league.categories.scored} />
+            )
           )}
 
           {tab === "waivers" && (
-            <WaiverBoard players={analysis.waiverBoard} scored={analysis.league.categories.scored} />
+            <WaiverBoard
+              players={analysis.waiverBoard}
+              scored={pointsMode ? FHE_CATEGORIES : analysis.league.categories.scored}
+              pointsMode={pointsMode}
+            />
           )}
 
           {tab === "edge" && (
-            myTeam ? (
+            needsFormatConfirm ? (
+              <FormatConfirmPrompt onConfirm={confirmFormat} />
+            ) : !myTeam ? (
+              <div className="fx-empty">Pick your team above to get trade-target suggestions.</div>
+            ) : pointsMode ? (
+              <PointsEdgeTool
+                suggestions={analysis.tradeSuggestions as PointsTradeSuggestion[]}
+                isDynasty={leagueType === "dynasty"}
+              />
+            ) : (
               <EdgeTool
-                suggestions={analysis.tradeSuggestions}
+                suggestions={analysis.tradeSuggestions as TradeSuggestion[]}
                 edges={analysis.edges}
                 teamCount={analysis.league.teamCount}
                 isDynasty={leagueType === "dynasty"}
               />
-            ) : (
-              <div className="fx-empty">Pick your team above to get trade-target suggestions.</div>
             )
           )}
 
@@ -490,7 +530,7 @@ export function FantraxConnector() {
               format={format}
               leagueType={leagueType}
               salaryFormat={salaryFormat}
-              onFormatChange={(v) => { setFormat(v); void persistSettings({ format: v }); }}
+              onFormatChange={confirmFormat}
               onLeagueTypeChange={changeLeagueType}
               onSalaryFormatChange={(v) => { setSalaryFormat(v); void persistSettings({ salaryFormat: v }); }}
               onSetDefaultDataset={() => void persistSettings({ defaultDataset: dataset })}
@@ -511,25 +551,39 @@ function LeagueSummary({
   analysis, onSelectTeam,
 }: { analysis: LeagueAnalysis; onSelectTeam: (id: string) => void }) {
   const { league, dataset, coverage } = analysis;
+  const pointsMode = league.scoringMode === "points";
   return (
     <section className="fx-summary">
       <div className="fx-summary-main">
         <h2 className="fx-league-title">{league.name}</h2>
         <div className="fx-facts">
           <span>{scoringTypeLabel(league.scoringType)}</span>
-          <span>{league.categories.scored.length}-cat</span>
+          {!pointsMode && <span>{league.categories.scored.length}-cat</span>}
           <span>{league.teamCount} teams</span>
           <span>{league.maxTotalPlayers}-man rosters · {league.maxActivePlayers} starters</span>
           {league.hasSalaries && <span>salary cap</span>}
           <span>valued vs {dataset.label}</span>
         </div>
         <div className="fx-cats">
-          {league.categories.scored.map((c) => (
-            <span key={c} className="fx-cat-chip">{CATEGORY_LABEL[c]}</span>
-          ))}
-          {league.categories.unmodelled.map((c) => (
-            <span key={c} className="fx-cat-chip off" title="FHE doesn't model this category">{c}</span>
-          ))}
+          {pointsMode ? (
+            <>
+              {league.pointsFormula && Object.entries(league.pointsFormula.weights).map(([stat, w]) => (
+                <span key={stat} className="fx-cat-chip">{stat} {w as number > 0 ? "+" : ""}{w}</span>
+              ))}
+              {league.pointsFormula?.unmodelled.map((c) => (
+                <span key={c} className="fx-cat-chip off" title="FHE doesn't model this stat">{c}</span>
+              ))}
+            </>
+          ) : (
+            <>
+              {league.categories.scored.map((c) => (
+                <span key={c} className="fx-cat-chip">{CATEGORY_LABEL[c]}</span>
+              ))}
+              {league.categories.unmodelled.map((c) => (
+                <span key={c} className="fx-cat-chip off" title="FHE doesn't model this category">{c}</span>
+              ))}
+            </>
+          )}
         </div>
       </div>
       <div className="fx-summary-side">
@@ -563,19 +617,23 @@ function LeagueSummary({
 // ── my team ─────────────────────────────────────────────────────────────────
 
 function MyTeam({
-  players, edges, teamCount, starters, rotoPoints, rotoRank, hasSalaries, scored,
+  players, edges, teamCount, starters, totalValue, rank, hasSalaries, scored, pointsMode,
 }: {
   players: ResolvedPlayer[];
   edges: CategoryEdge[];
   teamCount: number;
   starters: number;
-  rotoPoints: number | null;
-  rotoRank: number | null;
+  totalValue: number | null;
+  rank: number | null;
   hasSalaries: boolean;
   scored: readonly FheCategory[];
+  pointsMode: boolean;
 }) {
   const starterIds = new Set(
-    players.filter((p) => p.leagueV !== null).slice(0, Math.max(1, starters)).map((p) => p.fantraxId),
+    players
+      .filter((p) => (pointsMode ? p.pointsValue !== null : p.leagueV !== null))
+      .slice(0, Math.max(1, starters))
+      .map((p) => p.fantraxId),
   );
 
   return (
@@ -583,22 +641,26 @@ function MyTeam({
       <div className="fx-kpis">
         <div className="fx-kpi">
           <div className="fx-kpi-label">Projected finish</div>
-          <div className="fx-kpi-value">{rotoRank ? `${rotoRank} of ${teamCount}` : "—"}</div>
+          <div className="fx-kpi-value">{rank ? `${rank} of ${teamCount}` : "—"}</div>
         </div>
         <div className="fx-kpi">
-          <div className="fx-kpi-label">Projected roto points</div>
-          <div className="fx-kpi-value">{rotoPoints === null ? "—" : rotoPoints.toFixed(1)}</div>
+          <div className="fx-kpi-label">{pointsMode ? "Projected season points" : "Projected roto points"}</div>
+          <div className="fx-kpi-value">{totalValue === null ? "—" : totalValue.toFixed(1)}</div>
         </div>
-        <div className="fx-kpi">
-          <div className="fx-kpi-label">Strongest category</div>
-          <div className="fx-kpi-value">{edges[0] ? `${CATEGORY_LABEL[edges[0].category]} (${edges[0].rank})` : "—"}</div>
-        </div>
-        <div className="fx-kpi">
-          <div className="fx-kpi-label">Weakest category</div>
-          <div className="fx-kpi-value">
-            {edges.length ? `${CATEGORY_LABEL[edges[edges.length - 1].category]} (${edges[edges.length - 1].rank})` : "—"}
-          </div>
-        </div>
+        {!pointsMode && (
+          <>
+            <div className="fx-kpi">
+              <div className="fx-kpi-label">Strongest category</div>
+              <div className="fx-kpi-value">{edges[0] ? `${CATEGORY_LABEL[edges[0].category]} (${edges[0].rank})` : "—"}</div>
+            </div>
+            <div className="fx-kpi">
+              <div className="fx-kpi-label">Weakest category</div>
+              <div className="fx-kpi-value">
+                {edges.length ? `${CATEGORY_LABEL[edges[edges.length - 1].category]} (${edges[edges.length - 1].rank})` : "—"}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {edges.length > 0 && (
@@ -626,9 +688,14 @@ function MyTeam({
 
       <section className="fx-panel">
         <h3 className="fx-panel-title">
-          Roster <span className="fx-panel-note">LeagueV = FHE z-scores averaged over this league&apos;s categories</span>
+          Roster{" "}
+          <span className="fx-panel-note">
+            {pointsMode
+              ? "Pts/G = weighted fantasy points under this league's formula"
+              : "LeagueV = FHE z-scores averaged over this league's categories"}
+          </span>
         </h3>
-        <PlayerTable players={players} scored={scored} hasSalaries={hasSalaries} starterIds={starterIds} />
+        <PlayerTable players={players} scored={scored} hasSalaries={hasSalaries} starterIds={starterIds} pointsMode={pointsMode} />
       </section>
     </>
   );
@@ -686,16 +753,19 @@ function SortTh<K extends string>({
 }
 
 function PlayerTable({
-  players, scored, hasSalaries, starterIds,
+  players, scored, hasSalaries, starterIds, pointsMode = false,
 }: {
   players: ResolvedPlayer[];
   scored: readonly FheCategory[];
   hasSalaries: boolean;
   starterIds?: Set<string>;
+  pointsMode?: boolean;
 }) {
   const [perGame, setPerGame] = useState(true);
   const [catMode, setCatMode] = useState<CatMode>("nineCatV");
-  const [sort, setSort] = useState<{ key: PlayerSortKey; dir: "asc" | "desc" }>({ key: "leagueV", dir: "desc" });
+  const [sort, setSort] = useState<{ key: PlayerSortKey; dir: "asc" | "desc" }>(
+    { key: pointsMode ? "pointsValue" : "leagueV", dir: "desc" },
+  );
 
   const onSort = (key: PlayerSortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }));
@@ -706,6 +776,7 @@ function PlayerTable({
       switch (sort.key) {
         case "name": return null; // handled separately below
         case "leagueV": return p.leagueV;
+        case "pointsValue": return p.pointsValue;
         case "catV": return p.catV?.[mode][catMode] ?? null;
         case "catVRank": return p.catVRank?.[mode][catMode] ?? null;
         default: return (perGame ? p.cats : p.catsTotals)[sort.key] ?? null;
@@ -733,13 +804,15 @@ function PlayerTable({
           <button type="button" className={`fx-pill${perGame ? " on" : ""}`} onClick={() => setPerGame(true)}>Per Game</button>
           <button type="button" className={`fx-pill${!perGame ? " on" : ""}`} onClick={() => setPerGame(false)}>Totals</button>
         </div>
-        <div className="fx-pill-row">
-          {(["nineCatV", "eightCatV", "minus1V"] as CatMode[]).map((m) => (
-            <button key={m} type="button" className={`fx-pill${catMode === m ? " on" : ""}`} onClick={() => setCatMode(m)}>
-              {CAT_MODE_LABEL[m]}
-            </button>
-          ))}
-        </div>
+        {!pointsMode && (
+          <div className="fx-pill-row">
+            {(["nineCatV", "eightCatV", "minus1V"] as CatMode[]).map((m) => (
+              <button key={m} type="button" className={`fx-pill${catMode === m ? " on" : ""}`} onClick={() => setCatMode(m)}>
+                {CAT_MODE_LABEL[m]}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="fx-table-wrap">
         <table className="fx-table">
@@ -750,9 +823,15 @@ function PlayerTable({
               <th>NBA</th>
               {hasSalaries && <th>Salary</th>}
               <th>Status</th>
-              <SortTh label="LeagueV" sortKey="leagueV" sort={sort} onSort={onSort} title="This league's own scoring — mean z across the categories it scores, per-game" />
-              <SortTh label={CAT_MODE_LABEL[catMode]} sortKey="catV" sort={sort} onSort={onSort} />
-              <SortTh label={CAT_MODE_RANK_LABEL[catMode]} sortKey="catVRank" sort={sort} onSort={onSort} title="Rank within the full FHE baseline pool" />
+              {pointsMode ? (
+                <SortTh label="Pts/G" sortKey="pointsValue" sort={sort} onSort={onSort} title="Weighted fantasy points under this league's own formula" />
+              ) : (
+                <>
+                  <SortTh label="LeagueV" sortKey="leagueV" sort={sort} onSort={onSort} title="This league's own scoring — mean z across the categories it scores, per-game" />
+                  <SortTh label={CAT_MODE_LABEL[catMode]} sortKey="catV" sort={sort} onSort={onSort} />
+                  <SortTh label={CAT_MODE_RANK_LABEL[catMode]} sortKey="catVRank" sort={sort} onSort={onSort} title="Rank within the full FHE baseline pool" />
+                </>
+              )}
               <th>Trend</th>
               {scored.map((c) => <SortTh key={c} label={CATEGORY_LABEL[c]} sortKey={c} sort={sort} onSort={onSort} />)}
             </tr>
@@ -780,11 +859,17 @@ function PlayerTable({
                 <td className="dim">{p.nbaTeam === "(N/A)" ? "—" : p.nbaTeam}</td>
                 {hasSalaries && <td className="dim">{fmtMoney(p.salary)}</td>}
                 <td className="dim">{p.status.replace("INJURED_RESERVE", "IR").replace("_", " ")}</td>
-                <td className="num strong">{fmtV(p.leagueV)}</td>
-                <td className="num strong" style={{ background: vBg(p.catV?.[mode][catMode] ?? null, 1.0, 0.6) }}>
-                  {fmtV(p.catV?.[mode][catMode])}
-                </td>
-                <td className="num dim">{fmtRank(p.catVRank?.[mode][catMode])}</td>
+                {pointsMode ? (
+                  <td className="num strong">{f1(perGame ? p.pointsValue : (p.pointsValue ?? 0) * (p.gamesPlayed ?? 0))}</td>
+                ) : (
+                  <>
+                    <td className="num strong">{fmtV(p.leagueV)}</td>
+                    <td className="num strong" style={{ background: vBg(p.catV?.[mode][catMode] ?? null, 1.0, 0.6) }}>
+                      {fmtV(p.catV?.[mode][catMode])}
+                    </td>
+                    <td className="num dim">{fmtRank(p.catVRank?.[mode][catMode])}</td>
+                  </>
+                )}
                 <td className="dim"><TrendBadge tag={p.trendTags?.[catMode]} /></td>
                 {scored.map((c) => <StatCell key={c} cat={c} player={p} perGame={perGame} />)}
               </tr>
@@ -831,7 +916,12 @@ function Standings({ analysis, scored }: { analysis: LeagueAnalysis; scored: rea
 
   const rows = useMemo(() => {
     const statTotalsByTeam = new Map(analysis.profiles.map((p) => [p.teamId, p.statTotals]));
-    return analysis.standings.map((s) => ({ ...s, statTotals: statTotalsByTeam.get(s.teamId)! }));
+    // Safe: this component only ever renders for a categories-mode league
+    // (the caller branches on league.scoringMode before choosing Standings
+    // vs. PointsStandings), so analysis.standings is always RotoStandingRow[]
+    // here even though LeagueAnalysis types it as a union.
+    const standings = analysis.standings as RotoStandingRow[];
+    return standings.map((s) => ({ ...s, statTotals: statTotalsByTeam.get(s.teamId)! }));
   }, [analysis]);
 
   const sorted = useMemo(() => {
@@ -897,18 +987,61 @@ function Standings({ analysis, scored }: { analysis: LeagueAnalysis; scored: rea
   );
 }
 
+/**
+ * Points-league standings: no category dimension to break out (see Standings
+ * above) — just each team's projected season point total, ranked.
+ */
+function PointsStandings({
+  standings, myTeamId,
+}: { standings: PointsStandingRow[]; myTeamId: string | null }) {
+  return (
+    <section className="fx-panel">
+      <h3 className="fx-panel-title">
+        Projected standings
+        <span className="fx-panel-note">each team&apos;s starters, ranked by projected season points</span>
+      </h3>
+      <div className="fx-table-wrap">
+        <table className="fx-table">
+          <thead>
+            <tr>
+              <th className="num">#</th>
+              <th className="l">Team</th>
+              <th className="num">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.map((s) => (
+              <tr key={s.teamId} className={s.teamId === myTeamId ? "mine" : undefined}>
+                <td className="num dim">{s.projectedRank}</td>
+                <td className="l">{s.teamName}</td>
+                <td className="num strong">{s.totalPoints.toFixed(1)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 // ── waiver board ────────────────────────────────────────────────────────────
 
-function WaiverBoard({ players, scored }: { players: ResolvedPlayer[]; scored: readonly FheCategory[] }) {
+function WaiverBoard({
+  players, scored, pointsMode = false,
+}: { players: ResolvedPlayer[]; scored: readonly FheCategory[]; pointsMode?: boolean }) {
   if (players.length === 0) {
     return <div className="fx-empty">No available players matched FHE data.</div>;
   }
   return (
     <section className="fx-panel">
       <h3 className="fx-panel-title">
-        Best available <span className="fx-panel-note">free agents and waiver claims, ranked by this league&apos;s categories · {MIN_SAMPLE_GAMES}-game minimum on last-season lines</span>
+        Best available{" "}
+        <span className="fx-panel-note">
+          free agents and waiver claims, ranked by {pointsMode ? "this league's points formula" : "this league's categories"} ·{" "}
+          {MIN_SAMPLE_GAMES}-game minimum on last-season lines
+        </span>
       </h3>
-      <PlayerTable players={players} scored={scored} hasSalaries={false} />
+      <PlayerTable players={players} scored={scored} hasSalaries={false} pointsMode={pointsMode} />
     </section>
   );
 }
@@ -984,6 +1117,78 @@ function EdgeTool({
   );
 }
 
+/**
+ * Points-league sibling of EdgeTool — no category dimension to target, so
+ * candidates are simply the best available pointsValue upgrades elsewhere in
+ * the league (see suggestPointsTradeTargets).
+ */
+function PointsEdgeTool({
+  suggestions, isDynasty,
+}: { suggestions: PointsTradeSuggestion[]; isDynasty: boolean }) {
+  if (suggestions.length === 0) {
+    return <div className="fx-empty">No clear upgrade on another roster right now.</div>;
+  }
+  return (
+    <section className="fx-panel">
+      <h3 className="fx-panel-title">
+        Trade targets
+        <span className="fx-panel-note">
+          rostered players elsewhere in the league who&apos;d raise your points-per-game
+          {isDynasty ? " · dynasty consensus lightly tie-breaks these" : ""}
+        </span>
+      </h3>
+      <div className="fx-edge-list">
+        {suggestions.map((s) => (
+          <div key={s.target.fantraxId} className="fx-edge-card">
+            <div className="fx-edge-card-main">
+              <div className="fx-edge-card-name">
+                {s.target.name}
+                <span className="fx-edge-card-team">{s.targetTeamName}</span>
+              </div>
+              <div className="fx-edge-card-meta">
+                <span>Pts/G {f1(s.target.pointsValue)}</span>
+                <span>Consensus {s.target.consensusRank ?? "—"}</span>
+                <TrendBadge tag={s.target.trendTags?.nineCatV} />
+              </div>
+            </div>
+            <div className="fx-edge-card-fit">
+              <div className="fx-edge-fit-label">Fit</div>
+              <div className="fx-edge-fit-value">{f1(s.fitScore)}</div>
+            </div>
+            {s.suggestedGiveUp && (
+              <div className="fx-edge-card-give">
+                <div className="fx-edge-give-label">Realistic ask</div>
+                <div className="fx-edge-give-name">{s.suggestedGiveUp.name}</div>
+                <div className="fx-edge-give-note">similar Pts/G ({f1(s.suggestedGiveUp.pointsValue)})</div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Blocks Standings/Edge for a categories-mode league until the user has
+ * explicitly confirmed Roto vs. Head-to-head — Fantrax's API can't tell the
+ * two apart (verified live 2026-08-09), so silently assuming roto would score
+ * a real H2H league wrong with no indication anything was assumed at all.
+ */
+function FormatConfirmPrompt({ onConfirm }: { onConfirm: (v: LeagueFormat) => void }) {
+  return (
+    <div className="fx-empty fx-format-confirm">
+      <p>
+        Fantrax doesn&apos;t tell us whether this league is scored Rotisserie or Head-to-head — which is it?
+      </p>
+      <div className="fx-row" style={{ justifyContent: "center" }}>
+        <button type="button" className="fx-btn primary" onClick={() => onConfirm("roto")}>Rotisserie</button>
+        <button type="button" className="fx-btn primary" onClick={() => onConfirm("h2h")}>Head-to-head</button>
+      </div>
+    </div>
+  );
+}
+
 // ── settings ────────────────────────────────────────────────────────────────
 
 function SettingsPanel({
@@ -999,12 +1204,27 @@ function SettingsPanel({
   onSetDefaultDataset: () => void;
 }) {
   const { league, dataset } = analysis;
+  const pointsMode = league.scoringMode === "points";
   const rows: [string, string][] = [
     ["League ID", league.leagueId],
     ["Season", String(league.seasonYear)],
     ["Scoring", scoringTypeLabel(league.scoringType)],
-    ["Categories", league.categories.scored.map((c) => CATEGORY_LABEL[c]).join(", ")],
-    ["Not modelled by FHE", league.categories.unmodelled.join(", ") || "none"],
+    ...(pointsMode
+      ? ([
+          [
+            "Points formula",
+            league.pointsFormula
+              ? (Object.entries(league.pointsFormula.weights) as [PointsStat, number][])
+                  .map(([stat, w]) => `${stat} ${w > 0 ? "+" : ""}${w}`)
+                  .join(", ")
+              : "—",
+          ],
+          ["Not modelled by FHE", league.pointsFormula?.unmodelled.join(", ") || "none"],
+        ] as [string, string][])
+      : ([
+          ["Categories", league.categories.scored.map((c) => CATEGORY_LABEL[c]).join(", ")],
+          ["Not modelled by FHE", league.categories.unmodelled.join(", ") || "none"],
+        ] as [string, string][])),
     ["Teams", String(league.teamCount)],
     ["Roster", `${league.maxTotalPlayers} total · ${league.maxActivePlayers} active`],
     ["Starting slots", Object.entries(league.positionSlots).map(([p, n]) => `${p}×${n}`).join(", ") || "—"],
@@ -1026,13 +1246,15 @@ function SettingsPanel({
           League settings <span className="fx-panel-note">Fantrax doesn&apos;t expose these — set them yourself; they persist with the saved league</span>
         </h3>
         <div className="fx-tagrow">
-          <label className="fx-label">
-            Scoring format
-            <select className="fx-select" value={format} onChange={(e) => onFormatChange(e.target.value as LeagueFormat)}>
-              <option value="roto">Rotisserie</option>
-              <option value="h2h">Head-to-head</option>
-            </select>
-          </label>
+          {!pointsMode && (
+            <label className="fx-label">
+              Scoring format
+              <select className="fx-select" value={format} onChange={(e) => onFormatChange(e.target.value as LeagueFormat)}>
+                <option value="roto">Rotisserie</option>
+                <option value="h2h">Head-to-head</option>
+              </select>
+            </label>
+          )}
           <label className="fx-label">
             League type
             <select className="fx-select" value={leagueType} onChange={(e) => onLeagueTypeChange(e.target.value as LeagueType)}>
@@ -1126,6 +1348,7 @@ const STYLES = `
   .fx-warn { background: rgba(219,43,57,.1); border: 1px solid rgba(219,43,57,.35); border-radius: 10px;
     padding: 10px 14px; font-size: 13px; color: var(--rt-body); margin-bottom: 14px; }
   .fx-loading, .fx-empty { padding: 48px; text-align: center; color: var(--rt-muted); font-size: 14px; }
+  .fx-format-confirm p { margin: 0 0 14px; color: var(--rt-body-strong); font-size: 14px; }
 
   .fx-setup { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
   .fx-card { border: 1px solid var(--rt-hairline); border-radius: 12px; background: var(--rt-surface-soft); padding: 20px; }
