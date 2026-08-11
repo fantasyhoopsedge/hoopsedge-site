@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, FHE_CATEGORIES, type FantraxLeague, type FheCategory } from "@/lib/fantrax/league";
@@ -14,7 +14,7 @@ import { ToggleSwitch } from "../../_components/toggle-switch";
 import { SegmentedControl } from "../../_components/segmented-control";
 import { Stepper } from "../../_components/stepper";
 import { IconChevronLeft } from "../../_components/icons";
-import { useSavedLeagues } from "../../_lib/use-saved-leagues";
+import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 /** Extra Fantrax-style categories the "Add category" picker offers —
  *  informational only, FHE's engine has no z-score model for any of these
@@ -185,9 +185,8 @@ const selectStyle: React.CSSProperties = {
   padding: "0 10px", fontSize: 13, color: "var(--rt-ink)",
 };
 
-export default function DeepEdgeSettingsPage() {
-  const { leagues, loading: loadingSaved, refresh } = useSavedLeagues();
-  const saved = leagues[0] ?? null;
+function DeepEdgeSettingsContent() {
+  const { saved, loading: loadingSaved, refresh } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
   const [error, setError] = useState("");
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -796,5 +795,13 @@ export default function DeepEdgeSettingsPage() {
         </>
       )}
     </HubShell>
+  );
+}
+
+export default function DeepEdgeSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <DeepEdgeSettingsContent />
+    </Suspense>
   );
 }

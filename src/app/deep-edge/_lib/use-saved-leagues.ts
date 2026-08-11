@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { SavedLeague } from "@/lib/fantrax/store";
 
 export function useSavedLeagues() {
@@ -28,4 +29,19 @@ export function useSavedLeagues() {
   }, [load]);
 
   return { leagues, loading, refresh };
+}
+
+/**
+ * The league a tool page should operate on: whichever saved league's id
+ * matches the `?league=` query param, falling back to the first saved
+ * league when the param is absent or stale (e.g. a league was removed).
+ * Callers must render inside a <Suspense> boundary — useSearchParams()
+ * requires it.
+ */
+export function useActiveLeague() {
+  const { leagues, loading, refresh } = useSavedLeagues();
+  const searchParams = useSearchParams();
+  const leagueId = searchParams.get("league");
+  const saved = leagues.find((l) => l.leagueId === leagueId) ?? leagues[0] ?? null;
+  return { leagues, saved, loading, refresh };
 }

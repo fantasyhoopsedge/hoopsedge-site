@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, RotoStandingRow } from "@/lib/fantrax/analyze";
 import { projectRotoStandings } from "@/lib/fantrax/analyze";
@@ -16,7 +16,7 @@ import { StrengthBar } from "../../_components/strength-bar";
 import { SegmentedControl } from "../../_components/segmented-control";
 import { tierBg, tierFill } from "../../_components/tier-colors";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
-import { useSavedLeagues } from "../../_lib/use-saved-leagues";
+import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const FORMAT_LABEL: Record<string, string> = { roto: "ROTO · 9-CAT", h2hcat: "H2H · EACH CATEGORY", points: "H2H · POINTS" };
 const FORMAT_TOGGLE_OPTIONS: { value: RankingsFormat; label: string }[] = [
@@ -66,9 +66,8 @@ function weightedPerGame(statTotals: { pts: number; fg3m: number; reb: number; a
   return statTotals.gamesPlayed > 0 ? raw / statTotals.gamesPlayed : 0;
 }
 
-export default function PowerRankingsPage() {
-  const { leagues, loading: loadingSaved } = useSavedLeagues();
-  const saved = leagues[0] ?? null;
+function PowerRankingsContent() {
+  const { saved, loading: loadingSaved } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
@@ -228,7 +227,7 @@ export default function PowerRankingsPage() {
             }}
           >
             ⚙ {settingsSummary}
-            <Link href="/deep-edge/home/settings" style={{ color: "var(--rt-primary)", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>
+            <Link href={`/deep-edge/home/settings?league=${encodeURIComponent(saved.leagueId)}`} style={{ color: "var(--rt-primary)", fontWeight: 600, textDecoration: "none", marginLeft: "auto" }}>
               adjust in settings
             </Link>
           </div>
@@ -387,5 +386,13 @@ export default function PowerRankingsPage() {
         </>
       )}
     </HubShell>
+  );
+}
+
+export default function PowerRankingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <PowerRankingsContent />
+    </Suspense>
   );
 }

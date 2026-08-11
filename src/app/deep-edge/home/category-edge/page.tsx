@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings } from "@/lib/fantrax/analyze";
@@ -19,7 +19,7 @@ import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft, IconSliders } from "../../_components/icons";
 import { tierBg, tierFill } from "../../_components/tier-colors";
-import { useSavedLeagues } from "../../_lib/use-saved-leagues";
+import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const TIER_COLOR: Record<string, string> = {
   promoter: "var(--rt-up)",
@@ -112,9 +112,8 @@ function totalsValue(statTotals: { pts: number; fg3m: number; reb: number; ast: 
   return statTotals[STAT_KEY[cat] as "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "tov"];
 }
 
-export default function CategoryEdgePage() {
-  const { leagues, loading: loadingSaved } = useSavedLeagues();
-  const saved = leagues[0] ?? null;
+function CategoryEdgeContent() {
+  const { saved, loading: loadingSaved } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
@@ -526,5 +525,13 @@ export default function CategoryEdgePage() {
         </>
       )}
     </HubShell>
+  );
+}
+
+export default function CategoryEdgePage() {
+  return (
+    <Suspense fallback={null}>
+      <CategoryEdgeContent />
+    </Suspense>
   );
 }

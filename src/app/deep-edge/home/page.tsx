@@ -21,7 +21,16 @@ function HomeHubContent() {
   const hasLeague = Boolean(league);
 
   return (
-    <HubShell hasLeague={hasLeague} breadcrumb={league ? `${league.leagueName} · ${league.settings.teamCount} teams` : "The Deep Edge"}>
+    <HubShell
+      hasLeague={hasLeague}
+      breadcrumb={
+        leagues.length > 1
+          ? `${leagues.length} leagues connected`
+          : league
+            ? `${league.leagueName} · ${league.settings.teamCount} teams`
+            : "The Deep Edge"
+      }
+    >
       <h1 style={{ fontSize: 30, fontWeight: 700, margin: "0 0 6px" }}>Welcome to the deep edge.</h1>
       <p style={{ color: "var(--rt-muted)", fontSize: 14.5, margin: "0 0 28px" }}>
         This is home base. Add a league, then go deep on it.
@@ -45,72 +54,76 @@ function HomeHubContent() {
 
       {loading ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>Loading…</p>
-      ) : league ? (
-        <div style={{ padding: 22, borderRadius: 24, border: "1px solid var(--rt-hairline)", marginBottom: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-            <span
-              style={{
-                width: 32, height: 32, borderRadius: 8, background: "#0c0d0e", color: "#fff",
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--rt-font-mono)", fontWeight: 700, fontSize: 13,
-              }}
-            >
-              Fx
-            </span>
-            <span style={{ fontSize: 17, fontWeight: 700 }}>{league.leagueName}</span>
-            <span
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600,
-                color: "var(--rt-up)",
-              }}
-            >
-              ● Settings imported
-            </span>
-          </div>
-          <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 18px" }}>
-            {league.settings.teamCount}-team · {(league.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "real salary" : "non-salary"}{" "}
-            {(league.settings.format ?? DEFAULT_LEAGUE_TAGS.format) === "h2h" ? "H2H" : "roto"} · via Fantrax
-          </p>
-          <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-            <Link
-              href="/deep-edge/home/rankings"
-              style={{
-                height: 40, padding: "0 20px", borderRadius: 100, background: "var(--rt-primary)", color: "#fff",
-                fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", textDecoration: "none",
-              }}
-            >
-              Go deep
-            </Link>
-            <Link
-              href="/deep-edge/home/settings"
-              style={{
-                height: 40, padding: "0 20px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
-                color: "var(--rt-ink)", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center",
-                textDecoration: "none",
-              }}
-            >
-              Review settings
-            </Link>
-          </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {[
-              `${league.settings.teamCount} teams`,
-              `Roto · 9-CAT`,
-              `${(league.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "Real salary" : "No salary"} cap`,
-              `${(league.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType)}`,
-              `${league.settings.maxTotalPlayers}-man roster`,
-            ].map((fact) => (
-              <span
-                key={fact}
-                style={{
-                  padding: "7px 12px", borderRadius: 10, background: "var(--rt-surface-soft)",
-                  fontSize: 12, color: "var(--rt-body)",
-                }}
-              >
-                {fact}
-              </span>
-            ))}
-          </div>
+      ) : leagues.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
+          {leagues.map((l) => (
+            <div key={l.leagueId} style={{ padding: 22, borderRadius: 24, border: "1px solid var(--rt-hairline)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                <span
+                  style={{
+                    width: 32, height: 32, borderRadius: 8, background: "#0c0d0e", color: "#fff",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    fontFamily: "var(--rt-font-mono)", fontWeight: 700, fontSize: 13,
+                  }}
+                >
+                  Fx
+                </span>
+                <span style={{ fontSize: 17, fontWeight: 700 }}>{l.leagueName}</span>
+                <span
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 600,
+                    color: "var(--rt-up)",
+                  }}
+                >
+                  ● Settings imported
+                </span>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 18px" }}>
+                {l.settings.teamCount}-team · {(l.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "real salary" : "non-salary"}{" "}
+                {(l.settings.format ?? DEFAULT_LEAGUE_TAGS.format) === "h2h" ? "H2H" : "roto"} · via Fantrax
+              </p>
+              <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+                <Link
+                  href={`/deep-edge/home/rankings?league=${encodeURIComponent(l.leagueId)}`}
+                  style={{
+                    height: 40, padding: "0 20px", borderRadius: 100, background: "var(--rt-primary)", color: "#fff",
+                    fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", textDecoration: "none",
+                  }}
+                >
+                  Go deep
+                </Link>
+                <Link
+                  href={`/deep-edge/home/settings?league=${encodeURIComponent(l.leagueId)}`}
+                  style={{
+                    height: 40, padding: "0 20px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
+                    color: "var(--rt-ink)", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center",
+                    textDecoration: "none",
+                  }}
+                >
+                  Review settings
+                </Link>
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {[
+                  `${l.settings.teamCount} teams`,
+                  `Roto · 9-CAT`,
+                  `${(l.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "Real salary" : "No salary"} cap`,
+                  `${(l.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType)}`,
+                  `${l.settings.maxTotalPlayers}-man roster`,
+                ].map((fact) => (
+                  <span
+                    key={fact}
+                    style={{
+                      padding: "7px 12px", borderRadius: 10, background: "var(--rt-surface-soft)",
+                      fontSize: 12, color: "var(--rt-body)",
+                    }}
+                  >
+                    {fact}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div style={{ padding: 22, borderRadius: 24, border: "1px dashed var(--rt-hairline)", marginBottom: 32, textAlign: "center", color: "var(--rt-muted)", fontSize: 13.5 }}>
@@ -121,7 +134,7 @@ function HomeHubContent() {
       <h2 style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11.5, letterSpacing: "0.06em", color: "var(--rt-muted)", marginBottom: 16 }}>
         GO DEEP
       </h2>
-      <GoDeepGrid unlocked={hasLeague} />
+      <GoDeepGrid unlocked={hasLeague} leagueId={league?.leagueId} />
 
       {showAddLeague && (
         <AddLeagueModal
