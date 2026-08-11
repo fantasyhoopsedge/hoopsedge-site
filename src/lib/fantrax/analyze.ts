@@ -1,5 +1,5 @@
 import type { TrendTag } from "@/app/team-rosters/_components/trend-insight";
-import { FHE_CATEGORIES, type FheCategory, type FantraxLeague, type LeagueRosterSpot } from "./league";
+import { FHE_CATEGORIES, type FheCategory, type FantraxLeague, type LeaguePointsFormula, type LeagueRosterSpot, type PointsStat } from "./league";
 
 /**
  * The math that turns a Fantrax league + FHE category values into league-anchored
@@ -67,8 +67,14 @@ export interface ResolvedPlayer extends LeagueRosterSpot {
   /** Same 9 z-scores, totals-standardized — display/coloring only when the
    *  roster table's Per Game/Totals toggle is set to Totals. */
   catsTotals: Partial<Record<FheCategory, number>>;
-  /** Mean z across the categories THIS league scores. */
+  /** Mean z across the categories THIS league scores. Categories-mode only in
+   *  practice — still computed (as generic 9CatV) for points-mode players
+   *  since scoredOrDefault() falls back to all nine, but nothing in points
+   *  mode ranks or displays by it; use pointsValue instead. */
   leagueV: number | null;
+  /** Weighted points-per-game under a points league's formula (see
+   *  pointsValueOf). Null unless the league is points-mode. */
+  pointsValue: number | null;
   /** Standard 9-category value, for comparison against the public rankings.
    *  Per-game — kept for backward compat with existing callers; prefer
    *  catV.perGame.nineCatV in new code. */
@@ -131,6 +137,43 @@ export function leagueValueOf(
   return n === scored.length ? sum / n : null;
 }
 
+/** Every raw per-game input a points formula can weight, derived from a
+ *  StatLine. FGM/FTM aren't in StatLine directly (it only carries the rate,
+ *  matching how the rest of FHE stores shooting) — derive makes = attempts ×
+ *  percentage, same math buildTeamProfile already uses for Stat Totals. */
+function pointsInputsOf(stat: StatLine): Partial<Record<PointsStat, number>> {
+  const inputs: Partial<Record<PointsStat, number>> = {};
+  if (stat.pts != null) inputs.PTS = stat.pts;
+  if (stat.fg3m != null) inputs.FG3M = stat.fg3m;
+  if (stat.reb != null) inputs.REB = stat.reb;
+  if (stat.ast != null) inputs.AST = stat.ast;
+  if (stat.stl != null) inputs.STL = stat.stl;
+  if (stat.blk != null) inputs.BLK = stat.blk;
+  if (stat.tov != null) inputs.TOV = stat.tov;
+  if (stat.fga != null) inputs.FGA = stat.fga;
+  if (stat.fta != null) inputs.FTA = stat.fta;
+  if (stat.fga != null && stat.fg_pct != null) inputs.FGM = stat.fga * stat.fg_pct;
+  if (stat.fta != null && stat.ft_pct != null) inputs.FTM = stat.fta * stat.ft_pct;
+  return inputs;
+}
+
+/** Weighted points-per-game under a league's points formula — a dot product,
+ *  not a z-score. Requires every weighted stat present, same discipline as
+ *  leagueValueOf: a partial sum would silently flatter a player missing his
+ *  weakest weighted input. */
+export function pointsValueOf(stat: StatLine, formula: LeaguePointsFormula): number | null {
+  const entries = Object.entries(formula.weights) as [PointsStat, number][];
+  if (entries.length === 0) return null;
+  const inputs = pointsInputsOf(stat);
+  let sum = 0;
+  for (const [key, weight] of entries) {
+    const v = inputs[key];
+    if (v === undefined) return null;
+    sum += v * weight;
+  }
+  return sum;
+}
+
 /** Raw counting/rate totals across a team's projected lineup — the "Stat Totals"
  *  standings view, alongside the z-score-based roto `totals` above. FG%/FT% are
  *  attempt-weighted (makes/attempts summed, then divided), matching how a real
@@ -149,11 +192,14 @@ export interface TeamCategoryProfile {
   totals: Partial<Record<FheCategory, number>>;
   /** Raw stat totals across the same lineup — see TeamStatTotals. */
   statTotals: TeamStatTotals;
-  /** Players counted in `totals`, best LeagueV first. */
+  /** Players counted in `totals`, best LeagueV (or pointsValue, points-mode) first. */
   starters: ResolvedPlayer[];
   /** Rostered players with no FHE data — the analysis can't see them. */
   unmatched: number;
   rosterSize: number;
+  /** Projected season point total for the starters, points-mode leagues only
+   *  (null in categories mode — see `formula` param on buildTeamProfile). */
+  pointsTotal: number | null;
 }
 
 /**
@@ -164,6 +210,11 @@ export interface TeamCategoryProfile {
  * hoarding; counting exactly the active slots is the honest proxy for "the
  * lineup this manager rolls out". `starterCount` therefore comes from the
  * league's own maxTotalActivePlayers.
+ *
+ * `formula` is points-mode only: when supplied, starters are ranked by
+ * pointsValue instead of leagueV (which is always null for a points league),
+ * and the returned profile carries a `pointsTotal`. Categories-mode callers
+ * omit it.
  */
 export function buildTeamProfile(
   teamId: string,
@@ -171,10 +222,12 @@ export function buildTeamProfile(
   players: ResolvedPlayer[],
   starterCount: number,
   scored: readonly FheCategory[],
+  formula?: LeaguePointsFormula | null,
 ): TeamCategoryProfile {
+  const rankValue = (p: ResolvedPlayer) => (formula ? p.pointsValue : p.leagueV);
   const ranked = players
-    .filter((p) => p.leagueV !== null)
-    .sort((a, b) => (b.leagueV ?? 0) - (a.leagueV ?? 0));
+    .filter((p) => rankValue(p) !== null)
+    .sort((a, b) => (rankValue(b) ?? 0) - (rankValue(a) ?? 0));
   const starters = ranked.slice(0, Math.max(1, starterCount));
 
   const totals: Partial<Record<FheCategory, number>> = {};
@@ -206,10 +259,20 @@ export function buildTeamProfile(
     ftm += ftaTot * (s.ft_pct ?? 0);
   }
 
+  let pointsTotal: number | null = null;
+  if (formula) {
+    pointsTotal = 0;
+    for (const p of starters) {
+      const g = p.gamesPlayed ?? 0;
+      if (p.pointsValue != null && g > 0) pointsTotal += p.pointsValue * g;
+    }
+  }
+
   return {
     teamId,
     teamName,
     totals,
+    pointsTotal,
     statTotals: {
       pts, fg3m, reb, ast, stl, blk, tov, gamesPlayed,
       fg_pct: fga > 0 ? fgm / fga : null,
@@ -277,6 +340,27 @@ export function projectRotoStandings(
   return rows;
 }
 
+export interface PointsStandingRow {
+  teamId: string;
+  teamName: string;
+  totalPoints: number;
+  projectedRank: number;
+}
+
+/**
+ * Points-league standings: no category dimension to rank within (see
+ * RotoStandingRow) — just a flat sort of each team's projected season point
+ * total (TeamCategoryProfile.pointsTotal, populated only when
+ * buildTeamProfile() was given a LeaguePointsFormula).
+ */
+export function projectPointsStandings(profiles: TeamCategoryProfile[]): PointsStandingRow[] {
+  const rows: PointsStandingRow[] = profiles
+    .map((p) => ({ teamId: p.teamId, teamName: p.teamName, totalPoints: p.pointsTotal ?? 0, projectedRank: 0 }))
+    .sort((a, b) => b.totalPoints - a.totalPoints || a.teamName.localeCompare(b.teamName));
+  rows.forEach((r, i) => { r.projectedRank = i + 1; });
+  return rows;
+}
+
 export interface CategoryEdge {
   category: FheCategory;
   /** The team's summed z in this category. */
@@ -320,13 +404,17 @@ export interface LeagueAnalysis {
   myTeamId: string | null;
   rosters: { teamId: string; teamName: string; players: ResolvedPlayer[] }[];
   profiles: TeamCategoryProfile[];
-  standings: RotoStandingRow[];
+  /** RotoStandingRow[] in categories mode, PointsStandingRow[] in points mode
+   *  (league.scoringMode says which). */
+  standings: RotoStandingRow[] | PointsStandingRow[];
+  /** Always empty in points mode — no category dimension to read edges from. */
   edges: CategoryEdge[];
-  /** Best available players by LeagueV. */
+  /** Best available players by LeagueV (categories mode) or pointsValue (points mode). */
   waiverBoard: ResolvedPlayer[];
-  /** Edge tool: trade targets from other rosters that fill this team's weak
-   *  categories. Empty when there's no team selected or nothing to fix. */
-  tradeSuggestions: TradeSuggestion[];
+  /** Edge tool: trade targets from other rosters. Categories mode targets this
+   *  team's weak categories; points mode ranks by raw pointsValue. Empty when
+   *  there's no team selected or nothing to fix. */
+  tradeSuggestions: TradeSuggestion[] | PointsTradeSuggestion[];
   coverage: {
     rostered: number;
     matched: number;
@@ -337,9 +425,13 @@ export interface LeagueAnalysis {
   };
 }
 
-/** Sort helper shared by the roster table and the waiver board. */
+/** Sort helper shared by the roster table and the waiver board, categories mode. */
 export const byLeagueValue = (a: ResolvedPlayer, b: ResolvedPlayer): number =>
   (b.leagueV ?? Number.NEGATIVE_INFINITY) - (a.leagueV ?? Number.NEGATIVE_INFINITY);
+
+/** Points-mode sibling of byLeagueValue. */
+export const byPointsValue = (a: ResolvedPlayer, b: ResolvedPlayer): number =>
+  (b.pointsValue ?? Number.NEGATIVE_INFINITY) - (a.pointsValue ?? Number.NEGATIVE_INFINITY);
 
 /** Categories a league scores, or all nine when it somehow reports none. */
 export function scoredOrDefault(scored: readonly FheCategory[]): readonly FheCategory[] {
@@ -381,6 +473,30 @@ export interface TradeSuggestion {
 /** Rank thresholds shared with the UI's strong/weak edge coloring (fx-edge.strong/.weak). */
 const strongRank = (teamCount: number) => Math.ceil(teamCount / 3);
 const weakRank = (teamCount: number) => Math.ceil((teamCount * 2) / 3);
+
+/** Shared by both trade-suggestion flavors: pairs each ranked candidate with
+ *  the nearest-value untapped piece from my own roster (by whatever `valueOf`
+ *  means in this mode — leagueV or pointsValue), so the pairing reads as a
+ *  realistic even-value trade. Each of my players is used at most once,
+ *  claimed by the first (best-fitting) candidate that reaches it. */
+function pairGiveUps<T extends { target: ResolvedPlayer }>(
+  candidates: T[],
+  myChips: ResolvedPlayer[],
+  valueOf: (p: ResolvedPlayer) => number | null,
+): (T & { suggestedGiveUp: ResolvedPlayer | null })[] {
+  const usedChips = new Set<string>();
+  return candidates.map((c) => {
+    let best: ResolvedPlayer | null = null;
+    let bestDelta = Infinity;
+    for (const chip of myChips) {
+      if (usedChips.has(chip.fantraxId)) continue;
+      const delta = Math.abs((valueOf(chip) ?? 0) - (valueOf(c.target) ?? 0));
+      if (delta < bestDelta) { bestDelta = delta; best = chip; }
+    }
+    if (best) usedChips.add(best.fantraxId);
+    return { ...c, suggestedGiveUp: best };
+  });
+}
 
 /** Mean z across a subset of categories for one player, ignoring categories the
  *  player has no data for (rather than treating them as 0, which would flatter
@@ -471,16 +587,66 @@ export function suggestTradeTargets(
     .sort((a, b) => b.fitScore - a.fitScore)
     .slice(0, opts.limit ?? 10);
 
-  const usedChips = new Set<string>();
-  return scoredCandidates.map((c): TradeSuggestion => {
-    let best: ResolvedPlayer | null = null;
-    let bestDelta = Infinity;
-    for (const chip of myChips) {
-      if (usedChips.has(chip.fantraxId)) continue;
-      const delta = Math.abs((chip.leagueV ?? 0) - (c.target.leagueV ?? 0));
-      if (delta < bestDelta) { bestDelta = delta; best = chip; }
-    }
-    if (best) usedChips.add(best.fantraxId);
-    return { ...c, suggestedGiveUp: best };
-  });
+  return pairGiveUps(scoredCandidates, myChips, (p) => p.leagueV);
+}
+
+export interface PointsTradeSuggestion {
+  target: ResolvedPlayer;
+  targetTeamId: string;
+  targetTeamName: string;
+  /** Target's points-value, plus trend/dynasty adjustments — see suggestPointsTradeTargets. */
+  fitScore: number;
+  /** Nearest pointsValue match among my roster's players, or null if every
+   *  one is already suggested against a higher-fit target. */
+  suggestedGiveUp: ResolvedPlayer | null;
+}
+
+/** Points-mode trend/dynasty adjustments are multiplicative (a % of the
+ *  player's own points value) rather than additive — points values live on a
+ *  totally different scale than the z-score world's TREND_ADJUSTMENT/
+ *  DYNASTY_BONUS_MAX, which are sized for numbers centered near 0. */
+const POINTS_TREND_PCT = 0.08;
+const POINTS_DYNASTY_BONUS_PCT = 0.12;
+
+/**
+ * Points-league sibling of suggestTradeTargets. There's no category dimension
+ * to target here — a points league only has one currency — so candidates on
+ * other rosters are simply ranked by pointsValue (with the same trend-tag
+ * buy-low/sell-risk and dynasty-consensus adjustments, scaled for this
+ * currency), then paired with the nearest-pointsValue piece from my own
+ * roster via the same pairGiveUps() logic suggestTradeTargets uses.
+ */
+export function suggestPointsTradeTargets(
+  myTeamId: string,
+  rosters: { teamId: string; teamName: string; players: ResolvedPlayer[] }[],
+  opts: { isDynasty: boolean; limit?: number },
+): PointsTradeSuggestion[] {
+  const mine = rosters.find((r) => r.teamId === myTeamId);
+  if (!mine) return [];
+
+  const myChips = mine.players
+    .filter((p) => p.playerId !== null && p.pointsValue !== null)
+    .sort((a, b) => (b.pointsValue ?? 0) - (a.pointsValue ?? 0));
+
+  const candidates = rosters
+    .filter((r) => r.teamId !== myTeamId)
+    .flatMap((r) => r.players.map((p) => ({ p, teamId: r.teamId, teamName: r.teamName })))
+    .filter(({ p }) => p.playerId !== null && !p.ambiguousName && p.pointsValue !== null);
+
+  const scoredCandidates = candidates
+    .map(({ p, teamId, teamName }) => {
+      const base = p.pointsValue ?? 0;
+      let adjusted = base;
+      const tag = p.trendTags?.nineCatV ?? null;
+      if (tag && BUY_LOW_TAGS.has(tag)) adjusted += base * POINTS_TREND_PCT;
+      else if (tag && SELL_RISK_TAGS.has(tag)) adjusted -= base * POINTS_TREND_PCT;
+      if (opts.isDynasty && p.consensusRank !== null) {
+        adjusted += base * POINTS_DYNASTY_BONUS_PCT * Math.max(0, 1 - p.consensusRank / DYNASTY_BONUS_POOL);
+      }
+      return { target: p, targetTeamId: teamId, targetTeamName: teamName, fitScore: adjusted };
+    })
+    .sort((a, b) => b.fitScore - a.fitScore)
+    .slice(0, opts.limit ?? 10);
+
+  return pairGiveUps(scoredCandidates, myChips, (p) => p.pointsValue);
 }

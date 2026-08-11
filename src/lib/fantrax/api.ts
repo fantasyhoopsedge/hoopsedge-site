@@ -39,8 +39,17 @@ export interface FxLeagueSummary {
   sport: string;
 }
 
+/**
+ * Categories-mode leagues carry `weight` (always 1 in every league seen so
+ * far); points-mode leagues carry `points` + `cumulative` instead — verified
+ * live against a real points league (2026-08-09), e.g.
+ * `{ points: 1.5, cumulative: true, scoringCategory: { shortName: "AST" } }`.
+ * Both optional on one type rather than lying about either shape.
+ */
 export interface FxScoringCategoryConfig {
-  weight: number;
+  weight?: number;
+  points?: number;
+  cumulative?: boolean;
   position: { code: string; name: string; id: string; shortName: string };
   scoringCategory: { code: string; name: string; id: string; shortName: string };
 }

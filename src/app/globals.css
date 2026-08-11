@@ -1036,6 +1036,18 @@ nav {
   }
 }
 
+/* ===== THE DEEP EDGE ===== */
+/* Same body-lock technique as .dr-rankings-shell below — scoped to a Deep
+   Edge-specific marker class (not .rt-shell itself) so this doesn't change
+   scroll behavior for team-rosters/admin-fantrax, the other .rt-shell
+   consumers, which don't have this rule and shouldn't gain it as a side
+   effect of Deep Edge's own full-bleed screens. */
+html:has(.de-shell),
+body:has(.de-shell) {
+  height: 100%;
+  overflow: hidden;
+}
+
 /* ===== DYNASTY RANKINGS PAGE ===== */
 html:has(.dr-rankings-shell),
 body:has(.dr-rankings-shell) {

@@ -53,6 +53,13 @@ export interface LeagueCategories {
   unmodelled: string[];
 }
 
+/**
+ * `scoringSystem.scoringCategories` populates for BOTH categories and points
+ * leagues (a points league's entries look like `{ BLK: { Default: "points3" } }`
+ * — verified live 2026-08-09), so this must only ever be called for a
+ * categories-mode league. `buildLeague()` enforces that; a points league gets
+ * `parsePointsFormula()` instead.
+ */
 function parseCategories(info: FxLeagueInfo): LeagueCategories {
   const codes = new Set<string>();
   const byGroup = info.scoringSystem?.scoringCategories ?? {};
@@ -77,6 +84,58 @@ function parseCategories(info: FxLeagueInfo): LeagueCategories {
     scored: FHE_CATEGORIES.filter((c) => scored.has(c)),
     unmodelled: unmodelled.sort(),
   };
+}
+
+// ── points-league formula ───────────────────────────────────────────────────
+
+/**
+ * Raw counting stats a points league can weight directly — a superset of
+ * FheCategory, since points formulas weight makes/attempts as their own
+ * stats (never a shooting percentage the way the categories/z-score world
+ * does) and never fold turnovers' sign the way v_to does.
+ */
+export const POINTS_STATS = ["PTS", "FG3M", "REB", "AST", "STL", "BLK", "TOV", "FGM", "FGA", "FTM", "FTA"] as const;
+export type PointsStat = (typeof POINTS_STATS)[number];
+
+/** Fantrax category shortName → PointsStat. Deliberately narrow: an unmapped
+ *  code (DD, TD, MIN, …) falls through to `unmodelled` rather than guessing. */
+const POINTS_STAT_MAP: Record<string, PointsStat> = {
+  PTS: "PTS",
+  "3PTM": "FG3M", "3PM": "FG3M", TPM: "FG3M",
+  REB: "REB", TREB: "REB",
+  AST: "AST",
+  ST: "STL", STL: "STL",
+  BLK: "BLK", BLKS: "BLK",
+  TO: "TOV", TOV: "TOV", TRN: "TOV",
+  FGM: "FGM", FGA: "FGA", FTM: "FTM", FTA: "FTA",
+};
+
+export interface LeaguePointsFormula {
+  /** Points awarded per unit of each raw stat, e.g. { AST: 1.5, TOV: -1 }. */
+  weights: Partial<Record<PointsStat, number>>;
+  /** Fantrax categories this league weights that FHE has no stat for. */
+  unmodelled: string[];
+}
+
+/**
+ * Only ever called for a points-mode league (see buildLeague()). Reads the
+ * numeric `configs[].points` field — NOT the `scoringCategories` string
+ * encoding (`"points1.5"`), which carries the same data less conveniently.
+ */
+function parsePointsFormula(info: FxLeagueInfo): LeaguePointsFormula {
+  const weights: Partial<Record<PointsStat, number>> = {};
+  const unmodelled: string[] = [];
+  for (const setting of info.scoringSystem?.scoringCategorySettings ?? []) {
+    for (const cfg of setting.configs ?? []) {
+      const code = cfg.scoringCategory?.shortName;
+      const pts = cfg.points;
+      if (!code || typeof pts !== "number") continue;
+      const mapped = POINTS_STAT_MAP[code.toUpperCase()];
+      if (mapped) weights[mapped] = pts;
+      else unmodelled.push(code);
+    }
+  }
+  return { weights, unmodelled: unmodelled.sort() };
 }
 
 // ── normalized league ───────────────────────────────────────────────────────
@@ -115,9 +174,17 @@ export interface FantraxLeague {
   leagueId: string;
   name: string;
   seasonYear: number;
-  /** Fantrax's own scoring label, e.g. "rotisserie". */
+  /** Fantrax's own scoring label, e.g. "rotisserie". Note this does NOT
+   *  distinguish rotisserie from head-to-head-categories — both report
+   *  "rotisserie" (verified live against real leagues of each, 2026-08-09).
+   *  It only reliably distinguishes categories scoring from points scoring. */
   scoringType: string;
+  /** "points" only when Fantrax reports scoringType "points"; everything else
+   *  (rotisserie AND head-to-head-categories) is "categories". */
+  scoringMode: "categories" | "points";
   categories: LeagueCategories;
+  /** Populated only when scoringMode === "points". */
+  pointsFormula: LeaguePointsFormula | null;
   teamCount: number;
   maxTotalPlayers: number;
   maxActivePlayers: number;
@@ -224,13 +291,17 @@ export function buildLeague(
   const { poolSize, clamped } = resolvePoolSize(teamCount, maxTotalPlayers);
 
   const picks = draft?.draftPicks ?? [];
+  const scoringType = info.scoringSystem?.type ?? "unknown";
+  const scoringMode: "categories" | "points" = scoringType === "points" ? "points" : "categories";
 
   return {
     leagueId,
     name: info.leagueName ?? "Fantrax league",
     seasonYear: info.seasonYear ?? new Date().getFullYear(),
-    scoringType: info.scoringSystem?.type ?? "unknown",
-    categories: parseCategories(info),
+    scoringType,
+    scoringMode,
+    categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
+    pointsFormula: scoringMode === "points" ? parsePointsFormula(info) : null,
     teamCount,
     maxTotalPlayers,
     maxActivePlayers: info.rosterInfo?.maxTotalActivePlayers ?? 0,

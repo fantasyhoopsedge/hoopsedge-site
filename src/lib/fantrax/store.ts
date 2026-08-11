@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { createClient as createSb, type SupabaseClient } from "@supabase/supabase-js";
-import type { FantraxDatasetKey } from "./league";
+import type { FantraxDatasetKey, FheCategory } from "./league";
 import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "./league-tags";
 
 export { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat };
@@ -59,8 +59,84 @@ export interface SavedLeagueSettings {
   format?: LeagueFormat;
   leagueType?: LeagueType;
   salaryFormat?: SalaryFormat;
+  /** True once the user has explicitly confirmed `format` — Fantrax's API
+   *  can't tell roto from head-to-head-categories (verified live 2026-08-09:
+   *  both report scoringType "rotisserie"), so `format` otherwise silently
+   *  carries DEFAULT_LEAGUE_TAGS.format ("roto") with no signal that it was
+   *  ever actually checked. Missing/false on any league saved before this
+   *  field existed — correctly, since those saves may never have had the
+   *  format looked at. */
+  formatConfirmed?: boolean;
   /** Which FHE dataset this league opens to by default next time it's loaded. */
   defaultDataset?: FantraxDatasetKey;
+  /** Games & lineups (The Deep Edge, added 2026-08-10) — drives Power Rankings'
+   *  depth weighting. All optional: leagues saved before this existed have
+   *  none of them in their stored jsonb; callers fall back to
+   *  DEFAULT_GAMES_CAP_SETTINGS, never assume presence. */
+  lineupCadence?: "daily" | "weekly";
+  capPos?: boolean;
+  capPosN?: number;
+  capMatch?: boolean;
+  capMatchN?: number;
+
+  /**
+   * Full Settings-screen fields (The Deep Edge, added 2026-08-11). All
+   * optional, same fallback convention as everything above: absent on any
+   * league saved before this existed, and on every field Fantrax doesn't
+   * expose, auto-population seeds a best-guess default that the user can
+   * override — never silently assume presence.
+   */
+
+  /** User override for which of FHE's 9 canonical categories are scored —
+   *  the Scoring-categories chip toggle. Falls back to the league's own
+   *  auto-detected categories.scored when absent. Read by every screen that
+   *  computes LeagueV/roto/H2H math (Category Edge, Power Rankings) — this
+   *  is a functional override, not just a display list. */
+  scoredCategoriesOverride?: FheCategory[];
+  /** Extra Fantrax-style categories added from the "Add category" picker for
+   *  informational display only (DD, TD, PF, …) — FHE's value engine has no
+   *  z-score model for these, so they never enter scoredCategoriesOverride
+   *  or any computation. Shown as non-interactive chips only. */
+  additionalCategories?: string[];
+  /** User override for roster slot counts (PG/SG/SF/PF/C/G/F/UTIL/Bench/IR/
+   *  Minors). Falls back to the league's own auto-detected positionSlots
+   *  when absent. Also a functional override — read by buildOptimalLineup()
+   *  everywhere; Bench/IR/Minors never fill as active slots (see
+   *  lineup.ts's RESERVE_SLOTS) regardless of their count here. */
+  positionSlotsOverride?: Record<string, number>;
+
+  // Salary cap — shown only when salaryFormat !== "none". Fantrax exposes
+  // that a salary number exists (hasSalaries) but not the cap total or cap
+  // type, so those need explicit confirmation.
+  salaryCapTotal?: number;
+  salaryCapConfirmed?: boolean;
+  capType?: "soft" | "hard";
+  /** Max contract length is a real rule only in custom-salary (auction/
+   *  keeper-valuation) leagues — most real-salary and non-salary leagues
+   *  don't have one, so this is an explicit on/off toggle rather than an
+   *  always-shown confirm field. Capped at 5 years when enabled. */
+  maxContractLengthEnabled?: boolean;
+  maxContractLength?: number;
+
+  // Keepers & contracts — shown only when leagueType is "dynasty" or
+  // "keeper". None of these are Fantrax-detectable; all default and the
+  // user adjusts.
+  keeperPolicy?: string; // "all" | "10" .. "1"
+  rookieDraftRounds?: number;
+  taxiSquad?: boolean;
+
+  // Waivers & trades — not Fantrax-detectable; default and let the user adjust.
+  waiverType?: "faab" | "rolling";
+  faabBudget?: number;
+  tradeDeadline?: string; // ISO date, yyyy-mm-dd
+
+  /** Standings conferences (League basics). When enabled, seeded from
+   *  Fantrax's own real per-team `division` field (FantraxLeague.teams[].
+   *  division — genuinely Fantrax-sourced, not a guess) when the league has
+   *  it; falls back to a simple alphabetical split otherwise. Team ids are
+   *  Fantrax team ids (FantraxLeague.teams[].id / LeagueRoster.teamId). */
+  conferencesEnabled?: boolean;
+  conferences?: { name: string; teamIds: string[] }[];
 }
 
 export interface SavedLeague {
