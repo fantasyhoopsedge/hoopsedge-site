@@ -17,8 +17,12 @@ const CARDS: { index: string; title: string; description: string; href: string |
 
 /** The 9-card "Go deep" grid — full opacity and clickable once a league is
  *  connected; dimmed and non-interactive before one is. Only Settings,
- *  Category Edge and Power Rankings are built out past the card this round. */
-export function GoDeepGrid({ unlocked }: { unlocked: boolean }) {
+ *  Category Edge and Power Rankings are built out past the card this round.
+ *  `leagueId` carries the currently-selected league through to each tool
+ *  page via `?league=`, so with more than one saved league this grid always
+ *  opens the one the user is actually looking at on Home, not just
+ *  whichever the tool page would otherwise default to. */
+export function GoDeepGrid({ unlocked, leagueId }: { unlocked: boolean; leagueId?: string }) {
   return (
     <div style={{ position: "relative" }}>
       {!unlocked && (
@@ -62,8 +66,9 @@ export function GoDeepGrid({ unlocked }: { unlocked: boolean }) {
               <p style={{ fontSize: 12.5, color: "var(--rt-muted)", lineHeight: 1.4, margin: 0 }}>{card.description}</p>
             </div>
           );
+          const href = leagueId ? `${card.href}?league=${encodeURIComponent(leagueId)}` : card.href;
           return clickable ? (
-            <Link key={card.index} href={card.href!} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link key={card.index} href={href!} style={{ textDecoration: "none", color: "inherit" }}>
               {body}
             </Link>
           ) : (

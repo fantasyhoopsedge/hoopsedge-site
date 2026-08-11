@@ -14,12 +14,14 @@ import { IconClose } from "./icons";
 /**
  * Opened from the Home hub's "+ Add a league" CTA. Two states: no platform
  * connected yet (send back to Providers), or a connected platform's league
- * list to import from. Enforces the one-free-league rule client-side (no
- * server-side entitlement exists yet — that's the whole payment workstream)
- * per Ash's freemium spec: the first league is free with full access; a
- * second import attempt shows the season-pass placeholder instead of calling
- * the import endpoint.
+ * list to import from. The one-free-league rule (client-side only — no
+ * server-side entitlement exists yet, that's the whole payment workstream)
+ * is temporarily OFF (ENFORCE_LEAGUE_CAP = false) so Ash can connect
+ * unlimited leagues for pre-launch testing; flip it back on once payment
+ * infra lands. The paywall UI/copy stays wired so it's a one-line revert,
+ * not a rebuild.
  */
+const ENFORCE_LEAGUE_CAP = false;
 export function AddLeagueModal({
   savedLeagues,
   onClose,
@@ -46,7 +48,7 @@ export function AddLeagueModal({
   }, []);
 
   async function importLeague(entry: FxLeagueSummary) {
-    if (savedLeagues.length >= 1) {
+    if (ENFORCE_LEAGUE_CAP && savedLeagues.length >= 1) {
       setShowPaywall(true);
       return;
     }

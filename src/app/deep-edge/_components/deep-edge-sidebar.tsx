@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { readFantraxSession } from "../_lib/fantrax-session";
+import { useSavedLeagues } from "../_lib/use-saved-leagues";
 import { IconBell, IconChat, IconHome, IconLineChart, IconList } from "./icons";
 
 /**
@@ -10,17 +11,31 @@ import { IconBell, IconChat, IconHome, IconLineChart, IconList } from "./icons";
  * rail) and admin/fantrax/_shell.tsx's FantraxShell. Matches the design's
  * Home/My leagues/Rankings/Edge assistant/Alerts nav + connected-platforms
  * list + Return to main site footer.
+ *
+ * Every saved league renders as its own row directly under "My leagues" (not
+ * gated behind a click-to-expand — the design shows it always open), so with
+ * more than one league connected this doubles as the switcher: whichever
+ * league matches the current page's `?league=` id (falling back to the
+ * first) is highlighted, and clicking another carries you to the SAME tool
+ * page for that league rather than bouncing back to Home. Safe to call
+ * useSearchParams() unwrapped here — every caller of HubShell (the only
+ * place this renders) already sits inside a <Suspense> boundary.
  */
 export function DeepEdgeSidebar({ hasLeague }: { hasLeague: boolean }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const fantraxConnected = readFantraxSession().connected;
+  const { leagues } = useSavedLeagues();
+  const activeLeagueId = searchParams.get("league") ?? leagues[0]?.leagueId ?? null;
 
-  // "My leagues"/"Edge assistant"/"Alerts" have no dedicated screen in this
-  // round — they route to Home like Home itself, but only the item whose
-  // label matches the current section highlights (never more than one).
+  // "Edge assistant"/"Alerts" have no dedicated screen in this round — they
+  // route to Home like Home itself, but only the item whose label matches
+  // the current section highlights (never more than one).
   const NAV = [
     { label: "Home", href: "/deep-edge/home", icon: <IconHome size={18} />, activeWhen: pathname === "/deep-edge/home" },
     { label: "My leagues", href: "/deep-edge/home", icon: <IconList size={18} />, activeWhen: false },
+  ];
+  const NAV2 = [
     { label: "Rankings", href: hasLeague ? "/deep-edge/home/rankings" : "/deep-edge/home", icon: <IconLineChart size={18} />, activeWhen: pathname === "/deep-edge/home/rankings" },
     { label: "Edge assistant", href: "/deep-edge/home", icon: <IconChat size={18} />, activeWhen: false },
     { label: "Alerts", href: "/deep-edge/home", icon: <IconBell size={18} />, activeWhen: false },
@@ -53,6 +68,44 @@ export function DeepEdgeSidebar({ hasLeague }: { hasLeague: boolean }) {
           rather than fighting specificity. */}
       <div role="navigation" style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         {NAV.map((item) => {
+          const active = item.activeWhen;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "9px 10px", borderRadius: 10,
+                fontSize: 13.5, fontWeight: active ? 700 : 500, textDecoration: "none",
+                color: active ? "var(--rt-ink)" : "var(--rt-body)",
+                background: active ? "var(--rt-surface-soft)" : "transparent",
+              }}
+            >
+              {item.icon} {item.label}
+            </Link>
+          );
+        })}
+
+        {leagues.map((l) => {
+          const active = l.leagueId === activeLeagueId;
+          return (
+            <Link
+              key={l.leagueId}
+              href={`${pathname}?league=${encodeURIComponent(l.leagueId)}`}
+              style={{
+                display: "flex", alignItems: "center", gap: 9, padding: "8px 10px 8px 34px", borderRadius: 10,
+                fontSize: 13, fontWeight: active ? 700 : 500, textDecoration: "none",
+                color: active ? "var(--rt-ink)" : "var(--rt-body)",
+                background: active ? "var(--rt-surface-soft)" : "transparent",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--rt-primary)", flexShrink: 0 }} />
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{l.leagueName}</span>
+            </Link>
+          );
+        })}
+
+        {NAV2.map((item) => {
           const active = item.activeWhen;
           return (
             <Link
