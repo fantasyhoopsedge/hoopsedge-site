@@ -211,10 +211,24 @@ export function buildOptimalLineup(
      *  than a separate greedy pre-pass. Category Edge's "Adjust starters"
      *  substitution feature; every other caller omits this. */
     forcedIn?: ReadonlySet<string>;
+    /** Skip the exact branch-and-bound solver and go straight to greedy,
+     *  regardless of size. Default true (exact) — every existing caller
+     *  keeps today's behavior unless it opts out. For "my own lineup" this
+     *  should always stay exact (it's the tool's actual answer); for the
+     *  other 29 teams in a depth-weighted league-wide comparison, they're
+     *  just a competitive benchmark, and greedy is "still meaningfully
+     *  better than a fixed slot order" (see greedyAssignment's own note)
+     *  without the branch-and-bound's exponential worst case. See
+     *  buildDepthWeightedProfiles' exactTeamId for where this gets used —
+     *  running the exact solver 30 times per depth-toggle click is what
+     *  caused real "Page Unresponsive" freezes (Ash, 2026-08-11) on large
+     *  leagues (30 teams × a wide bench × "Best 10" active slots). */
+    exact?: boolean;
   },
 ): OptimalLineup {
   const valueMode = options?.valueMode ?? "league";
   const forcedIn = options?.forcedIn ?? new Set<string>();
+  const exact = options?.exact ?? true;
   const baseValue = (p: ResolvedPlayer) => lineupValueOf(p, formula, valueMode);
   const rankValue = (p: ResolvedPlayer) => {
     const v = baseValue(p);
@@ -231,7 +245,7 @@ export function buildOptimalLineup(
   }
 
   const assignment =
-    pool.length * slotInstances.length > 400
+    !exact || pool.length * slotInstances.length > 400
       ? greedyAssignment(slotInstances, pool, rankValue)
       : solveOptimalAssignment(slotInstances, pool, rankValue);
 

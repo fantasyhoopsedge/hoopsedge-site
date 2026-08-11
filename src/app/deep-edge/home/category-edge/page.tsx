@@ -167,18 +167,19 @@ function CategoryEdgeContent() {
     [lineupCadence, format, capPos, capMatch],
   );
 
-  // The expensive part: re-runs the exact branch-and-bound solver for
-  // EVERY team in the league. Deliberately excludes forcedIn/forcedOut/
-  // valueMode from its deps — those only ever change the viewer's OWN
-  // team's lineup (computed below builds that separately as `myProfile`
-  // and splices it in), so recomputing all 30 other teams on every
-  // "Adjust starters" click was pure wasted work — the actual cause of the
-  // "Page Unresponsive" freeze Ash hit while toggling players in/out
-  // (2026-08-11): every click re-solved ~30 optimal lineups when only 1
-  // had actually changed.
+  // The expensive part: builds a profile for EVERY team in the league.
+  // Deliberately excludes forcedIn/forcedOut/valueMode from its deps —
+  // those only ever change the viewer's OWN team's lineup (computed below
+  // builds that separately as `myProfile`, exactly, and splices it in over
+  // whatever's here), so recomputing all 30 other teams on every "Adjust
+  // starters" click was pure wasted work — one real cause of the "Page
+  // Unresponsive" freeze Ash hit (2026-08-11). No exactTeamId here on
+  // purpose: since myTeamId's own entry always gets overwritten by the
+  // separately-exact `myProfile` below, solving it exactly in THIS pass
+  // too would just be discarded work — every team here can be greedy.
   const baseProfiles = useMemo(() => {
     if (!analysis || !effective || !format || format === "unconfirmed" || format === "points") return null;
-    return buildDepthWeightedProfiles(analysis, depth, weight, effective);
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null });
   }, [analysis, effective, depth, weight, format]);
 
   const computed = useMemo(() => {

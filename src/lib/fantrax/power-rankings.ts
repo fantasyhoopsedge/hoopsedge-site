@@ -102,7 +102,7 @@ export function buildDepthWeightedTeamProfile(
   depth: number,
   weight: number,
   formula?: LeaguePointsFormula | null,
-  options?: { valueMode?: LineupValueMode; forcedIn?: ReadonlySet<string> },
+  options?: { valueMode?: LineupValueMode; forcedIn?: ReadonlySet<string>; exact?: boolean },
 ): TeamCategoryProfile {
   const base = buildOptimalLineup(players, positionSlots, formula, options);
   const extended = extendLineup(base, depth, weight);
@@ -115,19 +115,39 @@ export function buildDepthWeightedTeamProfile(
  *
  *  `scored`/`positionSlots` default to the league's own auto-detected values
  *  but accept the Settings screen's user overrides — see buildLeagueProfiles()
- *  in lineup.ts for why this matters, not just cosmetics. */
+ *  in lineup.ts for why this matters, not just cosmetics.
+ *
+ *  `exactTeamId` controls which teams get the exact branch-and-bound solver
+ *  vs. the cheap greedy heuristic — omit it entirely and every team is
+ *  solved exactly (today's behavior, unchanged for any caller that doesn't
+ *  care). Pass a team id and ONLY that team is exact; pass `null` and every
+ *  team goes greedy. This is what actually fixes the "Page Unresponsive"
+ *  freeze on large leagues: the tool's whole point is comparing MY depth
+ *  against the competition, which still needs every team extended by the
+ *  same weighted depth for a fair Win% (unchanged), but most teams are only
+ *  ever a competitive benchmark — they don't need branch-and-bound
+ *  precision, just a good lineup, and greedy already guarantees that (see
+ *  greedyAssignment's own note). Power Rankings passes its own team id so
+ *  its displayed lineup never becomes an approximation; Category Edge
+ *  passes `null` because it recomputes its own team exactly in a separate
+ *  call regardless and splices it in, so solving it exactly here too would
+ *  just be discarded work. */
 export function buildDepthWeightedProfiles(
   analysis: LeagueAnalysis,
   depth: number,
   weight: number,
-  overrides?: { scored?: readonly FheCategory[]; positionSlots?: Record<string, number> },
+  overrides?: { scored?: readonly FheCategory[]; positionSlots?: Record<string, number>; exactTeamId?: string | null },
 ): TeamCategoryProfile[] {
   const { league } = analysis;
   const scored = overrides?.scored ?? league.categories.scored;
   const positionSlots = overrides?.positionSlots ?? league.positionSlots;
   const formula = league.scoringMode === "points" ? league.pointsFormula : null;
+  const exactTeamId = overrides?.exactTeamId;
   return analysis.rosters.map((r) =>
-    buildDepthWeightedTeamProfile(r.players, r.teamId, r.teamName, positionSlots, scored, depth, weight, formula),
+    buildDepthWeightedTeamProfile(
+      r.players, r.teamId, r.teamName, positionSlots, scored, depth, weight, formula,
+      exactTeamId === undefined ? undefined : { exact: r.teamId === exactTeamId },
+    ),
   );
 }
 

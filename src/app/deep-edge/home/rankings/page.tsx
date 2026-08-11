@@ -129,7 +129,13 @@ function PowerRankingsContent() {
   const profiles = useMemo(() => {
     if (!analysis || !format || format === "unconfirmed" || !effective) return null;
     const weight = depthWeight(lineupCadence, format, capPos, capMatch);
-    return buildDepthWeightedProfiles(analysis, depth, weight, effective);
+    // exactTeamId keeps MY team's displayed lineup exact (matches Category
+    // Edge's own answer for the same team/depth, by design) while every
+    // other team falls back to greedy — the fix for real "Page Unresponsive"
+    // freezes on large leagues toggling depth (Ash, 2026-08-11): the exact
+    // branch-and-bound solver was running 30 times per click when only my
+    // own team's precision actually matters to what's displayed.
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: analysis.myTeamId ?? undefined });
   }, [analysis, format, depth, lineupCadence, capPos, capMatch, effective]);
 
   const rotoStandings = useMemo(
