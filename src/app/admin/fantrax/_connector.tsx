@@ -14,6 +14,7 @@ import {
   type FantraxDatasetKey, type FheCategory, type PointsStat,
 } from "@/lib/fantrax/league";
 import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
+import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import type { SavedLeague } from "@/lib/fantrax/store";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 
@@ -1175,20 +1176,6 @@ function PointsEdgeTool({
  * two apart (verified live 2026-08-09), so silently assuming roto would score
  * a real H2H league wrong with no indication anything was assumed at all.
  */
-function FormatConfirmPrompt({ onConfirm }: { onConfirm: (v: LeagueFormat) => void }) {
-  return (
-    <div className="fx-empty fx-format-confirm">
-      <p>
-        Fantrax doesn&apos;t tell us whether this league is scored Rotisserie or Head-to-head — which is it?
-      </p>
-      <div className="fx-row" style={{ justifyContent: "center" }}>
-        <button type="button" className="fx-btn primary" onClick={() => onConfirm("roto")}>Rotisserie</button>
-        <button type="button" className="fx-btn primary" onClick={() => onConfirm("h2h")}>Head-to-head</button>
-      </div>
-    </div>
-  );
-}
-
 // ── settings ────────────────────────────────────────────────────────────────
 
 function SettingsPanel({

@@ -16,13 +16,16 @@ import type { Database } from "@/types/database";
 const PROTECTED_PREFIXES: string[] = [
   // "/account",
   "/admin", // analyst-only review panel; the page also re-checks authorization
+  "/deep-edge", // admin-gated for now (see src/lib/deep-edge/guard.ts); a first-class
+  // route on purpose, not /admin/deep-edge, so no URL move is needed when it
+  // graduates to a real freemium gate for all signed-in users.
 ];
 
 export async function proxy(request: NextRequest) {
   // These admin tools are "localhost trusted" per their own page.tsx (dev
   // convenience; production still gates on rb_admins) — never bounce them
   // through the auth gate on localhost.
-  const DEV_TRUSTED_ADMIN_PREFIXES = ["/admin/rookie-board", "/admin/depth-chart", "/admin/role-context", "/admin/dynasty-board", "/admin/fantrax", "/admin/player-identity"];
+  const DEV_TRUSTED_ADMIN_PREFIXES = ["/admin/rookie-board", "/admin/depth-chart", "/admin/role-context", "/admin/dynasty-board", "/admin/fantrax", "/admin/player-identity", "/deep-edge"];
   if (
     process.env.NODE_ENV !== "production" &&
     DEV_TRUSTED_ADMIN_PREFIXES.some((prefix) =>
