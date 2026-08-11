@@ -32,6 +32,14 @@ export function IconChevronLeft({ size = 16 }: { size?: number }) {
   );
 }
 
+export function IconChevronDown({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} {...base}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
 export function IconHome({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} {...base}>
