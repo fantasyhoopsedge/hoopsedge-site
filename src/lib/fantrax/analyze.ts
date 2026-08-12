@@ -58,6 +58,12 @@ export interface TrendTags {
 export interface ResolvedPlayer extends LeagueRosterSpot {
   /** FHE player id, or null when no dataset knows this player. */
   playerId: string | null;
+  /** Canonical player_identity.fhe_id — already resolved internally to join
+   *  season_player_stats (see resolve.ts), just not previously exposed. Use
+   *  this (never playerId, an ESPN id, or a name) to join a Fantrax roster
+   *  player against another FHE surface: real_salary_values, nba_roster,
+   *  nba_player_trends, etc. Null under the same conditions playerId is. */
+  fheId: string | null;
   /** Which dataset supplied the category values. */
   source: "projection" | "regular" | null;
   /** Per-category z-scores from the league's baseline pool (per-game). Drives
@@ -83,6 +89,9 @@ export interface ResolvedPlayer extends LeagueRosterSpot {
   consensusRank: number | null;
   gamesPlayed: number | null;
   minutesPerGame: number | null;
+  /** Team-relative usage rate (season_player_stats.usg_pct) — already a
+   *  percentage (32.3 means 32.3%), not a 0-1 fraction. */
+  usgPct: number | null;
   /** Raw per-game stat line, per-game and totals (totals = per-game line scaled
    *  by games — display only, never re-enters the value math). */
   statLine: StatLine | null;

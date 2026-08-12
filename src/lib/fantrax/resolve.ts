@@ -235,6 +235,7 @@ function resolveOne(
   const blank: ResolvedPlayer = {
     ...spot,
     playerId: null,
+    fheId: identity?.fheId ?? null,
     source: null,
     cats: {},
     catsTotals: {},
@@ -244,6 +245,7 @@ function resolveOne(
     consensusRank,
     gamesPlayed: null,
     minutesPerGame: null,
+    usgPct: null,
     statLine: null,
     catV: null,
     catVRank: null,
@@ -290,6 +292,7 @@ function resolveOne(
     return {
       ...spot,
       playerId: stats.player_id,
+      fheId: identity.fheId,
       source: isProjection ? "projection" : "regular",
       cats,
       catsTotals,
@@ -299,6 +302,7 @@ function resolveOne(
       consensusRank,
       gamesPlayed: stats.g,
       minutesPerGame: stats.mpg,
+      usgPct: stats.usg_pct,
       statLine,
       catV,
       catVRank,

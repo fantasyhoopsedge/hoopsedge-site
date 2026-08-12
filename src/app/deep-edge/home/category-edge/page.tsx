@@ -158,10 +158,34 @@ function CategoryEdgeContent() {
   const capMatch = saved?.settings.capMatch ?? DEFAULT_GAMES_CAP_SETTINGS.capMatch;
   const capMatchN = saved?.settings.capMatchN ?? DEFAULT_GAMES_CAP_SETTINGS.capMatchN;
 
+  const effective = useMemo(
+    () => (analysis && saved ? resolveEffectiveScoring(analysis.league, saved.settings) : null),
+    [analysis, saved],
+  );
+  const weight = useMemo(
+    () => (format && format !== "unconfirmed" && format !== "points" ? depthWeight(lineupCadence, format, capPos, capMatch) : 1),
+    [lineupCadence, format, capPos, capMatch],
+  );
+
+  // The expensive part: builds a profile for EVERY team in the league.
+  // Deliberately excludes forcedIn/forcedOut/valueMode from its deps —
+  // those only ever change the viewer's OWN team's lineup (computed below
+  // builds that separately as `myProfile`, exactly, and splices it in over
+  // whatever's here), so recomputing all 30 other teams on every "Adjust
+  // starters" click was pure wasted work — one real cause of the "Page
+  // Unresponsive" freeze Ash hit (2026-08-11). No exactTeamId here on
+  // purpose: since myTeamId's own entry always gets overwritten by the
+  // separately-exact `myProfile` below, solving it exactly in THIS pass
+  // too would just be discarded work — every team here can be greedy.
+  const baseProfiles = useMemo(() => {
+    if (!analysis || !effective || !format || format === "unconfirmed" || format === "points") return null;
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null });
+  }, [analysis, effective, depth, weight, format]);
+
   const computed = useMemo(() => {
-    if (!analysis || !analysis.myTeamId || !saved || !format || format === "unconfirmed" || format === "points") return null;
+    if (!analysis || !analysis.myTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
     const { league, myTeamId } = analysis;
-    const { scored, positionSlots } = resolveEffectiveScoring(league, saved.settings);
+    const { scored, positionSlots } = effective;
     const myRoster = analysis.rosters.find((r) => r.teamId === myTeamId);
     if (!myRoster) return null;
 
@@ -182,8 +206,7 @@ function CategoryEdgeContent() {
     // full-value bench additions while every other team stayed at depth 0
     // made Win% climb toward 100% the deeper you went — an ever-inflating
     // "me + N free players" against unmodified opponents, not a real signal.
-    const weight = depthWeight(lineupCadence, format, capPos, capMatch);
-    const profiles = buildDepthWeightedProfiles(analysis, depth, weight, { scored, positionSlots });
+    const profiles = [...baseProfiles];
     const myProfileIdx = profiles.findIndex((p) => p.teamId === myTeamId);
     const myProfile = buildDepthWeightedTeamProfile(
       availablePlayers, myTeamId, myRoster.teamName, positionSlots, scored, depth, weight, null, { valueMode, forcedIn },
@@ -211,7 +234,7 @@ function CategoryEdgeContent() {
       myRoster, lineup, effectiveStarters, effectiveBench, scored, edges, totalPoints, maxPoints, top10,
       teamCount: league.teamCount, myProfile, myH2H, leagueAvgPerGame, leagueAvgTotal,
     };
-  }, [analysis, depth, saved, format, forcedIn, forcedOut, valueMode, lineupCadence, capPos, capMatch]);
+  }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight]);
 
   const hasLeague = Boolean(saved);
 
