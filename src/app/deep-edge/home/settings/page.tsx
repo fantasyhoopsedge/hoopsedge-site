@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { LeagueAnalysis } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, FHE_CATEGORIES, type FantraxLeague, type FheCategory } from "@/lib/fantrax/league";
 import {
-  DEFAULT_ADVANCED_SETTINGS, DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, STANDARD_POSITION_SLOTS,
+  DEFAULT_ADVANCED_SETTINGS, DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES, STANDARD_POSITION_SLOTS,
   type LeagueFormat, type LeagueType, type SalaryFormat,
 } from "@/lib/fantrax/league-tags";
 import type { SavedLeague } from "@/lib/fantrax/store";
@@ -15,24 +15,6 @@ import { SegmentedControl } from "../../_components/segmented-control";
 import { Stepper } from "../../_components/stepper";
 import { IconChevronLeft } from "../../_components/icons";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
-
-/** Extra Fantrax-style categories the "Add category" picker offers —
- *  informational only, FHE's engine has no z-score model for any of these
- *  (see SavedLeagueSettings.additionalCategories in store.ts). */
-const EXTRA_CATEGORIES: { code: string; label: string }[] = [
-  { code: "DD", label: "Double-doubles (DD)" },
-  { code: "TD", label: "Triple-doubles (TD)" },
-  { code: "A/TO", label: "Assist / turnover ratio (A/TO)" },
-  { code: "MPG", label: "Minutes per game (MPG)" },
-  { code: "TREB", label: "Total rebounds (TREB)" },
-  { code: "FGM", label: "Field goals made (FGM)" },
-  { code: "FTM", label: "Free throws made (FTM)" },
-  { code: "PF", label: "Personal fouls (PF)" },
-  { code: "TF", label: "Technical fouls (TF)" },
-  { code: "GP", label: "Games played (GP)" },
-  { code: "OREB", label: "Offensive rebounds (OREB)" },
-  { code: "DREB", label: "Defensive rebounds (DREB)" },
-];
 
 const KEEPER_OPTIONS = ["all", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
 const keeperLabel = (v: string) => (v === "all" ? "Keep all (dynasty)" : `${v} keeper${v === "1" ? "" : "s"}`);

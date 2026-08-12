@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { readFantraxSession } from "../_lib/fantrax-session";
 import { useSavedLeagues } from "../_lib/use-saved-leagues";
-import { IconBell, IconChat, IconChevronDown, IconHome, IconLineChart, IconList } from "./icons";
+import { IconBell, IconChat, IconChevronDown, IconHome, IconLineChart, IconList, IconMoon, IconSun } from "./icons";
 
 /**
  * Deep Edge's own sidebar — distinct from both AppSidebar (the main site
@@ -23,7 +23,15 @@ import { IconBell, IconChat, IconChevronDown, IconHome, IconLineChart, IconList 
  * every caller of HubShell (the only place this renders) already sits
  * inside a <Suspense> boundary.
  */
-export function DeepEdgeSidebar({ hasLeague }: { hasLeague: boolean }) {
+export function DeepEdgeSidebar({
+  hasLeague,
+  theme,
+  onToggleTheme,
+}: {
+  hasLeague: boolean;
+  theme: "light" | "dark";
+  onToggleTheme: (next: "light" | "dark") => void;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const fantraxConnected = readFantraxSession().connected;
@@ -197,6 +205,33 @@ export function DeepEdgeSidebar({ hasLeague }: { hasLeague: boolean }) {
       </Link>
 
       <div style={{ flex: 1 }} />
+
+      <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, marginBottom: 8 }}>
+        <button
+          type="button"
+          onClick={() => onToggleTheme("light")}
+          style={{
+            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "7px 10px", border: "none", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer",
+            background: theme === "light" ? "var(--rt-canvas)" : "transparent",
+            color: theme === "light" ? "var(--rt-ink)" : "var(--rt-muted)",
+          }}
+        >
+          <IconSun size={14} /> Light
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggleTheme("dark")}
+          style={{
+            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: "7px 10px", border: "none", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer",
+            background: theme === "dark" ? "var(--rt-canvas)" : "transparent",
+            color: theme === "dark" ? "var(--rt-ink)" : "var(--rt-muted)",
+          }}
+        >
+          <IconMoon size={14} /> Dark
+        </button>
+      </div>
 
       <Link
         href="/"

@@ -35,6 +35,32 @@ export const DEFAULT_GAMES_CAP_SETTINGS = {
   capMatchN: 40,
 };
 
+/** Extra Fantrax-style categories the Settings screen's "Add category"
+ *  picker offers, and Roster Edge's own stat picker matches (Ash, 2026-08-12:
+ *  "add the additional custom stats to toggle on/off to match with the
+ *  league settings page") — one shared list so the two pickers can't drift.
+ *  Informational only: FHE's engine has no z-score model for any of these
+ *  (see SavedLeagueSettings.additionalCategories in store.ts), and several
+ *  (DD/TD/TREB/PF/TF/OREB/DREB) have no real data source anywhere in FHE's
+ *  stat pipeline at all — season_player_stats tracks only the 9 roto
+ *  categories plus usg_pct, nothing else. Roster Edge disables exactly those
+ *  options rather than silently dropping them from the list, so the two
+ *  pickers still read as the same catalog. */
+export const EXTRA_CATEGORIES: { code: string; label: string }[] = [
+  { code: "DD", label: "Double-doubles (DD)" },
+  { code: "TD", label: "Triple-doubles (TD)" },
+  { code: "A/TO", label: "Assist / turnover ratio (A/TO)" },
+  { code: "MPG", label: "Minutes per game (MPG)" },
+  { code: "TREB", label: "Total rebounds (TREB)" },
+  { code: "FGM", label: "Field goals made (FGM)" },
+  { code: "FTM", label: "Free throws made (FTM)" },
+  { code: "PF", label: "Personal fouls (PF)" },
+  { code: "TF", label: "Technical fouls (TF)" },
+  { code: "GP", label: "Games played (GP)" },
+  { code: "OREB", label: "Offensive rebounds (OREB)" },
+  { code: "DREB", label: "Defensive rebounds (DREB)" },
+];
+
 /** Standard roster shape shown in the Settings screen's Roster & positions
  *  grid — used only when the league's own auto-detected positionSlots is
  *  missing a slot the UI always shows (so the grid never has a gap), never
