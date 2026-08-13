@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
-import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type SalaryFormat } from "@/lib/fantrax/league-tags";
+import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, categoryTier, rankTierLabel, resolveEffectiveScoring, teamPerGameStat, type CategoryTier, type OptimalLineup } from "@/lib/fantrax/lineup";
 import {
@@ -13,10 +13,10 @@ import {
   rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings,
 } from "@/lib/fantrax/power-rankings";
 import {
-  lineupModeFor, summarizeAssets, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
-  type TradeAssetSummary, type TradeValueMode,
+  lineupModeFor, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
+  type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
-import { formatCustomSalary, formatSalary, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat } from "../../_components/roster-table";
+import { posDisplayFor, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat } from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
@@ -177,29 +177,6 @@ function headlineFor(
   return { rank: row.rank, of: rows.length, label: `${(row.winPct * 100).toFixed(1)}% win`, sub };
 }
 
-function formatValue(v: number | null, mode: TradeValueMode): string {
-  if (v == null) return "—";
-  return mode === "fpts" ? `${v.toFixed(1)} FP` : `${v >= 0 ? "+" : ""}${v.toFixed(2)}z`;
-}
-
-function AssetSummaryCard({
-  title, summary, mode, hasSalaries, salaryFormat,
-}: { title: string; summary: TradeAssetSummary; mode: TradeValueMode; hasSalaries: boolean; salaryFormat: SalaryFormat }) {
-  const salaryText = salaryFormat === "custom" ? formatCustomSalary(summary.totalSalary) : formatSalary(summary.totalSalary);
-  return (
-    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--rt-hairline)", flex: 1, minWidth: 180 }}>
-      <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>{title.toUpperCase()}</div>
-      <div style={{ fontSize: 13, marginBottom: 4 }}>
-        {summary.count} player{summary.count === 1 ? "" : "s"} · <strong>{summary.totalValue != null ? formatValue(summary.totalValue, mode) : "—"}</strong> total
-      </div>
-      <div style={{ fontSize: 12, color: "var(--rt-muted)" }}>
-        {summary.avgConsensusRank != null ? `Avg dynasty rank #${Math.round(summary.avgConsensusRank)}` : "No dynasty-ranked players"}
-        {hasSalaries && summary.totalSalary != null ? ` · ${salaryText} salary` : ""}
-      </div>
-    </div>
-  );
-}
-
 /** A small player card for the trade pickers — headshot, name, position
  *  eligibility, dynasty rank, and value rank under the chosen TradeValueMode.
  *  Dimmed when the player falls outside the roster depth currently being
@@ -210,13 +187,14 @@ function AssetSummaryCard({
  *  default hairline/checked color — "checked" is shown via the background
  *  wash instead, so both signals stay visible at once. */
 function PlayerMiniCard({
-  player, checked, onToggle, assessed, dynastyRank, valueRank, valueMode, tier,
+  player, checked, onToggle, assessed, dynastyRank, valueRank, valueMode, tier, positionSlots,
 }: {
   player: ResolvedPlayer; checked: boolean; onToggle: () => void; assessed: boolean;
   dynastyRank: number | null; valueRank: number | null; valueMode: TradeValueMode; tier: CategoryTier | null;
+  positionSlots: Record<string, number>;
 }) {
   const initials = player.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
-  const posDisplay = player.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e)).join("/");
+  const posDisplay = posDisplayFor(player.eligible, positionSlots).join("/");
   const ringColor = tier ? TIER_COLOR[tier] : checked ? "var(--rt-primary)" : "var(--rt-hairline)";
   // Assessed (within the currently-selected roster depth) reads as a slight
   // background tint rather than dimming everyone else — greying out the
@@ -252,45 +230,48 @@ function PlayerMiniCard({
   );
 }
 
-/** Category-by-category net swing (received minus given) — the "gives up /
- *  gets" summary as gains/losses instead of a single blended value total.
- *  Light conditional formatting only: a flat green/red wash, not a
- *  magnitude-scaled gradient (raw stat deltas span wildly different scales
- *  per category, so a shared anchor would either wash out PTS or saturate
- *  FG% at the slightest move). */
+/** Category-by-category net swing (received minus given), rendered as one
+ *  more aligned row directly under the trade preview tables above — same
+ *  colgroup/column widths as TradePreviewTable so it reads as a continuation
+ *  of that table rather than a separate summary block (Ash, 2026-08-14: "add
+ *  another row to the table directly below the trade preview"). Light
+ *  conditional formatting only: a flat green/red wash, not a magnitude-scaled
+ *  gradient (raw stat deltas span wildly different scales per category, so a
+ *  shared anchor would either wash out PTS or saturate FG% at the slightest
+ *  move); text stays neutral ink even on the tint — the wash and the
+ *  +/-/± prefix in formatNetDelta's output both already carry direction. */
 function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
   scored: readonly FheCategory[]; sendPlayers: ResolvedPlayer[]; receivePlayers: ResolvedPlayer[]; statMode: "perGame" | "totals";
 }) {
   if (scored.length === 0) return null;
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Net category impact ({statMode === "perGame" ? "per game" : "totals"})</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {scored.map((cat) => {
-          const net = netFor(sendPlayers, receivePlayers, cat, statMode);
-          const gain = net != null && Math.abs(net) > 0.0005 && (HIGHER_IS_BETTER[cat] ? net > 0 : net < 0);
-          const loss = net != null && Math.abs(net) > 0.0005 && !gain;
-          return (
-            <div
-              key={cat}
-              style={{
-                padding: "8px 12px", borderRadius: 10, minWidth: 74, textAlign: "center",
-                background: gain ? "rgba(34,197,94,0.14)" : loss ? "rgba(239,68,68,0.14)" : "var(--rt-surface-soft)",
-              }}
-            >
-              <div style={{ fontSize: 10.5, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)" }}>{CATEGORY_LABEL[cat]}</div>
-              {/* Text stays neutral ink even on the tinted background — the
-               *  light green/red wash already carries direction, and the
-               *  +/-/± prefix in formatNetDelta's output carries it again;
-               *  coloring the text the same hue as its own background was
-               *  the actual "same colour" problem Ash flagged, not the tint
-               *  itself. */}
-              <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--rt-font-mono)", color: "var(--rt-ink)" }}>
-                {net != null ? formatNetDelta(cat, net, statMode) : "—"}
-              </div>
-            </div>
-          );
-        })}
+      <div className="de-table-wrap">
+        <table className="de-table te-preview-table" style={{ minWidth: 640 }}>
+          <colgroup>
+            <col style={{ width: 170 }} />
+            <col style={{ width: 60 }} />
+            <col style={{ width: 50 }} />
+            <col style={{ width: 60 }} />
+            <col style={{ width: 60 }} />
+            {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
+          </colgroup>
+          <tbody>
+            <tr className="mine">
+              <td className="l" colSpan={5}>Net category impact ({statMode === "perGame" ? "per game" : "totals"})</td>
+              {scored.map((cat) => {
+                const net = netFor(sendPlayers, receivePlayers, cat, statMode);
+                const gain = net != null && Math.abs(net) > 0.0005 && (HIGHER_IS_BETTER[cat] ? net > 0 : net < 0);
+                const loss = net != null && Math.abs(net) > 0.0005 && !gain;
+                return (
+                  <td key={cat} style={{ background: gain ? "rgba(34,197,94,0.14)" : loss ? "rgba(239,68,68,0.14)" : undefined, color: "var(--rt-ink)" }}>
+                    {net != null ? formatNetDelta(cat, net, statMode) : "—"}
+                  </td>
+                );
+              })}
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -301,10 +282,11 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
  *  shared with its counterpart on the other side of the trade, so the two
  *  line up exactly whether read stacked or side by side. */
 function TradePreviewTable({
-  title, players, scored, enrich, leaguePlayers, valueMode, statMode,
+  title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots,
 }: {
   title: string; players: ResolvedPlayer[]; scored: readonly FheCategory[]; enrich: EnrichData | null;
   leaguePlayers: ResolvedPlayer[]; valueMode: TradeValueMode; statMode: "perGame" | "totals";
+  positionSlots: Record<string, number>;
 }) {
   if (players.length === 0) return null;
   return (
@@ -340,7 +322,7 @@ function TradePreviewTable({
               const dynastyRank = p.fheId ? enrich?.dynastyRankByFheId[p.fheId] : null;
               const age = p.fheId ? enrich?.ageByFheId?.[p.fheId] : null;
               const valueRank = rankAmong(leaguePlayers, (pl) => valueOf(pl, valueMode), valueOf(p, valueMode));
-              const posDisplay = p.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e)).join("/");
+              const posDisplay = posDisplayFor(p.eligible, positionSlots).join("/");
               return (
                 <tr key={p.fantraxId}>
                   <td className="l">
@@ -613,7 +595,7 @@ function TeamInsightPanel({
               >
                 <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{p.teamName}</div>
                 {p.theyHelpMe.length > 0 && (
-                  <div style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Strong where you're weak: {p.theyHelpMe.map((c) => CATEGORY_LABEL[c]).join(", ")}</div>
+                  <div style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Strong where you&apos;re weak: {p.theyHelpMe.map((c) => CATEGORY_LABEL[c]).join(", ")}</div>
                 )}
                 {p.iHelpThem.length > 0 && (
                   <div style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Needs what you have: {p.iHelpThem.map((c) => CATEGORY_LABEL[c]).join(", ")}</div>
@@ -668,6 +650,19 @@ function TradeEdgeContent() {
     });
   }, [analysis, saved]);
 
+  // Trade preview's default per-game/totals basis follows the league's
+  // format — totals is the more representative read for roto (roto
+  // standings are literally built from each team's combined stat totals, and
+  // switching bases can swing the Power Rankings compare panel dramatically,
+  // Ash 2026-08-14), per-game stays the default everywhere else. Runs once
+  // per format value via the same "adjust state during render" pattern used
+  // for teamBId below — the toggle stays fully user-overridable afterward.
+  const [statModeDefaultFor, setStatModeDefaultFor] = useState<string | null>(null);
+  if (format && format !== "unconfirmed" && statModeDefaultFor !== format) {
+    setStatModeDefaultFor(format);
+    setStatMode(format === "roto" ? "totals" : "perGame");
+  }
+
   const effective = useMemo(
     () => (analysis && saved ? resolveEffectiveScoring(analysis.league, saved.settings) : null),
     [analysis, saved],
@@ -676,7 +671,6 @@ function TradeEdgeContent() {
   const myTeamId = analysis?.myTeamId ?? null;
   const isPointsLeague = analysis?.league.scoringMode === "points";
   const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
-  const salaryFormat: SalaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
   const formula = valueMode === "fpts" ? analysis?.league.pointsFormula ?? null : null;
   const lineupMode = lineupModeFor(valueMode);
 
@@ -763,8 +757,6 @@ function TradeEdgeContent() {
 
   const sendPlayers = useMemo(() => myRoster?.players.filter((p) => sendIds.has(p.fantraxId)) ?? [], [myRoster, sendIds]);
   const receivePlayers = useMemo(() => theirRoster?.players.filter((p) => receiveIds.has(p.fantraxId)) ?? [], [theirRoster, receiveIds]);
-  const sendSummary = useMemo(() => summarizeAssets(sendPlayers, valueMode), [sendPlayers, valueMode]);
-  const receiveSummary = useMemo(() => summarizeAssets(receivePlayers, valueMode), [receivePlayers, valueMode]);
 
   const hasLeague = Boolean(saved);
 
@@ -933,6 +925,7 @@ function TradeEdgeContent() {
                         valueRank={rankAmong(leaguePlayers, (pl) => valueOf(pl, valueMode), valueOf(p, valueMode))}
                         valueMode={valueMode}
                         tier={targetCatsArr.length > 0 ? categoryTier(meanZ(p.cats, targetCatsArr)) : null}
+                        positionSlots={effective?.positionSlots ?? {}}
                         onToggle={() => setIds((s) => { const n = new Set(s); if (n.has(p.fantraxId)) n.delete(p.fantraxId); else n.add(p.fantraxId); return n; })}
                       />
                     ))}
@@ -964,15 +957,10 @@ function TradeEdgeContent() {
                     </div>
                   </div>
 
-                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} />
-                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} />
+                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} />
+                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} />
 
                   <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} />
-
-                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 20 }}>
-                    <AssetSummaryCard title={`${myRoster.teamName} gives up`} summary={sendSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} salaryFormat={salaryFormat} />
-                    <AssetSummaryCard title={`${myRoster.teamName} receives`} summary={receiveSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} salaryFormat={salaryFormat} />
-                  </div>
 
                   <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
                     <button
