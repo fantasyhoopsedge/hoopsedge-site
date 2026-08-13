@@ -175,6 +175,17 @@ export interface TeamH2HRecord {
   totalWins: number;
   totalLosses: number;
   totalDraws: number;
+  /** simulateH2HCategoryStandings: categoryWins / (categoryWins + categoryDraws
+   *  + categoryLosses) — the plain win rate off the category ledger (draws
+   *  don't count as half-wins here, unlike the matchup-record convention),
+   *  e.g. 199-12-50 → 76.2%, not the ~78.5% a 0.5-per-draw weighting would
+   *  give. Also what `rank` is sorted by for H2H-categories. Ash, 2026-08-12:
+   *  matchup win% (win the majority of a week's categories) undersells a team
+   *  that's winning categories lopsidedly — the category ledger is the more
+   *  legible "how good is this team" number.
+   *  simulateH2HPointsStandings: matchup win rate (totalWins + 0.5*totalDraws)
+   *  / matchups — unchanged, since a points league has no category ledger to
+   *  read this off instead. */
   winPct: number;
   categoryWins: number;
   categoryLosses: number;
@@ -240,11 +251,11 @@ export function simulateH2HCategoryStandings(
     const categoryWins = matchups.reduce((sum, m) => sum + m.wins, 0);
     const categoryLosses = matchups.reduce((sum, m) => sum + m.losses, 0);
     const categoryDraws = matchups.reduce((sum, m) => sum + m.draws, 0);
-    const denom = matchups.length || 1;
+    const categoryTotal = categoryWins + categoryDraws + categoryLosses || 1;
     return {
       teamId: mine.teamId, teamName: mine.teamName, matchups,
       totalWins, totalLosses, totalDraws,
-      winPct: (totalWins + 0.5 * totalDraws) / denom,
+      winPct: categoryWins / categoryTotal,
       categoryWins, categoryLosses, categoryDraws,
       rank: 0,
     };

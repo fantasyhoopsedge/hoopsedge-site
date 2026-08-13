@@ -85,6 +85,31 @@ export interface ContractInfo {
   totalRemaining: number;
 }
 
+// ageFromDob mirrors real-salary-rankings/page.tsx's own helper: computed
+// fresh from dob on every request, not a persisted/stale snapshot — kept as
+// a fractional year like that page's own "AGE" column.
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+function ageFromDob(dob: string | null | undefined): number | null {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  return (Date.now() - d.getTime()) / MS_PER_YEAR;
+}
+
+/** fhe_id -> current age, computed live from nba_roster.dob — same
+ *  convention as Real Salary Rankings' own AGE column. Omits anyone
+ *  nba_roster has no dob for. */
+export async function getAgeByFheId(): Promise<Record<string, number>> {
+  const extras = await getRosterExtras();
+  const out: Record<string, number> = {};
+  for (const e of extras) {
+    if (!e.fhe_id) continue;
+    const age = ageFromDob(e.dob);
+    if (age != null) out[e.fhe_id] = age;
+  }
+  return out;
+}
+
 /** fhe_id -> current-season salary + years/total remaining on the deal.
  *  Omits unsigned free agents (real_salary_values.salary null — no contract
  *  to show) and anyone nba_roster has no extras row for. */
