@@ -60,6 +60,29 @@ export function formatCustomSalary(n: number | null | undefined): string {
 export function formatCustomContract(contract: string | null | undefined): string {
   return contract ?? "—";
 }
+/** The 5 true positions — always shown regardless of league settings. */
+const MAIN_POSITIONS = new Set(["PG", "SG", "SF", "PF", "C"]);
+/**
+ * Position-eligibility display: PG/SG/SF/PF/C always show; the "G"/"F"
+ * combo-eligibility tags only show when this league's OWN roster actually
+ * plays a G or F slot (positionSlots.G / .F > 0) — otherwise every player
+ * eligible at guard/forward carries the tag regardless of whether the league
+ * has any use for it, which is just noise (Ash, 2026-08-14: "only display
+ * PG, SG, SF, PF, C unless the settings are customised to be G, F, C").
+ * Numbered flex slots (Flx2, Flx3, Util, …) never show either way — same
+ * historic reasoning as the flx regex this supersedes.
+ */
+export function posDisplayFor(eligible: string[], positionSlots: Record<string, number> | undefined): string[] {
+  const showG = (positionSlots?.G ?? 0) > 0;
+  const showF = (positionSlots?.F ?? 0) > 0;
+  return eligible.filter((e) => {
+    const upper = e.toUpperCase();
+    if (MAIN_POSITIONS.has(upper)) return true;
+    if (upper === "G") return showG;
+    if (upper === "F") return showF;
+    return false;
+  });
+}
 export function formatStat(cat: FheCategory | ExtraCode, raw: number | null): string {
   if (raw == null || !Number.isFinite(raw)) return "—";
   if (cat === "FG" || cat === "FT") return raw.toFixed(3).replace(/^0(?=\.)/, "");
@@ -203,6 +226,8 @@ export interface RosterTableRowProps {
    *  formatCustomContract. Defaults to "real" (today's behavior) so existing
    *  callers that don't pass it are unaffected. */
   salaryFormat?: SalaryFormat;
+  /** League's own roster slot config — see posDisplayFor(). */
+  positionSlots: Record<string, number>;
   /** Whole-league player pool, for the USG z-score baseline and the
    *  points-mode VALUE rank (see rankAmong). */
   leaguePlayers: ResolvedPlayer[];
@@ -216,7 +241,7 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, salaryFormat = "real", leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", positionSlots, leaguePlayers, usgStats, leadingCell, className,
 }: RosterTableRowProps) {
   const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
@@ -230,7 +255,7 @@ export function RosterTableRow({
     : (p.catVRank?.perGame.nineCatV ?? null);
   const minus1Rank = p.catVRank?.perGame.minus1V ?? null;
   const usgZ = zOf(p.usgPct, usgStats);
-  const posDisplay = p.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e));
+  const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
   return (
     <tr className={className}>

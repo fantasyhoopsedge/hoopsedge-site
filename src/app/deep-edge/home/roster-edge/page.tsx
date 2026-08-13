@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "@/lib/fantrax/analyze";
+import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES } from "@/lib/fantrax/league-tags";
@@ -24,10 +24,18 @@ import { useActiveLeague } from "../../_lib/use-saved-leagues";
  *  which now track the same user-chosen depth (Ash, 2026-08-13). */
 const DEPTH_LABELS = ["Best", "+1", "+2", "+3", "+4", "+5"];
 
-const TICK_VALUE_MODE_OPTIONS: { value: "minus1V" | "nineCatV"; label: string }[] = [
+type TickValueMode = "minus1V" | "nineCatV" | "eightCatV";
+const TICK_VALUE_MODE_OPTIONS: { value: TickValueMode; label: string }[] = [
   { value: "minus1V", label: "Minus1V" },
   { value: "nineCatV", label: "9-Cat" },
+  { value: "eightCatV", label: "8-Cat" },
 ];
+/** Maps a TickValueMode onto the roster table's own sort key — see the
+ *  render-time sync below (Ash, 2026-08-14: "dynamically sort the roster
+ *  based on those values from best to worst"). */
+const SORT_KEY_FOR_TICK_MODE: Record<TickValueMode, SortKey> = {
+  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat",
+};
 
 /** The Settings screen's "Add category" codes that Roster Edge can actually
  *  compute from real data — ast/tov and the two makes counts already have a
@@ -58,7 +66,7 @@ const ROSTER_ONLY_EXTRAS: { code: ExtraCode; label: string }[] = [
   { code: "FTA", label: "Free throw attempts (FTA)" },
 ];
 
-type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "minus1" | FheCategory | ExtraCode;
+type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
 type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
 
 function RosterEdgeContent() {
@@ -70,7 +78,7 @@ function RosterEdgeContent() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [ticked, setTicked] = useState<Set<string> | null>(null);
   const [tickDepth, setTickDepth] = useState(0);
-  const [tickValueMode, setTickValueMode] = useState<"minus1V" | "nineCatV">("minus1V");
+  const [tickValueMode, setTickValueMode] = useState<TickValueMode>("minus1V");
   const [extraCols, setExtraCols] = useState<Set<ExtraCode>>(new Set());
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
   const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
@@ -202,7 +210,7 @@ function RosterEdgeContent() {
 
   const rotoSort = useSortableTable<ResolvedPlayer, SortKey>(
     roster?.players ?? [],
-    { key: "value", dir: "desc" },
+    { key: SORT_KEY_FOR_TICK_MODE[tickValueMode], dir: "desc" },
     (row, key) => {
       if (key === "name") return row.name;
       if (key === "dynastyRank") return (row.fheId ? enrich?.dynastyRankByFheId[row.fheId] : null) ?? Infinity;
@@ -212,9 +220,25 @@ function RosterEdgeContent() {
       if (key === "usg") return row.usgPct ?? -Infinity;
       if (key === "value") return (format === "points" ? row.pointsValue : row.leagueV) ?? -Infinity;
       if (key === "minus1") return row.catV?.perGame.minus1V ?? -Infinity;
+      if (key === "nineCat") return row.catV?.perGame.nineCatV ?? -Infinity;
+      if (key === "eightCat") return row.catV?.perGame.eightCatV ?? -Infinity;
       return statValue(row, key) ?? -Infinity;
     },
   );
+  // The roster table's sort order follows whichever value flavor the
+  // tick-set selector is on — best to worst (Ash, 2026-08-14). Runs once per
+  // distinct tickValueMode CHANGE via the same render-time-reset pattern used
+  // elsewhere in this file (skips the very first render — useSortableTable's
+  // own `initial` param above already seeds the matching key/desc, and
+  // onSort() TOGGLES direction when called with the key it's already on, so
+  // calling it here on mount would immediately flip to ascending).
+  const [sortSyncFor, setSortSyncFor] = useState<TickValueMode | null>(null);
+  if (sortSyncFor === null) {
+    setSortSyncFor(tickValueMode);
+  } else if (sortSyncFor !== tickValueMode) {
+    setSortSyncFor(tickValueMode);
+    rotoSort.onSort(SORT_KEY_FOR_TICK_MODE[tickValueMode]);
+  }
 
   const hasLeague = Boolean(saved);
   const showSalary = cols.salary && salaryFormat !== "none";
@@ -335,7 +359,7 @@ function RosterEdgeContent() {
                   </button>
                 ))}
               </div>
-              <SegmentedControl<"minus1V" | "nineCatV"> options={TICK_VALUE_MODE_OPTIONS} value={tickValueMode} onChange={setTickValueMode} />
+              <SegmentedControl<TickValueMode> options={TICK_VALUE_MODE_OPTIONS} value={tickValueMode} onChange={setTickValueMode} />
             </div>
           </div>
 
@@ -508,6 +532,7 @@ function RosterEdgeContent() {
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
                     salaryFormat={salaryFormat}
+                    positionSlots={effective?.positionSlots ?? {}}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
                     leadingCell={
