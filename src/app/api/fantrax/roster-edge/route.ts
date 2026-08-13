@@ -6,7 +6,7 @@ import {
 import { authorizeFantrax } from "@/lib/fantrax/guard";
 import { buildLeague } from "@/lib/fantrax/league";
 import { analyzeLeague, FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
-import { getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "@/lib/fantrax/roster-edge";
+import { getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "@/lib/fantrax/roster-edge";
 
 /**
  * Same league analysis /api/fantrax/league builds, plus the salary-rank/
@@ -62,13 +62,14 @@ export async function GET(request: Request) {
     }
 
     const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds);
-    const [analysis, salaryRankByFheId, contractByFheId] = await Promise.all([
+    const [analysis, salaryRankByFheId, contractByFheId, ageByFheId] = await Promise.all([
       analyzeLeague(league, teamId, dataset, leagueType),
       getSalaryRankByFheId(),
       getContractByFheId(),
+      getAgeByFheId(),
     ]);
     const dynastyRankByFheId = getDynastyRankByFheId();
-    return NextResponse.json({ ...analysis, salaryRankByFheId, contractByFheId, dynastyRankByFheId });
+    return NextResponse.json({ ...analysis, salaryRankByFheId, contractByFheId, dynastyRankByFheId, ageByFheId });
   } catch (err) {
     if (err instanceof FantraxError) {
       return NextResponse.json({ error: err.message }, { status: err.status === 404 ? 404 : 502 });

@@ -12,6 +12,7 @@ import { resolveEffectiveScoring } from "@/lib/fantrax/lineup";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { WdlBadge } from "../../_components/wdl-badge";
+import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
 import { StrengthBar } from "../../_components/strength-bar";
 import { SegmentedControl } from "../../_components/segmented-control";
 import { tierBg, tierFill } from "../../_components/tier-colors";
@@ -328,14 +329,14 @@ function PowerRankingsContent() {
               </div>
 
               <div className="de-table-wrap" style={{ marginBottom: 24 }}>
-                <table className="de-table" style={{ minWidth: 720 }}>
+                <table className="de-table" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
                   <thead>
                     <tr>
                       <th>#</th>
                       <th className="l">TEAM</th>
-                      <th>{format === "h2hcat" ? "MATCHUP W-D-L" : "RECORD"}</th>
                       <th>WIN %</th>
-                      {format === "h2hcat" ? <th>CATEGORY W-D-L</th> : <th>FPTS/GM</th>}
+                      {format === "h2hcat" ? <th>CATEGORY W-D-L</th> : <th>RECORD</th>}
+                      {format === "h2hcat" ? <th className="l">YOU VS TEAM</th> : <th>FPTS/GM</th>}
                       <th style={{ minWidth: 120 }}>STRENGTH</th>
                     </tr>
                   </thead>
@@ -349,12 +350,19 @@ function PowerRankingsContent() {
                       >
                         <td>{i + 1}</td>
                         <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
-                        <td>{row.totalWins}-{row.totalDraws}-{row.totalLosses}</td>
                         <td>{(row.winPct * 100).toFixed(1)}%</td>
                         {format === "h2hcat" ? (
-                          <td>{row.categoryWins}-{row.categoryDraws}-{row.categoryLosses}</td>
+                          <>
+                            <td>{row.categoryWins}-{row.categoryDraws}-{row.categoryLosses}</td>
+                            <td className="l">
+                              <YouVsTeamCells myRecord={h2hSorted.find((r) => r.teamId === saved.teamId)} opponentTeamId={row.teamId} scored={scored} />
+                            </td>
+                          </>
                         ) : (
-                          <td>{(profiles!.find((p) => p.teamId === row.teamId)!.pointsTotal! / Math.max(1, profiles!.find((p) => p.teamId === row.teamId)!.statTotals.gamesPlayed)).toFixed(1)}</td>
+                          <>
+                            <td>{row.totalWins}-{row.totalDraws}-{row.totalLosses}</td>
+                            <td>{(profiles!.find((p) => p.teamId === row.teamId)!.pointsTotal! / Math.max(1, profiles!.find((p) => p.teamId === row.teamId)!.statTotals.gamesPlayed)).toFixed(1)}</td>
+                          </>
                         )}
                         <td><StrengthBar ratio={row.winPct} color={tierFill(i + 1, h2hSorted.length)} /></td>
                       </tr>
