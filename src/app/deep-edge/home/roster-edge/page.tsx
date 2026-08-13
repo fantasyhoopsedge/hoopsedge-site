@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, resolveEffectiveScoring } from "@/lib/fantrax/lineup";
@@ -13,8 +13,8 @@ import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { SegmentedControl } from "../../_components/segmented-control";
 import {
-  formatStat, meanStd, RosterTableRow, statValue, weightedAverage,
-  type EnrichData, type ExtraCode, type RosterTableFormat,
+  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, weightedAverage,
+  type EnrichData, type ExtraCode, type RosterTableFormat, type ValueDisplayMode,
 } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
@@ -24,7 +24,9 @@ import { useActiveLeague } from "../../_lib/use-saved-leagues";
  *  which now track the same user-chosen depth (Ash, 2026-08-13). */
 const DEPTH_LABELS = ["Best", "+1", "+2", "+3", "+4", "+5"];
 
-type TickValueMode = "minus1V" | "nineCatV" | "eightCatV";
+/** Same three-way flavor the roster table's cell decoration reads — see
+ *  ValueDisplayMode in roster-table.tsx. */
+type TickValueMode = ValueDisplayMode;
 const TICK_VALUE_MODE_OPTIONS: { value: TickValueMode; label: string }[] = [
   { value: "minus1V", label: "Minus1V" },
   { value: "nineCatV", label: "9-Cat" },
@@ -117,6 +119,20 @@ function RosterEdgeContent() {
 
   const teamId = selectedTeamId ?? saved?.teamId ?? analysis?.myTeamId ?? null;
   const roster = useMemo(() => analysis?.rosters.find((r) => r.teamId === teamId) ?? null, [analysis, teamId]);
+  // Draft-pick assets live on the raw league snapshot (analysis.league.rosters),
+  // not the resolved-player roster above — see LeagueRoster.draftPicks. Gate
+  // the whole panel on whether ANY team has pick data — a league that
+  // doesn't track future picks at all (redraft, or getDraftPicks returned
+  // nothing) shouldn't show an all-empty panel for every team.
+  const teamDraftPicks = useMemo(
+    () => analysis?.league.rosters.find((r) => r.teamId === teamId)?.draftPicks ?? [],
+    [analysis, teamId],
+  );
+  const hasAnyDraftPicks = useMemo(
+    () => analysis?.league.rosters.some((r) => r.draftPicks.length > 0) ?? false,
+    [analysis],
+  );
+  const draftStatus = useMemo(() => currentSeasonDraftStatus(analysis?.league.draft ?? null), [analysis]);
 
   const lineupCadence = saved?.settings.lineupCadence ?? DEFAULT_GAMES_CAP_SETTINGS.lineupCadence;
   const capPos = saved?.settings.capPos ?? DEFAULT_GAMES_CAP_SETTINGS.capPos;
@@ -532,6 +548,7 @@ function RosterEdgeContent() {
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
                     salaryFormat={salaryFormat}
+                    valueMode={tickValueMode}
                     positionSlots={effective?.positionSlots ?? {}}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
@@ -553,9 +570,12 @@ function RosterEdgeContent() {
               </tbody>
             </table>
           </div>
-          <p style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
+          <p style={{ fontSize: 11.5, color: "var(--rt-muted)", marginBottom: hasAnyDraftPicks ? 20 : 0 }}>
             Offensive/defensive rebound splits aren&apos;t in FHE&apos;s stat pipeline yet, so OREB/DREB aren&apos;t offered — everything else in the picker that&apos;s enabled is real data.
           </p>
+          {hasAnyDraftPicks && (
+            <DraftPicksPanel teamName={roster.teamName} picks={teamDraftPicks} seasonYear={analysis.league.seasonYear} draftStatus={draftStatus} />
+          )}
         </>
       )}
     </HubShell>

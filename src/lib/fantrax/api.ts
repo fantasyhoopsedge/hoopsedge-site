@@ -112,6 +112,31 @@ export interface FxDraftResults {
   draftPicks?: { round: number; pick: number; pickInRound: number; teamId: string; playerId?: string; time?: number }[];
 }
 
+/**
+ * A dynasty league's owned FUTURE draft-pick assets — distinct from
+ * FxDraftResults above, which covers picks already MADE in a completed/
+ * in-progress draft. This is undocumented on Fantrax's public site (no
+ * official reference found; endpoint existence confirmed by a live call,
+ * 2026-08-14) but behaves identically to every other key-less FXEA endpoint:
+ * `leagueId` only, `access-control-allow-origin: *`, text/plain-serialized
+ * JSON. No pick-in-round number — a future round hasn't been ordered yet, so
+ * Fantrax only knows round + year + who currently holds it.
+ *
+ * A year's picks disappear from this response entirely once that year's
+ * draft has concluded (they've become real rostered rookies by then) — not a
+ * bug to work around, see buildDraftPickAssets() in league.ts.
+ */
+export interface FxDraftPickEntry {
+  currentOwnerTeamId: string;
+  round: number;
+  year: number;
+  /** Same as currentOwnerTeamId for a team's own, un-traded pick. */
+  originalOwnerTeamId: string;
+}
+export interface FxDraftPicks {
+  futureDraftPicks?: FxDraftPickEntry[];
+}
+
 export interface FxPlayerIdEntry {
   fantraxId: string;
   /** Always "Last, First" — see toDisplayName(). */
@@ -184,6 +209,11 @@ export const fetchStandings = (leagueId: string, init?: FxRequestInit) =>
 /** Draft board — picks made and still pending. Safe server-side (no secret). */
 export const fetchDraftResults = (leagueId: string, init?: FxRequestInit) =>
   fxGet<FxDraftResults>("getDraftResults", { leagueId }, init);
+
+/** Owned future draft-pick assets (dynasty leagues) — see FxDraftPicks.
+ *  Safe server-side (no secret). */
+export const fetchDraftPicks = (leagueId: string, init?: FxRequestInit) =>
+  fxGet<FxDraftPicks>("getDraftPicks", { leagueId }, init);
 
 /** Fantrax player id → name/team/position for the whole sport (~1,800 rows). */
 export const fetchPlayerIds = (sport = "NBA", init?: FxRequestInit) =>
