@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  FantraxError, fetchDraftResults, fetchLeagueInfo, fetchPlayerIds, fetchStandings,
+  fetchDraftPicks, FantraxError, fetchDraftResults, fetchLeagueInfo, fetchPlayerIds, fetchStandings,
   fetchTeamRosters, isLeagueId,
 } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
@@ -46,12 +46,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [info, rosters, standings, draft, playerIds] = await Promise.all([
+    const [info, rosters, standings, draft, playerIds, draftPicks] = await Promise.all([
       fetchLeagueInfo(leagueId, { next: { revalidate: SETTINGS_TTL } }),
       fetchTeamRosters(leagueId, { next: { revalidate: ROSTER_TTL } }),
       fetchStandings(leagueId, { next: { revalidate: ROSTER_TTL } }),
       fetchDraftResults(leagueId, { next: { revalidate: ROSTER_TTL } }).catch(() => null),
       fetchPlayerIds("NBA", { next: { revalidate: PLAYER_IDS_TTL } }),
+      // Redraft leagues simply have nothing to return here; a fetch failure
+      // (undocumented endpoint) shouldn't take the whole page down with it.
+      fetchDraftPicks(leagueId, { next: { revalidate: SETTINGS_TTL } }).catch(() => null),
     ]);
 
     if (!info?.leagueName) {
@@ -61,7 +64,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds);
+    const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds, draftPicks);
     const [analysis, salaryRankByFheId, contractByFheId, ageByFheId] = await Promise.all([
       analyzeLeague(league, teamId, dataset, leagueType),
       getSalaryRankByFheId(),

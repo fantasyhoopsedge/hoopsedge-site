@@ -4,8 +4,8 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
-import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory } from "@/lib/fantrax/league";
+import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, categoryTier, rankTierLabel, resolveEffectiveScoring, teamPerGameStat, type CategoryTier, type OptimalLineup } from "@/lib/fantrax/lineup";
 import {
@@ -16,7 +16,10 @@ import {
   lineupModeFor, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
   type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
-import { posDisplayFor, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat } from "../../_components/roster-table";
+import {
+  DraftPickCardsGrid, formatContract, formatCustomContract, formatCustomSalary, formatSalary,
+  posDisplayFor, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat,
+} from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
@@ -240,10 +243,34 @@ function PlayerMiniCard({
  *  shared anchor would either wash out PTS or saturate FG% at the slightest
  *  move); text stays neutral ink even on the tint — the wash and the
  *  +/-/± prefix in formatNetDelta's output both already carry direction. */
-function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
+/** Sum of `p.salary` across a side of the trade — null (no salary on file,
+ *  e.g. an unsigned free agent) is excluded from the sum rather than treated
+ *  as 0, so a missing value can't silently understate what's actually moving;
+ *  `missing` surfaces the count so the caller can flag it instead of
+ *  presenting a partial total as if it were complete. */
+function sumSalary(players: ResolvedPlayer[]): { total: number; missing: number } {
+  let total = 0, missing = 0;
+  for (const p of players) {
+    if (p.salary != null) total += p.salary; else missing++;
+  }
+  return { total, missing };
+}
+
+function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalary, showContract, salaryFormat }: {
   scored: readonly FheCategory[]; sendPlayers: ResolvedPlayer[]; receivePlayers: ResolvedPlayer[]; statMode: "perGame" | "totals";
+  showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
 }) {
   if (scored.length === 0) return null;
+  const isCustomSalary = salaryFormat === "custom";
+  const fmtSalary = (n: number) => (isCustomSalary ? formatCustomSalary(n) : formatSalary(n));
+  const sent = sumSalary(sendPlayers);
+  const received = sumSalary(receivePlayers);
+  const netSalary = received.total - sent.total;
+  const salarySign = netSalary > 0.0005 ? "+" : netSalary < -0.0005 ? "-" : "±";
+  const salaryColor = netSalary > 0.0005 ? "var(--rt-down)" : netSalary < -0.0005 ? "var(--rt-up)" : "var(--rt-ink)";
+  const missing = sent.missing + received.missing;
+  const salaryTitle = `${fmtSalary(sent.total)} sent · ${fmtSalary(received.total)} received`
+    + (missing > 0 ? ` — ${missing} player${missing === 1 ? "" : "s"} with no salary on file` : "");
   return (
     <div style={{ marginBottom: 20 }}>
       <div className="de-table-wrap">
@@ -252,13 +279,23 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
             <col style={{ width: 170 }} />
             <col style={{ width: 60 }} />
             <col style={{ width: 50 }} />
+            {showSalary && <col style={{ width: 70 }} />}
+            {showContract && <col style={{ width: 80 }} />}
             <col style={{ width: 60 }} />
             <col style={{ width: 60 }} />
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
           </colgroup>
           <tbody>
             <tr className="mine">
-              <td className="l" colSpan={5}>Net category impact ({statMode === "perGame" ? "per game" : "totals"})</td>
+              <td className="l">Net category impact ({statMode === "perGame" ? "per game" : "totals"})</td>
+              <td>—</td><td>—</td>
+              {showSalary && (
+                <td title={salaryTitle} style={{ fontWeight: 700, color: salaryColor }}>
+                  {salarySign}{fmtSalary(Math.abs(netSalary))}
+                </td>
+              )}
+              {showContract && <td>—</td>}
+              <td>—</td><td>—</td>
               {scored.map((cat) => {
                 const net = netFor(sendPlayers, receivePlayers, cat, statMode);
                 const gain = net != null && Math.abs(net) > 0.0005 && (HIGHER_IS_BETTER[cat] ? net > 0 : net < 0);
@@ -282,13 +319,17 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
  *  shared with its counterpart on the other side of the trade, so the two
  *  line up exactly whether read stacked or side by side. */
 function TradePreviewTable({
-  title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots,
+  title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots, showSalary, showContract, salaryFormat,
 }: {
   title: string; players: ResolvedPlayer[]; scored: readonly FheCategory[]; enrich: EnrichData | null;
   leaguePlayers: ResolvedPlayer[]; valueMode: TradeValueMode; statMode: "perGame" | "totals";
   positionSlots: Record<string, number>;
+  /** Mirrors Roster Edge's own Salary/Contract column toggles — off by
+   *  default in leagues with no salary data (salaryFormat "none"). */
+  showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
 }) {
   if (players.length === 0) return null;
+  const isCustomSalary = salaryFormat === "custom";
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6, color: "var(--rt-muted)" }}>{title.toUpperCase()}</div>
@@ -298,6 +339,8 @@ function TradePreviewTable({
             <col style={{ width: 170 }} />
             <col style={{ width: 60 }} />
             <col style={{ width: 50 }} />
+            {showSalary && <col style={{ width: 70 }} />}
+            {showContract && <col style={{ width: 80 }} />}
             <col style={{ width: 60 }} />
             <col style={{ width: 60 }} />
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
@@ -307,6 +350,8 @@ function TradePreviewTable({
               <th className="l">PLAYER</th>
               <th>POS</th>
               <th>AGE</th>
+              {showSalary && <th>SAL$</th>}
+              {showContract && <th>CONTRACT$</th>}
               <th>DYN RK</th>
               <th>VAL RK</th>
               {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
@@ -315,12 +360,23 @@ function TradePreviewTable({
           <tbody>
             <tr className="mine">
               <td className="l">Σ {players.length} — weighted {statMode === "perGame" ? "per-game" : "totals"}</td>
-              <td>—</td><td>—</td><td>—</td><td>—</td>
+              <td>—</td><td>—</td>
+              {showSalary && (() => {
+                const salaryTotal = sumSalary(players);
+                return (
+                  <td title={salaryTotal.missing > 0 ? `${salaryTotal.missing} player${salaryTotal.missing === 1 ? "" : "s"} with no salary on file` : undefined} style={{ fontWeight: 700 }}>
+                    {isCustomSalary ? formatCustomSalary(salaryTotal.total) : formatSalary(salaryTotal.total)}
+                  </td>
+                );
+              })()}
+              {showContract && <td>—</td>}
+              <td>—</td><td>—</td>
               {scored.map((cat) => <td key={cat}>{summaryStatDisplay(players, cat, statMode)}</td>)}
             </tr>
             {players.map((p) => {
               const dynastyRank = p.fheId ? enrich?.dynastyRankByFheId[p.fheId] : null;
               const age = p.fheId ? enrich?.ageByFheId?.[p.fheId] : null;
+              const contract = p.fheId ? enrich?.contractByFheId[p.fheId] : undefined;
               const valueRank = rankAmong(leaguePlayers, (pl) => valueOf(pl, valueMode), valueOf(p, valueMode));
               const posDisplay = posDisplayFor(p.eligible, positionSlots).join("/");
               return (
@@ -333,6 +389,8 @@ function TradePreviewTable({
                   </td>
                   <td>{posDisplay || "—"}</td>
                   <td>{age != null ? age.toFixed(1) : "—"}</td>
+                  {showSalary && <td>{isCustomSalary ? formatCustomSalary(p.salary) : formatSalary(p.salary)}</td>}
+                  {showContract && <td>{isCustomSalary ? formatCustomContract(p.contract) : formatContract(contract)}</td>}
                   <td>{dynastyRank ?? "—"}</td>
                   <td>{valueRank ?? "—"}</td>
                   {scored.map((cat) => <td key={cat}>{playerStatDisplay(p, cat, statMode)}</td>)}
@@ -622,6 +680,7 @@ function TradeEdgeContent() {
   const [receiveIds, setReceiveIds] = useState<Set<string>>(new Set());
   const [statMode, setStatMode] = useState<"perGame" | "totals">("perGame");
   const [activePanel, setActivePanel] = useState<"none" | "rankings" | "category">("none");
+  const [cols, setCols] = useState<{ salary: boolean; contract: boolean }>({ salary: false, contract: false });
 
   useEffect(() => {
     if (!saved) return;
@@ -649,6 +708,19 @@ function TradeEdgeContent() {
       formatConfirmed: saved.settings.formatConfirmed,
     });
   }, [analysis, saved]);
+
+  // Salary/Contract column defaults — same "on for salary-format leagues,
+  // off otherwise, user-overridable from there" convention as Roster Edge's
+  // own Columns picker, reset once per league switch rather than every render.
+  const [colsDefaultsFor, setColsDefaultsFor] = useState<string | null>(null);
+  const salaryFormat: SalaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
+  if (saved && colsDefaultsFor !== saved.leagueId) {
+    setColsDefaultsFor(saved.leagueId);
+    const on = salaryFormat !== "none";
+    setCols({ salary: on, contract: on });
+  }
+  const showSalary = cols.salary && salaryFormat !== "none";
+  const showContract = cols.contract && salaryFormat !== "none";
 
   // Trade preview's default per-game/totals basis follows the league's
   // format — totals is the more representative read for roto (roto
@@ -724,6 +796,19 @@ function TradeEdgeContent() {
   const myRoster = useMemo(() => analysis?.rosters.find((r) => r.teamId === myTeamId) ?? null, [analysis, myTeamId]);
   const theirRoster = useMemo(() => analysis?.rosters.find((r) => r.teamId === teamBId) ?? null, [analysis, teamBId]);
   const leaguePlayers = useMemo(() => analysis?.rosters.flatMap((r) => r.players) ?? [], [analysis]);
+  // Draft-pick assets live on the raw league snapshot, not the resolved-player
+  // rosters above — see LeagueRoster.draftPicks. Gate the whole grid on
+  // whether ANY team has pick data — same reasoning as Roster Edge's own
+  // hasAnyDraftPicks (a redraft league shouldn't show an all-empty grid).
+  const draftPicksByTeamId = useMemo(
+    () => new Map(analysis?.league.rosters.map((r) => [r.teamId, r.draftPicks]) ?? []),
+    [analysis],
+  );
+  const hasAnyDraftPicks = useMemo(
+    () => analysis?.league.rosters.some((r) => r.draftPicks.length > 0) ?? false,
+    [analysis],
+  );
+  const draftStatus = useMemo(() => currentSeasonDraftStatus(analysis?.league.draft ?? null), [analysis]);
 
   const myBaseLineup: OptimalLineup | null = useMemo(() => {
     if (!myRoster || !effective) return null;
@@ -851,6 +936,22 @@ function TradeEdgeContent() {
             />
           </div>
 
+          {salaryFormat !== "none" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap", fontSize: 12 }}>
+              <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
+              {([["salary", "Salary"], ["contract", "Contract"]] as [keyof typeof cols, string][]).map(([key, label]) => (
+                <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 5, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={cols[key]}
+                    onChange={() => setCols((c) => ({ ...c, [key]: !c[key] }))}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          )}
+
           {!isPointsLeague && (
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>
@@ -930,6 +1031,16 @@ function TradeEdgeContent() {
                       />
                     ))}
                   </div>
+                  {hasAnyDraftPicks && analysis && (
+                    <div style={{ marginTop: 14 }}>
+                      <DraftPickCardsGrid
+                        teamName={roster.teamName}
+                        picks={draftPicksByTeamId.get(roster.teamId) ?? []}
+                        seasonYear={analysis.league.seasonYear}
+                        draftStatus={draftStatus}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -957,10 +1068,10 @@ function TradeEdgeContent() {
                     </div>
                   </div>
 
-                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} />
-                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} />
+                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
+                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
 
-                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} />
+                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
 
                   <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
                     <button

@@ -2,7 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import type { ResolvedPlayer } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
+import {
+  CATEGORY_LABEL, DRAFT_PICK_YEARS_IMPORTED, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
+} from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import type { ContractInfo } from "@/lib/fantrax/roster-edge";
 import { normalizeTeamAbbr } from "@/lib/nba-teams";
@@ -36,6 +38,12 @@ export type EnrichData = {
   ageByFheId?: Record<string, number>;
 };
 export type RosterTableFormat = "roto" | "h2hcat" | "points";
+/** Which "value" flavor the roster table's per-category cell decoration
+ *  should read as — matches the tick-set selector's three modes exactly
+ *  (Roster Edge's own TickValueMode). Minus1V dynamically excludes each
+ *  player's own weakest scored category; 8-Cat always excludes TO for
+ *  everyone; 9-Cat excludes nothing. */
+export type ValueDisplayMode = "minus1V" | "nineCatV" | "eightCatV";
 
 export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";
@@ -226,6 +234,10 @@ export interface RosterTableRowProps {
    *  formatCustomContract. Defaults to "real" (today's behavior) so existing
    *  callers that don't pass it are unaffected. */
   salaryFormat?: SalaryFormat;
+  /** Drives the per-category cell decoration: gold box on the weakest stat
+   *  under "minus1V", grey-out on TO under "eightCatV", nothing under
+   *  "nineCatV". Defaults to "minus1V" (today's only caller). */
+  valueMode?: ValueDisplayMode;
   /** League's own roster slot config — see posDisplayFor(). */
   positionSlots: Record<string, number>;
   /** Whole-league player pool, for the USG z-score baseline and the
@@ -241,7 +253,7 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, salaryFormat = "real", positionSlots, leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", positionSlots, leaguePlayers, usgStats, leadingCell, className,
 }: RosterTableRowProps) {
   const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
@@ -292,13 +304,28 @@ export function RosterTableRow({
       )}
       {visibleCats.map((cat) => {
         const z = p.cats[cat];
-        const isWeak = weak === cat;
+        // Cell decoration reads as whichever value flavor is currently
+        // selected — not all three at once (Ash, 2026-08-14): Minus1V gold-
+        // boxes just this player's own weakest stat, 8-Cat greys out TO for
+        // everyone (it's dropped from every player's score, not just his),
+        // 9-Cat decorates nothing.
+        const isWeak = valueMode === "minus1V" && format !== "points" && weak === cat;
+        const isEightCatDrop = valueMode === "eightCatV" && format !== "points" && cat === "TO";
+        const title = isWeak
+          ? "Excluded from this player's Minus1V"
+          : isEightCatDrop ? "Excluded from 8-Cat scoring" : undefined;
         return (
-          <td key={cat} style={{ background: statBg(z), position: "relative" }}>
+          <td
+            key={cat}
+            title={title}
+            style={{
+              background: isEightCatDrop ? "var(--rt-surface-strong)" : statBg(z),
+              color: isEightCatDrop ? "var(--rt-muted)" : undefined,
+              position: "relative",
+              boxShadow: isWeak ? "inset 0 0 0 2px #f59e0b" : undefined,
+            }}
+          >
             {formatStat(cat, statValue(p, cat))}
-            {isWeak && (
-              <span title="Excluded from this player's Minus1V" style={{ marginLeft: 3, fontSize: 9, color: "var(--rt-muted)" }}>−1</span>
-            )}
           </td>
         );
       })}
@@ -344,5 +371,192 @@ export function RosterTableHead({
       {visibleCats.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
       {extraCols.map((col) => <th key={col}>{col}</th>)}
     </tr>
+  );
+}
+
+/** One pick's display label. Current-season picks (once draft order is set)
+ *  carry an exact slot — "{round}-{pickInRound} ({overallPick})", same
+ *  format Fantrax's own "Draft Picks" panel uses; future picks have no slot
+ *  yet, so they fall back to a bare round number. Either form gets the
+ *  original owner's name in parens when it was acquired by trade. */
+export function formatDraftPick(pick: TeamDraftPick): string {
+  const slot = pick.pickInRound != null
+    ? `${pick.round}-${pick.pickInRound}${pick.overallPick != null ? ` (${pick.overallPick})` : ""}`
+    : `${pick.round}`;
+  return pick.originalOwnerLabel ? `${slot} (${pick.originalOwnerLabel})` : slot;
+}
+
+/** Flat picks list -> one row per year across the FULL imported window
+ *  (seasonYear..seasonYear+3), even years with zero picks — an empty year is
+ *  meaningful (see buildDraftPickAssets in league.ts), not a gap to hide by
+ *  only rendering years that happen to have data. */
+function draftPickYearRows(picks: readonly TeamDraftPick[], seasonYear: number): { year: number; picks: TeamDraftPick[] }[] {
+  const byYear = new Map<number, TeamDraftPick[]>();
+  for (const p of picks) {
+    const list = byYear.get(p.year) ?? [];
+    list.push(p);
+    byYear.set(p.year, list);
+  }
+  return Array.from({ length: DRAFT_PICK_YEARS_IMPORTED }, (_, i) => {
+    const year = seasonYear + i;
+    return { year, picks: (byYear.get(year) ?? []).sort((a, b) => a.round - b.round) };
+  });
+}
+
+/** What an empty year's row/card says. Only the CURRENT season year reads as
+ *  "the draft happened" — and only when it actually has, per
+ *  currentSeasonDraftStatus() (league.ts): "concluded" means every known
+ *  slot already has a player attached, "pending" means the board exists but
+ *  this specific team just doesn't hold a pick in it this year (traded away,
+ *  or never had one), "unknown" means Fantrax has no draft board for this
+ *  league at all. A later empty year always reads as a neutral dash — that
+ *  just means this league's own pick-tracking doesn't extend that far out
+ *  yet (verified live: leagues varied between 2 and 3 years of real future
+ *  data even though the window imports 4). */
+function emptyYearLabel(year: number, seasonYear: number, draftStatus: CurrentSeasonDraftStatus): string {
+  if (year !== seasonYear) return "—";
+  if (draftStatus === "concluded") return "Draft complete — rookies already on rosters";
+  if (draftStatus === "pending") return "No picks owned this year";
+  return "—";
+}
+
+/**
+ * A team's owned future draft-pick assets, dynasty leagues only, as a
+ * Year/Draft Picks table — Roster Edge's own placement (one panel, the
+ * selected team, below the player table). Callers gate whether to render
+ * this at all on whether the LEAGUE tracks pick assets (any team has any
+ * picks) — this component itself always shows the full imported year
+ * window once asked to render, since an empty year is informative (see
+ * emptyYearLabel).
+ */
+export function DraftPicksPanel({
+  teamName, picks, seasonYear, draftStatus,
+}: {
+  teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
+}) {
+  const rows = draftPickYearRows(picks, seasonYear);
+  return (
+    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--rt-hairline)" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{teamName} — Draft Picks</div>
+      <div className="de-table-wrap">
+        <table className="de-table de-table-compact">
+          <thead>
+            <tr>
+              <th className="l">YEAR</th>
+              <th className="l">DRAFT PICKS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ year, picks: yearPicks }) => (
+              <tr key={year}>
+                <td className="l" style={{ fontWeight: 700 }}>{year}</td>
+                <td className="l" style={yearPicks.length === 0 ? { color: "var(--rt-muted)" } : undefined}>
+                  {yearPicks.length > 0 ? yearPicks.map(formatDraftPick).join(", ") : emptyYearLabel(year, seasonYear, draftStatus)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/** Light, round-coded tint + border for a draft-pick card — round 1-4 each
+ *  get a distinct hue at low opacity (the same "translucent wash over the
+ *  dark surface" convention as statBg/valueBg elsewhere), round 5+ (rare)
+ *  falls back to a neutral hairline tint rather than guessing a 5th hue. */
+const ROUND_ACCENT: Record<number, { bg: string; border: string }> = {
+  1: { bg: "rgba(59,130,246,0.16)", border: "#3b82f6" },
+  2: { bg: "rgba(34,197,94,0.16)", border: "#22c55e" },
+  3: { bg: "rgba(168,85,247,0.16)", border: "#a855f7" },
+  4: { bg: "rgba(245,158,11,0.16)", border: "#f59e0b" },
+};
+function roundAccent(round: number): { bg: string; border: string } {
+  return ROUND_ACCENT[round] ?? { bg: "var(--rt-surface-soft)", border: "var(--rt-hairline)" };
+}
+
+function ordinal(n: number): string {
+  if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
+  const suffix = n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
+  return `${n}${suffix}`;
+}
+
+/** PlayerMiniCard's own rendered height (44px headshot + name/pos/DYN/value
+ *  lines + padding), measured live — matched here so a pick card sits at the
+ *  same height as a player card in the same grid, not just the same width. */
+const PICK_CARD_MIN_HEIGHT = 152;
+
+/** One draft-pick "card" — same footprint (grid cell width, padding, corner
+ *  radius) as PlayerMiniCard so a row of picks reads as the same kind of
+ *  object as a row of players, round-tinted per roundAccent() (Ash,
+ *  2026-08-14: "cards that match the same size as a player card... shade
+ *  them in diff colours, for 1st/2nd/3rd/4th round"). */
+function DraftPickCard({ pick }: { pick: TeamDraftPick }) {
+  const { bg, border } = roundAccent(pick.round);
+  return (
+    <div
+      title={pick.originalOwnerLabel ? `Acquired from ${pick.originalOwnerLabel}` : undefined}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
+        padding: "10px 6px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14, border: `1px solid ${border}`, background: bg,
+        textAlign: "center", color: "var(--rt-ink)",
+      }}
+    >
+      <div style={{ fontSize: 20, fontWeight: 800 }}>{ordinal(pick.round)}</div>
+      <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>
+        {pick.overallPick != null ? `Pick #${pick.overallPick}` : "round"}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--rt-font-mono)" }}>{pick.year}</div>
+      {pick.originalOwnerLabel && (
+        <div style={{ fontSize: 9.5, color: "var(--rt-muted)", lineHeight: 1.2 }}>via {pick.originalOwnerLabel}</div>
+      )}
+    </div>
+  );
+}
+
+/** A blank placeholder card for a year with zero picks — same footprint as
+ *  DraftPickCard, neutral (no round to color it by), carrying emptyYearLabel
+ *  as its own message so a missing current-season year is still visible as
+ *  a card, not a silent gap in the grid. */
+function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; seasonYear: number; draftStatus: CurrentSeasonDraftStatus }) {
+  return (
+    <div
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
+        padding: "10px 10px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14, border: "1px dashed var(--rt-hairline)",
+        textAlign: "center", color: "var(--rt-muted)",
+      }}
+    >
+      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--rt-font-mono)" }}>{year}</div>
+      <div style={{ fontSize: 10.5, lineHeight: 1.3 }}>{emptyYearLabel(year, seasonYear, draftStatus)}</div>
+    </div>
+  );
+}
+
+/**
+ * A team's owned future draft-pick assets as a grid of pick "cards" —
+ * Trade Edge's own placement (one grid per side, matching PlayerMiniCard's
+ * grid immediately above it), round-tinted so 1st/2nd/3rd/4th read apart at
+ * a glance. Same full-year-window behavior as DraftPicksPanel: an empty year
+ * still renders (as DraftPickEmptyCard) rather than disappearing.
+ */
+export function DraftPickCardsGrid({
+  teamName, picks, seasonYear, draftStatus,
+}: {
+  teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
+}) {
+  const rows = draftPickYearRows(picks, seasonYear);
+  return (
+    <div>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{teamName} — Draft Picks</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(108px, 1fr))", gap: 8 }}>
+        {rows.map(({ year, picks: yearPicks }) =>
+          yearPicks.length > 0
+            ? yearPicks.map((p, i) => <DraftPickCard key={`${year}-${p.round}-${i}`} pick={p} />)
+            : <DraftPickEmptyCard key={year} year={year} seasonYear={seasonYear} draftStatus={draftStatus} />,
+        )}
+      </div>
+    </div>
   );
 }

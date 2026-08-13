@@ -1,5 +1,8 @@
 import { LEAGUE_SIZES } from "@/lib/value/compute-values";
-import { toDisplayName, type FxDraftResults, type FxLeagueInfo, type FxPlayerIdMap, type FxStandingsRow, type FxTeamRosters } from "./api";
+import {
+  toDisplayName, type FxDraftPicks, type FxDraftResults, type FxLeagueInfo,
+  type FxPlayerIdMap, type FxStandingsRow, type FxTeamRosters,
+} from "./api";
 
 /**
  * Turns the four raw FXEA payloads into one normalized league snapshot the rest
@@ -170,10 +173,31 @@ export interface LeagueRosterSpot {
   contract: string | null;
 }
 
+export interface TeamDraftPick {
+  year: number;
+  round: number;
+  /** Original owner's team name — set only when this pick was acquired via
+   *  trade (originalOwnerTeamId !== currentOwnerTeamId in the raw payload);
+   *  null for a team's own, un-traded pick, matching Fantrax's own "Draft
+   *  Picks" panel (a bare round number, no parenthetical, for an own pick). */
+  originalOwnerLabel: string | null;
+  /** This pick's position within its round and overall slot number — only
+   *  known for the CURRENT season, and only once that league's draft order
+   *  has been set (see currentSeasonPickAssets). A future year's draft order
+   *  isn't determined yet, so these stay undefined for year > seasonYear. */
+  pickInRound?: number;
+  overallPick?: number;
+}
+
 export interface LeagueRoster {
   teamId: string;
   teamName: string;
   players: LeagueRosterSpot[];
+  /** This team's owned future draft-pick assets, dynasty leagues only —
+   *  empty for a league with no future-pick data (redraft, or getDraftPicks
+   *  returned nothing). Years ascending, then round ascending — see
+   *  buildDraftPickAssets(). */
+  draftPicks: TeamDraftPick[];
 }
 
 export interface FantraxLeague {
@@ -238,6 +262,99 @@ export function resolvePoolSize(teamCount: number, maxTotalPlayers: number): { p
  *  available for the waiver-wire board. */
 const AVAILABLE_STATUSES = new Set(["FA", "WW"]);
 
+/** How many draft years to import, anchored at the league's current season —
+ *  Ash, 2026-08-14: "import 4 years of draft picks including the upcoming
+ *  season picks if they still exist." */
+export const DRAFT_PICK_YEARS_IMPORTED = 4;
+
+/**
+ * Groups Fantrax's flat futureDraftPicks list into each team's owned FUTURE
+ * picks: years ascending, then round ascending within a year.
+ *
+ * getDraftPicks NEVER returns the season currently being drafted — verified
+ * live 2026-08-14 against a real league mid-draft-order-reveal (raw response
+ * carried only [2027, 2028], no 2026, despite that league's own Fantrax page
+ * showing 2026 picks with full slot numbers). It's not that a year's picks
+ * disappear once drafted; the current season was simply never in this
+ * endpoint's domain — its picks live in getDraftResults instead (a "draft
+ * board" that stays populated with round/pick/pickInRound even before any
+ * player is selected), see currentSeasonPickAssets() below. That split is
+ * why this function only ever fills seasonYear+1..seasonYear+3: seasonYear
+ * itself is intentionally left for the caller to merge in from the other
+ * source.
+ */
+function buildDraftPickAssets(
+  raw: FxDraftPicks | null,
+  teamNameById: Map<string, string>,
+  seasonYear: number,
+): Map<string, TeamDraftPick[]> {
+  const importedYears = new Set(
+    Array.from({ length: DRAFT_PICK_YEARS_IMPORTED - 1 }, (_, i) => seasonYear + 1 + i),
+  );
+  const byTeam = new Map<string, TeamDraftPick[]>();
+  for (const e of raw?.futureDraftPicks ?? []) {
+    if (!importedYears.has(e.year)) continue;
+    const list = byTeam.get(e.currentOwnerTeamId) ?? [];
+    list.push({
+      year: e.year,
+      round: e.round,
+      originalOwnerLabel: e.originalOwnerTeamId === e.currentOwnerTeamId
+        ? null
+        : teamNameById.get(e.originalOwnerTeamId) ?? null,
+    });
+    byTeam.set(e.currentOwnerTeamId, list);
+  }
+  for (const list of byTeam.values()) list.sort((a, b) => a.year - b.year || a.round - b.round);
+  return byTeam;
+}
+
+/**
+ * The CURRENT season's still-open draft slots — sourced from getDraftResults
+ * (already fetched for the `draft` field below), which Fantrax populates
+ * with every slot's round/pick/pickInRound as soon as draft order is set,
+ * independent of whether anyone has actually been selected yet. A slot's
+ * `playerId` flips from absent to filled the moment it's drafted, so
+ * filtering to the undrafted ones IS "this season's still-owned picks" —
+ * once every slot has a playerId, this returns an empty map for every team,
+ * which is the real "the rookie draft already happened" signal (Ash,
+ * 2026-08-14: "if they are missing in the import it means that rookie draft
+ * has taken place" — the earlier getDraftPicks-only read of that sentence
+ * was wrong; getDraftResults is what actually carries this pre-draft data).
+ *
+ * No originalOwnerLabel: getDraftResults' teamId is already the post-trade
+ * current holder and carries no separate original-owner field the way
+ * getDraftPicks does, so a traded-in current-season slot can't be attributed
+ * back to who it came from with this data alone.
+ */
+function currentSeasonPickAssets(draftResults: FxDraftResults | null, seasonYear: number): Map<string, TeamDraftPick[]> {
+  const byTeam = new Map<string, TeamDraftPick[]>();
+  for (const p of draftResults?.draftPicks ?? []) {
+    if (p.playerId) continue;
+    const list = byTeam.get(p.teamId) ?? [];
+    list.push({ year: seasonYear, round: p.round, originalOwnerLabel: null, pickInRound: p.pickInRound, overallPick: p.pick });
+    byTeam.set(p.teamId, list);
+  }
+  for (const list of byTeam.values()) list.sort((a, b) => a.round - b.round || (a.pickInRound ?? 0) - (b.pickInRound ?? 0));
+  return byTeam;
+}
+
+/** Combines the current-season and future-years pick maps into one
+ *  per-team list, sorted year then round then in-round slot. */
+function mergeTeamDraftPicks(...maps: Map<string, TeamDraftPick[]>[]): Map<string, TeamDraftPick[]> {
+  const merged = new Map<string, TeamDraftPick[]>();
+  for (const map of maps) {
+    for (const [teamId, picks] of map) {
+      const list = merged.get(teamId) ?? [];
+      list.push(...picks);
+      merged.set(teamId, list);
+    }
+  }
+  for (const list of merged.values()) {
+    list.sort((a, b) => a.year - b.year || a.round - b.round || (a.pickInRound ?? 0) - (b.pickInRound ?? 0));
+  }
+  return merged;
+}
+
 export function buildLeague(
   leagueId: string,
   info: FxLeagueInfo,
@@ -245,6 +362,7 @@ export function buildLeague(
   standings: FxStandingsRow[],
   draft: FxDraftResults | null,
   playerIds: FxPlayerIdMap,
+  draftPicks: FxDraftPicks | null = null,
 ): FantraxLeague {
   const playerInfo = info.playerInfo ?? {};
   const standingsById = new Map(standings.map((s) => [s.teamId, s]));
@@ -266,12 +384,20 @@ export function buildLeague(
     };
   };
 
+  const seasonYear = info.seasonYear ?? new Date().getFullYear();
+  const teamNameById = new Map(Object.values(info.teamInfo ?? {}).map((t) => [t.id, t.name]));
+  const draftPickAssetsByTeam = mergeTeamDraftPicks(
+    currentSeasonPickAssets(draft, seasonYear),
+    buildDraftPickAssets(draftPicks, teamNameById, seasonYear),
+  );
+
   const leagueRosters: LeagueRoster[] = Object.entries(rosters.rosters ?? {}).map(([teamId, team]) => ({
     teamId,
     teamName: team.teamName,
     players: (team.rosterItems ?? []).map((item) =>
       describe(item.id, item.position, item.status, typeof item.salary === "number" ? item.salary : null, item.contract?.name ?? null),
     ),
+    draftPicks: draftPickAssetsByTeam.get(teamId) ?? [],
   }));
 
   const teams: LeagueTeam[] = Object.values(info.teamInfo ?? {}).map((t) => {
@@ -306,7 +432,7 @@ export function buildLeague(
   return {
     leagueId,
     name: info.leagueName ?? "Fantrax league",
-    seasonYear: info.seasonYear ?? new Date().getFullYear(),
+    seasonYear,
     scoringType,
     scoringMode,
     categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
@@ -330,6 +456,21 @@ export function buildLeague(
     poolClamped: clamped,
     fetchedAt: new Date().toISOString(),
   };
+}
+
+export type CurrentSeasonDraftStatus = "pending" | "concluded" | "unknown";
+
+/** Whether THIS season's rookie draft is done, still to come, or untracked —
+ *  derived from the same `draft` summary FantraxLeague already carries
+ *  (picksMade/totalPicks), rather than a second parallel concept: "concluded"
+ *  once every known slot has a player attached, "pending" while the board
+ *  exists but isn't full yet, "unknown" when Fantrax has no draft board for
+ *  this league at all (getDraftResults returned nothing — see
+ *  currentSeasonPickAssets). Drives the Draft Picks panel/cards' empty-year
+ *  messaging (roster-table.tsx's emptyYearLabel). */
+export function currentSeasonDraftStatus(draft: FantraxLeague["draft"]): CurrentSeasonDraftStatus {
+  if (!draft) return "unknown";
+  return draft.picksMade >= draft.totalPicks ? "concluded" : "pending";
 }
 
 // ── value datasets ──────────────────────────────────────────────────────────
