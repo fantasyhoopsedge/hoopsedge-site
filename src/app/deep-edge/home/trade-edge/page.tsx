@@ -2,18 +2,21 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "@/lib/fantrax/analyze";
-import { categoryEdges, projectRotoStandings } from "@/lib/fantrax/analyze";
+import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
+import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
-import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
+import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, categoryTier, rankTierLabel, resolveEffectiveScoring, teamPerGameStat, type CategoryTier, type OptimalLineup } from "@/lib/fantrax/lineup";
-import { deriveRankingsFormat, depthCaption, depthWeight, simulateH2HCategoryStandings, simulateH2HPointsStandings } from "@/lib/fantrax/power-rankings";
+import {
+  buildDepthWeightedProfiles, deriveRankingsFormat, depthCaption, depthWeight, formatPerGame,
+  rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings,
+} from "@/lib/fantrax/power-rankings";
 import {
   lineupModeFor, summarizeAssets, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
   type TradeAssetSummary, type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
-import { formatSalary, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat } from "../../_components/roster-table";
+import { formatCustomSalary, formatSalary, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat } from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
@@ -44,9 +47,6 @@ function ordinal(rank: number): string {
   return `${rank}${suffix}`;
 }
 
-function formatPerGame(cat: FheCategory, raw: number): string {
-  return cat === "FG" || cat === "FT" ? raw.toFixed(3).replace(/^0(?=\.)/, "") : raw.toFixed(1);
-}
 /** Per-game display is the AVERAGE across a lineup's players, not
  *  teamPerGameStat()'s own team-combined sum — same convention Category
  *  Edge's own page uses for its headline per-game row. */
@@ -182,7 +182,10 @@ function formatValue(v: number | null, mode: TradeValueMode): string {
   return mode === "fpts" ? `${v.toFixed(1)} FP` : `${v >= 0 ? "+" : ""}${v.toFixed(2)}z`;
 }
 
-function AssetSummaryCard({ title, summary, mode, hasSalaries }: { title: string; summary: TradeAssetSummary; mode: TradeValueMode; hasSalaries: boolean }) {
+function AssetSummaryCard({
+  title, summary, mode, hasSalaries, salaryFormat,
+}: { title: string; summary: TradeAssetSummary; mode: TradeValueMode; hasSalaries: boolean; salaryFormat: SalaryFormat }) {
+  const salaryText = salaryFormat === "custom" ? formatCustomSalary(summary.totalSalary) : formatSalary(summary.totalSalary);
   return (
     <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--rt-hairline)", flex: 1, minWidth: 180 }}>
       <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>{title.toUpperCase()}</div>
@@ -191,7 +194,7 @@ function AssetSummaryCard({ title, summary, mode, hasSalaries }: { title: string
       </div>
       <div style={{ fontSize: 12, color: "var(--rt-muted)" }}>
         {summary.avgConsensusRank != null ? `Avg dynasty rank #${Math.round(summary.avgConsensusRank)}` : "No dynasty-ranked players"}
-        {hasSalaries && summary.totalSalary != null ? ` · ${formatSalary(summary.totalSalary)} salary` : ""}
+        {hasSalaries && summary.totalSalary != null ? ` · ${salaryText} salary` : ""}
       </div>
     </div>
   );
@@ -213,7 +216,7 @@ function PlayerMiniCard({
   dynastyRank: number | null; valueRank: number | null; valueMode: TradeValueMode; tier: CategoryTier | null;
 }) {
   const initials = player.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
-  const posDisplay = player.eligible.filter((e) => !/^(flx|flex)$/i.test(e)).join("/");
+  const posDisplay = player.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e)).join("/");
   const ringColor = tier ? TIER_COLOR[tier] : checked ? "var(--rt-primary)" : "var(--rt-hairline)";
   // Assessed (within the currently-selected roster depth) reads as a slight
   // background tint rather than dimming everyone else — greying out the
@@ -276,7 +279,13 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode }: {
               }}
             >
               <div style={{ fontSize: 10.5, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)" }}>{CATEGORY_LABEL[cat]}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--rt-font-mono)", color: gain ? "var(--rt-up)" : loss ? "var(--rt-down)" : "var(--rt-ink)" }}>
+              {/* Text stays neutral ink even on the tinted background — the
+               *  light green/red wash already carries direction, and the
+               *  +/-/± prefix in formatNetDelta's output carries it again;
+               *  coloring the text the same hue as its own background was
+               *  the actual "same colour" problem Ash flagged, not the tint
+               *  itself. */}
+              <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "var(--rt-font-mono)", color: "var(--rt-ink)" }}>
                 {net != null ? formatNetDelta(cat, net, statMode) : "—"}
               </div>
             </div>
@@ -331,7 +340,7 @@ function TradePreviewTable({
               const dynastyRank = p.fheId ? enrich?.dynastyRankByFheId[p.fheId] : null;
               const age = p.fheId ? enrich?.ageByFheId?.[p.fheId] : null;
               const valueRank = rankAmong(leaguePlayers, (pl) => valueOf(pl, valueMode), valueOf(p, valueMode));
-              const posDisplay = p.eligible.filter((e) => !/^(flx|flex)$/i.test(e)).join("/");
+              const posDisplay = p.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e)).join("/");
               return (
                 <tr key={p.fantraxId}>
                   <td className="l">
@@ -369,25 +378,39 @@ function CategoryChip({ name, ring }: { name: string; ring: string }) {
  *  this is the one Deep Edge table where a second team's row matters as
  *  much as your own. */
 function PowerRankingsCompareTable({
-  profiles, format, scored, myTeamId, teamBId,
+  profiles, format, scored, myTeamId, teamBId, statMode,
 }: {
   profiles: TeamCategoryProfile[]; format: RosterTableFormat; scored: readonly FheCategory[]; myTeamId: string; teamBId: string;
+  /** Same "which raw-stat basis" toggle the trade preview tables above
+   *  already show — reused here rather than a second toggle, so the
+   *  before/after roto view always matches what the rest of the page is
+   *  showing. Drives the BASIS the roto points below are computed from
+   *  (Ash, 2026-08-13); the cells themselves always show points, not raw
+   *  stats — roto points are the default (and here, only) display for this
+   *  table, matching Power Rankings' own default (Ash, 2026-08-14). */
+  statMode: "perGame" | "totals";
 }) {
   const teamCount = profiles.length;
   const rowClass = (teamId: string) => (teamId === myTeamId ? "mine" : teamId === teamBId ? "partner" : "");
   const rowLabel = (teamId: string, name: string) => `${name}${teamId === myTeamId ? " · YOU" : teamId === teamBId ? " · PARTNER" : ""}`;
 
   if (format === "roto") {
-    const rows = [...projectRotoStandings(profiles, scored)].sort((a, b) => a.projectedRank - b.projectedRank);
+    const rows = rotoStandingsByRawStat(profiles, scored, statMode);
     return (
       <div className="de-table-wrap">
-        <table className="de-table">
+        <table className="de-table de-table-compact">
+          <colgroup>
+            <col style={{ width: 36 }} />
+            <col style={{ width: 140 }} />
+            <col style={{ width: 52 }} />
+            {scored.map((cat) => <col key={cat} style={{ width: 42 }} />)}
+          </colgroup>
           <thead>
             <tr>
               <th>#</th>
               <th className="l">TEAM</th>
-              {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
               <th>ROTO</th>
+              {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -395,10 +418,12 @@ function PowerRankingsCompareTable({
               <tr key={row.teamId} className={rowClass(row.teamId)}>
                 <td>{row.projectedRank}</td>
                 <td className="l">{rowLabel(row.teamId, row.teamName)}</td>
+                <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
                 {scored.map((cat) => (
-                  <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>{(row.points[cat] ?? 0).toFixed(1)}</td>
+                  <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>
+                    {Math.round(row.points[cat] ?? 0)}
+                  </td>
                 ))}
-                <td style={{ fontWeight: 700 }}>{row.totalPoints}</td>
               </tr>
             ))}
           </tbody>
@@ -524,6 +549,84 @@ function CategoryEdgeCompareColumn({
   );
 }
 
+/** A light strong/weak category chip — green/red tint background, neutral
+ *  ink text (same "tint carries the signal, text stays neutral" rule as the
+ *  fixed NetImpactRow). */
+function StrengthChip({ cat, kind }: { cat: FheCategory; kind: "strong" | "weak" }) {
+  return (
+    <span
+      style={{
+        padding: "5px 12px", borderRadius: 100, fontSize: 12.5, fontWeight: 700,
+        background: kind === "strong" ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)",
+        color: "var(--rt-ink)",
+      }}
+    >
+      {CATEGORY_LABEL[cat]}
+    </span>
+  );
+}
+
+/** Ash, 2026-08-13: upfront category strengths/weaknesses (≤3 each) plus up
+ *  to 3 suggested trade partners whose profile complements this team's own
+ *  — rendered before any partner is picked, so it's the FIRST thing read on
+ *  the page rather than something surfaced only after building a trade.
+ *  Points-mode leagues have no category dimension to read this from, so the
+ *  caller skips this block entirely for them. */
+function TeamInsightPanel({
+  strengthsWeaknesses, partners, onPickPartner,
+}: {
+  strengthsWeaknesses: { strong: CategoryEdge[]; weak: CategoryEdge[] };
+  partners: TradePartnerSuggestion[];
+  onPickPartner: (teamId: string) => void;
+}) {
+  const { strong, weak } = strengthsWeaknesses;
+  if (strong.length === 0 && weak.length === 0) return null;
+  return (
+    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--rt-hairline)", marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 28, flexWrap: "wrap", marginBottom: partners.length > 0 ? 16 : 0 }}>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is strong in</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {strong.length > 0 ? strong.map((e) => <StrengthChip key={e.category} cat={e.category} kind="strong" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is weak in</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {weak.length > 0 ? weak.map((e) => <StrengthChip key={e.category} cat={e.category} kind="weak" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
+          </div>
+        </div>
+      </div>
+      {partners.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 8 }}>Suggested trade partners — complementary category fit</div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {partners.map((p) => (
+              <button
+                key={p.teamId}
+                type="button"
+                onClick={() => onPickPartner(p.teamId)}
+                style={{
+                  textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--rt-hairline)",
+                  background: "var(--rt-surface-soft)", cursor: "pointer", minWidth: 200, color: "var(--rt-ink)",
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{p.teamName}</div>
+                {p.theyHelpMe.length > 0 && (
+                  <div style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Strong where you're weak: {p.theyHelpMe.map((c) => CATEGORY_LABEL[c]).join(", ")}</div>
+                )}
+                {p.iHelpThem.length > 0 && (
+                  <div style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Needs what you have: {p.iHelpThem.map((c) => CATEGORY_LABEL[c]).join(", ")}</div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TradeEdgeContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
@@ -573,6 +676,7 @@ function TradeEdgeContent() {
   const myTeamId = analysis?.myTeamId ?? null;
   const isPointsLeague = analysis?.league.scoringMode === "points";
   const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
+  const salaryFormat: SalaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
   const formula = valueMode === "fpts" ? analysis?.league.pointsFormula ?? null : null;
   const lineupMode = lineupModeFor(valueMode);
 
@@ -585,6 +689,32 @@ function TradeEdgeContent() {
     () => (format && format !== "unconfirmed" ? depthWeight(lineupCadence, format, capPos, capMatch) : 1),
     [lineupCadence, format, capPos, capMatch],
   );
+
+  // Whole-league profiles at the currently-assessed depth, independent of
+  // any trade partner — powers the upfront strengths/weaknesses summary and
+  // suggested-partner cards below, which need to exist BEFORE a partner is
+  // picked (that's the point of "upfront"). exactTeamId keeps only my own
+  // lineup exact, same convention as Power Rankings/Roster Edge.
+  const leagueProfiles = useMemo(() => {
+    if (!analysis || !effective || !myTeamId) return null;
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: myTeamId });
+  }, [analysis, effective, myTeamId, depth, weight]);
+  const leagueStandings = useMemo(
+    () => (leagueProfiles && effective ? projectRotoStandings(leagueProfiles, effective.scored) : null),
+    [leagueProfiles, effective],
+  );
+  const myEdges = useMemo(
+    () => (leagueProfiles && leagueStandings && myTeamId && effective ? categoryEdges(myTeamId, leagueProfiles, leagueStandings, effective.scored) : []),
+    [leagueProfiles, leagueStandings, myTeamId, effective],
+  );
+  const myStrengthsWeaknesses = useMemo(
+    () => teamStrengthsWeaknesses(myEdges, analysis?.league.teamCount ?? 0),
+    [myEdges, analysis],
+  );
+  const partnerSuggestions = useMemo(() => {
+    if (!leagueProfiles || !leagueStandings || !myTeamId || !effective) return [];
+    return suggestTradePartners(myTeamId, leagueProfiles, leagueStandings, effective.scored);
+  }, [leagueProfiles, leagueStandings, myTeamId, effective]);
 
   // Selections + the revealed comparison panel reset on a partner switch — a
   // ticked fantraxId from a different team's roster would otherwise
@@ -685,6 +815,14 @@ function TradeEdgeContent() {
             Set how deep to assess each roster and how to rank players, pick a trade partner, tick who moves each way,
             then launch Power Rankings or Category Edge to see the real before/after side by side.
           </p>
+
+          {!isPointsLeague && (
+            <TeamInsightPanel
+              strengthsWeaknesses={myStrengthsWeaknesses}
+              partners={partnerSuggestions}
+              onPickPartner={setTeamBId}
+            />
+          )}
 
           <div style={{ marginBottom: 18 }}>
             <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Assessing roster depth</div>
@@ -829,12 +967,12 @@ function TradeEdgeContent() {
                   <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} />
                   <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} />
 
-                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 20 }}>
-                    <AssetSummaryCard title={`${myRoster.teamName} gives up`} summary={sendSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} />
-                    <AssetSummaryCard title={`${myRoster.teamName} receives`} summary={receiveSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} />
-                  </div>
-
                   <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} />
+
+                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 20 }}>
+                    <AssetSummaryCard title={`${myRoster.teamName} gives up`} summary={sendSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} salaryFormat={salaryFormat} />
+                    <AssetSummaryCard title={`${myRoster.teamName} receives`} summary={receiveSummary} mode={valueMode} hasSalaries={analysis.league.hasSalaries} salaryFormat={salaryFormat} />
+                  </div>
 
                   <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
                     <button
@@ -872,11 +1010,11 @@ function TradeEdgeContent() {
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 20 }}>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>BEFORE</div>
-                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} />
+                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} />
                         </div>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>AFTER</div>
-                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} />
+                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} />
                         </div>
                       </div>
                     </div>

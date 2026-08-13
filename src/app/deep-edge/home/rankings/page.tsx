@@ -3,11 +3,14 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, RotoStandingRow } from "@/lib/fantrax/analyze";
-import { projectRotoStandings } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
-import { buildDepthWeightedProfiles, deriveRankingsFormat, depthCaption, depthWeight, simulateH2HCategoryStandings, simulateH2HPointsStandings, type RankingsFormat, type TeamH2HRecord } from "@/lib/fantrax/power-rankings";
+import {
+  buildDepthWeightedProfiles, deriveRankingsFormat, depthCaption, depthWeight, formatPerGame, formatTotal,
+  rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
+  type RankingsFormat, type TeamH2HRecord,
+} from "@/lib/fantrax/power-rankings";
 import { resolveEffectiveScoring } from "@/lib/fantrax/lineup";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
@@ -25,47 +28,26 @@ const FORMAT_TOGGLE_OPTIONS: { value: RankingsFormat; label: string }[] = [
   { value: "h2hcat", label: "CAT H2H" },
   { value: "points", label: "POINTS" },
 ];
+/** What each category cell shows: the raw per-game rate, the raw season
+ *  total, or the roto points earned in that category. ROTO POINTS is the
+ *  default (Ash, 2026-08-14: "should be... the default display for power
+ *  rankings in all tools for roto formats") — PER GAME/TOTALS remain
+ *  available for reading the underlying raw production. */
 const ROTO_VIEW_OPTIONS: { value: "perGame" | "totals" | "points"; label: string }[] = [
   { value: "perGame", label: "PER GAME" },
   { value: "totals", label: "TOTALS" },
   { value: "points", label: "ROTO POINTS" },
 ];
-
-const STAT_KEY: Record<FheCategory, "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "tov"> = {
-  PTS: "pts", FG3: "fg3m", REB: "reb", AST: "ast", STL: "stl", BLK: "blk", TO: "tov", FG: "pts", FT: "pts",
-};
-
-/** Team-combined raw season totals for the lineup — the "Totals" roto view,
- *  and the base figure weightedPerGame() below divides down to a per-game
- *  rate. FG%/FT% are already attempts-weighted inside statTotals. */
-function totalsValue(statTotals: { pts: number; fg3m: number; reb: number; ast: number; stl: number; blk: number; tov: number; fg_pct: number | null; ft_pct: number | null }, cat: FheCategory): number {
-  if (cat === "FG") return statTotals.fg_pct ?? 0;
-  if (cat === "FT") return statTotals.ft_pct ?? 0;
-  return statTotals[STAT_KEY[cat]];
-}
-function formatTotal(cat: FheCategory, raw: number): string {
-  return cat === "FG" || cat === "FT" ? raw.toFixed(3).replace(/^0(?=\.)/, "") : Math.round(raw).toLocaleString("en-US");
-}
-/** FG%/FT% drop the leading zero (.485, not 0.485) since they're always
- *  sub-1 percentages; every counting stat keeps it (0.6 STL, not .6) — a
- *  bare ".6" reads as a typo, not a small number. */
-function formatPerGame(cat: FheCategory, raw: number): string {
-  return cat === "FG" || cat === "FT" ? raw.toFixed(3).replace(/^0(?=\.)/, "") : raw.toFixed(1);
-}
-
-/** Weighted per-game average across the lineup: combined season totals
- *  divided by combined games played — matches Ash's own reference table
- *  exactly (Σ 6 TICKED: 7,251 PTS / 408 GP = 17.8, 738 3PM / 408 = 1.8, etc.),
- *  confirmed digit-for-digit against a real screenshot. This is a blended
- *  per-player rate, not a team-combined total — it recalculates the same way
- *  as depth increases (+1, +2, …) since statTotals grows with the lineup.
- *  FG%/FT% are already attempts-weighted inside statTotals, so they pass
- *  through as-is rather than being divided again. */
-function weightedPerGame(statTotals: { pts: number; fg3m: number; reb: number; ast: number; stl: number; blk: number; tov: number; fg_pct: number | null; ft_pct: number | null; gamesPlayed: number }, cat: FheCategory): number {
-  const raw = totalsValue(statTotals, cat);
-  if (cat === "FG" || cat === "FT") return raw;
-  return statTotals.gamesPlayed > 0 ? raw / statTotals.gamesPlayed : 0;
-}
+/** Roto points are always derived from a raw-stat basis (see
+ *  rotoStandingsByRawStat) — PER GAME/TOTALS tabs above double as that basis
+ *  directly; ROTO POINTS needs its own basis selector since it isn't
+ *  showing raw numbers itself (Ash, 2026-08-14: "the roto points needs to
+ *  drive from either per game or totals — give the user the ability to
+ *  select"). */
+const POINTS_BASIS_OPTIONS: { value: "perGame" | "totals"; label: string }[] = [
+  { value: "perGame", label: "Per-game basis" },
+  { value: "totals", label: "Totals basis" },
+];
 
 function PowerRankingsContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
@@ -75,7 +57,9 @@ function PowerRankingsContent() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [h2hSort, setH2hSort] = useState<"matchup" | "winpct" | "category">("winpct");
   const [formatOverride, setFormatOverride] = useState<RankingsFormat | null>(null);
-  const [rotoView, setRotoView] = useState<"perGame" | "totals" | "points">("perGame");
+  const [rotoView, setRotoView] = useState<"perGame" | "totals" | "points">("points");
+  const [pointsBasis, setPointsBasis] = useState<"perGame" | "totals">("perGame");
+  const rotoBasis: "perGame" | "totals" = rotoView === "points" ? pointsBasis : rotoView;
 
   useEffect(() => {
     if (!saved) return;
@@ -139,9 +123,13 @@ function PowerRankingsContent() {
     return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: analysis.myTeamId ?? undefined });
   }, [analysis, format, depth, lineupCadence, capPos, capMatch, effective]);
 
+  // Dynamically derived from whichever raw-stat basis (per-game rate vs
+  // season totals) is currently selected — NOT the z-score-based standings
+  // analyze.ts's projectRotoStandings would give (see rotoStandingsByRawStat's
+  // own doc for why per-game and totals genuinely disagree here).
   const rotoStandings = useMemo(
-    () => (profiles && format === "roto" ? projectRotoStandings(profiles, scored) : null),
-    [profiles, format, scored],
+    () => (profiles && format === "roto" ? rotoStandingsByRawStat(profiles, scored, rotoBasis) : null),
+    [profiles, format, scored, rotoBasis],
   );
   const h2hRecords: TeamH2HRecord[] | null = useMemo(() => {
     if (!profiles) return null;
@@ -263,19 +251,28 @@ function PowerRankingsContent() {
 
           {format === "roto" && rotoStandings && (
             <>
-              <div style={{ marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
                 <SegmentedControl<"perGame" | "totals" | "points"> options={ROTO_VIEW_OPTIONS} value={rotoView} onChange={setRotoView} />
+                {rotoView === "points" && (
+                  <SegmentedControl<"perGame" | "totals"> options={POINTS_BASIS_OPTIONS} value={pointsBasis} onChange={setPointsBasis} />
+                )}
               </div>
               <div className="de-table-wrap">
-                <table className="de-table">
+                <table className="de-table de-table-compact">
+                  <colgroup>
+                    <col style={{ width: 36 }} />
+                    <col style={{ width: 150 }} />
+                    <col style={{ width: 56 }} />
+                    {scored.map((cat) => <col key={cat} style={{ width: 44 }} />)}
+                  </colgroup>
                   <thead>
                     <tr>
                       <th>#</th>
                       <SortTh<"team" | "totalPoints" | FheCategory> label="TEAM" sortKey="team" sort={rotoSort.sort} onSort={rotoSort.onSort} align="left" />
+                      <SortTh<"team" | "totalPoints" | FheCategory> label="ROTO" sortKey="totalPoints" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                       {scored.map((cat) => (
                         <SortTh<"team" | "totalPoints" | FheCategory> key={cat} label={CATEGORY_LABEL[cat]} sortKey={cat} sort={rotoSort.sort} onSort={rotoSort.onSort} />
                       ))}
-                      <SortTh<"team" | "totalPoints" | FheCategory> label="ROTO" sortKey="totalPoints" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                     </tr>
                   </thead>
                   <tbody>
@@ -285,16 +282,16 @@ function PowerRankingsContent() {
                         <tr key={row.teamId} className={row.teamId === saved.teamId ? "mine" : ""}>
                           <td>{i + 1}</td>
                           <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
+                          <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
                           {scored.map((cat) => (
                             <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>
                               {rotoView === "perGame"
                                 ? formatPerGame(cat, weightedPerGame(profile.statTotals, cat))
                                 : rotoView === "totals"
                                   ? formatTotal(cat, totalsValue(profile.statTotals, cat))
-                                  : (row.points[cat] ?? 0).toFixed(1)}
+                                  : Math.round(row.points[cat] ?? 0)}
                             </td>
                           ))}
-                          <td style={{ fontWeight: 700 }}>{row.totalPoints}</td>
                         </tr>
                       );
                     })}
@@ -387,7 +384,11 @@ function PowerRankingsContent() {
                           <div style={{ minWidth: 0 }}>
                             <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.opponentName}</div>
                             <div style={{ fontSize: 11, color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)" }}>
-                              {m.scoreline ? `${m.scoreline.mine.toFixed(1)} vs ${m.scoreline.theirs.toFixed(1)}` : `${m.wins}-${m.draws}-${m.losses}`}
+                              {m.scoreline
+                                ? `${m.scoreline.mine.toFixed(1)} vs ${m.scoreline.theirs.toFixed(1)}`
+                                : m.projected
+                                  ? `${m.projected.mine.toFixed(1)}-${m.projected.theirs.toFixed(1)}`
+                                  : `${m.wins}-${m.draws}-${m.losses}`}
                             </div>
                           </div>
                         </div>

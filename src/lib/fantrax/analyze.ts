@@ -479,9 +479,75 @@ export interface TradeSuggestion {
   suggestedGiveUp: ResolvedPlayer | null;
 }
 
-/** Rank thresholds shared with the UI's strong/weak edge coloring (fx-edge.strong/.weak). */
-const strongRank = (teamCount: number) => Math.ceil(teamCount / 3);
-const weakRank = (teamCount: number) => Math.ceil((teamCount * 2) / 3);
+/** Rank thresholds shared with the UI's strong/weak edge coloring
+ *  (fx-edge.strong/.weak) — exported so Trade Edge's upfront strengths/
+ *  weaknesses summary and suggested-partner scoring (below) and Roster
+ *  Edge's own summary block read the exact same "strong"/"weak" cutoff
+ *  suggestTradeTargets already uses, rather than a second hand-picked
+ *  threshold that could silently disagree with it. */
+export const strongRank = (teamCount: number) => Math.ceil(teamCount / 3);
+export const weakRank = (teamCount: number) => Math.ceil((teamCount * 2) / 3);
+
+/** A team's strongest/weakest scored categories, best/worst rank first, each
+ *  capped at `limit` (Ash, 2026-08-13: "no more than 3 categories that grade
+ *  is very weak or very strong"). Strong = top third by roto finish, weak =
+ *  bottom third — same thresholds categoryEdges' own callers already use for
+ *  strong/weak coloring, just packaged for direct display. */
+export function teamStrengthsWeaknesses(
+  edges: CategoryEdge[],
+  teamCount: number,
+  limit = 3,
+): { strong: CategoryEdge[]; weak: CategoryEdge[] } {
+  const strong = edges.filter((e) => e.rank <= strongRank(teamCount)).slice(0, limit);
+  const weak = [...edges.filter((e) => e.rank > weakRank(teamCount))].reverse().slice(0, limit);
+  return { strong, weak };
+}
+
+export interface TradePartnerSuggestion {
+  teamId: string;
+  teamName: string;
+  /** Count of complementary category overlaps in both directions — higher
+   *  means a more useful partner. */
+  score: number;
+  /** My weak categories this team is strong in. */
+  theyHelpMe: FheCategory[];
+  /** My strong categories this team is weak in (i.e. what I could offer). */
+  iHelpThem: FheCategory[];
+}
+
+/**
+ * Up to `limit` (default 3, per Ash's "no more than 3 teams") other teams
+ * whose category profile complements this team's own: strong exactly where
+ * this team is weak, and vice versa. Deliberately a team-level read (which
+ * ROSTERS are worth talking to), distinct from suggestTradeTargets' own
+ * player-level suggestions above — this answers "who should I call," that
+ * answers "which of their players should I ask for."
+ */
+export function suggestTradePartners(
+  myTeamId: string,
+  profiles: TeamCategoryProfile[],
+  standings: RotoStandingRow[],
+  scored: readonly FheCategory[],
+  limit = 3,
+): TradePartnerSuggestion[] {
+  const teamCount = profiles.length;
+  const mine = teamStrengthsWeaknesses(categoryEdges(myTeamId, profiles, standings, scored), teamCount);
+  const myStrongCats = new Set(mine.strong.map((e) => e.category));
+  const myWeakCats = new Set(mine.weak.map((e) => e.category));
+  if (myStrongCats.size === 0 && myWeakCats.size === 0) return [];
+
+  return profiles
+    .filter((p) => p.teamId !== myTeamId)
+    .map((p) => {
+      const theirs = teamStrengthsWeaknesses(categoryEdges(p.teamId, profiles, standings, scored), teamCount);
+      const theyHelpMe = theirs.strong.map((e) => e.category).filter((c) => myWeakCats.has(c));
+      const iHelpThem = theirs.weak.map((e) => e.category).filter((c) => myStrongCats.has(c));
+      return { teamId: p.teamId, teamName: p.teamName, score: theyHelpMe.length + iHelpThem.length, theyHelpMe, iHelpThem };
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score || a.teamName.localeCompare(b.teamName))
+    .slice(0, limit);
+}
 
 /** Shared by both trade-suggestion flavors: pairs each ranked candidate with
  *  the nearest-value untapped piece from my own roster (by whatever `valueOf`

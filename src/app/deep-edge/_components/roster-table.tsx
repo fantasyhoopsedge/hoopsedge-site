@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import type { ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
+import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import type { ContractInfo } from "@/lib/fantrax/roster-edge";
 import { normalizeTeamAbbr } from "@/lib/nba-teams";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
@@ -43,6 +44,21 @@ export function formatSalary(n: number | null | undefined): string {
 export function formatContract(info: ContractInfo | undefined): string {
   if (!info) return "—";
   return `${info.yearsRemaining}yr/$${(info.totalRemaining / 1_000_000).toFixed(1)}M`;
+}
+/** A custom-salary league's cap unit is whatever the commissioner defined —
+ *  not real NBA-scale dollars — so this is a plain integer, never divided by
+ *  1_000_000 the way formatSalary() assumes. Verified live 2026-08-13
+ *  against a real custom-salary league: raw values are already small ints
+ *  (21, 15, 40, …) matching what the league's own Fantrax page shows. */
+export function formatCustomSalary(n: number | null | undefined): string {
+  if (n == null) return "—";
+  return Math.round(n).toLocaleString("en-US");
+}
+/** Fantrax's own contract-year label ("28-29", "R-2nd", "E-1st", …) for a
+ *  custom-salary league — see LeagueRosterSpot.contract. Distinct from
+ *  formatContract() above, which formats FHE's real-world dynasty contract. */
+export function formatCustomContract(contract: string | null | undefined): string {
+  return contract ?? "—";
 }
 export function formatStat(cat: FheCategory | ExtraCode, raw: number | null): string {
   if (raw == null || !Number.isFinite(raw)) return "—";
@@ -181,6 +197,12 @@ export interface RosterTableRowProps {
   showContract: boolean;
   showDynastyRank: boolean;
   showSalaryRank: boolean;
+  /** "custom" reads SAL$/CONTRACT$ off the player's own Fantrax fields
+   *  (p.salary as a plain unit, p.contract's Fantrax label) instead of FHE's
+   *  real-world salary/contract data — see formatCustomSalary/
+   *  formatCustomContract. Defaults to "real" (today's behavior) so existing
+   *  callers that don't pass it are unaffected. */
+  salaryFormat?: SalaryFormat;
   /** Whole-league player pool, for the USG z-score baseline and the
    *  points-mode VALUE rank (see rankAmong). */
   leaguePlayers: ResolvedPlayer[];
@@ -194,8 +216,9 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", leaguePlayers, usgStats, leadingCell, className,
 }: RosterTableRowProps) {
+  const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
   const dynastyRank = showDynastyRank && p.fheId ? enrich?.dynastyRankByFheId[p.fheId] : null;
   const contract = p.fheId ? enrich?.contractByFheId[p.fheId] : undefined;
@@ -207,7 +230,7 @@ export function RosterTableRow({
     : (p.catVRank?.perGame.nineCatV ?? null);
   const minus1Rank = p.catVRank?.perGame.minus1V ?? null;
   const usgZ = zOf(p.usgPct, usgStats);
-  const posDisplay = p.eligible.filter((e) => !/^(flx|flex)$/i.test(e));
+  const posDisplay = p.eligible.filter((e) => !/^(flx\d*|flex\d*)$/i.test(e));
 
   return (
     <tr className={className}>
@@ -220,8 +243,8 @@ export function RosterTableRow({
       </td>
       <td><TeamLogo team={p.nbaTeam} /></td>
       <td>{posDisplay.join("/")}</td>
-      {showSalary && <td>{formatSalary(p.salary)}</td>}
-      {showContract && <td>{formatContract(contract)}</td>}
+      {showSalary && <td>{isCustomSalary ? formatCustomSalary(p.salary) : formatSalary(p.salary)}</td>}
+      {showContract && <td>{isCustomSalary ? formatCustomContract(p.contract) : formatContract(contract)}</td>}
       {showDynastyRank && <td>{dynastyRank ?? "—"}</td>}
       {showSalaryRank && <td>{salaryRank ?? "—"}</td>}
       <td>

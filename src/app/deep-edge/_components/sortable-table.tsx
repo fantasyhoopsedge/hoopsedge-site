@@ -81,8 +81,15 @@ export const DEEP_EDGE_TABLE_CSS = `
   .de-table th.l, .de-table td.l { text-align: left; }
   .de-table td { padding: 8px 10px; text-align: center; border-top: 1px solid var(--rt-hairline);
     font-family: var(--rt-font-mono); }
-  .de-table tr.mine td { background: rgba(250,70,22,.1); font-weight: 600; }
+  .de-table tr.mine td { background: rgba(250,70,22,.14); font-weight: 600; }
   .de-th-sortable { cursor: pointer; user-select: none; }
   .de-th-active { color: var(--rt-ink); }
   .de-sort-arrow { display: inline-block; width: 10px; }
+  /* Squeezed variant for tables with lots of narrow numeric columns (Power
+   * Rankings' roto standings, both standalone and inside Trade Edge's
+   * before/after compare) — no forced min-width, tighter padding/font, so a
+   * normal desktop viewport shows the whole table without horizontal
+   * scroll (Ash, 2026-08-13). */
+  .de-table.de-table-compact { min-width: 0; font-size: 11.5px; }
+  .de-table.de-table-compact th, .de-table.de-table-compact td { padding: 6px 6px; }
 `;
