@@ -82,6 +82,13 @@ export interface FxRosterItem {
   position: string;
   /** Only present in salary-cap leagues. */
   salary?: number;
+  /** Only present in leagues that track contract years (real or custom
+   *  keeper/dynasty leagues) — e.g. `{ smallId: "3", name: "27-28" }` for a
+   *  deal running through the 2027-28 season, or `{ smallId: "a", name:
+   *  "R-1st" }` for a rookie-scale first-year deal. `name` is the only part
+   *  FHE displays; verified live 2026-08-13 against a real custom-salary
+   *  league (getTeamRosters). */
+  contract?: { smallId: string; name: string };
   /** ACTIVE | RESERVE | MINORS | INJURED … */
   status: string;
 }

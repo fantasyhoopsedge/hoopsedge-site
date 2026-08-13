@@ -1,4 +1,4 @@
-import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "./analyze";
+import type { LeagueAnalysis, ResolvedPlayer, RotoStandingRow, TeamCategoryProfile, TeamStatTotals } from "./analyze";
 import type { FheCategory, LeaguePointsFormula } from "./league";
 import { buildOptimalLineup, profileFromLineup, type LineupValueMode, type OptimalLineup } from "./lineup";
 
@@ -151,6 +151,95 @@ export function buildDepthWeightedProfiles(
   );
 }
 
+// ── raw-stat roto standings (dynamic per-game/totals) ────────────────────
+
+const STAT_KEY: Record<FheCategory, "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "tov"> = {
+  PTS: "pts", FG3: "fg3m", REB: "reb", AST: "ast", STL: "stl", BLK: "blk", TO: "tov", FG: "pts", FT: "pts",
+};
+
+/** Team-combined raw season totals for the lineup — the "Totals" roto view;
+ *  weightedPerGame() below divides this down to a per-game rate. FG%/FT% are
+ *  already attempts-weighted inside statTotals, same value either way. */
+export function totalsValue(statTotals: TeamStatTotals, cat: FheCategory): number {
+  if (cat === "FG") return statTotals.fg_pct ?? 0;
+  if (cat === "FT") return statTotals.ft_pct ?? 0;
+  return statTotals[STAT_KEY[cat]];
+}
+export function formatTotal(cat: FheCategory, raw: number): string {
+  return cat === "FG" || cat === "FT" ? raw.toFixed(3).replace(/^0(?=\.)/, "") : Math.round(raw).toLocaleString("en-US");
+}
+/** FG%/FT% drop the leading zero (.485, not 0.485) since they're always
+ *  sub-1 percentages; every counting stat keeps it (0.6 STL, not .6) — a
+ *  bare ".6" reads as a typo, not a small number. */
+export function formatPerGame(cat: FheCategory, raw: number): string {
+  return cat === "FG" || cat === "FT" ? raw.toFixed(3).replace(/^0(?=\.)/, "") : raw.toFixed(1);
+}
+
+/** Weighted per-game average across the lineup: combined season totals
+ *  divided by combined games played — matches Ash's own reference table
+ *  exactly (Σ 6 TICKED: 7,251 PTS / 408 GP = 17.8, 738 3PM / 408 = 1.8, etc.),
+ *  confirmed digit-for-digit against a real screenshot. This is a blended
+ *  per-player rate, not a team-combined total — it recalculates the same way
+ *  as depth increases (+1, +2, …) since statTotals grows with the lineup.
+ *  FG%/FT% are already attempts-weighted inside statTotals, so they pass
+ *  through as-is rather than being divided again. */
+export function weightedPerGame(statTotals: TeamStatTotals, cat: FheCategory): number {
+  const raw = totalsValue(statTotals, cat);
+  if (cat === "FG" || cat === "FT") return raw;
+  return statTotals.gamesPlayed > 0 ? raw / statTotals.gamesPlayed : 0;
+}
+
+/**
+ * Roto standings ranked by a RAW stat basis (per-game rate or season totals)
+ * instead of z-score category totals — same rotisserie tie-splitting
+ * algorithm as analyze.ts's projectRotoStandings (best team in a category
+ * gets `teams` points, worst gets 1, ties share the pot evenly), just keyed
+ * on weightedPerGame/totalsValue instead of TeamCategoryProfile.totals.
+ *
+ * This exists because per-game and totals rankings genuinely disagree —
+ * totals reward a heavier projected workload (more games), per-game doesn't
+ * — and Ash wants the displayed ROTO points to reflect whichever basis is
+ * currently selected rather than always reading off the z-score-based
+ * standings regardless of the toggle (Ash, 2026-08-13). Deliberately a NEW
+ * function rather than a change to projectRotoStandings — every other
+ * caller of that function (headline scores, Category Edge, trade-suggestion
+ * scoring) keeps its existing z-score-based behavior unchanged.
+ */
+export function rotoStandingsByRawStat(
+  profiles: TeamCategoryProfile[],
+  scored: readonly FheCategory[],
+  mode: "perGame" | "totals",
+): RotoStandingRow[] {
+  const valueOf = mode === "perGame" ? weightedPerGame : totalsValue;
+  const n = profiles.length;
+  const rows: RotoStandingRow[] = profiles.map((p) => ({
+    teamId: p.teamId, teamName: p.teamName, points: {}, ranks: {}, totalPoints: 0, projectedRank: 0,
+  }));
+  const byId = new Map(rows.map((r) => [r.teamId, r]));
+
+  for (const cat of scored) {
+    const ordered = [...profiles].sort((a, b) => valueOf(b.statTotals, cat) - valueOf(a.statTotals, cat));
+    let i = 0;
+    while (i < ordered.length) {
+      let j = i;
+      while (j + 1 < ordered.length && valueOf(ordered[j + 1].statTotals, cat) === valueOf(ordered[i].statTotals, cat)) j += 1;
+      const sharedPoints = Array.from({ length: j - i + 1 }, (_, k) => n - (i + k)).reduce((a, b) => a + b, 0) / (j - i + 1);
+      for (let k = i; k <= j; k += 1) {
+        const row = byId.get(ordered[k].teamId);
+        if (!row) continue;
+        row.points[cat] = sharedPoints;
+        row.ranks[cat] = i + 1;
+        row.totalPoints += sharedPoints;
+      }
+      i = j + 1;
+    }
+  }
+
+  rows.sort((a, b) => b.totalPoints - a.totalPoints || a.teamName.localeCompare(b.teamName));
+  rows.forEach((r, i) => { r.projectedRank = i + 1; });
+  return rows;
+}
+
 // ── head-to-head simulation ──────────────────────────────────────────────
 
 export interface CategoryMatchupResult {
@@ -167,6 +256,16 @@ export interface H2HMatchup {
   matchupResult: "win" | "loss" | "draw";
   /** Points mode only — "118.4 vs 112.1" style scoreline. */
   scoreline?: { mine: number; theirs: number };
+  /** Categories mode only — a continuous complement to the discrete
+   *  win/draw/loss ledger above: normal-CDF win probability per category
+   *  (see normCdf), summed across every scored category. Always sums to
+   *  `scored.length` (mine + theirs), so e.g. a 9-cat league reads as
+   *  `5.3-3.7` rather than the discrete `5-1-3`. Display-only — rank,
+   *  winPct, categoryWins/Losses/Draws all keep reading off the discrete
+   *  ledger, unchanged (Ash, 2026-08-13: "display the projected matchup
+   *  result... as win/loss, apply draw as weighted average across
+   *  win/loss"). */
+  projected?: { mine: number; theirs: number };
 }
 export interface TeamH2HRecord {
   teamId: string;
@@ -220,6 +319,26 @@ function isPercentCat(cat: FheCategory): boolean {
   return cat === "FG" || cat === "FT";
 }
 
+/** Abramowitz-Stegun 7.1.26 approximation of the error function — accurate
+ *  to ~1.5e-7, plenty for a display-only win-probability read. */
+function erf(x: number): number {
+  const sign = x < 0 ? -1 : 1;
+  const ax = Math.abs(x);
+  const p = 0.3275911;
+  const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+  const t = 1 / (1 + p * ax);
+  const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-ax * ax);
+  return sign * y;
+}
+
+/** Standard normal CDF — Φ(z), the probability a standard-normal draw falls
+ *  at or below z. Used to turn a team's category differential (scaled by
+ *  the league's own spread in that category) into a continuous 0-1 win
+ *  probability instead of a discrete win/draw/loss bucket. */
+function normCdf(z: number): number {
+  return 0.5 * (1 + erf(z / Math.SQRT2));
+}
+
 export function simulateH2HCategoryStandings(
   profiles: TeamCategoryProfile[],
   scored: readonly FheCategory[],
@@ -230,19 +349,26 @@ export function simulateH2HCategoryStandings(
     const matchups: H2HMatchup[] = profiles
       .filter((p) => p.teamId !== mine.teamId)
       .map((opp) => {
-        const categoryResults: CategoryMatchupResult[] = scored.map((cat) => {
+        const perCat = scored.map((cat) => {
           const a = statValue(mine.statTotals, cat);
           const b = statValue(opp.statTotals, cat);
-          const epsilon = isPercentCat(cat) ? 0.003 : 0.12 * (stdevByCat.get(cat) ?? 0);
+          const spread = stdevByCat.get(cat) ?? 0;
+          const epsilon = isPercentCat(cat) ? 0.003 : 0.12 * spread;
           const diff = a - b;
           const result: CategoryMatchupResult["result"] = Math.abs(diff) < epsilon ? "draw" : diff > 0 ? "win" : "loss";
-          return { category: cat, result };
+          const z = spread > 0 ? diff / spread : 0;
+          return { category: cat, result, winProb: normCdf(z) };
         });
+        const categoryResults: CategoryMatchupResult[] = perCat.map(({ category, result }) => ({ category, result }));
+        const projMine = perCat.reduce((sum, c) => sum + c.winProb, 0);
         const wins = categoryResults.filter((r) => r.result === "win").length;
         const losses = categoryResults.filter((r) => r.result === "loss").length;
         const draws = categoryResults.filter((r) => r.result === "draw").length;
         const matchupResult: H2HMatchup["matchupResult"] = wins > losses ? "win" : losses > wins ? "loss" : "draw";
-        return { opponentId: opp.teamId, opponentName: opp.teamName, categoryResults, wins, losses, draws, matchupResult };
+        return {
+          opponentId: opp.teamId, opponentName: opp.teamName, categoryResults, wins, losses, draws, matchupResult,
+          projected: { mine: projMine, theirs: scored.length - projMine },
+        };
       });
 
     const totalWins = matchups.filter((m) => m.matchupResult === "win").length;

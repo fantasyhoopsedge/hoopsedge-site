@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
+import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "@/lib/fantrax/analyze";
+import { categoryEdges, projectRotoStandings, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
@@ -10,6 +11,7 @@ import { buildOptimalLineup, resolveEffectiveScoring } from "@/lib/fantrax/lineu
 import { buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, simulateH2HCategoryStandings } from "@/lib/fantrax/power-rankings";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
+import { SegmentedControl } from "../../_components/segmented-control";
 import {
   formatStat, meanStd, RosterTableRow, statValue, weightedAverage,
   type EnrichData, type ExtraCode, type RosterTableFormat,
@@ -17,9 +19,15 @@ import {
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
-/** Depth index matching the rest of Deep Edge's depth ladder (Best N = 0,
- *  +1..+5) — "Starters + 3 reserves" is exactly depth 3. */
-const POWER_RANK_DEPTH = 3;
+/** Depth-ladder labels matching the rest of Deep Edge (Best N = 0, +1..+5) —
+ *  used for both the tick-set depth pill and the Power Rank badge's caption,
+ *  which now track the same user-chosen depth (Ash, 2026-08-13). */
+const DEPTH_LABELS = ["Best", "+1", "+2", "+3", "+4", "+5"];
+
+const TICK_VALUE_MODE_OPTIONS: { value: "minus1V" | "nineCatV"; label: string }[] = [
+  { value: "minus1V", label: "Minus1V" },
+  { value: "nineCatV", label: "9-Cat" },
+];
 
 /** The Settings screen's "Add category" codes that Roster Edge can actually
  *  compute from real data — ast/tov and the two makes counts already have a
@@ -61,6 +69,8 @@ function RosterEdgeContent() {
   const [dataset, setDataset] = useState<FantraxDatasetKey>(FANTRAX_DATASETS[0].key);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [ticked, setTicked] = useState<Set<string> | null>(null);
+  const [tickDepth, setTickDepth] = useState(0);
+  const [tickValueMode, setTickValueMode] = useState<"minus1V" | "nineCatV">("minus1V");
   const [extraCols, setExtraCols] = useState<Set<ExtraCode>>(new Set());
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
   const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
@@ -104,36 +114,57 @@ function RosterEdgeContent() {
   const capPos = saved?.settings.capPos ?? DEFAULT_GAMES_CAP_SETTINGS.capPos;
   const capMatch = saved?.settings.capMatch ?? DEFAULT_GAMES_CAP_SETTINGS.capMatch;
 
-  // Power ranking for the selected team, "Starters + 3 reserves" depth —
-  // exactTeamId keeps ONLY that team's lineup exact (branch-and-bound), every
+  // Whole-league profiles at the user's chosen tick depth — exactTeamId
+  // keeps ONLY the selected team's lineup exact (branch-and-bound), every
   // other team greedy, same fix as Power Rankings' own depth toggle (see
   // power-rankings.ts's exactTeamId doc — running the exact solver 30 times
-  // per team switch was the real "Page Unresponsive" freeze).
-  const powerRank = useMemo(() => {
+  // per team switch was the real "Page Unresponsive" freeze). Powers both
+  // the Power Rank badge below (h2hcat only, unchanged) and the strengths/
+  // weaknesses summary (roto + h2hcat — see myStrengthsWeaknesses).
+  const leagueProfiles = useMemo(() => {
     if (!analysis || !effective || !format || format === "unconfirmed" || !teamId) return null;
     const weight = depthWeight(lineupCadence, format, capPos, capMatch);
-    const profiles = buildDepthWeightedProfiles(analysis, POWER_RANK_DEPTH, weight, { ...effective, exactTeamId: teamId });
-    if (format === "h2hcat") {
-      const records = simulateH2HCategoryStandings(profiles, effective.scored);
-      const sorted = [...records].sort((a, b) => b.winPct - a.winPct);
-      const idx = sorted.findIndex((r) => r.teamId === teamId);
-      const mine = sorted[idx];
-      return mine ? { rank: idx + 1, of: sorted.length, winPct: mine.winPct } : null;
-    }
-    return null; // Roto/points power-rank display: fast-follow, not in this pass
-  }, [analysis, effective, format, teamId, lineupCadence, capPos, capMatch]);
+    return buildDepthWeightedProfiles(analysis, tickDepth, weight, { ...effective, exactTeamId: teamId });
+  }, [analysis, effective, format, teamId, tickDepth, lineupCadence, capPos, capMatch]);
 
-  // Default ticked set = starters + 3 reserves, matching the power-ranking
-  // calc's own depth — reset whenever the selected team or dataset changes.
+  const powerRank = useMemo(() => {
+    if (!leagueProfiles || !effective || format !== "h2hcat" || !teamId) return null;
+    const records = simulateH2HCategoryStandings(leagueProfiles, effective.scored);
+    const sorted = [...records].sort((a, b) => b.winPct - a.winPct);
+    const idx = sorted.findIndex((r) => r.teamId === teamId);
+    const mine = sorted[idx];
+    return mine ? { rank: idx + 1, of: sorted.length, winPct: mine.winPct } : null;
+    // Roto/points power-rank display: fast-follow, not in this pass
+  }, [leagueProfiles, effective, format, teamId]);
+
+  const isPointsLeague = format === "points";
+  const myStandings = useMemo(
+    () => (leagueProfiles && effective ? projectRotoStandings(leagueProfiles, effective.scored) : null),
+    [leagueProfiles, effective],
+  );
+  const myEdges = useMemo(
+    () => (leagueProfiles && myStandings && teamId && effective ? categoryEdges(teamId, leagueProfiles, myStandings, effective.scored) : []),
+    [leagueProfiles, myStandings, teamId, effective],
+  );
+  const myStrengthsWeaknesses = useMemo(
+    () => teamStrengthsWeaknesses(myEdges, analysis?.league.teamCount ?? 0),
+    [myEdges, analysis],
+  );
+
+  // Default ticked set = starters + the user-chosen depth/value-mode
+  // combination (Ash, 2026-08-13: default projections + Minus1V, toggle to
+  // 9-Cat and/or a deeper bench) — reset whenever the selected team,
+  // dataset, depth, or value mode changes.
   const defaultTicked = useMemo(() => {
     if (!roster || !effective) return new Set<string>();
-    const lineup = buildOptimalLineup(roster.players, effective.positionSlots, null);
-    const ids = [...lineup.starters.map((a) => a.player.fantraxId), ...lineup.bench.slice(0, 3).map((p) => p.fantraxId)];
+    const lineup = buildOptimalLineup(roster.players, effective.positionSlots, null, { valueMode: tickValueMode });
+    const ids = [...lineup.starters.map((a) => a.player.fantraxId), ...lineup.bench.slice(0, tickDepth).map((p) => p.fantraxId)];
     return new Set(ids);
-  }, [roster, effective]);
+  }, [roster, effective, tickDepth, tickValueMode]);
   const [resetKey, setResetKey] = useState<string | null>(null);
-  if (roster && resetKey !== `${roster.teamId}:${dataset}`) {
-    setResetKey(`${roster.teamId}:${dataset}`);
+  const currentResetKey = `${roster?.teamId}:${dataset}:${tickDepth}:${tickValueMode}`;
+  if (roster && resetKey !== currentResetKey) {
+    setResetKey(currentResetKey);
     setTicked(defaultTicked);
   }
   const tickedIds = ticked ?? defaultTicked;
@@ -261,7 +292,7 @@ function RosterEdgeContent() {
             {powerRank && (
               <span style={{ fontSize: 12.5, padding: "8px 14px", borderRadius: 100, background: "var(--rt-surface-strong)" }}>
                 Power Rank <strong>#{powerRank.rank}</strong> of {powerRank.of} · {(powerRank.winPct * 100).toFixed(1)}% proj. win
-                <span style={{ color: "var(--rt-muted)", marginLeft: 6 }}>(Starters + 3)</span>
+                <span style={{ color: "var(--rt-muted)", marginLeft: 6 }}>({DEPTH_LABELS[tickDepth]})</span>
               </span>
             )}
 
@@ -284,6 +315,71 @@ function RosterEdgeContent() {
               </div>
             )}
           </div>
+
+          <div style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Auto-select starters + reserves by</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+                {DEPTH_LABELS.map((label, i) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setTickDepth(i)}
+                    style={{
+                      padding: "7px 14px", border: "none", borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                      background: tickDepth === i ? "var(--rt-canvas)" : "transparent",
+                      color: tickDepth === i ? "var(--rt-ink)" : "var(--rt-muted)",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <SegmentedControl<"minus1V" | "nineCatV"> options={TICK_VALUE_MODE_OPTIONS} value={tickValueMode} onChange={setTickValueMode} />
+            </div>
+          </div>
+
+          {!isPointsLeague && (myStrengthsWeaknesses.strong.length > 0 || myStrengthsWeaknesses.weak.length > 0) && (
+            <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--rt-hairline)", marginBottom: 20 }}>
+              <div style={{ display: "flex", gap: 28, flexWrap: "wrap", marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Strong in</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {myStrengthsWeaknesses.strong.length > 0
+                      ? myStrengthsWeaknesses.strong.map((e) => (
+                        <span key={e.category} style={{ padding: "5px 12px", borderRadius: 100, fontSize: 12.5, fontWeight: 700, background: "rgba(34,197,94,0.14)", color: "var(--rt-ink)" }}>
+                          {CATEGORY_LABEL[e.category]}
+                        </span>
+                      ))
+                      : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Weak in</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {myStrengthsWeaknesses.weak.length > 0
+                      ? myStrengthsWeaknesses.weak.map((e) => (
+                        <span key={e.category} style={{ padding: "5px 12px", borderRadius: 100, fontSize: 12.5, fontWeight: 700, background: "rgba(239,68,68,0.14)", color: "var(--rt-ink)" }}>
+                          {CATEGORY_LABEL[e.category]}
+                        </span>
+                      ))
+                      : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
+                  </div>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <Link href="/deep-edge/home/category-edge" style={{ padding: "7px 14px", borderRadius: 100, border: "1px solid var(--rt-hairline)", color: "var(--rt-ink)", textDecoration: "none", fontSize: 12.5, fontWeight: 600 }}>
+                  Open Category Edge →
+                </Link>
+                <Link href="/deep-edge/home/trade-edge" style={{ padding: "7px 14px", borderRadius: 100, border: "1px solid var(--rt-hairline)", color: "var(--rt-ink)", textDecoration: "none", fontSize: 12.5, fontWeight: 600 }}>
+                  Open Trade Edge →
+                </Link>
+                <Link href="/deep-edge/home/rankings" style={{ padding: "7px 14px", borderRadius: 100, border: "1px solid var(--rt-hairline)", color: "var(--rt-ink)", textDecoration: "none", fontSize: 12.5, fontWeight: 600 }}>
+                  Open Power Rankings →
+                </Link>
+              </div>
+            </div>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap", fontSize: 12 }}>
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
@@ -411,6 +507,7 @@ function RosterEdgeContent() {
                     showContract={showContract}
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
+                    salaryFormat={salaryFormat}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
                     leadingCell={

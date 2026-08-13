@@ -34,24 +34,34 @@ export function YouVsTeamCells({
   const matchup = myRecord && !isSelf ? myRecord.matchups.find((m) => m.opponentId === opponentTeamId) : null;
 
   return (
-    <div style={{ display: "inline-flex", gap: 3 }}>
-      {scored.map((cat) => {
-        const result = isSelf ? null : matchup?.categoryResults.find((c) => c.category === cat)?.result ?? null;
-        const bg = result === "win" ? "rgba(34,197,94,0.30)" : result === "loss" ? "rgba(239,68,68,0.30)" : result === "draw" ? "rgba(201,138,31,0.28)" : "transparent";
-        const color = result === "win" ? "var(--rt-up)" : result === "loss" ? "var(--rt-down)" : result === "draw" ? "#c98a1f" : "var(--rt-hairline)";
-        return (
-          <span
-            key={cat}
-            title={`${CATEGORY_LABEL[cat]}${result ? `: ${result}` : ""}`}
-            style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 24, height: 20,
-              borderRadius: 4, background: bg, color, fontSize: 9.5, fontWeight: 700, fontFamily: "var(--rt-font-mono)",
-            }}
-          >
-            {isSelf ? "–" : CAT_SHORT[cat]}
-          </span>
-        );
-      })}
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      {/* Projected matchup score — normal-CDF win probability per category,
+       *  summed (see H2HMatchup.projected / simulateH2HCategoryStandings).
+       *  A fixed-width slot so every row's glyph row starts at the same x
+       *  offset whether or not a projection exists (points-mode matchups
+       *  carry no `projected` field). */}
+      <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11.5, fontWeight: 700, minWidth: 52, color: "var(--rt-ink)" }}>
+        {!isSelf && matchup?.projected ? `${matchup.projected.mine.toFixed(1)}-${matchup.projected.theirs.toFixed(1)}` : ""}
+      </span>
+      <div style={{ display: "inline-flex", gap: 3 }}>
+        {scored.map((cat) => {
+          const result = isSelf ? null : matchup?.categoryResults.find((c) => c.category === cat)?.result ?? null;
+          const bg = result === "win" ? "rgba(34,197,94,0.30)" : result === "loss" ? "rgba(239,68,68,0.30)" : result === "draw" ? "rgba(201,138,31,0.28)" : "transparent";
+          const color = result === "win" ? "var(--rt-up)" : result === "loss" ? "var(--rt-down)" : result === "draw" ? "#c98a1f" : "var(--rt-hairline)";
+          return (
+            <span
+              key={cat}
+              title={`${CATEGORY_LABEL[cat]}${result ? `: ${result}` : ""}`}
+              style={{
+                display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 24, height: 20,
+                borderRadius: 4, background: bg, color, fontSize: 9.5, fontWeight: 700, fontFamily: "var(--rt-font-mono)",
+              }}
+            >
+              {isSelf ? "–" : CAT_SHORT[cat]}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }

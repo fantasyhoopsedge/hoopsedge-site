@@ -162,6 +162,12 @@ export interface LeagueRosterSpot {
   status: string;
   /** In-league contract, salary-cap leagues only. */
   salary: number | null;
+  /** Fantrax's own contract-year label ("28-29", "R-2nd", "E-1st", …) — only
+   *  present in leagues that track contract years. Distinct from the FHE
+   *  real-world ContractInfo (resolve.ts's getContractByFheId): this is the
+   *  league's own value, real or custom, used verbatim for salaryFormat
+   *  "custom" leagues (see roster-table.tsx). */
+  contract: string | null;
 }
 
 export interface LeagueRoster {
@@ -243,7 +249,9 @@ export function buildLeague(
   const playerInfo = info.playerInfo ?? {};
   const standingsById = new Map(standings.map((s) => [s.teamId, s]));
 
-  const describe = (fantraxId: string, slot: string, status: string, salary: number | null): LeagueRosterSpot => {
+  const describe = (
+    fantraxId: string, slot: string, status: string, salary: number | null, contract: string | null,
+  ): LeagueRosterSpot => {
     const meta = playerIds[fantraxId];
     const league = playerInfo[fantraxId];
     return {
@@ -254,6 +262,7 @@ export function buildLeague(
       nbaTeam: meta?.team ?? "(N/A)",
       status,
       salary,
+      contract,
     };
   };
 
@@ -261,7 +270,7 @@ export function buildLeague(
     teamId,
     teamName: team.teamName,
     players: (team.rosterItems ?? []).map((item) =>
-      describe(item.id, item.position, item.status, typeof item.salary === "number" ? item.salary : null),
+      describe(item.id, item.position, item.status, typeof item.salary === "number" ? item.salary : null, item.contract?.name ?? null),
     ),
   }));
 
@@ -279,7 +288,7 @@ export function buildLeague(
 
   const freeAgents = Object.entries(playerInfo)
     .filter(([, v]) => AVAILABLE_STATUSES.has(v.status ?? ""))
-    .map(([id, v]) => describe(id, "FA", v.status ?? "FA", null));
+    .map(([id, v]) => describe(id, "FA", v.status ?? "FA", null, null));
 
   const positionSlots: Record<string, number> = {};
   for (const [pos, cfg] of Object.entries(info.rosterInfo?.positionConstraints ?? {})) {
