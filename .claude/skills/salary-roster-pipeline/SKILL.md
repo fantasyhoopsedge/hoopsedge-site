@@ -148,6 +148,26 @@ or dead-money view. Otherwise, flag it and wait for confirmation rather than
 guessing — a real case this session (Kevon Looney) turned out to be a pure
 sheet omission despite being gone from two separate screenshots in a row.
 
+**Absence from ONE source is weak evidence; absence from BOTH `current.csv`'s
+fresh pull AND Pocaro's sheet in the SAME refresh is a genuinely different,
+much stronger signal — surface that list to the owner proactively rather than
+waiting to be asked.** Found 2026-08-16: a player missing from just the roster
+sheet is routinely a pull gap (Looney, and in the same session Payton
+Sandfort/EJ Liddell/Didi Louzada were all absent from one pull and still
+legitimately rostered) — but cross-referencing that list against the fresh
+salary pull too turned a "maybe" list into 30 real candidates, and asking the
+owner directly resolved essentially all of them as real departures (with a few
+correctly-preserved exceptions: draft-and-stash players who were never
+active — Vsevolod Ishchenko, Jack Kayil — and one deliberate placeholder, an
+unsigned FA the owner expects to re-sign with his listed team). **Still don't
+auto-remove even on double-absence** — the hit rate is high but not 100%
+(there's no guarantee it always will be), and the two sources can plausibly
+share a blind spot for the same player. The actionable process change: after
+building the "missing from Pocaro's sheet" list, cross-check it against the
+fresh salary pull too and hand the owner the double-absent subset as its own
+list — that's a much higher-signal ask than the full missing-list dump, and
+turns a slow one-by-one review into a single batch confirmation.
+
 **Bio data**: the same screenshots carry jersey number, position, height,
 weight, DOB, age, years-of-service, draft slot, and nationality — use those
 columns as the source for filling any blank bio field on an already-processed
