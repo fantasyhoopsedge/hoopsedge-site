@@ -64,6 +64,10 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   // i.e. a source-side typo, not a nickname.
   "ej harkless": "elijah harkless",
   "jaden quaintance": "jayden quaintance",
+  // Found 2026-08-16: the roster CSV had carried the wrong first name for a
+  // GSW two-way; his real name is Jeenathon Williams, the registry/nba_players
+  // still store him under the stale "Nate Williams" that predates the correction.
+  "jeenathon williams": "nate williams",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(
