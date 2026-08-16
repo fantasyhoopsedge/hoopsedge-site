@@ -7,7 +7,8 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
   {
     heading: "Product",
     links: [
-      { label: "Dynasty consensus rankings", href: "/dynasty-rankings" },
+      { label: "Dynasty Consensus Rankings", href: "/dynasty-rankings" },
+      { label: "Real Salary Rankings", href: "/real-salary-rankings" },
       { label: "Player value rankings", href: "/seasonal-rankings" },
       { label: "Rookie draft board", href: "/draft-board" },
       { label: "NBA team rosters", href: "/team-rosters" },
