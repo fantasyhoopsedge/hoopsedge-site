@@ -249,3 +249,42 @@ delete from public.nba_roster where season='2026-27' and norm_name in (
 ⚠️ Only delete the "dest TBD" names for players who do NOT reappear on a later
 team's screenshot (a re-home overwrites their row automatically). Re-check this
 list once all 30 teams are processed.
+
+| date | source | move | status |
+|------|--------|------|--------|
+| 2026-08-16 | depth-chart/role-context audit (Ash) | **Tre Mann** → CLE (from CHA) | ✅ applied |
+| 2026-08-16 | depth-chart/role-context audit (Ash) | **Dennis Schroder** → CHA (from CLE) | ✅ applied |
+| 2026-08-16 | depth-chart/role-context audit (full sweep) | **Taelon Peter** → SAS (from IND) | ✅ applied |
+| 2026-08-16 | depth-chart/role-context audit (full sweep) | **Trey Jemison** → TOR (from NYK) | ✅ applied |
+| 2026-08-16 | depth-chart/role-context audit (full sweep) | **Hayden Gray** → BOS (from UTA) | ✅ applied |
+
+**2026-08-16 depth-chart/role-context audit:** `2026-27.csv` already had both
+moves correct (Mann on CLE, Schroder on CHA) but this trade was never logged
+here, which is normally what triggers the role-context REVIEW-note treatment
+(compare Finney-Smith/Claxton/Powell above, all logged the day they moved).
+Because it was never logged, `depth-chart-2026-27.csv` and
+`role-context-2026-27.csv` were never re-keyed to the new teams — both files
+still had Mann under CHA and Schroder under CLE, silently orphaning any
+tier/depth-chart edit under the old team key (the exact failure mode
+`sync-depth-chart.ts`/`sync-role-context.ts` document). Confirmed via
+`--pull --dry-run` on both syncs that Supabase is consistently stale the same
+way (0 changes, no re-key fired) — this was a genuine gap in `2026-27.csv`'s
+own downstream propagation, not a Supabase-vs-CSV drift the sync tooling would
+have caught on its own. Fixed directly: `team` field corrected in both CSVs
+for both rows (in place, not physically re-sorted), plus the matching REVIEW
+note added to `role-context-2026-27.csv`. **Not yet pushed to Supabase** — the
+local CSVs are what `project.py` reads, so this is enough to unblock a local
+projections run; production's `/admin/depth-chart` and `/admin/role-context`
+still show the stale teams until someone runs `--push`.
+
+Ran the same (team, player) check against every row in both CSVs to see if this
+was isolated. It wasn't fully: three more active players were parked under a
+stale but still-live team — **Taelon Peter** (IND→SAS), **Trey Jemison**
+(NYK→TOR), **Hayden Gray** (UTA→BOS) — fixed the same way. All three are
+`cut`-tier fringe/two-way pieces, so the practical projection impact is
+minimal, but the bug is identical in kind to Mann/Schroder. The other ~30
+mismatches found in the same sweep are NOT this bug: they're players
+`2026-27.csv` already has as `FA` (left the league / unsigned), so their stale
+depth-chart/role-context row under an old team is inert — nothing looks them
+up under a team they're not rostered on. Left those alone; not worth a
+30-player cleanup pass for rows nothing reads.
