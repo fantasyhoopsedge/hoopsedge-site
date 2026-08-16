@@ -16,7 +16,7 @@ it appears.
 | | Salary source | Feeds | Ingest script | Read by |
 |---|---|---|---|---|
 | **Salary** | `data/nba-salaries/current.csv` (HoopsHype, hand-refreshed) | `nba_contracts` | `npm run nba:salary` (`salary_ingest.ts`) | `/api/nba/rosters`, `/api/nba/trade-candidates`, `/api/nba/free-agents` |
-| **Roster** | `data/nba-rosters/<season>.csv` (owner's gated cap-sheet screenshot) | `nba_roster` | `npm run nba:roster` (`roster_ingest.ts`) | `/team-rosters` (the live app people actually use) |
+| **Roster** | `data/nba-rosters/<season>.csv` ("Pocaro's sheet" — a shared Google Sheets cap table; the owner shares the view-only link, read directly via the Browser MCP technique below) | `nba_roster` | `npm run nba:roster` (`roster_ingest.ts`) | `/team-rosters` (the live app people actually use) |
 
 `roster_ingest.ts` **reads current.csv too** (via `loadRealSalaries()`) and treats
 it as the authoritative salary source, falling back to the cap-sheet's own
@@ -67,12 +67,47 @@ extension. Confirmed as a repeating pattern across dozens of players once
 looked for deliberately, not a one-off.
 
 **The fix is a team-by-team audit**, cross-referencing each team's roster
-rows against a fresh full-roster cap-sheet screenshot (the owner calls this
+rows against a fresh full-roster cap-sheet pull (the owner calls this
 source "Pocaro's sheet" — a HoopsHype-derived per-team cap table with
 CONTRACT / FA YEAR / 26-27 SALARY columns, plus full bio: jersey, position,
 height, weight, DOB, age, years-of-service, draft, nationality). Progress is
 tracked as one task per team; see the project memory for current status
 (which teams are done, which are pending, and open flags).
+
+**Pulling Pocaro's sheet directly (2026-08-08, supersedes screenshots as the
+default method).** The sheet is a Google Sheets document (shared as a
+view-only "anyone with the link" URL, currently reached via a t.co shortlink)
+with one tab per competition — the NBA tab holds all 30 teams back to back,
+each starting with a `TEAM NAME` header row. Its grid is canvas-rendered, so
+the normal `read_page`/`get_page_text` tools see only chrome (menus, sheet
+tab names) and not a single cell — and navigating straight to
+`.../export?format=csv` triggers a file download, which is blocked (downloads
+require explicit user permission, and shouldn't be routine here anyway).
+What works:
+
+```
+https://docs.google.com/spreadsheets/d/<DOC_ID>/gviz/tq?gid=<GID>&tqx=out:html
+```
+
+This is Google's internal query endpoint; requesting `tqx=out:html` returns
+the sheet as a plain HTML table, which the browser renders normally (not a
+download) and `get_page_text` reads in full — every team, every column, in
+one pull, exactly as typed (no OCR-by-eye transcription risk). `<DOC_ID>` is
+the fixed id in the sheet's URL; `<GID>` is per-tab and not visible from the
+tab bar's accessible name — get it by clicking the target tab (e.g. "NBA")
+and reading `window.location.href` via the browser's JS-eval tool
+immediately after, since Sheets updates the URL fragment client-side on tab
+switch without a real navigation.
+
+This is an attended, Claude-driven browser session reading a document the
+owner already has share access to — the same posture as the manual
+browser-console snippet in "The hard rule" below, just faster and exact
+instead of eyeballed off a screenshot. It does not change any of the
+precedence rules in this file (Pocaro's sheet still only wins for
+`contract_raw`/`fa_year`, never for `salary_26_27`) — it only changes how the
+sheet's text reaches you. Keep it attended and one-off per refresh, same as
+every other manual input in this pipeline — never wire this into a script,
+cron job, or unattended fetch.
 
 **The rule for this specific rebuild — memorize the precedence, it's easy to
 get backwards:**
@@ -113,6 +148,26 @@ or dead-money view. Otherwise, flag it and wait for confirmation rather than
 guessing — a real case this session (Kevon Looney) turned out to be a pure
 sheet omission despite being gone from two separate screenshots in a row.
 
+**Absence from ONE source is weak evidence; absence from BOTH `current.csv`'s
+fresh pull AND Pocaro's sheet in the SAME refresh is a genuinely different,
+much stronger signal — surface that list to the owner proactively rather than
+waiting to be asked.** Found 2026-08-16: a player missing from just the roster
+sheet is routinely a pull gap (Looney, and in the same session Payton
+Sandfort/EJ Liddell/Didi Louzada were all absent from one pull and still
+legitimately rostered) — but cross-referencing that list against the fresh
+salary pull too turned a "maybe" list into 30 real candidates, and asking the
+owner directly resolved essentially all of them as real departures (with a few
+correctly-preserved exceptions: draft-and-stash players who were never
+active — Vsevolod Ishchenko, Jack Kayil — and one deliberate placeholder, an
+unsigned FA the owner expects to re-sign with his listed team). **Still don't
+auto-remove even on double-absence** — the hit rate is high but not 100%
+(there's no guarantee it always will be), and the two sources can plausibly
+share a blind spot for the same player. The actionable process change: after
+building the "missing from Pocaro's sheet" list, cross-check it against the
+fresh salary pull too and hand the owner the double-absent subset as its own
+list — that's a much higher-signal ask than the full missing-list dump, and
+turns a slow one-by-one review into a single batch confirmation.
+
 **Bio data**: the same screenshots carry jersey number, position, height,
 weight, DOB, age, years-of-service, draft slot, and nationality — use those
 columns as the source for filling any blank bio field on an already-processed
@@ -120,21 +175,82 @@ team. Don't fabricate bio facts from general knowledge unless the owner
 explicitly says to (blank jersey numbers are frequently blank in the source
 too — that's not a gap to fill, that's the sheet not having assigned one yet).
 
+**When Pocaro's sheet disagrees with the CSV on which TEAM a player is on,
+trust the sheet — don't require independent corroboration first.** A full
+30-team sweep found six such mismatches in one pass; every one turned out to
+be either a real trade/signing (confirmed against a transactions feed when
+asked) or a stale CSV tag from a prior refresh. The one genuine exception —
+Zaccharie Risacher briefly "corrected" from the sheet's DAL back to ATL based
+on his bio fields matching Atlanta — was itself wrong: the sheet was right
+both times, he really was traded, and the bio fields just hadn't caught up
+yet. Bio-field agreement with the *old* CSV is not evidence the sheet is
+wrong; the CSV is exactly the side more likely to be stale. If the sheet
+shows a team change, apply it (updating `prior_team` to whatever the sheet's
+"2025-26 TEAM" column already says, which usually needs no edit since it's
+naturally the player's pre-move team) — reserve actual pushback for cases
+where the sheet contradicts *itself* (see the extension-vs-current-deal note
+below), not cases where it merely contradicts a source it's supposed to
+supersede.
+
+**A player currently tagged `FA`/`UFA`/`RFA` who appears in the sheet with a
+real team and a real dollar figure has signed** — move them to that team and
+apply the sheet's contract/salary data. This isn't a "maybe," it's the
+direct signal the FA bucket exists to eventually resolve.
+
+**Sense-checking a contract-LENGTH change (not just a number update) against
+the sheet's own numbers, before trusting it:** a length change (e.g. the CSV
+says "1 yr" and the sheet says "4 yr" for the same player) needs a different
+check than a routine bio fill, because the CSV's *old* value is frequently
+the unreliable side — a common real pattern is the CSV having recorded only
+the *current* season's salary as if it were a fresh 1-year deal, when it's
+actually the final year of a longer one Pocaro's sheet correctly shows in
+full. Comparing the new length against the *old* CSV value (e.g. checking
+whether $/year stays proportionally consistent) is the wrong test — it's
+circular, since the old value is exactly the thing suspected of being wrong.
+The right test is internal consistency of the **sheet's own** two fields —
+`contract` (total years) and `fa_year` (when free agency hits, with a `+N`
+suffix meaning N *additional* option years beyond the base year — add N to
+the base, don't just note it as a flag):
+
+```
+position_in_contract = total_years − ((fa_year_base + fa_year_option_suffix) − 2027)
+```
+
+(2027 = the offseason immediately following the 2026-27 season; adjust the
+constant for whatever season is current when re-deriving this.) A result
+between 1 and `total_years` is self-consistent — apply the change. A result
+of **exactly 0** isn't an error, it's a distinct real case: a **signed
+extension that hasn't started yet**, kicking in next season, layered on top
+of a *different*, currently-expiring contract the player is still finishing
+this season (same shape as the extension-boundary case in
+[references/roster-salary-resolution.md](references/roster-salary-resolution.md)
+§1a, just on the roster-CSV side instead of current.csv's salary-year
+columns) — apply the sheet's extension terms as `contract`/`fa_year` anyway,
+Pocaro's sheet is intentionally capturing the extension, not the
+soon-to-expire deal. A **negative** result means something doesn't reconcile
+even on the sheet's own terms — that one needs a human check before applying,
+not a guess (two such cases turned up in one 30-team sweep and both traced to
+the sheet's own numbers being internally inconsistent, not to anything on the
+CSV side).
+
 For the deep technical detail on the resolver logic this rebuild depends on —
 the naive-sum detector, the extension-boundary re-anchoring, the new
 `contract_year_position` field, and the schema changes involved — see
 [references/roster-salary-resolution.md](references/roster-salary-resolution.md).
 
-## The column-count trap: current.csv's header has a column no source ever fills
+## The column-count trap: current.csv's header has columns no source ever fills
 
 `current.csv`'s header is `player,team,salary_current,salary_y2,salary_y3,
-salary_y4,salary_y5,contract_note` — **8 columns** — but every real HoopsHype
-pull (team-by-team or bulk) only ever emits **4** year-columns plus a note.
-Nothing ever populates `salary_y5`. If you ever rebuild or bulk-merge rows
-into `current.csv` from raw pulled text without inserting an explicit blank
-placeholder for that unused 5th column, every row silently shifts one column
-left: the contract note lands in `salary_y5` and the real `contract_note`
-column is empty for every single row.
+salary_y4,salary_y5,salary_y6,contract_note` — **9 columns** (extended from 8
+to 9 in the 2026-07-30 rebuild to match `nba_roster`'s 6-year window; the
+older "8 columns" figure in this doc's history is stale — verify with the awk
+command below rather than trusting a remembered count). Every real HoopsHype
+pull (team-by-team or bulk) only ever emits **4** year-columns plus a note —
+`salary_y5`/`salary_y6` are never populated by any pull. If you ever rebuild
+or bulk-merge rows into `current.csv` from raw pulled text without inserting
+explicit blank placeholders for those two unused columns, every row silently
+shifts left: the contract note lands in `salary_y5` or `salary_y6` and the
+real `contract_note` column is empty for every single row.
 
 This is not cosmetic. `salary_ingest.ts` reads `contract_note` by column
 name to derive `is_two_way`, `free_agent_status` (RFA/UFA), and the stored
@@ -152,12 +268,35 @@ alignment **before** running the real ingest:
 awk -F',' '{print NF}' data/nba-salaries/current.csv | sort | uniq -c
 ```
 
-Every data row should show exactly 8 fields, with the 8th (last) one being
-the note text — not a blank 7th field followed by the note in position 6 or
-7. If you rebuilt from raw pulled rows (which only ever have `name, team,
+Every data row should show exactly **9** fields, with the 9th (last) one
+being the note text — not blank 7th/8th fields followed by the note earlier.
+If you rebuilt from raw pulled rows (which only ever have `name, team,
 sal1..sal4, note` — 7 fields), the fix is to reconstruct each row as `name,
-team, sal1, sal2, sal3, sal4, "", note` explicitly, never a straight
-`cells.join(",")` of whatever the raw pull handed you.
+team, sal1, sal2, sal3, sal4, "", "", note` explicitly (two blanks now, not
+one), never a straight `cells.join(",")` of whatever the raw pull handed you.
+
+**A second, sneakier version of this same trap: CSV quoting, not just column
+count.** Both `data/nba-rosters/<season>.csv` and `current.csv` have real
+rows with an embedded comma inside a quoted field — dual-nationality players
+carry `nationality` as `"USA, BIH"` (Luka Garza), `"LTU, USA"` (Matas
+Buzelis), etc. A naive `line.split(",")` in a hand-rolled script (rather than
+a real CSV parser) treats that embedded comma as a field separator, silently
+shifting every column after it by one for that row only — `prior_team` gets
+overwritten with garbage, `contract` ends up holding what should be
+`prior_team`'s value, and so on. This shipped once, mid-session, in a 29-team
+automated sweep: the tell was a `contract` field containing an obvious team
+name ("Boston Celtics") instead of a dollar figure. **Any script that reads
+or writes either CSV must use a real CSV parser (`csv-parse/sync`, already a
+project dependency — see the import in `roster_ingest.ts`) for reading, and
+must quote any output field containing a comma when writing** — never a bare
+`split(",")` / `.join(",")` pair. Verify after any programmatic rewrite:
+
+```bash
+# every row should report the same field count, matching the header
+npx tsx -e "import {parse} from 'csv-parse/sync'; import fs from 'node:fs'; \
+const rows = parse(fs.readFileSync('data/nba-rosters/2026-27.csv','utf8'), {columns:false, skip_empty_lines:true, relax_quotes:true}); \
+console.log([...new Set(rows.map(r=>r.length))]);"
+```
 
 ## The hard rule: no salary website is ever fetched programmatically
 
@@ -179,6 +318,11 @@ someone runs by hand" — it's a human copying data out of their own browser,
 same as if they'd typed it in. Never turn this into an automated fetch, a
 cron job, a headless-browser script, or anything that runs unattended against
 a salary site. See the reference file for the actual snippet.
+
+This rule is about salary *websites* (HoopsHype, Spotrac) — it does not cover
+Pocaro's sheet, which is a Google Sheets document the owner already shares
+access to, not a scraped third-party site. See "Pulling Pocaro's sheet
+directly" above for that source's own attended-session method.
 
 ## Player identity: one source of truth, two consumers
 

@@ -78,9 +78,16 @@ Next.js 16 App Router + React 19, TypeScript (strict), Tailwind v4, Supabase
    scraper alone: 692 vs 587, all 587 preserved exactly, 101 of the 105 additions
    resolving to a real photo.
 
-   Note `cdn.nba.com` returns **HTTP 200 for any id**, serving a grey silhouette
-   (exactly 4,937 bytes) when it has no photo. "Has an id" is not "has a photo",
-   and no amount of status-code checking will tell you apart — measure the body.
+   Note `cdn.nba.com` returns **HTTP 200 for any id**, serving a placeholder
+   image when it has no real photo yet — **not one fixed size**: a grey
+   silhouette at exactly 4,937 bytes for an id with no photo at all, but a
+   *different* shared placeholder at exactly 12,430 bytes for an id recently
+   assigned to a rookie whose individual photo NBA.com hasn't shot yet (found
+   2026-08-16 rebuilding the scraper after a season-string was found stale —
+   51 of 75 newly-resolved 2026 rookie ids hit this one). "Has an id" is not
+   "has a photo", and no amount of status-code checking will tell you apart —
+   measure the body, and don't assume either byte count is the only
+   placeholder signature; there may be more.
 2. **Supabase tables (runtime).** User/dynamic data: auth profiles, Prediction
    Arena, Draft Night, and the NBA stats pipeline. Read via the clients below.
 

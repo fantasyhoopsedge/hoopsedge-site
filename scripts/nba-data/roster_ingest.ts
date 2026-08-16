@@ -49,6 +49,7 @@ import { parse } from "csv-parse/sync";
 import { getServiceClient, normalizeName } from "./client";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 import { lookupWithNameAlias } from "../../src/lib/player-name-aliases";
+import { playerIdentity } from "../../src/lib/player-identity/bundled";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -222,7 +223,7 @@ function deriveStatus(
 }
 
 type RosterRow = {
-  season: string; team: string; player_id: string | null; norm_name: string; full_name: string;
+  season: string; team: string; player_id: string | null; fhe_id: string | null; norm_name: string; full_name: string;
   jersey: string | null; position: string | null; height: string | null; weight: number | null;
   dob: string | null; age_at_ingest: number | null; years_of_service: string | null;
   draft_raw: string | null; draft_year: number | null; draft_pick: number | null; is_undrafted: boolean;
@@ -286,6 +287,8 @@ async function main() {
   const now = new Date().toISOString();
   const supabase = getServiceClient();
   const playerIndex = await loadPlayerIndex(supabase);
+  const identity = playerIdentity();
+  let missingFheId = 0;
 
   const out: RosterRow[] = [];
   // Which display years (by norm_name) current.csv flags "Qualifying Offer" —
@@ -355,13 +358,28 @@ async function main() {
     // a separate 4yr/$272.9M extension) — only 1.22x but a real $10.8M raise,
     // which is exactly why the flat-dollar threshold exists alongside the ratio
     // one (see isLargeJump above).
+    // Computed early (moved up from its original spot below) specifically so
+    // the jump-detection loop right below can see it — see the guard inside.
+    const contractStatusEarly = deriveStatus(contract.status, draft.year, draft.pick, yos, contract.years);
+
     const jumpSeq: (number | null)[] = [rs?.current ?? null, rs?.y2 ?? null, rs?.y3 ?? null, rs?.y4 ?? null, rs?.y5 ?? null, rs?.y6 ?? null];
     let extensionBoundary: number | null = null; // index i such that slot i+1 is the extension's first year
     for (let i = 0; i < jumpSeq.length - 1; i++) {
       const a = jumpSeq[i], b = jumpSeq[i + 1];
       if (isLargeJump(a, b)) {
         jumpFlags.push({ full_name: name, team, from: yearLabel(season, i), to: yearLabel(season, i + 1), a: a!, b: b!, ratio: b! / a! });
-        if (extensionBoundary == null) extensionBoundary = i; // only the FIRST boundary anchors resolution
+        // A genuine Rookie Scale deal's own guaranteed-years -> team-option-years
+        // step (year 2 -> 3, or 3 -> 4 depending how many years current.csv has
+        // populated) lands almost exactly on LARGE_JUMP_RATIO (1.80x) by CBA
+        // formula, not organic raise variance — confirmed 2026-08-16 against 15
+        // real rookie-scale players, all landing at 1.80-1.81x, vs the two
+        // genuine extension-boundary cases in the same scan (Mitchell 1.22x,
+        // SGA 1.49x) which look nothing alike. A rookie still on his ORIGINAL
+        // rookie-scale contract cannot also have a separately-signed extension
+        // yet — that requires years of NBA service this player doesn't have —
+        // so there is nothing here to re-anchor onto. Only let this jump set
+        // extensionBoundary when the contract ISN'T rookie-scale-shaped.
+        if (extensionBoundary == null && contractStatusEarly !== "Rookie Scale") extensionBoundary = i;
       }
     }
 
@@ -398,7 +416,6 @@ async function main() {
     // backsolve, there isn't enough information to solve uniquely, so nothing
     // is filled (stays blank, same conservative default as everywhere else).
     const rookiePrefill: (number | null)[] = [null, null, null, null]; // yr0..yr3, only set where this resolves something
-    const contractStatusEarly = deriveStatus(contract.status, draft.year, draft.pick, yos, contract.years);
 
     // ── estimate boundary (owner's rule) ────────────────────────────────────────
     // FA_YEAR marks when a contract's known money runs out — estimating past it
@@ -693,9 +710,19 @@ async function main() {
     const draftYearNum = draft.year;
     const yosNum = /^\d+$/.test(yos) ? Number(yos) : null;
     const priorTeam = (r.prior_team ?? "").trim() || null;
+    const matchedPlayerId = matchPlayer(playerIndex, norm, team);
+    // Resolve this row's own fhe_id at write time rather than leaving it to a
+    // one-off `identity:backfill` — a build script that doesn't do this sits at
+    // 0% coverage on every NEW row until someone remembers to re-run the
+    // backfill (see docs/player-identity-layer.md §0 rule 2; caught 2026-08-05
+    // on three other build scripts). espnId when matched; name as the fallback
+    // so an incoming rookie with no nba_players row yet can still resolve via
+    // the registry's own ESPN/BBM/Fantrax ids.
+    const fheId = identity.resolveOrNull({ espnId: matchedPlayerId, name })?.fheId ?? null;
+    if (!fheId) missingFheId++;
 
     out.push({
-      season, team, player_id: matchPlayer(playerIndex, norm, team), norm_name: norm, full_name: name,
+      season, team, player_id: matchedPlayerId, fhe_id: fheId, norm_name: norm, full_name: name,
       jersey: (r.jersey ?? "").trim() || null,
       position: (r.pos ?? "").trim() || null,
       height: (r.height ?? "").trim() || null,
@@ -777,6 +804,9 @@ async function main() {
       `${out.length} players across ${teams.length} team(s) [${teams.join(", ")}] ` +
       `${dryRun ? "would be upserted" : "upserted"}, ${unmatched.length} unmatched to nba_players.`,
   );
+  if (missingFheId) {
+    console.log(`  ⚠ ${missingFheId} row(s) carry no fhe_id (no identity in the registry — check whether they need one).`);
+  }
   if (orphanRows.length) {
     console.log(
       `\n${orphanRows.length} stale row(s) ${dryRun ? "would be removed" : "removed"} ` +
@@ -837,9 +867,15 @@ async function main() {
   const SALARY_YR_COLUMNS = 6;
   const consistencyIssues = out.filter((r) => {
     const slots6 = [r.salary_yr1, r.salary_yr2, r.salary_yr3, r.salary_yr4, r.salary_yr5, r.salary_yr6];
+    // Same rookie-scale-formula false positive as the main loop's extensionBoundary
+    // (see the note there, dated 2026-08-16) — this re-derivation runs independently
+    // on the final resolved values, so it needs the same guard or it reports a
+    // "boundary" the actual write never used.
     let boundary: number | null = null;
-    for (let i = 0; i < slots6.length - 1; i++) {
-      if (isLargeJump(slots6[i], slots6[i + 1])) { boundary = i; break; }
+    if (r.contract_status !== "Rookie Scale") {
+      for (let i = 0; i < slots6.length - 1; i++) {
+        if (isLargeJump(slots6[i], slots6[i + 1])) { boundary = i; break; }
+      }
     }
     const start = boundary == null ? 0 : boundary + 1;
     const roomLeft = SALARY_YR_COLUMNS - start;
@@ -856,8 +892,10 @@ async function main() {
     for (const r of consistencyIssues) {
       const slots6 = [r.salary_yr1, r.salary_yr2, r.salary_yr3, r.salary_yr4, r.salary_yr5, r.salary_yr6];
       let boundary: number | null = null;
-      for (let i = 0; i < slots6.length - 1; i++) {
-        if (isLargeJump(slots6[i], slots6[i + 1])) { boundary = i; break; }
+      if (r.contract_status !== "Rookie Scale") {
+        for (let i = 0; i < slots6.length - 1; i++) {
+          if (isLargeJump(slots6[i], slots6[i + 1])) { boundary = i; break; }
+        }
       }
       const start = boundary == null ? 0 : boundary + 1;
       const roomLeft = SALARY_YR_COLUMNS - start;

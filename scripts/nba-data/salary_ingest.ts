@@ -25,6 +25,7 @@ import { CURRENT_SEASON, getServiceClient, normalizeName } from "./client";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 import { lookupWithNameAlias, NICKNAME_TO_LEGAL_NAME } from "../../src/lib/player-name-aliases";
 import { identityFromRow, PlayerIdentityIndex } from "../../src/lib/player-identity";
+import { playerIdentity } from "../../src/lib/player-identity/bundled";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -74,6 +75,7 @@ function derive(futureSalaries: (number | null)[], note: string | null): Derived
 
 type ContractRow = {
   player_id: string | null;
+  fhe_id: string | null;
   salary_player_name: string;
   norm_name: string;
   team: string | null;
@@ -292,6 +294,8 @@ async function main() {
   const contracts: ContractRow[] = [];
   const supabase = getServiceClient();
   const index = await loadPlayerIndex(supabase);
+  const identity = playerIdentity();
+  let missingFheId = 0;
 
   for (const row of rows.slice(1)) {
     const name = (row[playerIdx] ?? "").trim();
@@ -301,9 +305,17 @@ async function main() {
     const sal = salaryIdxs.map((i) => parseMoney(row[i]));
     const note = noteIdx >= 0 ? (row[noteIdx] ?? "").trim() || null : null;
     const d = derive(sal.slice(1), note); // future = y2..y5
+    const matchedPlayerId = matchPlayer(index, norm, team);
+    // Resolve this row's own fhe_id at write time — see roster_ingest.ts and
+    // docs/player-identity-layer.md §0 rule 2 for why leaving this to
+    // identity:backfill sits new rows at 0% coverage until someone remembers
+    // to rerun it.
+    const fheId = identity.resolveOrNull({ espnId: matchedPlayerId, name, team })?.fheId ?? null;
+    if (!fheId) missingFheId++;
 
     contracts.push({
-      player_id: matchPlayer(index, norm, team),
+      player_id: matchedPlayerId,
+      fhe_id: fheId,
       salary_player_name: name,
       norm_name: norm,
       team,
@@ -364,6 +376,9 @@ async function main() {
       `${deduped.length} contracts ${dryRun ? "would be upserted" : "upserted"}, ` +
       `${unmatched.length} unmatched.`,
   );
+  if (missingFheId) {
+    console.log(`  ⚠ ${missingFheId} row(s) carry no fhe_id (no identity in the registry — check whether they need one).`);
+  }
   if (unmatched.length) {
     console.log(`\nUnmatched (see ${UNMATCHED_PATH}):`);
     for (const c of unmatched) console.log(`  - ${c.salary_player_name} (${c.team ?? "?"})`);

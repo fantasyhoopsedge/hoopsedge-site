@@ -113,14 +113,38 @@ This detection is also surfaced separately as a **report-only signal**
 just drive resolution, it's also the fastest way to spot which players in a
 brand-new team need the closest look when cross-referencing the next cap-sheet
 screenshot. Two known limitations, found by testing this against the whole
-league rather than assumed: (1) a first-round rookie's normal year-1→year-2
-rookie-scale step often *also* clears the ratio threshold (1.6-2.1x is
-completely normal there) — that's an expected false-positive for the
-report, not a bug, and (2) the naive-sum bug this all exists to catch has no
-internal signature at all when a contract total simply happens to be
-*correct* for the visible window — it can only be caught by an external
+league rather than assumed: (1) a first-round rookie's normal rookie-scale
+guaranteed-years→team-option-years step *also* clears the ratio threshold —
+not "often," but **almost exactly** (1.80-1.81x is the CBA formula's own step
+ratio, confirmed against 15 real players 2026-08-16, distinct from real
+extension boundaries in the same scan which land nowhere near it: Mitchell
+1.22x, SGA 1.49x) — that's an expected false-positive for the *report*
+specifically, still surfaced there on purpose since it's still useful context
+for a human reviewing the row, and (2) the naive-sum bug this all exists to
+catch has no internal signature at all when a contract total simply happens to
+be *correct* for the visible window — it can only be caught by an external
 source (the cap-sheet screenshot itself), never derived from `current.csv`
 alone. See the SKILL.md rebuild section for that half of the fix.
+
+**Fixed 2026-08-16: limitation (1) was worse than "report noise" — it was also
+silently driving `extensionBoundary` itself**, re-anchoring resolution and
+downgrading `contract_status` from `Rookie Scale` to `Standard` for any
+first-rounder whose guaranteed→option-year transition happened to be visible
+in `current.csv`'s populated years (Sergio de Larrea, Chris Cenac Jr., Joshua
+Jefferson, Koa Peat, Alex Karaban, Tarris Reed Jr., and others — at least 15
+found in one scan). **A player still on his original rookie-scale contract
+cannot also have a separately-signed extension** — that requires years of NBA
+service he doesn't have yet — so there was never anything real for the
+detector to find here. Both the live resolver's `extensionBoundary` and the
+standalone post-hoc consistency-check function (`consistencyIssues`, further
+down `roster_ingest.ts`, which independently re-derives the same boundary on
+the *final resolved* salary array for its own report) now skip boundary
+detection when `contractStatusEarly`/`r.contract_status === "Rookie Scale"` —
+computed *before* the jump-scan specifically so this guard is available.
+`jumpFlags` itself is deliberately left unguarded (still reports the jump as
+context, per the "expected false-positive for the report" framing above) —
+only the two things that actually change written data or the "needs review"
+verdict were gated.
 
 ## 2. Gaps get filled, never left as someone's guess dressed up as fact
 
