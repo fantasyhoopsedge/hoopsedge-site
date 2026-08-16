@@ -7,7 +7,8 @@ import { SiteNav } from "@/components/site-nav";
 import { Button } from "./button";
 
 const LINKS = [
-  { label: "Consensus rankings", href: "/dynasty-rankings" },
+  { label: "Dynasty Consensus", href: "/dynasty-rankings" },
+  { label: "Real Salary", href: "/real-salary-rankings" },
   { label: "Rookie board", href: "/draft-board" },
   { label: "Team rosters", href: "/team-rosters" },
   { label: "Player value", href: "/seasonal-rankings" },
