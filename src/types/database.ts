@@ -438,6 +438,33 @@ export interface Database {
           },
         ];
       };
+      // Precomputed points-league fantasy scores (migration
+      // 20260816010000_points_league_values), built by
+      // scripts/build-points-league-values.ts from season_player_stats — a flat
+      // weighted sum (the "Universal Standard Matrix"), no z-scoring, no
+      // per-league-size fan-out. One row per (player_id, season, season_type),
+      // same natural key as season_player_stats, whose FK it targets directly.
+      points_league_values: {
+        Row: {
+          player_id: string;
+          season: number;
+          season_type: string;
+          fpts: number | null;
+          fpts_total: number | null;
+          fpts_rank: number | null;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "points_league_values_player_id_season_season_type_fkey";
+            columns: ["player_id", "season", "season_type"];
+            referencedRelation: "season_player_stats";
+            referencedColumns: ["player_id", "season", "season_type"];
+          },
+        ];
+      };
       // Enriched per-season roster (migration 20260630000000_nba_roster;
       // salary_yr5/yr6 added in 20260730000000_nba_roster_salary_yr5_yr6;
       // contract_year_position added in 20260730010000_nba_roster_contract_year_position).
@@ -779,6 +806,7 @@ export type NbaTradeCandidate = Database["public"]["Views"]["nba_trade_candidate
 // ── Seasonal rankings convenience aliases ───────────────────────────────────
 export type SeasonPlayerStats = Database["public"]["Tables"]["season_player_stats"]["Row"];
 export type SeasonPlayerValues = Database["public"]["Tables"]["season_player_values"]["Row"];
+export type PointsLeagueValues = Database["public"]["Tables"]["points_league_values"]["Row"];
 
 // ── Real Salary Rankings convenience alias ──────────────────────────────────
 export type RealSalaryValues = Database["public"]["Tables"]["real_salary_values"]["Row"];

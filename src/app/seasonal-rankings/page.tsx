@@ -1,7 +1,9 @@
 import type { SeasonPlayerValues } from "@/types/database";
 import { LEAGUE_SIZES, CANONICAL_SIZE } from "@/lib/value/compute-values";
 import { SEASON_DATASETS, datasetFromKey, datasetKey } from "@/lib/value/seasons";
-import { getStats, getValuesForSize, indexValuesById } from "@/lib/value/seasonal-data";
+import {
+  getStats, getValuesForSize, getPointsLeagueValues, indexValuesById, indexPointsById,
+} from "@/lib/value/seasonal-data";
 import { getDraftYears } from "@/app/team-rosters/_components/roster-live-data";
 import rankings from "@/lib/dynasty-rankings.json";
 import { playerIdentity } from "@/lib/player-identity/bundled";
@@ -59,10 +61,11 @@ export default async function SeasonalRankingsPage({
   // payload ~10× smaller, which dominated both render and transfer time.
   const canonicalSize = dataset.defaultSize ?? CANONICAL_SIZE;
 
-  const [stats, canonicalValues, draftYears] = await Promise.all([
+  const [stats, canonicalValues, draftYears, pointsRows] = await Promise.all([
     getStats(dataset.season, dataset.type),
     getValuesForSize(dataset.season, dataset.type, canonicalSize),
     getDraftYears(),
+    getPointsLeagueValues(dataset.season, dataset.type),
   ]);
 
   const valuesBySize: Record<number, Record<string, SeasonPlayerValues>> = {
@@ -73,6 +76,7 @@ export default async function SeasonalRankingsPage({
     <SeasonalRankingsTable
       players={stats}
       valuesBySize={valuesBySize}
+      pointsValues={indexPointsById(pointsRows)}
       leagueSizes={[...LEAGUE_SIZES]}
       canonicalSize={canonicalSize}
       seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
