@@ -49,6 +49,7 @@ import { parse } from "csv-parse/sync";
 import { getServiceClient, normalizeName } from "./client";
 import { normalizeTeamAbbr } from "../../src/lib/nba-teams";
 import { lookupWithNameAlias } from "../../src/lib/player-name-aliases";
+import { playerIdentity } from "../../src/lib/player-identity/bundled";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -222,7 +223,7 @@ function deriveStatus(
 }
 
 type RosterRow = {
-  season: string; team: string; player_id: string | null; norm_name: string; full_name: string;
+  season: string; team: string; player_id: string | null; fhe_id: string | null; norm_name: string; full_name: string;
   jersey: string | null; position: string | null; height: string | null; weight: number | null;
   dob: string | null; age_at_ingest: number | null; years_of_service: string | null;
   draft_raw: string | null; draft_year: number | null; draft_pick: number | null; is_undrafted: boolean;
@@ -286,6 +287,8 @@ async function main() {
   const now = new Date().toISOString();
   const supabase = getServiceClient();
   const playerIndex = await loadPlayerIndex(supabase);
+  const identity = playerIdentity();
+  let missingFheId = 0;
 
   const out: RosterRow[] = [];
   // Which display years (by norm_name) current.csv flags "Qualifying Offer" —
@@ -693,9 +696,19 @@ async function main() {
     const draftYearNum = draft.year;
     const yosNum = /^\d+$/.test(yos) ? Number(yos) : null;
     const priorTeam = (r.prior_team ?? "").trim() || null;
+    const matchedPlayerId = matchPlayer(playerIndex, norm, team);
+    // Resolve this row's own fhe_id at write time rather than leaving it to a
+    // one-off `identity:backfill` — a build script that doesn't do this sits at
+    // 0% coverage on every NEW row until someone remembers to re-run the
+    // backfill (see docs/player-identity-layer.md §0 rule 2; caught 2026-08-05
+    // on three other build scripts). espnId when matched; name as the fallback
+    // so an incoming rookie with no nba_players row yet can still resolve via
+    // the registry's own ESPN/BBM/Fantrax ids.
+    const fheId = identity.resolveOrNull({ espnId: matchedPlayerId, name })?.fheId ?? null;
+    if (!fheId) missingFheId++;
 
     out.push({
-      season, team, player_id: matchPlayer(playerIndex, norm, team), norm_name: norm, full_name: name,
+      season, team, player_id: matchedPlayerId, fhe_id: fheId, norm_name: norm, full_name: name,
       jersey: (r.jersey ?? "").trim() || null,
       position: (r.pos ?? "").trim() || null,
       height: (r.height ?? "").trim() || null,
@@ -777,6 +790,9 @@ async function main() {
       `${out.length} players across ${teams.length} team(s) [${teams.join(", ")}] ` +
       `${dryRun ? "would be upserted" : "upserted"}, ${unmatched.length} unmatched to nba_players.`,
   );
+  if (missingFheId) {
+    console.log(`  ⚠ ${missingFheId} row(s) carry no fhe_id (no identity in the registry — check whether they need one).`);
+  }
   if (orphanRows.length) {
     console.log(
       `\n${orphanRows.length} stale row(s) ${dryRun ? "would be removed" : "removed"} ` +
