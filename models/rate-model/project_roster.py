@@ -38,6 +38,29 @@ ROSTER_CSV = os.path.join(REPO, "data", "nba-rosters", "2026-27.csv")
 OUT_DIR = os.path.join(REPO, "output", "rate-model")
 EMIT = ["PTS", "REB", "AST", "STL", "BLK", "3PM", "TOV", "FGM", "FGA", "FTM", "FTA"]
 
+# Hand-maintained per-player FG% overrides -- deliberately NOT a general model term.
+# Investigated 2026-08: does a teammate missing a big chunk of the season drag down
+# whoever absorbs the extra usage, and does the shipped model under-correct for it?
+# Tested three ways -- 18 hand-picked 2025-26 cases, an automated screen of every
+# qualifying case 2012-2026 (n=3,966), and a careful 19-player rerun pinned to a
+# single season (n=210) -- and found NO general, stable relationship worth adding to
+# Stage 3 (correlations of -0.02 to -0.12, sign flips team to team and season to
+# season for the same player). See docs of that investigation for the full method.
+#
+# Derrick White is a one-off, evidenced exception, not a new rule. He shot .394 for
+# 2025-26 (1,108 FGA) but split cleanly on Jayson Tatum's Achilles-related absence
+# (66/82 games missed): .389 in the 64 games Tatum missed vs .422 in the 15 he
+# played. The shipped model (recency + attempts-shrink + age curve, no visibility
+# into a teammate's health) lands on .406 -- a partial reversion that has no idea
+# WHY White's rate dropped. data/nba-rosters/depth-chart-2026-27.csv already has
+# Tatum back as a healthy starter (68 games, injury=none) for 2026-27, i.e. the
+# specific context behind White's .422 is expected to recur. Override to .422 (his
+# own in-context rate this season) rather than his older .442 career baseline,
+# which predates the bigger role he's settled into at 32.
+MANUAL_FG_OVERRIDES: dict[str, float] = {
+    "derrick white": 0.422,
+}
+
 
 def main() -> None:
     d, _ = build()
@@ -66,6 +89,10 @@ def main() -> None:
         h["_lag"] = TARGET - h["season"]
         pos = pos_last.get(r["norm_name"], "F")
         rate = project(h, r["age"], pos, curves, pmeans, att_pg)
+        if r["norm_name"] in MANUAL_FG_OVERRIDES:
+            was = rate["FG%"]
+            rate["FG%"] = MANUAL_FG_OVERRIDES[r["norm_name"]]
+            print(f"  manual FG% override: {r['player']} {was:.3f} -> {rate['FG%']:.3f}")
         rate["FGM"] = rate["FGA"] * rate["FG%"]
         rate["FTM"] = rate["FTA"] * rate["FT%"]
         rec = {"athlete_id": int(aid), "player": r["player"], "team": r["team"], "pos": pos,

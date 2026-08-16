@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
+import type { PointsLeagueValues, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
@@ -19,8 +19,23 @@ type ValuesBySize = Record<number, Record<string, SeasonPlayerValues>>;
 type SortKey =
   | "value" | "minus1v" | "consensus" | "age" | "g" | "mpg" | "usg"
   | "pts" | "fg3m" | "reb" | "ast" | "stl" | "blk" | "fga" | "fg_pct" | "fta" | "ft_pct" | "tov"
-  | "fg_v" | "ft_v";
+  | "fg_v" | "ft_v" | "fgm" | "ftm";
 type SortDir = "asc" | "desc";
+
+// The "Universal Standard Matrix" (Ash, 2026-08-16) — the default weights most
+// points-league players mean by "standard points league." Kept in sync with
+// scripts/build-points-league-values.ts's WEIGHTS; FG%/FT%/3PM are
+// deliberately unweighted, matching the standard format.
+const PTS_WEIGHTS = { pts: 1.0, reb: 1.2, ast: 1.5, stl: 3.0, blk: 3.0, tov: -1.0 } as const;
+
+// season_player_stats has no separate makes column — derive it the same way
+// src/lib/fantrax/analyze.ts's pointsInputsOf() does for a live per-league formula.
+function fgmOf(s: SeasonPlayerStats): number | null {
+  return s.fga == null || s.fg_pct == null ? null : s.fga * s.fg_pct;
+}
+function ftmOf(s: SeasonPlayerStats): number | null {
+  return s.fta == null || s.ft_pct == null ? null : s.fta * s.ft_pct;
+}
 
 // The active (per-game OR totals) value set for one player: the 9 category
 // V-scores plus the two summary scores, already mode-resolved.
@@ -236,6 +251,11 @@ function SortTh({
 export function SeasonalRankingsTable(props: {
   players: SeasonPlayerStats[];
   valuesBySize: ValuesBySize;
+  /** Points-league fantasy scores, keyed by player_id — see getPointsLeagueValues.
+   *  No league-size dependency (flat weighted sum, no baseline pool), so this is
+   *  a single flat map, unlike valuesBySize. Empty for Summer League datasets
+   *  (excluded from that build) — cells just read "—". */
+  pointsValues: Record<string, PointsLeagueValues>;
   leagueSizes: number[];
   canonicalSize: number;
   seasons: SeasonOption[];
@@ -245,7 +265,10 @@ export function SeasonalRankingsTable(props: {
   ageByFheId: Record<string, number>;
   draftYearByFheId: Record<string, number>;
 }) {
-  const { players, valuesBySize, leagueSizes, canonicalSize, seasons, activeSeason, ageByFheId, draftYearByFheId } = props;
+  const {
+    players, valuesBySize, pointsValues, leagueSizes, canonicalSize, seasons, activeSeason,
+    ageByFheId, draftYearByFheId,
+  } = props;
   const router = useRouter();
 
   // Consensus ages are a snapshot at the latest season (2026 = 2025-26); shift
@@ -363,7 +386,9 @@ export function SeasonalRankingsTable(props: {
   // CatV mode: which of the three values the CatV column shows + ranks by.
   // 9CatV = standard value (avg of 9 z-scores); 8CatV = turnovers removed
   // (avg of the other 8); Minus1V = best 8 (drop each player's worst category).
-  const [catMode, setCatMode] = useState<"9cat" | "8cat" | "minus1v">("9cat");
+  // "points" swaps the whole value-column region for the flat-weighted
+  // points-league score (see PTS_WEIGHTS) instead of any z-scored 9-cat mode.
+  const [catMode, setCatMode] = useState<"9cat" | "8cat" | "minus1v" | "points">("9cat");
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [tickedOnly, setTickedOnly] = useState(false);
@@ -456,6 +481,41 @@ export function SeasonalRankingsTable(props: {
     return { fga: meanStd(fga), fta: meanStd(fta), usg: meanStd(usg) };
   }, [players, perGame]);
 
+  // Same idea as rateStats above, but for the points-mode value columns: FPTS
+  // and the six weighted-category contributions have no z-scored backend
+  // equivalent (they're a flat weighted sum, not compute-values.ts output), so
+  // color them off a population mean/σ computed here, mode-matched to Per
+  // Game/Totals. Only computed when actually in points mode.
+  const pointsRateStats = useMemo(() => {
+    if (catMode !== "points") return null;
+    const totOf = (v: number | null, gp: number | null) => (v == null ? null : v * (gp ?? 0));
+    const nums = (vals: (number | null)[]) => vals.filter((v): v is number => v != null);
+    const weighted = (stat: keyof typeof PTS_WEIGHTS) =>
+      nums(players.map((s) => {
+        const raw = perGame ? s[stat] : totOf(s[stat], s.g);
+        return raw == null ? null : raw * PTS_WEIGHTS[stat];
+      }));
+    const fpts = nums(players.map((s) => {
+      const p = pointsValues[s.player_id];
+      if (!p) return null;
+      return perGame ? p.fpts : p.fpts_total;
+    }));
+    const fgm = nums(players.map((s) => {
+      const v = fgmOf(s);
+      return v == null ? null : perGame ? v : v * (s.g ?? 0);
+    }));
+    const ftm = nums(players.map((s) => {
+      const v = ftmOf(s);
+      return v == null ? null : perGame ? v : v * (s.g ?? 0);
+    }));
+    return {
+      fpts: meanStd(fpts),
+      pts: meanStd(weighted("pts")), reb: meanStd(weighted("reb")), ast: meanStd(weighted("ast")),
+      stl: meanStd(weighted("stl")), blk: meanStd(weighted("blk")), tov: meanStd(weighted("tov")),
+      fgm: meanStd(fgm), ftm: meanStd(ftm),
+    };
+  }, [players, perGame, catMode, pointsValues]);
+
   // The CatV value a row displays/sorts by. `value` is the AVERAGE of the 9
   // category z-scores (sum/9) and `minus1v` the average of the best 8, so 8CatV
   // must re-average over 8: drop the turnover z-score from the sum (value·9) and
@@ -477,10 +537,25 @@ export function SeasonalRankingsTable(props: {
   // follow it via totalling, so ordering matches what's on screen.
   const sortValue = (s: SeasonPlayerStats, av: ActiveV | null, key: SortKey): number | null => {
     switch (key) {
-      case "value": return catValue(av);
+      case "value": {
+        if (catMode === "points") {
+          const p = pointsValues[s.player_id];
+          if (!p) return null;
+          return perGame ? p.fpts : p.fpts_total;
+        }
+        return catValue(av);
+      }
       case "minus1v": return av?.minus1v ?? null;
       case "fg_v": return av?.fg ?? null;
       case "ft_v": return av?.ft ?? null;
+      case "fgm": {
+        const v = fgmOf(s);
+        return v == null ? null : perGame ? v : v * (s.g ?? 0);
+      }
+      case "ftm": {
+        const v = ftmOf(s);
+        return v == null ? null : perGame ? v : v * (s.g ?? 0);
+      }
       case "consensus": return s.consensus_rank ?? null;
       case "age": return ageOf(s);
       case "g": return s.g ?? null; // a count — never totalled
@@ -510,7 +585,7 @@ export function SeasonalRankingsTable(props: {
     });
     return rows.map(({ s, v }, i) => ({ s, v, rank: i + 1 }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [merged, sort, perGame, catMode]);
+  }, [merged, sort, perGame, catMode, pointsValues]);
 
   const visible = useMemo<Row[]>(() => {
     const q = search.trim().toLowerCase();
@@ -559,6 +634,7 @@ export function SeasonalRankingsTable(props: {
     let fga = 0, fta = 0, fgm = 0, ftm = 0, usgWeighted = 0;
     let gpV = 0, fgaV = 0, ftaV = 0;
     let vPtsS = 0, vFg3S = 0, vRebS = 0, vAstS = 0, vStlS = 0, vBlkS = 0, vToS = 0, vFgS = 0, vFtS = 0;
+    let fptsTotal = 0, fptsGp = 0;
     for (const { s, v } of rows) {
       const gp = s.g ?? 0;
       g += gp;
@@ -593,9 +669,14 @@ export function SeasonalRankingsTable(props: {
         if (av.fg != null) vFgS += av.fg * fgaTot;
         if (av.ft != null) vFtS += av.ft * ftaTot;
       }
+      const pv = pointsValues[s.player_id];
+      if (pv?.fpts_total != null) {
+        fptsTotal += pv.fpts_total;
+        fptsGp += gp;
+      }
     }
     return {
-      n: rows.length, g, min, pts, fg3m, reb, ast, stl, blk, tov, fga, fta,
+      n: rows.length, g, min, pts, fg3m, reb, ast, stl, blk, tov, fga, fta, fgm, ftm,
       fgPct: fga > 0 ? fgm / fga : null,
       ftPct: fta > 0 ? ftm / fta : null,
       usgPct: min > 0 ? usgWeighted / min : null,
@@ -608,8 +689,10 @@ export function SeasonalRankingsTable(props: {
       vTo: gpV > 0 ? vToS / gpV : null,
       vFg: fgaV > 0 ? vFgS / fgaV : null,
       vFt: ftaV > 0 ? vFtS / ftaV : null,
+      fptsTotal,
+      fpts: fptsGp > 0 ? fptsTotal / fptsGp : null,
     };
-  }, [visible, checked, perGame]);
+  }, [visible, checked, perGame, pointsValues]);
 
   const onSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: defaultDir(key) }));
@@ -698,19 +781,20 @@ export function SeasonalRankingsTable(props: {
             </select>
           </div>
 
-          {/* Cat Value mode — 9CatV (full) vs 8CatV (turnovers removed) */}
+          {/* Value mode — 9CatV (full) / 8CatV (turnovers removed) / Minus1V / Points League */}
           <div className="sr-group sr-g-catmode">
-            <label className="sr-label" htmlFor="sr-catmode">Cat Value</label>
+            <label className="sr-label" htmlFor="sr-catmode">Value</label>
             <select
               id="sr-catmode"
               className="sr-select"
               value={catMode}
-              onChange={(e) => setCatMode(e.target.value as "9cat" | "8cat" | "minus1v")}
-              title="9CatV = standard · 8CatV removes turnovers · Minus1V drops each player's worst category"
+              onChange={(e) => setCatMode(e.target.value as "9cat" | "8cat" | "minus1v" | "points")}
+              title="9CatV = standard · 8CatV removes turnovers · Minus1V drops each player's worst category · Points League = flat weighted fantasy points"
             >
               <option value="9cat">9CatV</option>
               <option value="8cat">8CatV (no TO)</option>
               <option value="minus1v">Minus1V</option>
+              <option value="points">Points League</option>
             </select>
           </div>
 
@@ -929,21 +1013,41 @@ export function SeasonalRankingsTable(props: {
                   <SortTh label="GP" sortKey="g" sort={sort} onSort={onSort} />
                   <SortTh label="MIN" sortKey="mpg" sort={sort} onSort={onSort} />
                   <SortTh label="USG" sortKey="usg" sort={sort} onSort={onSort} />
-                  <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
-                  <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
-                  <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
-                  <SortTh label="3PM" sortKey="fg3m" sort={sort} onSort={onSort} />
-                  <SortTh label="REB" sortKey="reb" sort={sort} onSort={onSort} />
-                  <SortTh label="AST" sortKey="ast" sort={sort} onSort={onSort} />
-                  <SortTh label="STL" sortKey="stl" sort={sort} onSort={onSort} />
-                  <SortTh label="BLK" sortKey="blk" sort={sort} onSort={onSort} />
-                  <SortTh label="FGA" sortKey="fga" sort={sort} onSort={onSort} />
-                  <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
-                  <SortTh label="FTA" sortKey="fta" sort={sort} onSort={onSort} />
-                  <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
-                  <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
-                  <SortTh label="FG%V" sortKey="fg_v" sort={sort} onSort={onSort} />
-                  <SortTh label="FT%V" sortKey="ft_v" sort={sort} onSort={onSort} />
+                  {catMode === "points" ? (
+                    <>
+                      <SortTh label="FPTS" sortKey="value" sort={sort} onSort={onSort} strong />
+                      <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
+                      <SortTh label="REB" sortKey="reb" sort={sort} onSort={onSort} />
+                      <SortTh label="AST" sortKey="ast" sort={sort} onSort={onSort} />
+                      <SortTh label="STL" sortKey="stl" sort={sort} onSort={onSort} />
+                      <SortTh label="BLK" sortKey="blk" sort={sort} onSort={onSort} />
+                      <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
+                      <SortTh label="FGA" sortKey="fga" sort={sort} onSort={onSort} />
+                      <SortTh label="FGM" sortKey="fgm" sort={sort} onSort={onSort} />
+                      <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
+                      <SortTh label="FTA" sortKey="fta" sort={sort} onSort={onSort} />
+                      <SortTh label="FTM" sortKey="ftm" sort={sort} onSort={onSort} />
+                      <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
+                    </>
+                  ) : (
+                    <>
+                      <SortTh label="CatV" sortKey="value" sort={sort} onSort={onSort} strong />
+                      <SortTh label="MINUS1V" sortKey="minus1v" sort={sort} onSort={onSort} wide />
+                      <SortTh label="PTS" sortKey="pts" sort={sort} onSort={onSort} />
+                      <SortTh label="3PM" sortKey="fg3m" sort={sort} onSort={onSort} />
+                      <SortTh label="REB" sortKey="reb" sort={sort} onSort={onSort} />
+                      <SortTh label="AST" sortKey="ast" sort={sort} onSort={onSort} />
+                      <SortTh label="STL" sortKey="stl" sort={sort} onSort={onSort} />
+                      <SortTh label="BLK" sortKey="blk" sort={sort} onSort={onSort} />
+                      <SortTh label="FGA" sortKey="fga" sort={sort} onSort={onSort} />
+                      <SortTh label="FG%" sortKey="fg_pct" sort={sort} onSort={onSort} />
+                      <SortTh label="FTA" sortKey="fta" sort={sort} onSort={onSort} />
+                      <SortTh label="FT%" sortKey="ft_pct" sort={sort} onSort={onSort} />
+                      <SortTh label="TO" sortKey="tov" sort={sort} onSort={onSort} />
+                      <SortTh label="FG%V" sortKey="fg_v" sort={sort} onSort={onSort} />
+                      <SortTh label="FT%V" sortKey="ft_v" sort={sort} onSort={onSort} />
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -990,21 +1094,43 @@ export function SeasonalRankingsTable(props: {
                       <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{ts.g}</td>
                       <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.min)) : fInt(ts.min)}</td>
                       <td className="sr-td sr-num sr-summary-cell" style={bg(zUsgTs)}>{f1(ts.usgPct)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
-                      <td className="sr-td sr-num sr-num-wide sr-summary-cell" style={cellStyle}>—</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vPts)}>{perGame ? f1(per(ts.pts)) : fInt(ts.pts)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg3)}>{perGame ? f1(per(ts.fg3m)) : fInt(ts.fg3m)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vReb)}>{perGame ? f1(per(ts.reb)) : fInt(ts.reb)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vAst)}>{perGame ? f1(per(ts.ast)) : fInt(ts.ast)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vStl)}>{perGame ? f1(per(ts.stl)) : fInt(ts.stl)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vBlk)}>{perGame ? f1(per(ts.blk)) : fInt(ts.blk)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(zFgaTs)}>{perGame ? f1(per(ts.fga)) : fInt(ts.fga)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg)}>{fPct(ts.fgPct)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(zFtaTs)}>{perGame ? f1(per(ts.fta)) : fInt(ts.fta)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFt)}>{fPct(ts.ftPct)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vTo)}>{perGame ? f1(per(ts.tov)) : fInt(ts.tov)}</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
-                      <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                      {catMode === "points" ? (
+                        <>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>
+                            {perGame ? f1(ts.fpts) : f1(ts.fptsTotal)}
+                          </td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.pts) == null ? null : per(ts.pts)! * PTS_WEIGHTS.pts) : f1(ts.pts * PTS_WEIGHTS.pts)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.reb) == null ? null : per(ts.reb)! * PTS_WEIGHTS.reb) : f1(ts.reb * PTS_WEIGHTS.reb)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.ast) == null ? null : per(ts.ast)! * PTS_WEIGHTS.ast) : f1(ts.ast * PTS_WEIGHTS.ast)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.stl) == null ? null : per(ts.stl)! * PTS_WEIGHTS.stl) : f1(ts.stl * PTS_WEIGHTS.stl)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.blk) == null ? null : per(ts.blk)! * PTS_WEIGHTS.blk) : f1(ts.blk * PTS_WEIGHTS.blk)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.tov) == null ? null : per(ts.tov)! * PTS_WEIGHTS.tov) : f1(ts.tov * PTS_WEIGHTS.tov)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.fga)) : fInt(ts.fga)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.fgm)) : fInt(ts.fgm)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{fPct(ts.fgPct)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.fta)) : fInt(ts.fta)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.ftm)) : fInt(ts.ftm)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{fPct(ts.ftPct)}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                          <td className="sr-td sr-num sr-num-wide sr-summary-cell" style={cellStyle}>—</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vPts)}>{perGame ? f1(per(ts.pts)) : fInt(ts.pts)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg3)}>{perGame ? f1(per(ts.fg3m)) : fInt(ts.fg3m)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vReb)}>{perGame ? f1(per(ts.reb)) : fInt(ts.reb)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vAst)}>{perGame ? f1(per(ts.ast)) : fInt(ts.ast)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vStl)}>{perGame ? f1(per(ts.stl)) : fInt(ts.stl)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vBlk)}>{perGame ? f1(per(ts.blk)) : fInt(ts.blk)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(zFgaTs)}>{perGame ? f1(per(ts.fga)) : fInt(ts.fga)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFg)}>{fPct(ts.fgPct)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(zFtaTs)}>{perGame ? f1(per(ts.fta)) : fInt(ts.fta)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vFt)}>{fPct(ts.ftPct)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={bg(ts.vTo)}>{perGame ? f1(per(ts.tov)) : fInt(ts.tov)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>—</td>
+                        </>
+                      )}
                     </tr>
                   );
                 })()}
@@ -1042,6 +1168,25 @@ export function SeasonalRankingsTable(props: {
                   const bold = (key: SortKey) => (sort.key === key ? " sr-sorted" : "");
                   const cls = classOf(s);
 
+                  // Points-mode: weighted per-category contributions (stat × weight,
+                  // mode-matched Per Game/Totals) that sum to FPTS — see PTS_WEIGHTS.
+                  const weighted = (raw: number | null | undefined, w: number): number | null => {
+                    const base = perGame ? (raw ?? null) : tot(raw);
+                    return base == null ? null : base * w;
+                  };
+                  const pointsRow = pointsValues[s.player_id] ?? null;
+                  const fptsDisplay = pointsRow ? (perGame ? pointsRow.fpts : pointsRow.fpts_total) : null;
+                  const wPts = weighted(s.pts, PTS_WEIGHTS.pts);
+                  const wReb = weighted(s.reb, PTS_WEIGHTS.reb);
+                  const wAst = weighted(s.ast, PTS_WEIGHTS.ast);
+                  const wStl = weighted(s.stl, PTS_WEIGHTS.stl);
+                  const wBlk = weighted(s.blk, PTS_WEIGHTS.blk);
+                  const wTov = weighted(s.tov, PTS_WEIGHTS.tov);
+                  const fgmRaw = fgmOf(s);
+                  const ftmRaw = ftmOf(s);
+                  const cFgm = fgmRaw == null ? null : perGame ? fgmRaw : fgmRaw * g;
+                  const cFtm = ftmRaw == null ? null : perGame ? ftmRaw : ftmRaw * g;
+
                   return (
                     <tr key={s.player_id} className="sr-tr">
                       <td className="sr-td sr-td-pick">
@@ -1078,25 +1223,47 @@ export function SeasonalRankingsTable(props: {
                       <td className={`sr-td sr-num${bold("g")}`}>{cGP}</td>
                       <td className={`sr-td sr-num${bold("mpg")}`}>{cMin}</td>
                       <td className={`sr-td sr-num${bold("usg")}`} style={{ background: statBg(zUsg) }}>{cUsg}</td>
-                      <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
-                        {fVal(catValue(av))}
-                      </td>
-                      <td className={`sr-td sr-num sr-num-wide${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
-                        {fVal(av?.minus1v)}
-                      </td>
-                      <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
-                      <td className={`sr-td sr-num${drop("fg3m")}${bold("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
-                      <td className={`sr-td sr-num${drop("reb")}${bold("reb")}`} style={{ background: statBg(av?.reb) }}>{cR}</td>
-                      <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
-                      <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
-                      <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
-                      <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
-                      <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
-                      <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
-                      <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
-                      <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
-                      <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
-                      <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{fVal(av?.ft)}</td>
+                      {catMode === "points" ? (
+                        <>
+                          <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(zOf(fptsDisplay, pointsRateStats!.fpts)) }}>
+                            {f1(fptsDisplay)}
+                          </td>
+                          <td className={`sr-td sr-num${bold("pts")}`} style={{ background: statBg(zOf(wPts, pointsRateStats!.pts)) }}>{f1(wPts)}</td>
+                          <td className={`sr-td sr-num${bold("reb")}`} style={{ background: statBg(zOf(wReb, pointsRateStats!.reb)) }}>{f1(wReb)}</td>
+                          <td className={`sr-td sr-num${bold("ast")}`} style={{ background: statBg(zOf(wAst, pointsRateStats!.ast)) }}>{f1(wAst)}</td>
+                          <td className={`sr-td sr-num${bold("stl")}`} style={{ background: statBg(zOf(wStl, pointsRateStats!.stl)) }}>{f1(wStl)}</td>
+                          <td className={`sr-td sr-num${bold("blk")}`} style={{ background: statBg(zOf(wBlk, pointsRateStats!.blk)) }}>{f1(wBlk)}</td>
+                          <td className={`sr-td sr-num${bold("tov")}`} style={{ background: statBg(zOf(wTov, pointsRateStats!.tov)) }}>{f1(wTov)}</td>
+                          <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
+                          <td className={`sr-td sr-num${bold("fgm")}`} style={{ background: statBg(zOf(cFgm, pointsRateStats!.fgm)) }}>{f1(cFgm)}</td>
+                          <td className={`sr-td sr-num${bold("fg_pct")}`}>{fPct(s.fg_pct)}</td>
+                          <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
+                          <td className={`sr-td sr-num${bold("ftm")}`} style={{ background: statBg(zOf(cFtm, pointsRateStats!.ftm)) }}>{f1(cFtm)}</td>
+                          <td className={`sr-td sr-num${bold("ft_pct")}`}>{fPct(s.ft_pct)}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(catValue(av)) }}>
+                            {fVal(catValue(av))}
+                          </td>
+                          <td className={`sr-td sr-num sr-num-wide${bold("minus1v")}`} style={{ background: valueBg(av?.minus1v) }}>
+                            {fVal(av?.minus1v)}
+                          </td>
+                          <td className={`sr-td sr-num${drop("pts")}${bold("pts")}`} style={{ background: statBg(av?.pts) }}>{cP}</td>
+                          <td className={`sr-td sr-num${drop("fg3m")}${bold("fg3m")}`} style={{ background: statBg(av?.fg3) }}>{c3}</td>
+                          <td className={`sr-td sr-num${drop("reb")}${bold("reb")}`} style={{ background: statBg(av?.reb) }}>{cR}</td>
+                          <td className={`sr-td sr-num${drop("ast")}${bold("ast")}`} style={{ background: statBg(av?.ast) }}>{cA}</td>
+                          <td className={`sr-td sr-num${drop("stl")}${bold("stl")}`} style={{ background: statBg(av?.stl) }}>{cS}</td>
+                          <td className={`sr-td sr-num${drop("blk")}${bold("blk")}`} style={{ background: statBg(av?.blk) }}>{cB}</td>
+                          <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
+                          <td className={`sr-td sr-num${drop("fg_pct")}${bold("fg_pct")}`} style={{ background: statBg(av?.fg) }}>{fPct(s.fg_pct)}</td>
+                          <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
+                          <td className={`sr-td sr-num${drop("ft_pct")}${bold("ft_pct")}`} style={{ background: statBg(av?.ft) }}>{fPct(s.ft_pct)}</td>
+                          <td className={`sr-td sr-num${drop("tov")}${toDim}${bold("tov")}`} style={{ background: statBg(av?.to) }}>{cTo}</td>
+                          <td className={`sr-td sr-num${bold("fg_v")}`} style={{ background: statBg(av?.fg) }}>{fVal(av?.fg)}</td>
+                          <td className={`sr-td sr-num${bold("ft_v")}`} style={{ background: statBg(av?.ft) }}>{fVal(av?.ft)}</td>
+                        </>
+                      )}
                     </tr>
                   );
                 })}

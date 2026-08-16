@@ -16,6 +16,7 @@
     "seasonal:build": "tsx scripts/build-seasonal-values.ts",
     "summerleague:build": "tsx scripts/build-summer-league-values.ts",
     "projections:build": "tsx scripts/build-projection-values.ts",
+    "points-league:build": "tsx scripts/build-points-league-values.ts",
     "trends:build": "tsx scripts/build-player-trends.ts",
     "realsalary:build": "tsx scripts/build-real-salary-values.ts",
     "espn:resolve": "tsx scripts/resolve-espn-ids.ts",
