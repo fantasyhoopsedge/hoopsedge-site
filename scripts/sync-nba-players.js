@@ -19,7 +19,7 @@ const path = require("path");
 const { normalizePlayerName: normalizeName } = require("../src/lib/player-identity/normalize");
 
 const URL =
-  "https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=2025-26&IsOnlyCurrentSeason=1";
+  "https://stats.nba.com/stats/commonallplayers?LeagueID=00&Season=2026-27&IsOnlyCurrentSeason=1";
 
 const HEADERS = {
   Host: "stats.nba.com",
