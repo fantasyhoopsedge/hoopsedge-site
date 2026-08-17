@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import type { ResolvedPlayer } from "@/lib/fantrax/analyze";
-import { buildOptimalLineup } from "@/lib/fantrax/lineup";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import { formatTotal } from "@/lib/fantrax/power-rankings";
@@ -22,11 +21,17 @@ export interface TeamRosterPanelProps {
    *  Roster Edge's own usgStats uses. */
   leaguePlayers: ResolvedPlayer[];
   salaryFormat: SalaryFormat;
-  /** Bench players beyond starters that count as "driving" this team's power
-   *  rank — 0 = starters only, +1..+5 = one extra bench player per step,
-   *  matching Power Rankings' own "Best lineup/+1../+5" toggle so the roster
-   *  shown here always reflects the same depth as the standings above it. */
-  depth: number;
+  /** Fantrax ids of the players actually counted into this team's standings
+   *  row — the SAME TeamCategoryProfile.starters the page already computed
+   *  via buildDepthWeightedProfiles (extended to whatever depth is selected),
+   *  not a second lineup solve. Passing this in (rather than re-deriving it
+   *  here) is load-bearing, not just tidier: an independent buildOptimalLineup
+   *  call per team click duplicated a full branch-and-bound solve on the main
+   *  thread for every team the user clicked through — exactly the
+   *  "Page Unresponsive" failure mode buildDepthWeightedProfiles' own
+   *  exactTeamId already exists to prevent (see its doc comment), just
+   *  reintroduced through this panel instead of the standings table. */
+  drivingIds: ReadonlySet<string>;
   /** "totals" mirrors the standings table's own PER GAME/TOTALS toggle —
    *  every counting-stat column (not FG%/FT%) switches from a per-game rate
    *  to a season total, comma-formatted with no decimals (formatTotal).
@@ -45,20 +50,13 @@ type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; 
  *
  * Deliberately simpler than the full Roster Edge page: no per-player tick
  * editing, no tick-depth control of its own, no extra-category picker — the
- * "driving" lineup is derived straight from the depth the user already
- * picked for the standings above (buildOptimalLineup, same technique Roster
- * Edge's own defaultTicked uses), and the leading column is an informational
- * ✓ rather than a checkbox.
+ * "driving" set comes in as a prop (the standings' own profile), and the
+ * leading column is an informational ✓ rather than a checkbox.
  */
-export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots, leaguePlayers, salaryFormat, depth, statsMode = "perGame" }: TeamRosterPanelProps) {
+export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots, leaguePlayers, salaryFormat, drivingIds, statsMode = "perGame" }: TeamRosterPanelProps) {
   const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
 
-  const drivingIds = useMemo(() => {
-    if (!roster) return new Set<string>();
-    const lineup = buildOptimalLineup(roster.players, positionSlots, null, { valueMode: "minus1V" });
-    return new Set([...lineup.starters.map((a) => a.player.fantraxId), ...lineup.bench.slice(0, depth).map((p) => p.fantraxId)]);
-  }, [roster, positionSlots, depth]);
   const drivingPlayers = useMemo(
     () => (roster ? roster.players.filter((p) => drivingIds.has(p.fantraxId)) : []),
     [roster, drivingIds],

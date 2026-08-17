@@ -183,6 +183,14 @@ function PowerRankingsContent() {
     () => analysis?.rosters.find((r) => r.teamId === rosterTeamId) ?? null,
     [analysis, rosterTeamId],
   );
+  // Reads the SAME lineup buildDepthWeightedProfiles already solved for this
+  // team (extended to the current depth) instead of re-solving it — a second
+  // independent buildOptimalLineup call per team click was a real perf
+  // regression (full branch-and-bound on the main thread on every click).
+  const drivingIds = useMemo(() => {
+    const starters = profiles?.find((p) => p.teamId === rosterTeamId)?.starters;
+    return new Set(starters?.map((p) => p.fantraxId) ?? []);
+  }, [profiles, rosterTeamId]);
 
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
@@ -444,7 +452,7 @@ function PowerRankingsContent() {
                 positionSlots={effective?.positionSlots ?? {}}
                 leaguePlayers={leaguePlayers}
                 salaryFormat={salaryFormat}
-                depth={depth}
+                drivingIds={drivingIds}
                 statsMode={format === "roto" ? rotoBasis : "perGame"}
               />
             </div>

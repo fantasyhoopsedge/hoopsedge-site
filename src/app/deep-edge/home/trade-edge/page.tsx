@@ -833,10 +833,18 @@ function TradeEdgeContent() {
     [theirRoster, valueMode, targetCatsArr],
   );
 
+  // Before/after profiles are only ever read by the two compare panels below
+  // (PowerRankingsCompareTable/CategoryEdgeCompareColumn), gated on
+  // activePanel — but tradeProfiles() still solves 30 teams' greedy lineups
+  // TWICE plus up to 4 branch-and-bound exact solves (the two trading teams,
+  // before and after) to produce it. Without the activePanel check, every
+  // single send/receive checkbox click paid that cost even with both compare
+  // panels closed — the common case while someone is still trying combos
+  // before ever revealing a comparison.
   const trade = useMemo(() => {
-    if (!analysis || !effective || !myTeamId || !teamBId) return null;
+    if (!analysis || !effective || !myTeamId || !teamBId || activePanel === "none") return null;
     return tradeProfiles(analysis, myTeamId, teamBId, sendIds, receiveIds, depth, weight, valueMode, effective);
-  }, [analysis, effective, myTeamId, teamBId, sendIds, receiveIds, depth, weight, valueMode]);
+  }, [analysis, effective, myTeamId, teamBId, sendIds, receiveIds, depth, weight, valueMode, activePanel]);
 
   const hasTradeSelected = sendIds.size > 0 || receiveIds.size > 0;
 
