@@ -384,7 +384,7 @@ export function SiteNav(props: {
                 </button>
                 {mobileRankingsOpen && (
                   <div className="nav-mobile-panel-sub">
-                    <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player Category Values</a>
+                    <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player value rankings</a>
                     <a href="/dynasty-rankings" onClick={closeMobileMenu}>Dynasty Consensus</a>
                     <a href="/real-salary-rankings" onClick={closeMobileMenu}>Real Salary Rankings</a>
                     <a href="/draft-board" onClick={closeMobileMenu}>Rookie Board</a>

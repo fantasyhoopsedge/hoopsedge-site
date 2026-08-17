@@ -29,7 +29,7 @@ const FEATURES = [
     wide: false,
   },
   {
-    tag: "Player category values",
+    tag: "Player value rankings",
     title: "See them early",
     body: "Track your favourite players' category fantasy value — standard 9-cat, 8-cat and Minus 1 value. Stay ahead of the game.",
     href: "/seasonal-rankings",

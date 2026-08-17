@@ -137,7 +137,7 @@ function zOf(raw: number | null | undefined, ms: { mu: number; sigma: number }):
 
 // ── number formatting (matches dynasty-rankings precision) ────────────────────
 const f1 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(1));
-const fInt = (x: number | null | undefined) => (x == null ? "—" : String(Math.round(x)));
+const fInt = (x: number | null | undefined) => (x == null ? "—" : Math.round(x).toLocaleString("en-US"));
 const fAge = (x: number | null | undefined) => (x == null ? "—" : String(Math.floor(x))); // whole years
 const fVal = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(2)); // Value/Minus1V/FG%V/FT%V
 const fPct = (x: number | null | undefined) =>
@@ -260,6 +260,10 @@ export function SeasonalRankingsTable(props: {
   canonicalSize: number;
   seasons: SeasonOption[];
   activeSeason: string;
+  /** From the `?v=` query param, resolved server-side — see page.tsx's VALUE_MODES.
+   *  Makes a Points League or 9CatV view a real, crawlable URL rather than only
+   *  reachable by a dropdown click. */
+  initialValueMode: "9cat" | "8cat" | "minus1v" | "points";
   /** Keyed by fhe_id, resolved server-side in page.tsx — see its AGE_BY_FHE_ID
    *  note on why this is neither a rank nor a name join. */
   ageByFheId: Record<string, number>;
@@ -267,7 +271,7 @@ export function SeasonalRankingsTable(props: {
 }) {
   const {
     players, valuesBySize, pointsValues, leagueSizes, canonicalSize, seasons, activeSeason,
-    ageByFheId, draftYearByFheId,
+    initialValueMode, ageByFheId, draftYearByFheId,
   } = props;
   const router = useRouter();
 
@@ -388,7 +392,22 @@ export function SeasonalRankingsTable(props: {
   // (avg of the other 8); Minus1V = best 8 (drop each player's worst category).
   // "points" swaps the whole value-column region for the flat-weighted
   // points-league score (see PTS_WEIGHTS) instead of any z-scored 9-cat mode.
-  const [catMode, setCatMode] = useState<"9cat" | "8cat" | "minus1v" | "points">("9cat");
+  // Initialized from the `?v=` URL param (server-resolved in page.tsx) so a
+  // deep link / sitemap entry lands directly in the right mode.
+  const [catMode, setCatMode] = useState<"9cat" | "8cat" | "minus1v" | "points">(initialValueMode);
+  // Mirror mode changes into the URL (`?v=`) via history.replaceState — NOT
+  // router.replace/push, which would re-run the server component and
+  // re-fetch data that's already loaded client-side. This is purely so the
+  // address bar reflects what's on screen (shareable, and what a returning
+  // visit / crawl would land on) without touching the network.
+  const onCatModeChange = (mode: "9cat" | "8cat" | "minus1v" | "points") => {
+    setCatMode(mode);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (mode === "9cat") url.searchParams.delete("v");
+    else url.searchParams.set("v", mode);
+    window.history.replaceState(null, "", url.pathname + url.search);
+  };
   const [search, setSearch] = useState("");
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [tickedOnly, setTickedOnly] = useState(false);
@@ -788,7 +807,7 @@ export function SeasonalRankingsTable(props: {
               id="sr-catmode"
               className="sr-select"
               value={catMode}
-              onChange={(e) => setCatMode(e.target.value as "9cat" | "8cat" | "minus1v" | "points")}
+              onChange={(e) => onCatModeChange(e.target.value as "9cat" | "8cat" | "minus1v" | "points")}
               title="9CatV = standard · 8CatV removes turnovers · Minus1V drops each player's worst category · Points League = flat weighted fantasy points"
             >
               <option value="9cat">9CatV</option>
@@ -1097,14 +1116,14 @@ export function SeasonalRankingsTable(props: {
                       {catMode === "points" ? (
                         <>
                           <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>
-                            {perGame ? f1(ts.fpts) : f1(ts.fptsTotal)}
+                            {perGame ? f1(ts.fpts) : fInt(ts.fptsTotal)}
                           </td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.pts) == null ? null : per(ts.pts)! * PTS_WEIGHTS.pts) : f1(ts.pts * PTS_WEIGHTS.pts)}</td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.reb) == null ? null : per(ts.reb)! * PTS_WEIGHTS.reb) : f1(ts.reb * PTS_WEIGHTS.reb)}</td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.ast) == null ? null : per(ts.ast)! * PTS_WEIGHTS.ast) : f1(ts.ast * PTS_WEIGHTS.ast)}</td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.stl) == null ? null : per(ts.stl)! * PTS_WEIGHTS.stl) : f1(ts.stl * PTS_WEIGHTS.stl)}</td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.blk) == null ? null : per(ts.blk)! * PTS_WEIGHTS.blk) : f1(ts.blk * PTS_WEIGHTS.blk)}</td>
-                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.tov) == null ? null : per(ts.tov)! * PTS_WEIGHTS.tov) : f1(ts.tov * PTS_WEIGHTS.tov)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.pts) == null ? null : per(ts.pts)! * PTS_WEIGHTS.pts) : fInt(ts.pts * PTS_WEIGHTS.pts)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.reb) == null ? null : per(ts.reb)! * PTS_WEIGHTS.reb) : fInt(ts.reb * PTS_WEIGHTS.reb)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.ast) == null ? null : per(ts.ast)! * PTS_WEIGHTS.ast) : fInt(ts.ast * PTS_WEIGHTS.ast)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.stl) == null ? null : per(ts.stl)! * PTS_WEIGHTS.stl) : fInt(ts.stl * PTS_WEIGHTS.stl)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.blk) == null ? null : per(ts.blk)! * PTS_WEIGHTS.blk) : fInt(ts.blk * PTS_WEIGHTS.blk)}</td>
+                          <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.tov) == null ? null : per(ts.tov)! * PTS_WEIGHTS.tov) : fInt(ts.tov * PTS_WEIGHTS.tov)}</td>
                           <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.fga)) : fInt(ts.fga)}</td>
                           <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{perGame ? f1(per(ts.fgm)) : fInt(ts.fgm)}</td>
                           <td className="sr-td sr-num sr-summary-cell" style={cellStyle}>{fPct(ts.fgPct)}</td>
@@ -1226,19 +1245,19 @@ export function SeasonalRankingsTable(props: {
                       {catMode === "points" ? (
                         <>
                           <td className={`sr-td sr-num${bold("value")}`} style={{ background: valueBg(zOf(fptsDisplay, pointsRateStats!.fpts)) }}>
-                            {f1(fptsDisplay)}
+                            {perGame ? f1(fptsDisplay) : fInt(fptsDisplay)}
                           </td>
-                          <td className={`sr-td sr-num${bold("pts")}`} style={{ background: statBg(zOf(wPts, pointsRateStats!.pts)) }}>{f1(wPts)}</td>
-                          <td className={`sr-td sr-num${bold("reb")}`} style={{ background: statBg(zOf(wReb, pointsRateStats!.reb)) }}>{f1(wReb)}</td>
-                          <td className={`sr-td sr-num${bold("ast")}`} style={{ background: statBg(zOf(wAst, pointsRateStats!.ast)) }}>{f1(wAst)}</td>
-                          <td className={`sr-td sr-num${bold("stl")}`} style={{ background: statBg(zOf(wStl, pointsRateStats!.stl)) }}>{f1(wStl)}</td>
-                          <td className={`sr-td sr-num${bold("blk")}`} style={{ background: statBg(zOf(wBlk, pointsRateStats!.blk)) }}>{f1(wBlk)}</td>
-                          <td className={`sr-td sr-num${bold("tov")}`} style={{ background: statBg(zOf(wTov, pointsRateStats!.tov)) }}>{f1(wTov)}</td>
+                          <td className={`sr-td sr-num${bold("pts")}`} style={{ background: statBg(zOf(wPts, pointsRateStats!.pts)) }}>{perGame ? f1(wPts) : fInt(wPts)}</td>
+                          <td className={`sr-td sr-num${bold("reb")}`} style={{ background: statBg(zOf(wReb, pointsRateStats!.reb)) }}>{perGame ? f1(wReb) : fInt(wReb)}</td>
+                          <td className={`sr-td sr-num${bold("ast")}`} style={{ background: statBg(zOf(wAst, pointsRateStats!.ast)) }}>{perGame ? f1(wAst) : fInt(wAst)}</td>
+                          <td className={`sr-td sr-num${bold("stl")}`} style={{ background: statBg(zOf(wStl, pointsRateStats!.stl)) }}>{perGame ? f1(wStl) : fInt(wStl)}</td>
+                          <td className={`sr-td sr-num${bold("blk")}`} style={{ background: statBg(zOf(wBlk, pointsRateStats!.blk)) }}>{perGame ? f1(wBlk) : fInt(wBlk)}</td>
+                          <td className={`sr-td sr-num${bold("tov")}`} style={{ background: statBg(zOf(wTov, pointsRateStats!.tov)) }}>{perGame ? f1(wTov) : fInt(wTov)}</td>
                           <td className={`sr-td sr-num${bold("fga")}`} style={{ background: statBg(zFga) }}>{cFga}</td>
-                          <td className={`sr-td sr-num${bold("fgm")}`} style={{ background: statBg(zOf(cFgm, pointsRateStats!.fgm)) }}>{f1(cFgm)}</td>
+                          <td className={`sr-td sr-num${bold("fgm")}`} style={{ background: statBg(zOf(cFgm, pointsRateStats!.fgm)) }}>{perGame ? f1(cFgm) : fInt(cFgm)}</td>
                           <td className={`sr-td sr-num${bold("fg_pct")}`}>{fPct(s.fg_pct)}</td>
                           <td className={`sr-td sr-num${bold("fta")}`} style={{ background: statBg(zFta) }}>{cFta}</td>
-                          <td className={`sr-td sr-num${bold("ftm")}`} style={{ background: statBg(zOf(cFtm, pointsRateStats!.ftm)) }}>{f1(cFtm)}</td>
+                          <td className={`sr-td sr-num${bold("ftm")}`} style={{ background: statBg(zOf(cFtm, pointsRateStats!.ftm)) }}>{perGame ? f1(cFtm) : fInt(cFtm)}</td>
                           <td className={`sr-td sr-num${bold("ft_pct")}`}>{fPct(s.ft_pct)}</td>
                         </>
                       ) : (
@@ -1283,34 +1302,69 @@ export function SeasonalRankingsTable(props: {
         style={{ padding: "40px 32px 56px", maxWidth: 860, margin: "0 auto", color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}
       >
         <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 10, color: "var(--text-secondary)" }}>
-          About Player Category Values (CatV)
+          {catMode === "points" ? "About Points League Scoring" : "About Player Category Values (CatV)"}
         </h2>
-        {isSummerDataset && (
-          <p style={{ marginBottom: 12, color: "var(--text-primary)" }}>
-            This dataset is Summer League (Vegas) production only, scored against its own standalone
-            baseline pool — small samples against non-NBA-caliber competition, so these values are
-            NOT comparable to regular-season or playoff CatV.
-          </p>
+        {catMode === "points" ? (
+          <>
+            {isSummerDataset && (
+              <p style={{ marginBottom: 12, color: "var(--text-primary)" }}>
+                Points League isn&apos;t computed for Summer League — it&apos;s exhibition ball on a
+                tiny sample, not something a standard-format score should be built on. FPTS and the
+                category columns will read — for every player on this dataset.
+              </p>
+            )}
+            <p>
+              Points League uses the standard format most points-league managers mean by default
+              (matches Yahoo&apos;s standard scoring): <strong>Points +1.0, Rebounds +1.2, Assists
+              +1.5, Steals +3.0, Blocks +3.0, Turnovers −1.0</strong>. Field-goal %, free-throw %,
+              and three-pointers made are not scored in this format — FPTS is a flat weighted sum of
+              the six categories above, not a z-score against a baseline pool the way CatV is.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              The PTS, REB, AST, STL, BLK, and TO columns show each category&apos;s <em>weighted
+              contribution</em> to FPTS (the stat multiplied by its weight above) — not the raw
+              per-game or total number. Add the six together and they sum exactly to FPTS; turnovers
+              show as a negative number since they subtract from the total. FGA, FGM, FG%, FTA, FTM,
+              and FT% are shown as plain reference box-score numbers, unweighted, since the standard
+              format doesn&apos;t score them.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              FPTS is derived from real NBA box-score data and recomputed each season, the same
+              source as CatV. Per Game shows a rate; Totals multiplies every column by games played,
+              so the weighted category columns and FPTS both scale together and still sum correctly
+              in either mode.
+            </p>
+          </>
+        ) : (
+          <>
+            {isSummerDataset && (
+              <p style={{ marginBottom: 12, color: "var(--text-primary)" }}>
+                This dataset is Summer League (Vegas) production only, scored against its own standalone
+                baseline pool — small samples against non-NBA-caliber competition, so these values are
+                NOT comparable to regular-season or playoff CatV.
+              </p>
+            )}
+            <p>
+              Fantasy Hoops Edge Player Category Values (CatV) measure how much a player contributes
+              above a league-baseline replacement in each of the nine standard roto categories: points,
+              rebounds, assists, steals, blocks, field-goal percentage, free-throw percentage,
+              three-pointers made, and turnovers. A positive CatV means the player lifts your team above
+              the baseline in that category; a negative value means he costs you ground.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              Baselines are calibrated per league size — a 12-team league has a shallower player pool
+              than a 20-team league, so the replacement level is higher. CatV automatically adjusts so
+              that a player ranked #120 overall reads as a fringe starter in a 12-team league and a
+              valuable contributor in a 20-team league. Minus1V shows the marginal cost of dropping that
+              player from your roster — useful for evaluating trade and waiver-wire decisions.
+            </p>
+            <p style={{ marginTop: 12 }}>
+              Values are derived from real NBA box-score data and recomputed each season. The tool
+              supports both current-season and prior-season datasets so managers can compare year-over-year
+              trends and project which players are trending up or down across categories.
+            </p>
+          </>
         )}
-        <p>
-          Fantasy Hoops Edge Player Category Values (CatV) measure how much a player contributes
-          above a league-baseline replacement in each of the nine standard roto categories: points,
-          rebounds, assists, steals, blocks, field-goal percentage, free-throw percentage,
-          three-pointers made, and turnovers. A positive CatV means the player lifts your team above
-          the baseline in that category; a negative value means he costs you ground.
-        </p>
-        <p style={{ marginTop: 12 }}>
-          Baselines are calibrated per league size — a 12-team league has a shallower player pool
-          than a 20-team league, so the replacement level is higher. CatV automatically adjusts so
-          that a player ranked #120 overall reads as a fringe starter in a 12-team league and a
-          valuable contributor in a 20-team league. Minus1V shows the marginal cost of dropping that
-          player from your roster — useful for evaluating trade and waiver-wire decisions.
-        </p>
-        <p style={{ marginTop: 12 }}>
-          Values are derived from real NBA box-score data and recomputed each season. The tool
-          supports both current-season and prior-season datasets so managers can compare year-over-year
-          trends and project which players are trending up or down across categories.
-        </p>
       </section>
       <Footer />
 

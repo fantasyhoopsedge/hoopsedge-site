@@ -46,6 +46,14 @@ for (const p of rankings as Array<{ player: string; age?: number }>) {
 // dynamically per dataset, but the data is served from a 15-minute cache.
 export const dynamic = "force-dynamic";
 
+// The Value-mode dropdown's options — a real query param (?v=) rather than
+// pure client state, so a Points League or 9CatV view is a crawlable,
+// shareable URL instead of only reachable by a dropdown click. See
+// sitemap.ts, which links directly to `?v=points` and the projections
+// dataset now that both are real, indexable states.
+const VALUE_MODES = ["9cat", "8cat", "minus1v", "points"] as const;
+type ValueMode = (typeof VALUE_MODES)[number];
+
 export default async function SeasonalRankingsPage({
   searchParams,
 }: {
@@ -54,6 +62,10 @@ export default async function SeasonalRankingsPage({
   const sp = await searchParams;
   const dKey = typeof sp.d === "string" ? sp.d : undefined;
   const dataset = datasetFromKey(dKey);
+  const vParam = typeof sp.v === "string" ? sp.v : undefined;
+  const initialValueMode: ValueMode = (VALUE_MODES as readonly string[]).includes(vParam ?? "")
+    ? (vParam as ValueMode)
+    : "9cat";
 
   // Only the canonical league size is shipped on first render (~600 value rows
   // instead of ~6,000 across all 10 sizes). Other sizes load on demand via
@@ -81,6 +93,7 @@ export default async function SeasonalRankingsPage({
       canonicalSize={canonicalSize}
       seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
       activeSeason={datasetKey(dataset.season, dataset.type)}
+      initialValueMode={initialValueMode}
       ageByFheId={AGE_BY_FHE_ID}
       draftYearByFheId={draftYears}
     />

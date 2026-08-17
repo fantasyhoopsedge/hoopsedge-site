@@ -169,7 +169,7 @@ export function TeamRostersShell({
             </button>
             {mobileRankingsOpen && (
               <div className="rt-mobile-panel-sub">
-                <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player Category Values</a>
+                <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player value rankings</a>
                 <a href="/dynasty-rankings" onClick={closeMobileMenu}>Dynasty Consensus</a>
                 <a href="/draft-board" onClick={closeMobileMenu}>Rookie Board</a>
               </div>
