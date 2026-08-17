@@ -6,6 +6,7 @@ import {
   CATEGORY_LABEL, DRAFT_PICK_YEARS_IMPORTED, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
 } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
+import { formatTotal } from "@/lib/fantrax/power-rankings";
 import type { ContractInfo } from "@/lib/fantrax/roster-edge";
 import { normalizeTeamAbbr } from "@/lib/nba-teams";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
@@ -153,6 +154,24 @@ export function weightedAverage(players: ResolvedPlayer[], cat: FheCategory | Ex
   }
   return games > 0 ? total / games : null;
 }
+/** Σ each player's own season total (rate × his own GP) — the TOTALS-mode
+ *  counterpart to weightedAverage's blended per-game rate, for a summary row
+ *  like Power Rankings' embedded roster panel. FG%/FT% still read as a
+ *  blended attempts-weighted rate (weightedAverage) — a season shooting
+ *  percentage isn't meaningful summed across players. */
+export function summedTotal(players: ResolvedPlayer[], cat: FheCategory): number | null {
+  if (cat === "FG" || cat === "FT") return weightedAverage(players, cat);
+  let total = 0;
+  let any = false;
+  for (const p of players) {
+    const raw = statValue(p, cat);
+    const g = p.gamesPlayed ?? 0;
+    if (raw == null || g <= 0) continue;
+    total += raw * g;
+    any = true;
+  }
+  return any ? total : null;
+}
 
 // ── conditional formatting — byte-for-byte the /seasonal-rankings "Player Cat
 // Value" table's own scheme: a continuous green/red opacity gradient off the
@@ -238,6 +257,13 @@ export interface RosterTableRowProps {
    *  under "minus1V", grey-out on TO under "eightCatV", nothing under
    *  "nineCatV". Defaults to "minus1V" (today's only caller). */
   valueMode?: ValueDisplayMode;
+  /** "totals" shows each visible category as a season total (this player's
+   *  own per-game rate × his own GP, comma-formatted with no decimals via
+   *  formatTotal) instead of the per-game rate — FG%/FT% are exempt (always
+   *  a rate, never summed). Defaults to "perGame" (today's only behavior);
+   *  Power Rankings' embedded roster panel is the first "totals" caller,
+   *  mirroring the team-level PER GAME/TOTALS toggle above it. */
+  statsMode?: "perGame" | "totals";
   /** League's own roster slot config — see posDisplayFor(). */
   positionSlots: Record<string, number>;
   /** Whole-league player pool, for the USG z-score baseline and the
@@ -253,7 +279,7 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", positionSlots, leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", statsMode = "perGame", positionSlots, leaguePlayers, usgStats, leadingCell, className,
 }: RosterTableRowProps) {
   const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
@@ -314,6 +340,12 @@ export function RosterTableRow({
         const title = isWeak
           ? "Excluded from this player's Minus1V"
           : isEightCatDrop ? "Excluded from 8-Cat scoring" : undefined;
+        const rawStat = statValue(p, cat);
+        const cellText = rawStat == null
+          ? "—"
+          : statsMode === "totals" && cat !== "FG" && cat !== "FT"
+            ? formatTotal(cat, rawStat * (p.gamesPlayed ?? 0))
+            : formatStat(cat, rawStat);
         return (
           <td
             key={cat}
@@ -325,7 +357,7 @@ export function RosterTableRow({
               boxShadow: isWeak ? "inset 0 0 0 2px #f59e0b" : undefined,
             }}
           >
-            {formatStat(cat, statValue(p, cat))}
+            {cellText}
           </td>
         );
       })}
