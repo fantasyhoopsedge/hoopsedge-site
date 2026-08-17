@@ -18,7 +18,9 @@ import { WdlBadge } from "../../_components/wdl-badge";
 import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
 import { StrengthBar } from "../../_components/strength-bar";
 import { SegmentedControl } from "../../_components/segmented-control";
+import { TeamRosterPanel } from "../../_components/team-roster-panel";
 import { tierBg, tierFill } from "../../_components/tier-colors";
+import type { EnrichData, RosterTableFormat } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
@@ -52,6 +54,7 @@ const POINTS_BASIS_OPTIONS: { value: "perGame" | "totals"; label: string }[] = [
 function PowerRankingsContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
+  const [enrich, setEnrich] = useState<EnrichData | null>(null);
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -69,9 +72,18 @@ function PowerRankingsContent() {
       leagueType: saved.settings.leagueType ?? "redraft",
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
-    fetch(`/api/fantrax/league?${params}`)
+    // Same league analysis /api/fantrax/league builds, plus the salary/
+    // contract/dynasty-rank enrichment the roster panel below needs — see
+    // /api/fantrax/roster-edge's own doc for why it's not folded into the
+    // shared route.
+    fetch(`/api/fantrax/roster-edge?${params}`)
       .then((r) => r.json())
-      .then((data) => (data.error ? setError(data.error) : setAnalysis(data)))
+      .then((data) => {
+        if (data.error) { setError(data.error); return; }
+        const { salaryRankByFheId, contractByFheId, dynastyRankByFheId, ageByFheId, ...rest } = data;
+        setAnalysis(rest as LeagueAnalysis);
+        setEnrich({ salaryRankByFheId, contractByFheId, dynastyRankByFheId, ageByFheId });
+      })
       .catch((err) => setError(String(err)));
   }, [saved]);
 
@@ -110,6 +122,11 @@ function PowerRankingsContent() {
   );
   const scored = useMemo(() => effective?.scored ?? [], [effective]);
   const teamCount = analysis?.league.teamCount ?? 0;
+  const leaguePlayers = useMemo(() => analysis?.rosters.flatMap((r) => r.players) ?? [], [analysis]);
+  const salaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
+  // RosterTableFormat excludes "unconfirmed"/null — the roster panel never
+  // renders while format is unresolved (see the `!rosterTeam` guard below).
+  const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
 
   const profiles = useMemo(() => {
     if (!analysis || !format || format === "unconfirmed" || !effective) return null;
@@ -153,6 +170,19 @@ function PowerRankingsContent() {
   }, [h2hRecords, h2hSort]);
 
   const selected = h2hSorted.find((r) => r.teamId === selectedTeamId) ?? h2hSorted.find((r) => r.teamId === saved?.teamId) ?? h2hSorted[0] ?? null;
+
+  // Which team's roster the panel below shows — the same selectedTeamId a
+  // click on either standings table sets, defaulting to the user's own team
+  // and falling back to the top-ranked team so the panel always has
+  // something to show once standings exist.
+  const rosterTeamId = selectedTeamId
+    ?? saved?.teamId
+    ?? (format === "roto" ? rotoSort.sorted[0]?.teamId : h2hSorted[0]?.teamId)
+    ?? null;
+  const rosterTeam = useMemo(
+    () => analysis?.rosters.find((r) => r.teamId === rosterTeamId) ?? null,
+    [analysis, rosterTeamId],
+  );
 
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
@@ -279,8 +309,13 @@ function PowerRankingsContent() {
                     {rotoSort.sorted.map((row, i) => {
                       const profile = profiles!.find((p) => p.teamId === row.teamId)!;
                       return (
-                        <tr key={row.teamId} className={row.teamId === saved.teamId ? "mine" : ""}>
-                          <td>{i + 1}</td>
+                        <tr
+                          key={row.teamId}
+                          className={row.teamId === saved.teamId ? "mine" : ""}
+                          onClick={() => setSelectedTeamId(row.teamId)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
                           <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
                           <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
                           {scored.map((cat) => (
@@ -345,7 +380,7 @@ function PowerRankingsContent() {
                         onClick={() => setSelectedTeamId(row.teamId)}
                         style={{ cursor: "pointer" }}
                       >
-                        <td>{i + 1}</td>
+                        <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
                         <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
                         <td>{(row.winPct * 100).toFixed(1)}%</td>
                         {format === "h2hcat" ? (
@@ -397,6 +432,22 @@ function PowerRankingsContent() {
                 </div>
               )}
             </>
+          )}
+
+          {rosterTeam && (
+            <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid var(--rt-hairline)" }}>
+              <TeamRosterPanel
+                roster={rosterTeam}
+                enrich={enrich}
+                format={rowFormat}
+                scored={scored}
+                positionSlots={effective?.positionSlots ?? {}}
+                leaguePlayers={leaguePlayers}
+                salaryFormat={salaryFormat}
+                depth={depth}
+                statsMode={format === "roto" ? rotoBasis : "perGame"}
+              />
+            </div>
           )}
         </>
       )}
