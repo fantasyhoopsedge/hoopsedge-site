@@ -20,7 +20,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   {
     key: "cat-values",
-    label: "Player Cat Values",
+    label: "Player value rankings",
     href: "/seasonal-rankings",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">

@@ -46,6 +46,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITE_URL, changeFrequency: 'weekly', priority: 1 },
     { url: `${SITE_URL}/dynasty-rankings`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${SITE_URL}/seasonal-rankings`, changeFrequency: 'weekly', priority: 0.9 },
+    // Points League (?v=points) and the 2026-27 fantasy projections
+    // (?d=2027:projection) are real, server-rendered states of the same
+    // page (see seasonal-rankings/page.tsx's VALUE_MODES / SEASON_DATASETS),
+    // not just dropdown-only client state — worth their own sitemap entries
+    // now that both are live, indexable features. Deliberately no combined
+    // `?d=...&v=points` entry: Next's sitemap renderer does NOT XML-escape
+    // `&` in a `url` field, so a raw `&` in the query string breaks the
+    // sitemap's XML parsing from that entry onward — silently dropping
+    // every URL listed after it (confirmed: it took out teamRosterUrls and
+    // prospectUrls too). Single-param URLs sidestep the bug entirely.
+    { url: `${SITE_URL}/seasonal-rankings?v=points`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE_URL}/seasonal-rankings?d=2027:projection`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/draft-board`, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${SITE_URL}/team-rosters`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/real-salary-rankings`, changeFrequency: 'weekly', priority: 0.8 },
