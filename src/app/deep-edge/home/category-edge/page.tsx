@@ -8,7 +8,7 @@ import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import {
-  buildOptimalLineup, categoryTier, teamPerGameStat,
+  buildOptimalLineup, categoryTier, teamPerGameStat, UI_VALUE_MODE_OPTIONS,
   resolveEffectiveScoring, type LineupAssignment, type LineupValueMode,
 } from "@/lib/fantrax/lineup";
 import {
@@ -22,6 +22,7 @@ import {
 } from "../../_components/category-dashboard";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft, IconSliders } from "../../_components/icons";
+import { SegmentedControl } from "../../_components/segmented-control";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const TIER_COLOR: Record<string, string> = {
@@ -76,10 +77,6 @@ const STAT_KEY: Record<FheCategory, keyof { pts: 1; fg3m: 1; reb: 1; ast: 1; stl
   PTS: "pts", FG3: "fg3m", REB: "reb", AST: "ast", STL: "stl", BLK: "blk", TO: "tov", FG: "pts", FT: "pts",
 };
 
-const VALUE_MODE_LABEL: Record<LineupValueMode, string> = {
-  league: "League", nineCatV: "9-Cat", eightCatV: "8-Cat", minus1V: "Minus1V",
-};
-
 /**
  * Per-game display is the AVERAGE across the lineup's players, not the
  * team-combined sum teamPerGameStat() itself returns — matches how Ash's own
@@ -113,7 +110,7 @@ function CategoryEdgeContent() {
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
   const [statMode, setStatMode] = useState<"perGame" | "totals">("perGame");
-  const [valueMode, setValueMode] = useState<LineupValueMode>("league");
+  const [valueMode, setValueMode] = useState<LineupValueMode>("minus1V");
   // Manual starter overrides — replaces a plain rule-out model. Forcing a
   // bench player IN makes them claim a slot before the normal best-value
   // pass runs; forcing a starter OUT excludes them entirely. A player can
@@ -325,7 +322,7 @@ function CategoryEdgeContent() {
 
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {["Best", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
+              {["Starters", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
@@ -337,13 +334,13 @@ function CategoryEdgeContent() {
                     boxShadow: depth === i ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
                   }}
                 >
-                  {i === 0 ? `Best ${computed.lineup.starters.length}` : label}
+                  {label}
                 </button>
               ))}
             </div>
             <span style={{ fontSize: 12.5, color: "var(--rt-muted)", maxWidth: 420 }}>
               {depth === 0
-                ? <>&quot;Best {computed.lineup.starters.length}&quot; is the lineup started weekly across your league&apos;s slots.</>
+                ? <>&quot;Starters&quot; is the {computed.lineup.starters.length}-player lineup started weekly across your league&apos;s slots.</>
                 : depthCaption(lineupCadence, format!, capPos, capMatch, capPosN, capMatchN)}
             </span>
             <div style={{ marginLeft: "auto", display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
@@ -378,23 +375,12 @@ function CategoryEdgeContent() {
               <IconSliders size={16} /> Adjust starters{forcedIn.size + forcedOut.size > 0 ? ` (${forcedIn.size + forcedOut.size} changed)` : ""}
             </button>
             <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Rank lineup by</span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {(Object.keys(VALUE_MODE_LABEL) as LineupValueMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setValueMode(mode)}
-                  style={{
-                    padding: "7px 14px", border: "none", borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-                    background: valueMode === mode ? "var(--rt-canvas)" : "transparent",
-                    color: valueMode === mode ? "var(--rt-ink)" : "var(--rt-muted)",
-                    boxShadow: valueMode === mode ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
-                  }}
-                >
-                  {VALUE_MODE_LABEL[mode]}
-                </button>
-              ))}
-            </div>
+            {/* FPTS is always disabled here — Category Edge never renders for a
+                points-scored league (see the format === "points" branch above),
+                so there's no real fantasy-points formula to rank by. Kept
+                visible-but-greyed rather than omitted, matching Roster Edge/
+                Trade Edge's own "same 4 options everywhere" convention. */}
+            <SegmentedControl<LineupValueMode> options={UI_VALUE_MODE_OPTIONS} value={valueMode} onChange={setValueMode} disabledOptions={["fpts"]} />
           </div>
 
           {computed.lineup.unplaceable.length > 0 && (

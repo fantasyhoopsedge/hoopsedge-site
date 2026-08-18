@@ -821,7 +821,6 @@ function TradeEdgeContent() {
 
   const myAssessed = useMemo(() => assessedIdsFor(myBaseLineup, depth), [myBaseLineup, depth]);
   const theirAssessed = useMemo(() => assessedIdsFor(theirBaseLineup, depth), [theirBaseLineup, depth]);
-  const starterCount = myBaseLineup?.starters.length ?? 0;
 
   const targetCatsArr = useMemo(() => [...targetCats], [targetCats]);
   const myPlayersSorted = useMemo(
@@ -913,7 +912,7 @@ function TradeEdgeContent() {
             <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Assessing roster depth</div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-                {["Best", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
+                {["Starters", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
                   <button
                     key={label}
                     type="button"
@@ -924,7 +923,7 @@ function TradeEdgeContent() {
                       color: depth === i ? "var(--rt-ink)" : "var(--rt-muted)",
                     }}
                   >
-                    {i === 0 ? `Best ${starterCount || ""}` : label}
+                    {label}
                   </button>
                 ))}
               </div>

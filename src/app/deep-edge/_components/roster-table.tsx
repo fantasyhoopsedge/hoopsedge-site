@@ -6,6 +6,7 @@ import {
   CATEGORY_LABEL, DRAFT_PICK_YEARS_IMPORTED, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
 } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
+import type { LineupValueMode } from "@/lib/fantrax/lineup";
 import { formatTotal } from "@/lib/fantrax/power-rankings";
 import type { ContractInfo } from "@/lib/fantrax/roster-edge";
 import { normalizeTeamAbbr } from "@/lib/nba-teams";
@@ -40,11 +41,11 @@ export type EnrichData = {
 };
 export type RosterTableFormat = "roto" | "h2hcat" | "points";
 /** Which "value" flavor the roster table's per-category cell decoration
- *  should read as — matches the tick-set selector's three modes exactly
- *  (Roster Edge's own TickValueMode). Minus1V dynamically excludes each
- *  player's own weakest scored category; 8-Cat always excludes TO for
- *  everyone; 9-Cat excludes nothing. */
-export type ValueDisplayMode = "minus1V" | "nineCatV" | "eightCatV";
+ *  should read as — matches the "Rank lineup by" selector's options (minus
+ *  "league", which none of these callers expose as a user choice). Minus1V
+ *  dynamically excludes each player's own weakest scored category; 8-Cat
+ *  always excludes TO for everyone; 9-Cat and FPTS decorate nothing. */
+export type ValueDisplayMode = Exclude<LineupValueMode, "league">;
 
 export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";

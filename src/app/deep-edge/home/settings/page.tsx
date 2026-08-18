@@ -167,6 +167,19 @@ const selectStyle: React.CSSProperties = {
   padding: "0 10px", fontSize: 13, color: "var(--rt-ink)",
 };
 
+/** Position-slot color coding for the Roster & positions card only — light
+ *  green for starters (any active slot), grey for Bench, red for IR, amber
+ *  for Minors (Ash's own scheme, 2026-08-18). Passed to Stepper's own
+ *  `tint` prop; every other Stepper on this page (Teams, Max contract
+ *  length, Rookie draft rounds) keeps the neutral default background. */
+function slotAccent(slot: string): string {
+  const s = slot.toLowerCase();
+  if (s === "ir") return "rgba(219,43,57,0.16)";
+  if (s === "minors" || s === "min") return "rgba(245,158,11,0.16)";
+  if (s === "bench" || s === "be" || s === "res" || s === "na" || s === "taxi") return "rgba(148,163,184,0.18)";
+  return "rgba(22,160,106,0.14)";
+}
+
 function DeepEdgeSettingsContent() {
   const { saved, loading: loadingSaved, refresh } = useActiveLeague();
   const [analysis, setAnalysis] = useState<LeagueAnalysis | null>(null);
@@ -292,9 +305,17 @@ function DeepEdgeSettingsContent() {
 
   const positionEntries = useMemo(() => {
     if (!draft) return [];
-    const order = ["PG", "SG", "SF", "PF", "C", "G", "F", "UTIL", "Bench", "IR", "Minors"];
+    // Guards together, then forwards together, then C, then the generic
+    // active Flex slot, then reserves (Bench, IR, Minors) — Ash's own
+    // ordering (2026-08-18), same left-to-right layout across every league's
+    // position editor regardless of which slots that league happens to use.
+    // UTIL is never shown — Fantrax has no UTIL slot type (Ash, 2026-08-18),
+    // so it's excluded outright rather than just left off `order` (which
+    // alone would only stop it from being re-sorted, not hide it).
+    const order = ["PG", "SG", "G", "SF", "PF", "F", "C", "Flx", "Bench", "IR", "Minors"];
+    const excluded = new Set(["util"]);
     const known = new Set(order.map((o) => o.toLowerCase()));
-    const rest = Object.keys(draft.positionSlots).filter((k) => !known.has(k.toLowerCase()));
+    const rest = Object.keys(draft.positionSlots).filter((k) => !known.has(k.toLowerCase()) && !excluded.has(k.toLowerCase()));
     return [...order, ...rest].filter((slot, i, arr) => arr.indexOf(slot) === i);
   }, [draft]);
 
@@ -596,6 +617,7 @@ function DeepEdgeSettingsContent() {
                       value={draft.positionSlots[slot] ?? 0}
                       onChange={(v) => update("positionSlots", { ...draft.positionSlots, [slot]: v })}
                       max={10}
+                      tint={slotAccent(slot)}
                     />
                   </div>
                 ))}
