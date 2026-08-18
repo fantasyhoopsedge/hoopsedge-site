@@ -4,11 +4,11 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import {
-  buildOptimalLineup, categoryTier, rankTierLabel, teamPerGameStat,
+  buildOptimalLineup, categoryTier, teamPerGameStat,
   resolveEffectiveScoring, type LineupAssignment, type LineupValueMode,
 } from "@/lib/fantrax/lineup";
 import {
@@ -16,9 +16,12 @@ import {
   deriveRankingsFormat, simulateH2HCategoryStandings,
 } from "@/lib/fantrax/power-rankings";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
+import {
+  CategoryRadarChart, DashboardCard, ordinal, PercentileRing, RankBarPanel, RankBarRow, statusColor, TierPill,
+  type RadarPoint,
+} from "../../_components/category-dashboard";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft, IconSliders } from "../../_components/icons";
-import { tierBg, tierFill } from "../../_components/tier-colors";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const TIER_COLOR: Record<string, string> = {
@@ -56,14 +59,6 @@ function CategoryChip({ name, slot, ring, dimmed }: { name: string; slot: string
       <div style={{ fontSize: 9.5, color: "var(--rt-muted)", marginTop: 3, fontFamily: "var(--rt-font-mono)" }}>{slot}</div>
     </div>
   );
-}
-
-/** 11th/12th/13th are the well-known exception to the 1st/2nd/3rd rule —
- *  handled here since ranks run up to a league's full team count. */
-function ordinal(rank: number): string {
-  if (rank % 100 >= 11 && rank % 100 <= 13) return `${rank}th`;
-  const suffix = rank % 10 === 1 ? "st" : rank % 10 === 2 ? "nd" : rank % 10 === 3 ? "rd" : "th";
-  return `${rank}${suffix}`;
 }
 
 function formatPerGame(cat: FheCategory, raw: number): string {
@@ -221,6 +216,23 @@ function CategoryEdgeContent() {
 
     const h2h = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : null;
     const myH2H = h2h?.find((r) => r.teamId === myTeamId) ?? null;
+    // The single "power ranking" the dashboard's ring shows — same finish
+    // Power Rankings itself would report for this team at this depth/value
+    // mode, just read off the profiles this page already built.
+    const myRank = format === "h2hcat"
+      ? (myH2H?.rank ?? 0)
+      : (standings.find((s) => s.teamId === myTeamId)?.projectedRank ?? 0);
+
+    // MPG has no z-score model (it isn't an FHE-scored category), but the
+    // dashboard's quick-rank bars ask for it alongside the real ones — a
+    // plain average-starter-minutes rank across the same depth-weighted
+    // profiles every other rank on this page already uses.
+    const mpgByTeam = profiles.map((p) => ({
+      teamId: p.teamId,
+      avg: p.starters.length > 0 ? p.starters.reduce((sum, pl) => sum + (pl.minutesPerGame ?? 0), 0) / p.starters.length : 0,
+    }));
+    const mpgRank = [...mpgByTeam].sort((a, b) => b.avg - a.avg).findIndex((t) => t.teamId === myTeamId) + 1;
+    const mpgValue = mpgByTeam.find((t) => t.teamId === myTeamId)?.avg ?? 0;
 
     // League-average per category, both display modes — the "vs lg" delta.
     const leagueAvgPerGame: Partial<Record<FheCategory, number>> = {};
@@ -232,9 +244,31 @@ function CategoryEdgeContent() {
 
     return {
       myRoster, lineup, effectiveStarters, effectiveBench, scored, edges, totalPoints, maxPoints, top10,
-      teamCount: league.teamCount, myProfile, myH2H, leagueAvgPerGame, leagueAvgTotal,
+      teamCount: league.teamCount, myProfile, myH2H, myRank, mpgRank, mpgValue, leagueAvgPerGame, leagueAvgTotal,
     };
   }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight]);
+
+  // Derived purely for the dashboard summary — kept separate from `computed`
+  // so that block stays focused on the real analysis math. TO greys out
+  // under the 8-Cat lens (valueMode === "eightCatV"), same "shown but
+  // de-emphasized" convention RosterTableRow's isEightCatDrop already uses
+  // elsewhere in Deep Edge — never hidden, since a real punt-TO league
+  // simply won't have a TO entry in `scored`/`edges` at all.
+  const dashboard = useMemo(() => {
+    if (!computed) return null;
+    const isTOGreyed = valueMode === "eightCatV";
+    const edgeByCat = new Map(computed.edges.map((e) => [e.category, e]));
+    const barRank = (cat: FheCategory) => edgeByCat.get(cat)?.rank ?? null;
+    const radarPoints: RadarPoint[] = FHE_CATEGORIES
+      .filter((cat) => computed.scored.includes(cat))
+      .map((cat) => ({
+        category: cat,
+        rank: edgeByCat.get(cat)?.rank ?? null,
+        of: computed.teamCount,
+        greyed: cat === "TO" && isTOGreyed,
+      }));
+    return { isTOGreyed, barRank, radarPoints };
+  }, [computed, valueMode]);
 
   const hasLeague = Boolean(saved);
 
@@ -439,48 +473,46 @@ function CategoryEdgeContent() {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 14, marginBottom: 28 }}>
-            {format === "roto" ? (
-              <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>ROTO SCORE</div>
-                <div style={{ fontSize: 26, fontWeight: 700 }}>
-                  {computed.totalPoints} <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>/ {computed.maxPoints}</span>
-                </div>
-              </div>
-            ) : computed.myH2H ? (
-              <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>WIN % · PROJECTED RECORD</div>
-                <div style={{ fontSize: 26, fontWeight: 700 }}>
-                  {(computed.myH2H.winPct * 100).toFixed(1)}%{" "}
-                  <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>
-                    {computed.myH2H.totalWins}-{computed.myH2H.totalDraws}-{computed.myH2H.totalLosses}
-                  </span>
-                </div>
-              </div>
-            ) : null}
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>TOP-10 CATS</div>
-              <div style={{ fontSize: 26, fontWeight: 700 }}>
-                {computed.top10} <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>/ {computed.scored.length}</span>
-              </div>
+          {dashboard && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginBottom: 28, alignItems: "stretch" }}>
+              <DashboardCard title="POWER RANKING">
+                <PercentileRing
+                  rank={computed.myRank} of={computed.teamCount} size={140}
+                  subLabel={
+                    <>
+                      OF {computed.teamCount}
+                      <br />
+                      <span style={{ color: statusColor(computed.myRank, computed.teamCount), fontWeight: 700 }}>
+                        {format === "h2hcat" && computed.myH2H
+                          ? `${(computed.myH2H.winPct * 100).toFixed(1)}% WIN`
+                          : `${computed.totalPoints} / ${computed.maxPoints} PTS`}
+                      </span>
+                    </>
+                  }
+                />
+              </DashboardCard>
+
+              <DashboardCard title="CATEGORY SHAPE">
+                <CategoryRadarChart points={dashboard.radarPoints} size={220} />
+              </DashboardCard>
+
+              <RankBarPanel title="MPG · PTS · 3PM · REB · AST">
+                <RankBarRow label="MPG" rank={computed.mpgRank} of={computed.teamCount} />
+                <RankBarRow label="PTS" rank={dashboard.barRank("PTS")} of={computed.teamCount} />
+                <RankBarRow label="3PM" rank={dashboard.barRank("FG3")} of={computed.teamCount} />
+                <RankBarRow label="REB" rank={dashboard.barRank("REB")} of={computed.teamCount} />
+                <RankBarRow label="AST" rank={dashboard.barRank("AST")} of={computed.teamCount} />
+              </RankBarPanel>
+
+              <RankBarPanel title="STL · BLK · FG% · FT% · TO">
+                <RankBarRow label="STL" rank={dashboard.barRank("STL")} of={computed.teamCount} />
+                <RankBarRow label="BLK" rank={dashboard.barRank("BLK")} of={computed.teamCount} />
+                <RankBarRow label="FG%" rank={dashboard.barRank("FG")} of={computed.teamCount} />
+                <RankBarRow label="FT%" rank={dashboard.barRank("FT")} of={computed.teamCount} />
+                <RankBarRow label="TO" rank={dashboard.barRank("TO")} of={computed.teamCount} greyed={dashboard.isTOGreyed} />
+              </RankBarPanel>
             </div>
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>STRONGEST 2</div>
-              {computed.edges.slice(0, 2).map((e) => (
-                <div key={e.category} style={{ fontSize: 13, fontWeight: 600 }}>
-                  {CATEGORY_LABEL[e.category]} <span style={{ fontWeight: 400, color: tierFill(e.rank, computed.teamCount) }}>{ordinal(e.rank)} · {rankTierLabel(e.rank, computed.teamCount)}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>WEAKEST 2</div>
-              {computed.edges.slice(-2).reverse().map((e) => (
-                <div key={e.category} style={{ fontSize: 13, fontWeight: 600 }}>
-                  {CATEGORY_LABEL[e.category]} <span style={{ fontWeight: 400, color: tierFill(e.rank, computed.teamCount) }}>{ordinal(e.rank)} · {rankTierLabel(e.rank, computed.teamCount)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16, fontSize: 12, color: "var(--rt-muted)" }}>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.promoter, marginRight: 5 }} />Promoter</span>
@@ -511,20 +543,12 @@ function CategoryEdgeContent() {
                       </div>
                     )}
                   </div>
-                  <div style={{ width: 130, flexShrink: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>
-                      {ordinal(edge.rank)}{" "}
-                      <span style={{ fontWeight: 400, color: "var(--rt-muted)" }}>of {computed.teamCount}</span>
-                    </div>
-                    <span
-                      style={{
-                        display: "inline-block", marginTop: 3, fontSize: 10.5, fontFamily: "var(--rt-font-mono)", fontWeight: 700,
-                        padding: "2px 7px", borderRadius: 100,
-                        background: tierBg(edge.rank, computed.teamCount), color: tierFill(edge.rank, computed.teamCount),
-                      }}
-                    >
-                      {rankTierLabel(edge.rank, computed.teamCount).toUpperCase()}
-                    </span>
+                  <div style={{ width: 84, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <PercentileRing
+                      rank={edge.rank} of={computed.teamCount} size={64}
+                      greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)}
+                    />
+                    <TierPill rank={edge.rank} of={computed.teamCount} greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)} />
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 14, flex: 1 }}>
                     {[...computed.effectiveStarters]
