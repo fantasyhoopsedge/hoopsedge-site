@@ -50,6 +50,21 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         headers: [{ key: "Cache-Control", value: "no-store" }],
       },
+      {
+        // Overrides the no-store rule above for these two GET routes only
+        // (Next applies the LAST matching rule per header key — see next.js's
+        // own headers() docs). Their result is already server-cached 60s via
+        // unstable_cache (see league-cache.ts) — letting the browser itself
+        // reuse a response for a few seconds skips even that network round
+        // trip for genuinely duplicate requests in quick succession (e.g.
+        // React StrictMode's double-effect in dev, or switching back to a
+        // Deep Edge tool tab you just left), without ever serving data
+        // staler than the server cache already allows. `private` (not
+        // `public`) so no shared proxy/CDN between the browser and this app
+        // can cache it — only the requesting browser itself.
+        source: "/api/fantrax/:path(league|roster-edge)",
+        headers: [{ key: "Cache-Control", value: "private, max-age=30" }],
+      },
     ];
   },
 };

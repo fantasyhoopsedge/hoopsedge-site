@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import {
-  fetchDraftPicks, FantraxError, fetchDraftResults, fetchLeagueInfo, fetchPlayerIds, fetchStandings,
-  fetchTeamRosters, isLeagueId,
-} from "@/lib/fantrax/api";
+import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
-import { buildLeague } from "@/lib/fantrax/league";
-import { analyzeLeague, FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
+import { getCachedLeagueAnalysis } from "@/lib/fantrax/league-cache";
+import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
 import { getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "@/lib/fantrax/roster-edge";
 
 /**
@@ -17,10 +14,6 @@ import { getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getSalaryRank
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-const SETTINGS_TTL = 300;
-const ROSTER_TTL = 60;
-const PLAYER_IDS_TTL = 3600;
 
 export async function GET(request: Request) {
   const auth = await authorizeFantrax();
@@ -46,27 +39,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [info, rosters, standings, draft, playerIds, draftPicks] = await Promise.all([
-      fetchLeagueInfo(leagueId, { next: { revalidate: SETTINGS_TTL } }),
-      fetchTeamRosters(leagueId, { next: { revalidate: ROSTER_TTL } }),
-      fetchStandings(leagueId, { next: { revalidate: ROSTER_TTL } }),
-      fetchDraftResults(leagueId, { next: { revalidate: ROSTER_TTL } }).catch(() => null),
-      fetchPlayerIds("NBA", { next: { revalidate: PLAYER_IDS_TTL } }),
-      // Redraft leagues simply have nothing to return here; a fetch failure
-      // (undocumented endpoint) shouldn't take the whole page down with it.
-      fetchDraftPicks(leagueId, { next: { revalidate: SETTINGS_TTL } }).catch(() => null),
-    ]);
-
-    if (!info?.leagueName) {
-      return NextResponse.json(
-        { error: "Fantrax returned no settings for that league ID. Check the code and try again." },
-        { status: 404 },
-      );
-    }
-
-    const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds, draftPicks);
     const [analysis, salaryRankByFheId, contractByFheId, ageByFheId] = await Promise.all([
-      analyzeLeague(league, teamId, dataset, leagueType),
+      getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType),
       getSalaryRankByFheId(),
       getContractByFheId(),
       getAgeByFheId(),
