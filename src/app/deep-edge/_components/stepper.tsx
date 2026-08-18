@@ -8,12 +8,18 @@ export function Stepper({
   min = 0,
   max = 99,
   suffix,
+  tint,
 }: {
   value: number;
   onChange: (v: number) => void;
   min?: number;
   max?: number;
   suffix?: string;
+  /** Overrides the pill's default neutral background — e.g. Roster &
+   *  positions color-codes starters/Bench/IR/Minors differently. Omit for
+   *  the standard look every other Stepper (Teams, Max contract length,
+   *  Rookie draft rounds) already uses. */
+  tint?: string;
 }) {
   const clamp = (n: number) => Math.max(min, Math.min(max, n));
   const btn: React.CSSProperties = {
@@ -22,7 +28,7 @@ export function Stepper({
     alignItems: "center", justifyContent: "center", lineHeight: 1,
   };
   return (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "4px 6px", borderRadius: 100, background: "var(--rt-surface-soft)" }}>
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "4px 6px", borderRadius: 100, background: tint ?? "var(--rt-surface-soft)" }}>
       <button type="button" onClick={() => onChange(clamp(value - 1))} style={btn} aria-label="Decrease">
         −
       </button>

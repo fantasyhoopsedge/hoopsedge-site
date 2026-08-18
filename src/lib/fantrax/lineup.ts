@@ -69,17 +69,37 @@ export interface OptimalLineup {
 
 /** Which value drives "best lineup" selection. "league" is LeagueV — the
  *  mean z across exactly this league's scored categories, the same number
- *  that drives its roto/H2H standings — and is the default: Category Edge
- *  is fundamentally about THIS league's math. The three CatV flavors let the
- *  user ask "who would I start under a generic 9-cat/8-cat/Minus1V lens
- *  instead" — a deliberately different question, not a replacement default. */
-export type LineupValueMode = "league" | "nineCatV" | "eightCatV" | "minus1V";
+ *  that drives its roto/H2H standings. The three CatV flavors let the user
+ *  ask "who would I start under a generic 9-cat/8-cat/Minus1V lens instead"
+ *  — a deliberately different question, not a replacement default. "fpts"
+ *  ranks by the league's real fantasy-points formula — only meaningful for
+ *  a points-scored league, same as an explicit `formula` already forces
+ *  below, just selectable without a caller having to also thread the
+ *  formula through (see UI_VALUE_MODE_OPTIONS). */
+export type LineupValueMode = "league" | "nineCatV" | "eightCatV" | "minus1V" | "fpts";
 
 function lineupValueOf(p: ResolvedPlayer, formula: LeaguePointsFormula | null | undefined, mode: LineupValueMode): number | null {
-  if (formula) return p.pointsValue; // points-mode leagues always rank by points, regardless of mode
+  if (formula || mode === "fpts") return p.pointsValue; // points-mode leagues always rank by points, regardless of mode
   if (mode === "league") return p.leagueV;
   return p.catV?.perGame[mode] ?? null;
 }
+
+/** Shared "Rank lineup by" label/order for Category Edge, Roster Edge, and
+ *  Trade Edge — 8-Cat, 9-Cat, Minus1V, FPTS, in that fixed order (Ash's own
+ *  ordering; consistency sweep across all three tools, 2026-08-18). "league"
+ *  is deliberately excluded — none of the three expose it as a user choice.
+ *  FPTS should be passed to SegmentedControl's disabledOptions whenever the
+ *  connected league isn't points-scored (it has no real fantasy-points
+ *  formula to rank by there). */
+export const LINEUP_VALUE_MODE_LABEL: Record<LineupValueMode, string> = {
+  league: "League", eightCatV: "8-Cat", nineCatV: "9-Cat", minus1V: "Minus1V", fpts: "FPTS",
+};
+export const UI_VALUE_MODE_OPTIONS: { value: Exclude<LineupValueMode, "league">; label: string }[] = [
+  { value: "eightCatV", label: LINEUP_VALUE_MODE_LABEL.eightCatV },
+  { value: "nineCatV", label: LINEUP_VALUE_MODE_LABEL.nineCatV },
+  { value: "minus1V", label: LINEUP_VALUE_MODE_LABEL.minus1V },
+  { value: "fpts", label: LINEUP_VALUE_MODE_LABEL.fpts },
+];
 
 function isEligible(slot: string, p: ResolvedPlayer): boolean {
   return isGenericSlot(slot) || p.eligible.some((e) => e.toLowerCase() === slot.toLowerCase());

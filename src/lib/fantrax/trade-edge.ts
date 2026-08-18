@@ -1,7 +1,7 @@
 import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "./analyze";
 import type { FheCategory, LeaguePointsFormula } from "./league";
 import { buildDepthWeightedProfiles, buildDepthWeightedTeamProfile } from "./power-rankings";
-import type { LineupValueMode } from "./lineup";
+import { LINEUP_VALUE_MODE_LABEL, type LineupValueMode } from "./lineup";
 
 /**
  * Pure trade-simulation math for the Trade Edge tool: "if these players moved
@@ -20,19 +20,22 @@ import type { LineupValueMode } from "./lineup";
  *  league). Distinct from LineupValueMode's "league" mode: Trade Edge asks
  *  the user to pick explicitly rather than defaulting to the connected
  *  league's own LeagueV, since a trade's "who's better" read should stay
- *  stable while the user tries different partners/teams. */
-export type TradeValueMode = "nineCatV" | "eightCatV" | "minus1V" | "fpts";
+ *  stable while the user tries different partners/teams. A plain alias of
+ *  LineupValueMode (minus "league") rather than an independent type — same
+ *  "Rank lineup by" set Category Edge/Roster Edge use, see
+ *  UI_VALUE_MODE_OPTIONS in lineup.ts (Ash's consistency sweep, 2026-08-18). */
+export type TradeValueMode = Exclude<LineupValueMode, "league">;
 
 export const TRADE_VALUE_MODE_LABEL: Record<TradeValueMode, string> = {
-  nineCatV: "9-Cat", eightCatV: "8-Cat", minus1V: "Minus1V", fpts: "FPTS",
+  eightCatV: LINEUP_VALUE_MODE_LABEL.eightCatV, nineCatV: LINEUP_VALUE_MODE_LABEL.nineCatV,
+  minus1V: LINEUP_VALUE_MODE_LABEL.minus1V, fpts: LINEUP_VALUE_MODE_LABEL.fpts,
 };
 
-/** A TradeValueMode maps directly onto buildOptimalLineup's LineupValueMode
- *  plus its `formula` param — see lineupValueOf in lineup.ts: passing a
- *  formula makes it ignore `mode` entirely and rank by pointsValue, which is
- *  exactly what "fpts" means here. */
+/** TradeValueMode IS a LineupValueMode now (fpts is a first-class value
+ *  there too — see lineupValueOf in lineup.ts) — this is just the identity,
+ *  kept as a named function so existing call sites don't churn. */
 export function lineupModeFor(mode: TradeValueMode): LineupValueMode {
-  return mode === "fpts" ? "league" : mode;
+  return mode;
 }
 
 /** This player's value under the chosen mode — the same number

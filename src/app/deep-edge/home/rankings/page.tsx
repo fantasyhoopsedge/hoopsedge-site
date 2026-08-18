@@ -267,7 +267,7 @@ function PowerRankingsContent() {
 
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {["Best lineup", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
+              {["Starters", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
