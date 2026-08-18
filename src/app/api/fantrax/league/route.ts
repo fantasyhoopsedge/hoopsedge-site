@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
-import {
-  fetchDraftPicks, FantraxError, fetchDraftResults, fetchLeagueInfo, fetchPlayerIds, fetchStandings,
-  fetchTeamRosters, isLeagueId,
-} from "@/lib/fantrax/api";
+import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
-import { buildLeague } from "@/lib/fantrax/league";
-import { analyzeLeague, FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
+import { getCachedLeagueAnalysis } from "@/lib/fantrax/league-cache";
+import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
 
 /**
  * Import a Fantrax league and analyse it against FHE category values.
@@ -16,17 +13,13 @@ import { analyzeLeague, FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/f
  * Secret ID reaches this route, by design (see src/lib/fantrax/api.ts and
  * /privacy §4). The browser holds the secret and only ever sends us a league id.
  *
- * Fantrax payloads are cached briefly: settings and the sport-wide player-id map
- * barely move, while rosters change on every add/drop, so they get the shorter
- * TTL. A live draft is the one case where staleness is visible, hence 60s rather
- * than something longer.
+ * The actual fetch+analyze work is cached 60s in league-cache.ts, shared with
+ * /api/fantrax/roster-edge — see that file's own doc for why a plain
+ * `next: {revalidate}` on each fetch() wasn't enough (force-dynamic silently
+ * defeats it).
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-const SETTINGS_TTL = 300;
-const ROSTER_TTL = 60;
-const PLAYER_IDS_TTL = 3600;
 
 export async function GET(request: Request) {
   const auth = await authorizeFantrax();
@@ -52,27 +45,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [info, rosters, standings, draft, playerIds, draftPicks] = await Promise.all([
-      fetchLeagueInfo(leagueId, { next: { revalidate: SETTINGS_TTL } }),
-      fetchTeamRosters(leagueId, { next: { revalidate: ROSTER_TTL } }),
-      fetchStandings(leagueId, { next: { revalidate: ROSTER_TTL } }),
-      // A league that hasn't drafted yet 404s here; that's informational, not fatal.
-      fetchDraftResults(leagueId, { next: { revalidate: ROSTER_TTL } }).catch(() => null),
-      fetchPlayerIds("NBA", { next: { revalidate: PLAYER_IDS_TTL } }),
-      // Redraft leagues simply have nothing to return here; a fetch failure
-      // (undocumented endpoint) shouldn't take the whole page down with it.
-      fetchDraftPicks(leagueId, { next: { revalidate: SETTINGS_TTL } }).catch(() => null),
-    ]);
-
-    if (!info?.leagueName) {
-      return NextResponse.json(
-        { error: "Fantrax returned no settings for that league ID. Check the code and try again." },
-        { status: 404 },
-      );
-    }
-
-    const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds, draftPicks);
-    const analysis = await analyzeLeague(league, teamId, dataset, leagueType);
+    const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType);
     return NextResponse.json(analysis);
   } catch (err) {
     if (err instanceof FantraxError) {
