@@ -232,11 +232,29 @@ export function greedyAssignment(
 
   while (openSlotIdx.length > 0) {
     let bestPos = 0;
+    let bestGeneric = true;
     let bestCount = Infinity;
     for (let i = 0; i < openSlotIdx.length; i++) {
       const slot = slots[openSlotIdx[i]];
-      const count = isGenericSlot(slot) ? remaining.size : [...remaining].filter((p) => isEligible(slot, p)).length;
-      if (count < bestCount) { bestCount = count; bestPos = i; }
+      const generic = isGenericSlot(slot);
+      const count = generic ? remaining.size : [...remaining].filter((p) => isEligible(slot, p)).length;
+      // A generic slot's "count" is remaining.size — literally how many
+      // players are left, not real scarcity, since it accepts anyone. That
+      // can numerically TIE (or even beat) a named slot's genuine eligible
+      // count purely by coincidence of how many players happen to be left,
+      // and a naive count-only comparison would then process the generic
+      // slot first — handing it whichever high-value player is still
+      // unassigned before the named slot that actually needs a specific
+      // position gets a chance at them. A named slot is therefore always
+      // strictly preferred on a tie (found via a real case, 2026-08-19:
+      // Flex and PG both showing exactly 2 remaining eligible candidates —
+      // Flex happened to sit earlier in this league's own slot order, so it
+      // grabbed the single best player, leaving PG to whoever was left).
+      const better = i === 0 || (bestGeneric && !generic) || (generic === bestGeneric && count < bestCount);
+      if (!better) continue;
+      bestCount = count;
+      bestPos = i;
+      bestGeneric = generic;
     }
     const slotIdx = openSlotIdx[bestPos];
     const slot = slots[slotIdx];

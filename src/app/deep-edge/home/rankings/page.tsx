@@ -317,8 +317,8 @@ function PowerRankingsContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap" }}>
-        <div style={{ flex: "0 1 auto", minWidth: 280 }}>
+      <div style={{ display: "grid", gridTemplateColumns: chartsPanel ? "auto 1fr" : "auto", alignItems: "flex-start", gap: 24 }}>
+        <div style={{ minWidth: 280 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
             {format && format !== "unconfirmed" && (
@@ -355,7 +355,11 @@ function PowerRankingsContent() {
           )}
         </div>
 
-        {chartsPanel}
+        {chartsPanel && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            {chartsPanel}
+          </div>
+        )}
       </div>
 
       {loadingSaved || (saved && !analysis && !error) ? (
