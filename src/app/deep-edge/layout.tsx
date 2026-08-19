@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { isRbAdmin } from "@/lib/rookie-board-store";
+import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
 
 // Deep Edge is genuinely multi-route (Welcome/Home/Settings/Category
 // Edge/Power Rankings all read naturally as distinct URLs), so the gate
@@ -26,7 +26,7 @@ export default async function DeepEdgeLayout({ children }: { children: ReactNode
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/prediction-arena?next=/deep-edge");
 
-  if (!(await isRbAdmin(user.email))) {
+  if (!(await isDeepEdgeAdmin(user.email))) {
     return (
       <main style={{ padding: "80px 32px", textAlign: "center", color: "#94a3b8", fontFamily: "system-ui" }}>
         <h1 style={{ color: "#fff" }}>Restricted</h1>
