@@ -44,7 +44,7 @@ const GENERIC_ACTIVE_SLOTS = new Set(["flx", "flex", "util"]);
  *  Fantrax scoring never does that; only active slots play. These slots are
  *  simply never expanded, so whoever occupies them falls through to
  *  OptimalLineup.bench naturally, same as anyone who doesn't make the cut. */
-const RESERVE_SLOTS = new Set(["res", "ir", "be", "bench", "na", "minors", "min", "taxi"]);
+export const RESERVE_SLOTS = new Set(["res", "ir", "be", "bench", "na", "minors", "min", "taxi"]);
 
 function isGenericSlot(slot: string): boolean {
   return GENERIC_ACTIVE_SLOTS.has(slot.toLowerCase());
@@ -212,8 +212,16 @@ function solveOptimalAssignment(
 /** Scarcity-ordered greedy fallback for pathologically large inputs (see
  *  size cap below) — the exact solver's own predecessor, kept only as a
  *  safety valve since it's still meaningfully better than a fixed slot
- *  order, even though it doesn't guarantee the true optimum. */
-function greedyAssignment(
+ *  order, even though it doesn't guarantee the true optimum. Exported for
+ *  Power Rankings' roster-panel grouping (Ash, 2026-08-19: "order players by
+ *  position, then value rank... the top ranked guard would show up in the
+ *  PG or G slots not the flex slot") — that's a re-label of an ALREADY-
+ *  chosen driving set for display purposes, not a second value-maximizing
+ *  solve, so it deliberately reuses this scarcity-first algorithm rather
+ *  than the exact solver, which is what put the top player in Flex in the
+ *  first place by design (see this file's header comment on why that's
+ *  usually the mathematically correct choice for real scoring). */
+export function greedyAssignment(
   slots: string[],
   pool: ResolvedPlayer[],
   rankValue: (p: ResolvedPlayer) => number | null,

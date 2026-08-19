@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type RotoStandingRow } from "@/lib/fantrax/analyze";
+import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type RotoStandingRow } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
@@ -11,7 +11,7 @@ import {
   rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
   type RankingsFormat, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
-import { buildOptimalLineup, resolveEffectiveScoring, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
+import { buildOptimalLineup, greedyAssignment, resolveEffectiveScoring, RESERVE_SLOTS, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
@@ -240,11 +240,37 @@ function PowerRankingsContent() {
     const formula = analysis.league.scoringMode === "points" ? analysis.league.pointsFormula : null;
     return buildOptimalLineup(rosterTeam.players, effective.positionSlots, formula, { valueMode, exact: true });
   }, [rosterTeam, effective, analysis, valueMode]);
+  const rosterStatsMode: "perGame" | "totals" = format === "roto" ? rotoBasis : "perGame";
+  // Re-labels the SAME already-chosen driving set (baseLineup.starters —
+  // unchanged, still the exact solver's value-maximizing pick, so real
+  // scoring/standings math is untouched) into WHICH named slot each of those
+  // players displays under, via the scarcity-first greedy algorithm instead
+  // of the exact solver's own slot choice (Ash, 2026-08-19: "order players by
+  // position, then value rank — the top ranked guard would show up in the PG
+  // or G slots not the flex slot"). The exact solver can legitimately bench
+  // the single best player into Flex if that maximizes total value (see
+  // lineup.ts's own header comment on why that's usually correct for
+  // scoring) — this is purely a display re-sort of a fixed set of already-
+  // selected players into slot labels, matching what a reader expects to see
+  // grouped as "Guards"/"Forwards"/etc. Value ranking respects the same
+  // per-game/totals toggle already driving this panel's stat display.
   const slotByFantraxId = useMemo(() => {
     const map = new Map<string, string>();
-    baseLineup?.starters.forEach((a) => map.set(a.player.fantraxId, a.slot));
+    if (!baseLineup || !effective) return map;
+    const slotInstances: string[] = [];
+    for (const [slot, count] of Object.entries(effective.positionSlots)) {
+      if (RESERVE_SLOTS.has(slot.toLowerCase())) continue;
+      for (let i = 0; i < count; i++) slotInstances.push(slot);
+    }
+    const rankValue = (p: ResolvedPlayer): number | null => {
+      if (valueMode === "fpts" || valueMode === "league") return p.pointsValue;
+      const set = rosterStatsMode === "totals" ? p.catV?.totals : p.catV?.perGame;
+      return set?.[valueMode] ?? null;
+    };
+    const relabeled = greedyAssignment(slotInstances, baseLineup.starters.map((a) => a.player), rankValue);
+    relabeled.forEach((p, i) => { if (p) map.set(p.fantraxId, slotInstances[i]); });
     return map;
-  }, [baseLineup]);
+  }, [baseLineup, effective, valueMode, rosterStatsMode]);
 
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
@@ -256,7 +282,7 @@ function PowerRankingsContent() {
   // a league is loaded/format-confirmed, so this naturally renders nothing
   // through every loading/error/unconfirmed state without duplicating them.
   const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
-    <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
+    <div style={{ display: "flex", gap: 36, flexWrap: "wrap", alignItems: "flex-start" }}>
       {myPowerRank && (
         <DashboardCard title="POWER RANKING" bordered={false}>
           <PercentileRing
@@ -291,7 +317,7 @@ function PowerRankingsContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 48, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 32, flexWrap: "wrap" }}>
         <div style={{ flex: "0 1 auto", minWidth: 280 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
@@ -532,7 +558,7 @@ function PowerRankingsContent() {
                 salaryFormat={salaryFormat}
                 drivingIds={drivingIds}
                 slotByFantraxId={slotByFantraxId}
-                statsMode={format === "roto" ? rotoBasis : "perGame"}
+                statsMode={rosterStatsMode}
               />
             </div>
           )}

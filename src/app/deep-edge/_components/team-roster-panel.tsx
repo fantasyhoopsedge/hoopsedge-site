@@ -119,13 +119,11 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
 
   const showSalary = cols.salary && salaryFormat !== "none";
   const showContract = cols.contract && salaryFormat !== "none";
-  // ✓/PLAYER/TEAM/TREND/GP/MIN/USG/VALUE = 8 always-present columns (POS now
-  // renders inline inside PLAYER, to the left of the name, not its own
-  // column — Ash, 2026-08-19), plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK
-  // are currently shown. MINUS1 is deliberately excluded — it renders as its
-  // own <td> right after this colSpan cell, not folded into it (same layout
-  // Roster Edge's ticked row uses).
-  const colSpanBeforeStats = 8 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns, plus
+  // whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown. MINUS1 is
+  // deliberately excluded — it renders as its own <td> right after this
+  // colSpan cell, not folded into it (same layout Roster Edge's ticked row uses).
+  const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
   const totalCols = colSpanBeforeStats + (format !== "points" ? 1 : 0) + visibleCats.length;
 
   if (!roster) return null;
