@@ -11,7 +11,7 @@ import {
   rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
   type RankingsFormat, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
-import { resolveEffectiveScoring, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
+import { buildOptimalLineup, resolveEffectiveScoring, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
@@ -225,6 +225,27 @@ function PowerRankingsContent() {
     return new Set(starters?.map((p) => p.fantraxId) ?? []);
   }, [profiles, rosterTeamId]);
 
+  // Slot-tagged BASE lineup (depth 0, no bench extension) for the currently-
+  // viewed team only — TeamCategoryProfile.starters (used by drivingIds
+  // above) is already flattened to plain ResolvedPlayer[] by profileFromLineup,
+  // discarding which slot each player actually fills. Needed for the
+  // Guards/Forwards/Centres/Flex/Reserves/Minors grouping (Ash, 2026-08-19),
+  // which is about the real starting-lineup slot, not the depth toggle's
+  // bench-weighting. A fresh buildOptimalLineup call for one team is cheap —
+  // it's cached when this is the same team/settings profiles already solved
+  // exactly, and bounded even when it isn't (see lineup.ts's cache + backtrack
+  // budget) — nothing like the 30-team freeze that pattern used to cause.
+  const baseLineup = useMemo(() => {
+    if (!rosterTeam || !effective || !analysis) return null;
+    const formula = analysis.league.scoringMode === "points" ? analysis.league.pointsFormula : null;
+    return buildOptimalLineup(rosterTeam.players, effective.positionSlots, formula, { valueMode, exact: true });
+  }, [rosterTeam, effective, analysis, valueMode]);
+  const slotByFantraxId = useMemo(() => {
+    const map = new Map<string, string>();
+    baseLineup?.starters.forEach((a) => map.set(a.player.fantraxId, a.slot));
+    return map;
+  }, [baseLineup]);
+
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
 
@@ -235,11 +256,11 @@ function PowerRankingsContent() {
   // a league is loaded/format-confirmed, so this naturally renders nothing
   // through every loading/error/unconfirmed state without duplicating them.
   const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
-    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "flex-end" }}>
+    <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
       {myPowerRank && (
-        <DashboardCard title="POWER RANKING">
+        <DashboardCard title="POWER RANKING" bordered={false}>
           <PercentileRing
-            rank={myPowerRank.rank} of={myPowerRank.of} size={120}
+            rank={myPowerRank.rank} of={myPowerRank.of} size={110}
             subLabel={
               <>
                 OF {myPowerRank.of}
@@ -255,9 +276,9 @@ function PowerRankingsContent() {
         </DashboardCard>
       )}
       {categoryStrengthPoints && (
-        <div style={{ padding: "16px 20px", borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
+        <div>
           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 10 }}>CATEGORY STRENGTH · STRONGEST TO WEAKEST</div>
-          <CategoryStrengthChart points={categoryStrengthPoints} height={140} barWidth={28} gap={10} />
+          <CategoryStrengthChart points={categoryStrengthPoints} height={130} barWidth={24} gap={8} />
         </div>
       )}
     </div>
@@ -270,8 +291,8 @@ function PowerRankingsContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
-        <div style={{ flex: "1 1 320px", minWidth: 280 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 48, flexWrap: "wrap" }}>
+        <div style={{ flex: "0 1 auto", minWidth: 280 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
             <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
             {format && format !== "unconfirmed" && (
@@ -510,6 +531,7 @@ function PowerRankingsContent() {
                 leaguePlayers={leaguePlayers}
                 salaryFormat={salaryFormat}
                 drivingIds={drivingIds}
+                slotByFantraxId={slotByFantraxId}
                 statsMode={format === "roto" ? rotoBasis : "perGame"}
               />
             </div>

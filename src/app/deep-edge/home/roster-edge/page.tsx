@@ -258,11 +258,12 @@ function RosterEdgeContent() {
   const showSalary = cols.salary && salaryFormat !== "none";
   const showContract = cols.contract && salaryFormat !== "none";
   const isDynasty = (saved?.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType) === "dynasty";
-  // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns,
+  // ✓/PLAYER/TEAM/TREND/GP/MIN/USG/VALUE = 8 always-present columns (POS now
+  // renders inline inside PLAYER, to the left of the name — Ash, 2026-08-19),
   // plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown.
   // MINUS1 is deliberately excluded — it renders as its own <td> right after
   // this colSpan cell, not folded into it.
-  const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  const colSpanBeforeStats = 8 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
   // RosterTableRow's `format` prop excludes "unconfirmed"/null (that state
   // never reaches this table — see the `format === "unconfirmed"` guard and
   // `!roster` guard below, both bailing out before the table renders).
@@ -503,7 +504,6 @@ function RosterEdgeContent() {
                   <th>✓</th>
                   <th className="l">PLAYER</th>
                   <th>TEAM</th>
-                  <th>POS</th>
                   {showSalary && <th>SAL$</th>}
                   {showContract && <th>CONTRACT$</th>}
                   {cols.dynastyRank && <SortTh<SortKey> label="DYN RK" sortKey="dynastyRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}

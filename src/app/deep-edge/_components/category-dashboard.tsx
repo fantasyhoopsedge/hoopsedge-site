@@ -180,9 +180,19 @@ export function RankBarPanel({ title, children }: { title: string; children: Rea
  *  header pinned to the top and whatever visual a caller passes vertically
  *  centered in the remaining space, so its center lines up with
  *  RankBarPanel's row stack above regardless of the visual's own height. */
-export function DashboardCard({ title, children }: { title: string; children: React.ReactNode }) {
+export function DashboardCard({
+  title, children, bordered = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  /** Power Rankings' compact header-row placement omits the border/padding
+   *  box (Ash, 2026-08-19: "remove the borders around those charts") — every
+   *  other caller (Category Edge's 4-card dashboard) keeps today's bordered
+   *  look by not passing this. */
+  bordered?: boolean;
+}) {
   return (
-    <div style={{ padding: 20, borderRadius: 16, border: "1px solid var(--rt-hairline)", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div style={{ padding: bordered ? 20 : 0, borderRadius: 16, border: bordered ? "1px solid var(--rt-hairline)" : "none", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", alignSelf: "flex-start", marginBottom: 4 }}>{title}</div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>{children}</div>
     </div>

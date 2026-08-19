@@ -302,11 +302,13 @@ export function RosterTableRow({
       <td className="l">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <PlayerHeadshot name={p.name} size={26} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} rookie={p.isRookie} />
+          <span style={{ fontSize: 11, fontWeight: 700, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", flexShrink: 0, minWidth: 26 }}>
+            {posDisplay.join("/")}
+          </span>
           <span className="de-player-name">{p.name}</span>
         </div>
       </td>
       <td><TeamLogo team={p.nbaTeam} /></td>
-      <td>{posDisplay.join("/")}</td>
       {showSalary && <td>{isCustomSalary ? formatCustomSalary(p.salary) : formatSalary(p.salary)}</td>}
       {showContract && <td>{isCustomSalary ? formatCustomContract(p.contract) : formatContract(contract)}</td>}
       {showDynastyRank && <td>{dynastyRank ?? "—"}</td>}
@@ -390,7 +392,6 @@ export function RosterTableHead({
       <th>{leadingLabel}</th>
       <th className="l">PLAYER</th>
       <th>TEAM</th>
-      <th>POS</th>
       {showSalary && <th>SAL$</th>}
       {showContract && <th>CONTRACT$</th>}
       {showDynastyRank && <th>DYN RK</th>}
