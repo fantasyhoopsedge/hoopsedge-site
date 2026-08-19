@@ -25,6 +25,7 @@
     "identity:reconcile": "tsx scripts/reconcile-player-identity.ts",
     "identity:backfill": "tsx scripts/backfill-fhe-id.ts",
     "fantrax:snapshot": "tsx scripts/snapshot-fantrax-ids.ts",
+    "adp:build": "tsx scripts/build-adp-trends.ts",
     "contracts:dedupe": "tsx scripts/fix-duplicate-contracts.ts",
     "dynasty:sync": "npm run seasonal:build && npm run projections:build && npm run trends:build && npm run realsalary:build",
     "rb:seed": "tsx scripts/seed-rookie-board-supabase.ts",
