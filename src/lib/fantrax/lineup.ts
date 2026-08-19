@@ -117,17 +117,37 @@ function isEligible(slot: string, p: ResolvedPlayer): boolean {
  *  you want. */
 const FORCED_BONUS = 1_000_000;
 
+/** Hard ceiling on backtracking calls for the exact solver (see
+ *  solveOptimalAssignment) — found necessary 2026-08-19 chasing a "Page
+ *  Unresponsive" freeze on Trade Edge's depth toggle: the `pool.length *
+ *  slots.length > 400` size cap in buildOptimalLineup only bounds the
+ *  SEARCH SPACE, not how well the admissible upper-bound prune cuts it down.
+ *  It cuts fast when values are spread out, but real deep-league benches
+ *  cluster tightly (many bench players within a few hundredths of LeagueV of
+ *  each other) combined with multi-position eligibility (PG/SG/Flx/Util all
+ *  on one card) — exactly the "nearly every player eligible for nearly every
+ *  slot" case this file already calls out as the greedy fallback's reason to
+ *  exist. Benchmarked: an 18-player/16-slot roster (product 288, comfortably
+ *  under the 400 cutoff) with clustered values didn't finish in 60+ seconds.
+ *  This budget bails to the caller's greedy fallback instead once the exact
+ *  search has done enough work that it's clearly not converging fast, which
+ *  keeps the common case (spread-out values, most rosters) exact while
+ *  putting a hard, roster-size-independent ceiling on the worst case. */
+const BACKTRACK_BUDGET = 20_000;
+
 /** Exact solver: try every slot/player combination via branch-and-bound
  *  rather than one slot at a time, so a globally-better arrangement that
  *  requires reassigning an already-picked player is never missed (see file
  *  header). Candidates per slot are pre-sorted by value descending, so the
  *  very first full path explored is already near-optimal — the upper-bound
- *  prune then discards the rest fast in practice. */
+ *  prune then discards the rest fast in practice. Returns null if the
+ *  BACKTRACK_BUDGET is exhausted before the search completes, signaling the
+ *  caller to fall back to greedyAssignment rather than block indefinitely. */
 function solveOptimalAssignment(
   slots: string[],
   pool: ResolvedPlayer[],
   rankValue: (p: ResolvedPlayer) => number | null,
-): (ResolvedPlayer | null)[] {
+): (ResolvedPlayer | null)[] | null {
   const n = slots.length;
   if (n === 0) return [];
 
@@ -142,6 +162,8 @@ function solveOptimalAssignment(
   const used = new Array<boolean>(pool.length).fill(false);
   const current = new Array<number | null>(n).fill(null);
   let best: { assignment: (number | null)[]; total: number } = { assignment: new Array(n).fill(null), total: -Infinity };
+  let calls = 0;
+  let budgetExceeded = false;
 
   // Admissible upper bound: best still-unused candidate's value per
   // remaining slot, ignoring that two slots might both want the same
@@ -158,6 +180,8 @@ function solveOptimalAssignment(
   }
 
   function backtrack(slotIdx: number, total: number) {
+    if (budgetExceeded) return;
+    if (++calls > BACKTRACK_BUDGET) { budgetExceeded = true; return; }
     if (slotIdx === n) {
       if (total > best.total) best = { assignment: [...current], total };
       return;
@@ -172,6 +196,7 @@ function solveOptimalAssignment(
       backtrack(slotIdx + 1, total + values[pi]);
       used[pi] = false;
       current[slotIdx] = null;
+      if (budgetExceeded) return;
     }
     // Only leave a slot empty when literally no unused eligible player
     // exists — fielding a full lineup always beats sitting a slot out in
@@ -180,6 +205,7 @@ function solveOptimalAssignment(
   }
   backtrack(0, 0);
 
+  if (budgetExceeded) return null;
   return best.assignment.map((pi) => (pi === null ? null : pool[pi]));
 }
 
@@ -219,6 +245,30 @@ function greedyAssignment(
   return assignment;
 }
 
+/** In-memory cache of solved lineups, keyed on actual roster contents (see
+ *  buildOptimalLineup's own note on why depth/weight are deliberately absent
+ *  from the key). A simple FIFO cap rather than a real LRU — this only needs
+ *  to survive one browsing session's worth of depth/valueMode/trade-candidate
+ *  toggling, not be a precise cache; insertion order is close enough to
+ *  recency for that. */
+const lineupCache = new Map<string, OptimalLineup>();
+const LINEUP_CACHE_MAX = 500;
+
+function lineupCacheKey(
+  players: ResolvedPlayer[],
+  positionSlots: Record<string, number>,
+  formula: LeaguePointsFormula | null | undefined,
+  valueMode: LineupValueMode,
+  forcedIn: ReadonlySet<string>,
+  exact: boolean,
+): string {
+  const rosterKey = players.map((p) => p.fantraxId).sort().join(",");
+  const slotsKey = Object.entries(positionSlots).sort(([a], [b]) => a.localeCompare(b)).map(([s, c]) => `${s}:${c}`).join(",");
+  const forcedKey = forcedIn.size ? [...forcedIn].sort().join(",") : "";
+  const formulaKey = formula ? JSON.stringify(formula) : "";
+  return `${rosterKey}|${slotsKey}|${formulaKey}|${valueMode}|${forcedKey}|${exact}`;
+}
+
 export function buildOptimalLineup(
   players: ResolvedPlayer[],
   positionSlots: Record<string, number>,
@@ -249,6 +299,23 @@ export function buildOptimalLineup(
   const valueMode = options?.valueMode ?? "league";
   const forcedIn = options?.forcedIn ?? new Set<string>();
   const exact = options?.exact ?? true;
+
+  // `depth`/`weight` (Trade/Category Edge's roster-depth toggle) never reach
+  // this function — the caller applies them afterward via extendLineup, on
+  // top of this same base lineup. So every one of the 6 depth-toggle clicks
+  // (Starters..+5) calls in here with byte-identical players/positionSlots/
+  // formula/valueMode/forcedIn/exact, asking to re-solve the exact same
+  // problem from scratch — that redundant re-solve, not any single solve
+  // being slow, is what produced the "Page Unresponsive" freeze on a depth
+  // click (Ash, 2026-08-19: the underlying compute was already correct, it
+  // was just being thrown away and redone on every click). Cache on the
+  // actual roster contents (not object identity — trade simulations build a
+  // fresh players array per candidate trade) so only a genuine change in
+  // who's on the roster, the slots, or the ranking mode forces a re-solve.
+  const key = lineupCacheKey(players, positionSlots, formula, valueMode, forcedIn, exact);
+  const cached = lineupCache.get(key);
+  if (cached) return cached;
+
   const baseValue = (p: ResolvedPlayer) => lineupValueOf(p, formula, valueMode);
   const rankValue = (p: ResolvedPlayer) => {
     const v = baseValue(p);
@@ -264,10 +331,16 @@ export function buildOptimalLineup(
     for (let i = 0; i < count; i++) slotInstances.push(slot);
   }
 
+  const useExact = exact && pool.length * slotInstances.length <= 400;
+  // solveOptimalAssignment returns null if BACKTRACK_BUDGET is exhausted
+  // (clustered values + heavy multi-position eligibility can defeat the
+  // prune well under the 400-product size cutoff — see BACKTRACK_BUDGET's
+  // own note) — greedyAssignment is the same safety-valve fallback the size
+  // cutoff already uses, so a budget bailout degrades the same way a
+  // too-large roster always has.
   const assignment =
-    !exact || pool.length * slotInstances.length > 400
-      ? greedyAssignment(slotInstances, pool, rankValue)
-      : solveOptimalAssignment(slotInstances, pool, rankValue);
+    (useExact ? solveOptimalAssignment(slotInstances, pool, rankValue) : null) ??
+    greedyAssignment(slotInstances, pool, rankValue);
 
   const starters: LineupAssignment[] = [];
   const usedIds = new Set<string>();
@@ -278,7 +351,13 @@ export function buildOptimalLineup(
   const unplaceable = pool.filter((p) => forcedIn.has(p.fantraxId) && !usedIds.has(p.fantraxId));
   const bench = pool.filter((p) => !usedIds.has(p.fantraxId));
 
-  return { starters, bench, unplaceable };
+  const result: OptimalLineup = { starters, bench, unplaceable };
+  lineupCache.set(key, result);
+  if (lineupCache.size > LINEUP_CACHE_MAX) {
+    const oldest = lineupCache.keys().next().value;
+    if (oldest !== undefined) lineupCache.delete(oldest);
+  }
+  return result;
 }
 
 /**
