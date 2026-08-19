@@ -131,22 +131,37 @@ export function buildDepthWeightedTeamProfile(
  *  its displayed lineup never becomes an approximation; Category Edge
  *  passes `null` because it recomputes its own team exactly in a separate
  *  call regardless and splices it in, so solving it exactly here too would
- *  just be discarded work. */
+ *  just be discarded work.
+ *
+ *  `valueMode` picks which value flavor ranks players into slots — same
+ *  "Rank lineup by" set (9-Cat/8-Cat/Minus1V/FPTS) Category Edge/Roster
+ *  Edge/Trade Edge already expose, now also a Power Rankings control (Ash,
+ *  2026-08-19): the position-order/value-rank slot-filling this function
+ *  already did via buildOptimalLineup was always silently pinned to "league"
+ *  (LeagueV) since nothing threaded a real choice through. Omit it and every
+ *  caller keeps today's behavior (defaults to "league" inside
+ *  buildOptimalLineup) unchanged. */
 export function buildDepthWeightedProfiles(
   analysis: LeagueAnalysis,
   depth: number,
   weight: number,
-  overrides?: { scored?: readonly FheCategory[]; positionSlots?: Record<string, number>; exactTeamId?: string | null },
+  overrides?: {
+    scored?: readonly FheCategory[]; positionSlots?: Record<string, number>; exactTeamId?: string | null;
+    valueMode?: LineupValueMode;
+  },
 ): TeamCategoryProfile[] {
   const { league } = analysis;
   const scored = overrides?.scored ?? league.categories.scored;
   const positionSlots = overrides?.positionSlots ?? league.positionSlots;
   const formula = league.scoringMode === "points" ? league.pointsFormula : null;
   const exactTeamId = overrides?.exactTeamId;
+  const valueMode = overrides?.valueMode;
   return analysis.rosters.map((r) =>
     buildDepthWeightedTeamProfile(
       r.players, r.teamId, r.teamName, positionSlots, scored, depth, weight, formula,
-      exactTeamId === undefined ? undefined : { exact: r.teamId === exactTeamId },
+      exactTeamId === undefined && valueMode === undefined
+        ? undefined
+        : { ...(exactTeamId !== undefined ? { exact: r.teamId === exactTeamId } : {}), ...(valueMode !== undefined ? { valueMode } : {}) },
     ),
   );
 }

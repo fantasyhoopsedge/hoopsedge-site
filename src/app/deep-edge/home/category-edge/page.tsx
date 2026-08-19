@@ -49,13 +49,13 @@ const CHIP_TOOLTIP_CSS = `
  *  photo (hard to make out who's who at a glance) and shows the player's
  *  name on hover via CHIP_TOOLTIP_CSS above. Shared between the starters
  *  and bench chip lists so both get the same sizing/tooltip behavior. */
-function CategoryChip({ name, slot, ring, dimmed }: { name: string; slot: string; ring: string; dimmed?: boolean }) {
+function CategoryChip({ name, slot, ring, dimmed, isRookie }: { name: string; slot: string; ring: string; dimmed?: boolean; isRookie?: boolean }) {
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
   return (
     <div className="de-chip" style={{ textAlign: "center", opacity: dimmed ? 0.4 : 1 }}>
       <span className="de-chip-tooltip">{name}</span>
       <div style={{ width: 46, height: 46, borderRadius: "50%", padding: 2, border: `2px solid ${ring}` }}>
-        <PlayerHeadshot name={name} size={40} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={13} />
+        <PlayerHeadshot name={name} size={40} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={13} rookie={isRookie} />
       </div>
       <div style={{ fontSize: 9.5, color: "var(--rt-muted)", marginTop: 3, fontFamily: "var(--rt-font-mono)" }}>{slot}</div>
     </div>
@@ -443,7 +443,7 @@ function CategoryEdgeContent() {
                         filter: !out && !cantFit && !inLineup ? "grayscale(0.6)" : "none",
                       }}
                     >
-                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} />
+                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: out ? "line-through" : "none" }}>
                           {p.name}
@@ -542,13 +542,13 @@ function CategoryEdgeContent() {
                       .map((a) => {
                         const tier = categoryTier(a.player.cats[edge.category]);
                         const ring = tier ? TIER_COLOR[tier] : "var(--rt-hairline)";
-                        return <CategoryChip key={a.player.fantraxId} name={a.player.name} slot={a.slot} ring={ring} />;
+                        return <CategoryChip key={a.player.fantraxId} name={a.player.name} slot={a.slot} ring={ring} isRookie={a.player.isRookie} />;
                       })}
                     {[...computed.effectiveBench]
                       .sort((a, b) => (b.cats[edge.category] ?? -Infinity) - (a.cats[edge.category] ?? -Infinity))
                       .slice(0, 6)
                       .map((p) => (
-                        <CategoryChip key={p.fantraxId} name={p.name} slot={p.slot} ring="var(--rt-hairline)" dimmed />
+                        <CategoryChip key={p.fantraxId} name={p.name} slot={p.slot} ring="var(--rt-hairline)" dimmed isRookie={p.isRookie} />
                       ))}
                   </div>
                 </div>

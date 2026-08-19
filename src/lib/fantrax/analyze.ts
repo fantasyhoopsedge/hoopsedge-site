@@ -110,6 +110,14 @@ export interface ResolvedPlayer extends LeagueRosterSpot {
   ambiguousName: boolean;
   /** Scored off a sample too small to mean anything (see MIN_SAMPLE_GAMES). */
   smallSample: boolean;
+  /** 2026 draft class, per the bundled dynasty board (see dynastyBioIndex in
+   *  resolve.ts) — drives headshot source order (PlayerHeadshot's `rookie`
+   *  prop): a rookie's local /images/prospects/ art should be tried before
+   *  cdn.nba.com, since NBA.com serves a generic placeholder (HTTP 200, no
+   *  error) for an id with no real photo shot yet rather than failing the
+   *  request. Defaults false for any player resolve.ts couldn't match against
+   *  the dynasty board. */
+  isRookie: boolean;
 }
 
 /**

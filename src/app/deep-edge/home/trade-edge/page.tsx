@@ -213,7 +213,7 @@ function PlayerMiniCard({
         border: `1px solid ${ringColor}`, background, cursor: "pointer", textAlign: "center", color: "var(--rt-ink)",
       }}
     >
-      <PlayerHeadshot name={player.name} size={44} initials={initials} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={13} />
+      <PlayerHeadshot name={player.name} size={44} initials={initials} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={13} rookie={player.isRookie} />
       <div
         style={{
           fontSize: 11.5, fontWeight: 700, lineHeight: 1.2, minHeight: "2.4em", width: "100%", color: "var(--rt-ink)",
@@ -383,7 +383,7 @@ function TradePreviewTable({
                 <tr key={p.fantraxId}>
                   <td className="l">
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <PlayerHeadshot name={p.name} size={22} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={9} />
+                      <PlayerHeadshot name={p.name} size={22} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={9} rookie={p.isRookie} />
                       <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
                     </div>
                   </td>
@@ -404,11 +404,11 @@ function TradePreviewTable({
   );
 }
 
-function CategoryChip({ name, ring }: { name: string; ring: string }) {
+function CategoryChip({ name, ring, isRookie }: { name: string; ring: string; isRookie?: boolean }) {
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
   return (
     <div title={name} style={{ width: 40, height: 40, borderRadius: "50%", padding: 2, border: `2px solid ${ring}`, flexShrink: 0 }}>
-      <PlayerHeadshot name={name} size={36} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={12} />
+      <PlayerHeadshot name={name} size={36} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={12} rookie={isRookie} />
     </div>
   );
 }
@@ -579,7 +579,7 @@ function CategoryEdgeCompareColumn({
                *  start at the same x offset on every row, down the page and
                *  between the Before/After columns, regardless of chip count. */}
               <div style={{ display: "flex", gap: 8 }}>
-                {notable.map(({ p, tier }) => <CategoryChip key={p.fantraxId} name={p.name} ring={TIER_COLOR[tier]} />)}
+                {notable.map(({ p, tier }) => <CategoryChip key={p.fantraxId} name={p.name} ring={TIER_COLOR[tier]} isRookie={p.isRookie} />)}
               </div>
             </div>
           );

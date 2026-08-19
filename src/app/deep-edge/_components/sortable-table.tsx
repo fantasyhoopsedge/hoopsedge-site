@@ -82,6 +82,12 @@ export const DEEP_EDGE_TABLE_CSS = `
   .de-table td { padding: 8px 10px; text-align: center; border-top: 1px solid var(--rt-hairline);
     font-family: var(--rt-font-mono); }
   .de-table tr.mine td { background: rgba(250,70,22,.14); font-weight: 600; }
+  /* Player-name cell — byte-for-byte /seasonal-rankings' own "Player Cat
+   * Value" table convention (.sr-td-player: 15px var(--rt-font-sans),
+   * uppercase, weight 400), so a player's name reads the same way on every
+   * FHE page instead of inheriting the table's base 12.5px mono (Ash,
+   * 2026-08-19: "same font and font size as shown in player value feature"). */
+  .de-player-name { font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400; text-transform: uppercase; }
   .de-th-sortable { cursor: pointer; user-select: none; }
   .de-th-active { color: var(--rt-ink); }
   .de-sort-arrow { display: inline-block; width: 10px; }

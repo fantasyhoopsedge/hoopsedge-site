@@ -301,8 +301,8 @@ export function RosterTableRow({
       {leadingCell}
       <td className="l">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <PlayerHeadshot name={p.name} size={26} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} />
-          <span style={{ fontWeight: 600 }}>{p.name}</span>
+          <PlayerHeadshot name={p.name} size={26} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} rookie={p.isRookie} />
+          <span className="de-player-name">{p.name}</span>
         </div>
       </td>
       <td><TeamLogo team={p.nbaTeam} /></td>
