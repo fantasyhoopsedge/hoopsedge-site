@@ -228,6 +228,41 @@ function PowerRankingsContent() {
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
 
+  // The two summary charts — lives in the header row's own right-hand column
+  // (top-right whitespace beside the title/toggles, Ash's own placement,
+  // 2026-08-19) rather than a full-width row below it. Plain JSX, not a
+  // second useMemo: myPowerRank/categoryStrengthPoints are already null until
+  // a league is loaded/format-confirmed, so this naturally renders nothing
+  // through every loading/error/unconfirmed state without duplicating them.
+  const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
+    <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "flex-end" }}>
+      {myPowerRank && (
+        <DashboardCard title="POWER RANKING">
+          <PercentileRing
+            rank={myPowerRank.rank} of={myPowerRank.of} size={120}
+            subLabel={
+              <>
+                OF {myPowerRank.of}
+                {myPowerRank.winPct != null && (
+                  <>
+                    <br />
+                    <span style={{ color: "var(--rt-ink)", fontWeight: 700 }}>{(myPowerRank.winPct * 100).toFixed(1)}% WIN</span>
+                  </>
+                )}
+              </>
+            }
+          />
+        </DashboardCard>
+      )}
+      {categoryStrengthPoints && (
+        <div style={{ padding: "16px 20px", borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
+          <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 10 }}>CATEGORY STRENGTH · STRONGEST TO WEAKEST</div>
+          <CategoryStrengthChart points={categoryStrengthPoints} height={140} barWidth={28} gap={10} />
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <HubShell hasLeague={hasLeague} breadcrumb={saved ? `${saved.leagueName} · Power Rankings` : "Power Rankings"}>
       <style>{DEEP_EDGE_TABLE_CSS}</style>
@@ -235,40 +270,46 @@ function PowerRankingsContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
-        {format && format !== "unconfirmed" && (
-          <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
-            {teamCount} TEAMS
-          </span>
-        )}
-      </div>
-      {format && format !== "unconfirmed" && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-          <SegmentedControl<RankingsFormat>
-            options={FORMAT_TOGGLE_OPTIONS}
-            value={format}
-            onChange={setFormatOverride}
-            disabledOptions={disabledFormatOption ? [disabledFormatOption] : []}
-          />
-          {formatOverride && formatOverride !== derivedFormat && (
-            <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
-              Previewing {FORMAT_LABEL[formatOverride]} · your league is set to {derivedFormat ? FORMAT_LABEL[derivedFormat] : ""}
-            </span>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 320px", minWidth: 280 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
+            {format && format !== "unconfirmed" && (
+              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
+                {teamCount} TEAMS
+              </span>
+            )}
+          </div>
+          {format && format !== "unconfirmed" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+              <SegmentedControl<RankingsFormat>
+                options={FORMAT_TOGGLE_OPTIONS}
+                value={format}
+                onChange={setFormatOverride}
+                disabledOptions={disabledFormatOption ? [disabledFormatOption] : []}
+              />
+              {formatOverride && formatOverride !== derivedFormat && (
+                <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
+                  Previewing {FORMAT_LABEL[formatOverride]} · your league is set to {derivedFormat ? FORMAT_LABEL[derivedFormat] : ""}
+                </span>
+              )}
+            </div>
+          )}
+          {format && format !== "unconfirmed" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Rank lineup by</span>
+              <SegmentedControl<LineupValueMode>
+                options={UI_VALUE_MODE_OPTIONS}
+                value={valueMode}
+                onChange={setValueMode}
+                disabledOptions={scoringMode !== "points" ? ["fpts"] : []}
+              />
+            </div>
           )}
         </div>
-      )}
-      {format && format !== "unconfirmed" && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Rank lineup by</span>
-          <SegmentedControl<LineupValueMode>
-            options={UI_VALUE_MODE_OPTIONS}
-            value={valueMode}
-            onChange={setValueMode}
-            disabledOptions={scoringMode !== "points" ? ["fpts"] : []}
-          />
-        </div>
-      )}
+
+        {chartsPanel}
+      </div>
 
       {loadingSaved || (saved && !analysis && !error) ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>Loading…</p>
@@ -297,34 +338,6 @@ function PowerRankingsContent() {
             Every team in {saved.leagueName}, ranked by your league&apos;s scoring format.
           </p>
 
-          {(myPowerRank || categoryStrengthPoints) && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 24, alignItems: "stretch" }}>
-              {myPowerRank && (
-                <DashboardCard title="POWER RANKING">
-                  <PercentileRing
-                    rank={myPowerRank.rank} of={myPowerRank.of} size={140}
-                    subLabel={
-                      <>
-                        OF {myPowerRank.of}
-                        {myPowerRank.winPct != null && (
-                          <>
-                            <br />
-                            <span style={{ color: "var(--rt-ink)", fontWeight: 700 }}>{(myPowerRank.winPct * 100).toFixed(1)}% WIN</span>
-                          </>
-                        )}
-                      </>
-                    }
-                  />
-                </DashboardCard>
-              )}
-              {categoryStrengthPoints && (
-                <div style={{ padding: 20, borderRadius: 16, border: "1px solid var(--rt-hairline)", gridColumn: "span 2" }}>
-                  <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 12 }}>CATEGORY STRENGTH · STRONGEST TO WEAKEST</div>
-                  <CategoryStrengthChart points={categoryStrengthPoints} />
-                </div>
-              )}
-            </div>
-          )}
 
           <div
             style={{

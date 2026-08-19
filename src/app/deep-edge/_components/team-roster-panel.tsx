@@ -124,7 +124,7 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
       </div>
 
       <div className="de-table-wrap">
-        <table className="de-table">
+        <table className="de-table de-table-roster">
           <thead>
             <RosterTableHead
               leadingLabel="✓"
