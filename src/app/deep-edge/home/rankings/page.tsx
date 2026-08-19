@@ -433,7 +433,7 @@ function PowerRankingsContent() {
                 )}
               </div>
               <div className="de-table-wrap">
-                <table className="de-table de-table-compact">
+                <table className="de-table de-table-compact de-table-roster">
                   <colgroup>
                     <col style={{ width: 36 }} />
                     <col style={{ width: 150 }} />

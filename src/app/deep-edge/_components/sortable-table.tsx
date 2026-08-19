@@ -93,6 +93,11 @@ export const DEEP_EDGE_TABLE_CSS = `
    * 12.5px; this table is the one screen meant to be read player-by-player,
    * same as seasonal-rankings itself. */
   .de-table.de-table-roster td { font-size: 15px; }
+  /* Headers on a roster-font table match /seasonal-rankings' own .sr-th
+   * exactly — same sans-serif/15px/weight-400/uppercase as the data cells,
+   * not the smaller mono label style every other .de-table header uses (Ash,
+   * 2026-08-19: "the headers for both power rankings and roster too"). */
+  .de-table.de-table-roster th { font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400; letter-spacing: 0; }
   /* Player-name cell — the one column that still differs from the rest, same
    * as seasonal-rankings' own .sr-td-player: sans-serif, uppercase, weight
    * 400, instead of the table's mono numeric convention. */
