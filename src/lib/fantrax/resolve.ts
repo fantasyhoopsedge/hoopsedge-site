@@ -252,6 +252,7 @@ function resolveOne(
     trendTags: null,
     ambiguousName,
     smallSample: false,
+    isRookie: false, // corrected by applyTrendTags() once the bio index is available
   };
   if (!identity) return blank;
 
@@ -309,6 +310,7 @@ function resolveOne(
       trendTags: null, // filled in by applyTrendTags() — needs an async batch query
       ambiguousName: false,
       smallSample: !isProjection && (stats.g ?? 0) < MIN_SAMPLE_GAMES,
+      isRookie: false, // corrected by applyTrendTags() once the bio index is available
     };
   }
   return blank;
@@ -377,14 +379,19 @@ function applyTrendTags(
   bio: Map<string, { age: number | null; isRookie: boolean }>,
 ): ResolvedPlayer[] {
   return players.map((p) => {
-    if (!p.playerId) return p;
-    const trend = trendsById.get(p.playerId);
-    if (!trend) return p;
+    // isRookie is a name-keyed dynasty-board lookup, independent of the
+    // playerId/trend-payload join below — set it regardless of whether this
+    // player has a trend read, so a rookie with no trend history yet (the
+    // normal case: no real production to trend) still gets the right
+    // headshot source order (see ResolvedPlayer.isRookie).
     const b = lookupWithNameAlias(bio, normalizePlayerName(p.name)) ?? { age: null, isRookie: false };
+    if (!p.playerId) return { ...p, isRookie: b.isRookie };
+    const trend = trendsById.get(p.playerId);
+    if (!trend) return { ...p, isRookie: b.isRookie };
     const tagOf = (metric: "nineCatV" | "minus1V" | "eightCatV"): TrendTag | null =>
       deriveFinalTake(trend.blocks, trend.seasonHistory ?? [], b.age, metric, p.consensusRank, null, b.isRookie)?.tag ?? null;
     const trendTags: TrendTags = { nineCatV: tagOf("nineCatV"), minus1V: tagOf("minus1V"), eightCatV: tagOf("eightCatV") };
-    return { ...p, trendTags };
+    return { ...p, trendTags, isRookie: b.isRookie };
   });
 }
 

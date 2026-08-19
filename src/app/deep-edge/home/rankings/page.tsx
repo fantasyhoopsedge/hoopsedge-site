@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import type { LeagueAnalysis, RotoStandingRow } from "@/lib/fantrax/analyze";
+import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type RotoStandingRow } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
@@ -11,15 +11,15 @@ import {
   rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
   type RankingsFormat, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
-import { resolveEffectiveScoring } from "@/lib/fantrax/lineup";
+import { buildOptimalLineup, greedyAssignment, resolveEffectiveScoring, RESERVE_SLOTS, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
-import { WdlBadge } from "../../_components/wdl-badge";
 import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
 import { StrengthBar } from "../../_components/strength-bar";
 import { SegmentedControl } from "../../_components/segmented-control";
 import { TeamRosterPanel } from "../../_components/team-roster-panel";
 import { tierBg, tierFill } from "../../_components/tier-colors";
+import { CategoryStrengthChart, DashboardCard, PercentileRing, type RadarPoint } from "../../_components/category-dashboard";
 import type { EnrichData, RosterTableFormat } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
@@ -58,11 +58,17 @@ function PowerRankingsContent() {
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [h2hSort, setH2hSort] = useState<"matchup" | "winpct" | "category">("winpct");
+  const [h2hSort, setH2hSort] = useState<"matchup" | "winpct">("winpct");
   const [formatOverride, setFormatOverride] = useState<RankingsFormat | null>(null);
   const [rotoView, setRotoView] = useState<"perGame" | "totals" | "points">("points");
   const [pointsBasis, setPointsBasis] = useState<"perGame" | "totals">("perGame");
   const rotoBasis: "perGame" | "totals" = rotoView === "points" ? pointsBasis : rotoView;
+  // Which value flavor fills each position slot with the best-ranked eligible
+  // player (buildOptimalLineup's own valueMode) — same "Rank lineup by" set
+  // Category Edge/Roster Edge/Trade Edge already expose, now driving Power
+  // Rankings' own starter selection too instead of silently defaulting to
+  // LeagueV (Ash, 2026-08-19: "this should drive the power rankings").
+  const [valueMode, setValueMode] = useState<LineupValueMode>("nineCatV");
 
   useEffect(() => {
     if (!saved) return;
@@ -137,8 +143,8 @@ function PowerRankingsContent() {
     // freezes on large leagues toggling depth (Ash, 2026-08-11): the exact
     // branch-and-bound solver was running 30 times per click when only my
     // own team's precision actually matters to what's displayed.
-    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: analysis.myTeamId ?? undefined });
-  }, [analysis, format, depth, lineupCadence, capPos, capMatch, effective]);
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: analysis.myTeamId ?? undefined, valueMode });
+  }, [analysis, format, depth, lineupCadence, capPos, capMatch, effective, valueMode]);
 
   // Dynamically derived from whichever raw-stat basis (per-game rate vs
   // season totals) is currently selected — NOT the z-score-based standings
@@ -164,12 +170,39 @@ function PowerRankingsContent() {
     if (!h2hRecords) return [];
     const arr = [...h2hRecords];
     if (h2hSort === "matchup") arr.sort((a, b) => b.totalWins - a.totalWins || b.winPct - a.winPct);
-    else if (h2hSort === "category") arr.sort((a, b) => b.categoryWins - a.categoryWins);
     else arr.sort((a, b) => b.winPct - a.winPct);
     return arr;
   }, [h2hRecords, h2hSort]);
 
-  const selected = h2hSorted.find((r) => r.teamId === selectedTeamId) ?? h2hSorted.find((r) => r.teamId === saved?.teamId) ?? h2hSorted[0] ?? null;
+  const myTeamId = analysis?.myTeamId ?? null;
+
+  // Chart 1 (top-of-page "POWER RANKING" ring): my own team's finish in
+  // whichever standings view is active — roto has no win% notion (a pure
+  // points-total ranking), so only h2hcat/points carry a secondary line.
+  const myPowerRank = useMemo(() => {
+    if (!myTeamId) return null;
+    if (format === "roto") {
+      const idx = rotoSort.sorted.findIndex((r) => r.teamId === myTeamId);
+      return idx < 0 ? null : { rank: idx + 1, of: rotoSort.sorted.length, winPct: null as number | null };
+    }
+    const idx = h2hSorted.findIndex((r) => r.teamId === myTeamId);
+    return idx < 0 ? null : { rank: idx + 1, of: h2hSorted.length, winPct: h2hSorted[idx].winPct };
+  }, [myTeamId, format, rotoSort.sorted, h2hSorted]);
+
+  // Chart 2 (category strength, strongest→weakest): z-score category ranks
+  // for my own team — the same categoryEdges() Category Edge's own dashboard
+  // reads, format-independent (roto and h2h-categories score the same
+  // categories), so it comes straight off `profiles` rather than re-deriving
+  // from whichever DISPLAY-only standings view (rotoStandingsByRawStat/
+  // h2hRecords) happens to be active. Points leagues have no category
+  // dimension at all (see analyze.ts).
+  const categoryStrengthPoints: RadarPoint[] | null = useMemo(() => {
+    if (!profiles || !myTeamId || format === "points" || scored.length === 0) return null;
+    const zStandings = projectRotoStandings(profiles, scored);
+    const edges = categoryEdges(myTeamId, profiles, zStandings, scored);
+    const byCat = new Map(edges.map((e) => [e.category, e]));
+    return scored.map((cat) => ({ category: cat, rank: byCat.get(cat)?.rank ?? null, of: teamCount }));
+  }, [profiles, myTeamId, format, scored, teamCount]);
 
   // Which team's roster the panel below shows — the same selectedTeamId a
   // click on either standings table sets, defaulting to the user's own team
@@ -192,8 +225,90 @@ function PowerRankingsContent() {
     return new Set(starters?.map((p) => p.fantraxId) ?? []);
   }, [profiles, rosterTeamId]);
 
+  // Slot-tagged BASE lineup (depth 0, no bench extension) for the currently-
+  // viewed team only — TeamCategoryProfile.starters (used by drivingIds
+  // above) is already flattened to plain ResolvedPlayer[] by profileFromLineup,
+  // discarding which slot each player actually fills. Needed for the
+  // Guards/Forwards/Centres/Flex/Reserves/Minors grouping (Ash, 2026-08-19),
+  // which is about the real starting-lineup slot, not the depth toggle's
+  // bench-weighting. A fresh buildOptimalLineup call for one team is cheap —
+  // it's cached when this is the same team/settings profiles already solved
+  // exactly, and bounded even when it isn't (see lineup.ts's cache + backtrack
+  // budget) — nothing like the 30-team freeze that pattern used to cause.
+  const baseLineup = useMemo(() => {
+    if (!rosterTeam || !effective || !analysis) return null;
+    const formula = analysis.league.scoringMode === "points" ? analysis.league.pointsFormula : null;
+    return buildOptimalLineup(rosterTeam.players, effective.positionSlots, formula, { valueMode, exact: true });
+  }, [rosterTeam, effective, analysis, valueMode]);
+  const rosterStatsMode: "perGame" | "totals" = format === "roto" ? rotoBasis : "perGame";
+  // Re-labels the SAME already-chosen driving set (baseLineup.starters —
+  // unchanged, still the exact solver's value-maximizing pick, so real
+  // scoring/standings math is untouched) into WHICH named slot each of those
+  // players displays under, via the scarcity-first greedy algorithm instead
+  // of the exact solver's own slot choice (Ash, 2026-08-19: "order players by
+  // position, then value rank — the top ranked guard would show up in the PG
+  // or G slots not the flex slot"). The exact solver can legitimately bench
+  // the single best player into Flex if that maximizes total value (see
+  // lineup.ts's own header comment on why that's usually correct for
+  // scoring) — this is purely a display re-sort of a fixed set of already-
+  // selected players into slot labels, matching what a reader expects to see
+  // grouped as "Guards"/"Forwards"/etc. Value ranking respects the same
+  // per-game/totals toggle already driving this panel's stat display.
+  const slotByFantraxId = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!baseLineup || !effective) return map;
+    const slotInstances: string[] = [];
+    for (const [slot, count] of Object.entries(effective.positionSlots)) {
+      if (RESERVE_SLOTS.has(slot.toLowerCase())) continue;
+      for (let i = 0; i < count; i++) slotInstances.push(slot);
+    }
+    const rankValue = (p: ResolvedPlayer): number | null => {
+      if (valueMode === "fpts" || valueMode === "league") return p.pointsValue;
+      const set = rosterStatsMode === "totals" ? p.catV?.totals : p.catV?.perGame;
+      return set?.[valueMode] ?? null;
+    };
+    const relabeled = greedyAssignment(slotInstances, baseLineup.starters.map((a) => a.player), rankValue);
+    relabeled.forEach((p, i) => { if (p) map.set(p.fantraxId, slotInstances[i]); });
+    return map;
+  }, [baseLineup, effective, valueMode, rosterStatsMode]);
+
   const hasLeague = Boolean(saved);
   const settingsSummary = `${lineupCadence === "daily" ? "Daily" : "Weekly"} lineups · ${capPos ? `Position cap ${capPosN}/pos` : "No position cap"} · ${capMatch ? `Matchup cap ${capMatchN} gms` : "No matchup cap"}`;
+
+  // The two summary charts — lives in the header row's own right-hand column
+  // (top-right whitespace beside the title/toggles, Ash's own placement,
+  // 2026-08-19) rather than a full-width row below it. Plain JSX, not a
+  // second useMemo: myPowerRank/categoryStrengthPoints are already null until
+  // a league is loaded/format-confirmed, so this naturally renders nothing
+  // through every loading/error/unconfirmed state without duplicating them.
+  const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
+    <div style={{ display: "flex", gap: 48, flexWrap: "wrap", alignItems: "flex-start" }}>
+      {myPowerRank && (
+        <DashboardCard title="POWER RANKING" bordered={false}>
+          <PercentileRing
+            rank={myPowerRank.rank} of={myPowerRank.of} size={110}
+            subLabel={
+              <>
+                OF {myPowerRank.of}
+                {myPowerRank.winPct != null && (
+                  <>
+                    <br />
+                    <span style={{ color: "var(--rt-ink)", fontWeight: 700 }}>{(myPowerRank.winPct * 100).toFixed(1)}% WIN</span>
+                  </>
+                )}
+              </>
+            }
+          />
+        </DashboardCard>
+      )}
+      {categoryStrengthPoints && (
+        <div>
+          <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 10 }}>CATEGORY STRENGTH · STRONGEST TO WEAKEST</div>
+          <CategoryStrengthChart points={categoryStrengthPoints} height={130} barWidth={24} gap={8} />
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <HubShell hasLeague={hasLeague} breadcrumb={saved ? `${saved.leagueName} · Power Rankings` : "Power Rankings"}>
@@ -202,29 +317,50 @@ function PowerRankingsContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
-        {format && format !== "unconfirmed" && (
-          <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
-            {teamCount} TEAMS
-          </span>
-        )}
-      </div>
-      {format && format !== "unconfirmed" && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
-          <SegmentedControl<RankingsFormat>
-            options={FORMAT_TOGGLE_OPTIONS}
-            value={format}
-            onChange={setFormatOverride}
-            disabledOptions={disabledFormatOption ? [disabledFormatOption] : []}
-          />
-          {formatOverride && formatOverride !== derivedFormat && (
-            <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
-              Previewing {FORMAT_LABEL[formatOverride]} · your league is set to {derivedFormat ? FORMAT_LABEL[derivedFormat] : ""}
-            </span>
+      <div style={{ display: "grid", gridTemplateColumns: chartsPanel ? "auto 1fr" : "auto", alignItems: "flex-start", gap: 24 }}>
+        <div style={{ minWidth: 280 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Power Rankings</h1>
+            {format && format !== "unconfirmed" && (
+              <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
+                {teamCount} TEAMS
+              </span>
+            )}
+          </div>
+          {format && format !== "unconfirmed" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+              <SegmentedControl<RankingsFormat>
+                options={FORMAT_TOGGLE_OPTIONS}
+                value={format}
+                onChange={setFormatOverride}
+                disabledOptions={disabledFormatOption ? [disabledFormatOption] : []}
+              />
+              {formatOverride && formatOverride !== derivedFormat && (
+                <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
+                  Previewing {FORMAT_LABEL[formatOverride]} · your league is set to {derivedFormat ? FORMAT_LABEL[derivedFormat] : ""}
+                </span>
+              )}
+            </div>
+          )}
+          {format && format !== "unconfirmed" && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Rank lineup by</span>
+              <SegmentedControl<LineupValueMode>
+                options={UI_VALUE_MODE_OPTIONS}
+                value={valueMode}
+                onChange={setValueMode}
+                disabledOptions={scoringMode !== "points" ? ["fpts"] : []}
+              />
+            </div>
           )}
         </div>
-      )}
+
+        {chartsPanel && (
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            {chartsPanel}
+          </div>
+        )}
+      </div>
 
       {loadingSaved || (saved && !analysis && !error) ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>Loading…</p>
@@ -252,6 +388,7 @@ function PowerRankingsContent() {
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 20px", maxWidth: 640 }}>
             Every team in {saved.leagueName}, ranked by your league&apos;s scoring format.
           </p>
+
 
           <div
             style={{
@@ -296,7 +433,7 @@ function PowerRankingsContent() {
                 )}
               </div>
               <div className="de-table-wrap">
-                <table className="de-table de-table-compact">
+                <table className="de-table de-table-compact de-table-roster">
                   <colgroup>
                     <col style={{ width: 36 }} />
                     <col style={{ width: 150 }} />
@@ -324,7 +461,7 @@ function PowerRankingsContent() {
                           style={{ cursor: "pointer" }}
                         >
                           <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
-                          <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
+                          <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</span></td>
                           <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
                           {scored.map((cat) => (
                             <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>
@@ -349,7 +486,7 @@ function PowerRankingsContent() {
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                 <span style={{ fontSize: 12.5, color: "var(--rt-muted)", marginRight: 4 }}>Sort by</span>
                 {(format === "h2hcat"
-                  ? [["matchup", "Matchup record"], ["winpct", "Win %"], ["category", "Category record"]]
+                  ? [["matchup", "Matchup record"], ["winpct", "Win %"]]
                   : [["matchup", "Record"], ["winpct", "Fantasy points"]]
                 ).map(([key, label]) => (
                   <button
@@ -369,7 +506,7 @@ function PowerRankingsContent() {
               </div>
 
               <div className="de-table-wrap" style={{ marginBottom: 24 }}>
-                <table className="de-table" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
+                <table className="de-table de-table-roster" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
                   <thead>
                     <tr>
                       <th>#</th>
@@ -389,7 +526,7 @@ function PowerRankingsContent() {
                         style={{ cursor: "pointer" }}
                       >
                         <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
-                        <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
+                        <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</span></td>
                         <td>{(row.winPct * 100).toFixed(1)}%</td>
                         {format === "h2hcat" ? (
                           <>
@@ -410,35 +547,6 @@ function PowerRankingsContent() {
                   </tbody>
                 </table>
               </div>
-
-              {selected && (
-                <div>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>{selected.teamName} — head to head</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8 }}>
-                    {selected.matchups
-                      .slice()
-                      .sort((a, b) => {
-                        const order = { win: 0, draw: 1, loss: 2 } as const;
-                        return order[a.matchupResult] - order[b.matchupResult] || a.opponentName.localeCompare(b.opponentName);
-                      })
-                      .map((m) => (
-                        <div key={m.opponentId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10, border: "1px solid var(--rt-hairline)" }}>
-                          <WdlBadge result={m.matchupResult} />
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.opponentName}</div>
-                            <div style={{ fontSize: 11, color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)" }}>
-                              {m.scoreline
-                                ? `${m.scoreline.mine.toFixed(1)} vs ${m.scoreline.theirs.toFixed(1)}`
-                                : m.projected
-                                  ? `${m.projected.mine.toFixed(1)}-${m.projected.theirs.toFixed(1)}`
-                                  : `${m.wins}-${m.draws}-${m.losses}`}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              )}
             </>
           )}
 
@@ -453,7 +561,8 @@ function PowerRankingsContent() {
                 leaguePlayers={leaguePlayers}
                 salaryFormat={salaryFormat}
                 drivingIds={drivingIds}
-                statsMode={format === "roto" ? rotoBasis : "perGame"}
+                slotByFantraxId={slotByFantraxId}
+                statsMode={rosterStatsMode}
               />
             </div>
           )}

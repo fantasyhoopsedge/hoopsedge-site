@@ -1,7 +1,7 @@
 "use client";
 
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
-import { rankTierIndex, rankTierLabel } from "@/lib/fantrax/lineup";
+import { RANK_TIER_LABELS, rankTierIndex, rankTierLabel } from "@/lib/fantrax/lineup";
 
 /** 11th/12th/13th are the well-known exception to the 1st/2nd/3rd rule. */
 export function ordinal(rank: number): string {
@@ -20,7 +20,7 @@ export function ordinal(rank: number): string {
  *  washed-out green or red — was the actual ask. Same bucket boundaries as
  *  rankTierIndex()/RANK_TIER_LABELS, so the color and the ELITE/EXCELLENT/…
  *  text next to it always agree on which tier a rank is in. */
-const STATUS_COLORS = [
+export const STATUS_COLORS = [
   "#15803d", // Elite (top 10%) — strong green
   "#22c55e", // Excellent
   "#84cc16", // Good — green sliding toward amber
@@ -36,7 +36,7 @@ export function statusColor(rank: number, of: number): string {
  *  last-place ring/bar still shows a thin sliver rather than reading as
  *  empty/broken. Shared by the ring, the horizontal bars, and the radar so
  *  "how full" always means the same thing everywhere on this dashboard. */
-function percentileOf(rank: number, of: number): number {
+export function percentileOf(rank: number, of: number): number {
   if (of <= 0) return 0;
   return Math.max(0.03, 1 - (rank - 1) / of);
 }
@@ -180,9 +180,19 @@ export function RankBarPanel({ title, children }: { title: string; children: Rea
  *  header pinned to the top and whatever visual a caller passes vertically
  *  centered in the remaining space, so its center lines up with
  *  RankBarPanel's row stack above regardless of the visual's own height. */
-export function DashboardCard({ title, children }: { title: string; children: React.ReactNode }) {
+export function DashboardCard({
+  title, children, bordered = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  /** Power Rankings' compact header-row placement omits the border/padding
+   *  box (Ash, 2026-08-19: "remove the borders around those charts") — every
+   *  other caller (Category Edge's 4-card dashboard) keeps today's bordered
+   *  look by not passing this. */
+  bordered?: boolean;
+}) {
   return (
-    <div style={{ padding: 20, borderRadius: 16, border: "1px solid var(--rt-hairline)", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div style={{ padding: bordered ? 20 : 0, borderRadius: 16, border: bordered ? "1px solid var(--rt-hairline)" : "none", height: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
       <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", alignSelf: "flex-start", marginBottom: 4 }}>{title}</div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>{children}</div>
     </div>
@@ -254,5 +264,75 @@ export function CategoryRadarChart({ points, size = 260 }: { points: RadarPoint[
         );
       })}
     </svg>
+  );
+}
+
+/** The 6 rankTierIndex()/RANK_TIER_LABELS buckets, paired with this file's own
+ *  STATUS_COLORS scale — the legend CategoryStrengthChart draws, and the one
+ *  place both lists have to agree with each other index-for-index. */
+const TIER_LEGEND = RANK_TIER_LABELS.map((label, i) => ({ label, color: STATUS_COLORS[i] }));
+
+/**
+ * Category strength, sorted strongest→weakest left-to-right, as diagonal
+ * "rising bars" (Ash, 2026-08-19: Power Rankings' own top-of-page summary —
+ * distinct from RankBarPanel's fixed-FHE-order horizontal rows, which stay
+ * that way everywhere else so a category's row position is stable to scan).
+ * Each bar is one SVG line (rounded caps, not a <rect>) so a fixed diagonal
+ * run per category still lets height alone encode strength — no CSS skew
+ * transform needed. Color and the legend both come from statusColor()/
+ * STATUS_COLORS, so this always reads consistently with PercentileRing/
+ * RankBarRow/TierPill on the same dashboard.
+ */
+export function CategoryStrengthChart({
+  points, height = 160, barWidth = 34, gap = 14,
+}: {
+  points: RadarPoint[];
+  height?: number;
+  barWidth?: number;
+  gap?: number;
+}) {
+  const ranked = points.filter((p): p is RadarPoint & { rank: number } => p.rank != null);
+  const sorted = [...ranked].sort((a, b) => a.rank - b.rank);
+  const topMargin = 14;
+  const labelHeight = 34;
+  const baseY = height - labelHeight;
+  const maxBarH = baseY - topMargin;
+  const run = barWidth * 0.72; // horizontal offset each diagonal line covers
+  const slot = barWidth + gap;
+  const chartWidth = Math.max(0, sorted.length * slot - gap);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 22, flexWrap: "wrap" }}>
+      <svg width={chartWidth} height={height} role="img" aria-label="Category strength, strongest to weakest">
+        <line x1={0} y1={baseY} x2={chartWidth} y2={baseY} stroke="var(--rt-hairline)" strokeWidth={1} />
+        {sorted.map((p, i) => {
+          const cx = i * slot + barWidth / 2;
+          const barH = Math.max(6, percentileOf(p.rank, p.of) * maxBarH);
+          const color = p.greyed ? "var(--rt-hairline)" : statusColor(p.rank, p.of);
+          return (
+            <g key={p.category}>
+              <line
+                x1={cx - run / 2} y1={baseY} x2={cx + run / 2} y2={baseY - barH}
+                stroke={color} strokeWidth={barWidth * 0.42} strokeLinecap="round"
+              />
+              <text
+                x={cx} y={height - 10} textAnchor="middle"
+                fontSize={11} fontWeight={700} fontFamily="var(--rt-font-mono)" fill="var(--rt-body)"
+              >
+                {CATEGORY_LABEL[p.category]}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, fontSize: 10.5, fontFamily: "var(--rt-font-mono)" }}>
+        {TIER_LEGEND.map(({ label, color }) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--rt-muted)" }}>
+            <span style={{ display: "inline-block", width: 9, height: 9, borderRadius: 3, background: color, flexShrink: 0 }} />
+            {label.toUpperCase()}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

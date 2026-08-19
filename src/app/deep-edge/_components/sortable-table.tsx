@@ -82,6 +82,26 @@ export const DEEP_EDGE_TABLE_CSS = `
   .de-table td { padding: 8px 10px; text-align: center; border-top: 1px solid var(--rt-hairline);
     font-family: var(--rt-font-mono); }
   .de-table tr.mine td { background: rgba(250,70,22,.14); font-weight: 600; }
+  /* Roster tables (Roster Edge, Power Rankings' roster panel, both via
+   * RosterTableRow) — byte-for-byte /seasonal-rankings' own "Player Cat
+   * Value" table convention: every data cell at 15px (.sr-td), not just the
+   * player name, so nothing in the row reads smaller than the rest (Ash,
+   * 2026-08-19: "the roster font should be the same for all data displayed
+   * in the roster table"). Scoped to .de-table-roster specifically — every
+   * OTHER .de-table (standings, Trade Edge's compare grid, draft picks) is a
+   * deliberately denser multi-team/multi-column view that stays at the base
+   * 12.5px; this table is the one screen meant to be read player-by-player,
+   * same as seasonal-rankings itself. */
+  .de-table.de-table-roster td { font-size: 15px; }
+  /* Headers on a roster-font table match /seasonal-rankings' own .sr-th
+   * exactly — same sans-serif/15px/weight-400/uppercase as the data cells,
+   * not the smaller mono label style every other .de-table header uses (Ash,
+   * 2026-08-19: "the headers for both power rankings and roster too"). */
+  .de-table.de-table-roster th { font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400; letter-spacing: 0; }
+  /* Player-name cell — the one column that still differs from the rest, same
+   * as seasonal-rankings' own .sr-td-player: sans-serif, uppercase, weight
+   * 400, instead of the table's mono numeric convention. */
+  .de-player-name { font-family: var(--rt-font-sans); font-size: 15px; font-weight: 400; text-transform: uppercase; }
   .de-th-sortable { cursor: pointer; user-select: none; }
   .de-th-active { color: var(--rt-ink); }
   .de-sort-arrow { display: inline-block; width: 10px; }

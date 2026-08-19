@@ -497,7 +497,7 @@ function RosterEdgeContent() {
           </div>
 
           <div className="de-table-wrap" style={{ marginBottom: 16 }}>
-            <table className="de-table">
+            <table className="de-table de-table-roster">
               <thead>
                 <tr>
                   <th>✓</th>
