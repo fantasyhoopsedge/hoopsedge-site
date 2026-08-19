@@ -282,7 +282,7 @@ function PowerRankingsContent() {
   // a league is loaded/format-confirmed, so this naturally renders nothing
   // through every loading/error/unconfirmed state without duplicating them.
   const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
-    <div style={{ display: "flex", gap: 36, flexWrap: "wrap", alignItems: "flex-start" }}>
+    <div style={{ display: "flex", gap: 48, flexWrap: "wrap", alignItems: "flex-start" }}>
       {myPowerRank && (
         <DashboardCard title="POWER RANKING" bordered={false}>
           <PercentileRing
@@ -461,7 +461,7 @@ function PowerRankingsContent() {
                           style={{ cursor: "pointer" }}
                         >
                           <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
-                          <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
+                          <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</span></td>
                           <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
                           {scored.map((cat) => (
                             <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>
@@ -506,7 +506,7 @@ function PowerRankingsContent() {
               </div>
 
               <div className="de-table-wrap" style={{ marginBottom: 24 }}>
-                <table className="de-table" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
+                <table className="de-table de-table-roster" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
                   <thead>
                     <tr>
                       <th>#</th>
@@ -526,7 +526,7 @@ function PowerRankingsContent() {
                         style={{ cursor: "pointer" }}
                       >
                         <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
-                        <td className="l">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</td>
+                        <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</span></td>
                         <td>{(row.winPct * 100).toFixed(1)}%</td>
                         {format === "h2hcat" ? (
                           <>
