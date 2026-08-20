@@ -13,7 +13,7 @@ import {
 } from "@/lib/fantrax/lineup";
 import {
   buildDepthWeightedProfiles, buildDepthWeightedTeamProfile, depthCaption, depthWeight,
-  deriveRankingsFormat, simulateH2HCategoryStandings,
+  deriveRankingsFormat, rotoStandingsByRawStat, simulateH2HCategoryStandings,
 } from "@/lib/fantrax/power-rankings";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import {
@@ -160,19 +160,30 @@ function CategoryEdgeContent() {
   );
 
   // The expensive part: builds a profile for EVERY team in the league.
-  // Deliberately excludes forcedIn/forcedOut/valueMode from its deps —
-  // those only ever change the viewer's OWN team's lineup (computed below
-  // builds that separately as `myProfile`, exactly, and splices it in over
-  // whatever's here), so recomputing all 30 other teams on every "Adjust
-  // starters" click was pure wasted work — one real cause of the "Page
-  // Unresponsive" freeze Ash hit (2026-08-11). No exactTeamId here on
-  // purpose: since myTeamId's own entry always gets overwritten by the
-  // separately-exact `myProfile` below, solving it exactly in THIS pass
-  // too would just be discarded work — every team here can be greedy.
+  // Deliberately excludes forcedIn/forcedOut from its deps — those only ever
+  // change the viewer's OWN team's lineup (computed below builds that
+  // separately as `myProfile`, exactly, and splices it in over whatever's
+  // here), so recomputing all 30 other teams on every "Adjust starters"
+  // click was pure wasted work — one real cause of the "Page Unresponsive"
+  // freeze Ash hit (2026-08-11). No exactTeamId here on purpose: since
+  // myTeamId's own entry always gets overwritten by the separately-exact
+  // `myProfile` below, solving it exactly in THIS pass too would just be
+  // discarded work — every team here can be greedy.
+  //
+  // valueMode DOES belong in this pass, unlike forcedIn/forcedOut — it's
+  // Power Rankings' own "Rank lineup by" toggle, applied uniformly to every
+  // team there. Leaving it out of this call meant every OTHER team here
+  // silently built its lineup off default LeagueV regardless of what the
+  // user selected, while only MY team (myProfile below) honored it — an
+  // apples-vs-oranges standings comparison that put this page's own "POWER
+  // RANKING" out of sync with Power Rankings' for the identical selection
+  // (Ash, 2026-08-20: e.g. Minus1V read 53.6%/8th on Power Rankings but
+  // 52.9%/9th here). Recomputing on a valueMode change is fine — unlike
+  // forcedIn/forcedOut, it isn't clicked per-player.
   const baseProfiles = useMemo(() => {
     if (!analysis || !effective || !format || format === "unconfirmed" || format === "points") return null;
-    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null });
-  }, [analysis, effective, depth, weight, format]);
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null, valueMode });
+  }, [analysis, effective, depth, weight, format, valueMode]);
 
   const computed = useMemo(() => {
     if (!analysis || !analysis.myTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
@@ -205,11 +216,26 @@ function CategoryEdgeContent() {
     );
     if (myProfileIdx >= 0) profiles[myProfileIdx] = myProfile;
 
+    // Per-category tiers/ranks stay z-score based (the "Z-SCORE WEIGHTED"
+    // badge next to the page title is deliberate — see categoryEdges' own
+    // per-cat rank/points).
     const standings = projectRotoStandings(profiles, scored);
     const edges = categoryEdges(myTeamId, profiles, standings, scored);
-    const totalPoints = standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0;
     const maxPoints = scored.length * league.teamCount;
     const top10 = edges.filter((e) => e.rank <= 10).length;
+
+    // Overall roto standing must read off the SAME basis Power Rankings uses
+    // (raw-stat rotisserie points, see rotoStandingsByRawStat's own doc) —
+    // not the z-score totals above. Those two rankings are genuinely
+    // different math and disagreed here (Ash, 2026-08-20): this page was
+    // reporting a z-score-based "POWER RANKING" while Power Rankings reports
+    // a raw-stat one for the identical team/depth/value mode. `statMode`
+    // (Per game/Totals) is this page's own equivalent of Power Rankings'
+    // rotoBasis toggle, so it drives the same raw-stat basis here.
+    const rotoRawStandings = format === "roto" ? rotoStandingsByRawStat(profiles, scored, statMode) : null;
+    const totalPoints = format === "roto"
+      ? Math.round(rotoRawStandings!.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0)
+      : (standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0);
 
     const h2h = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : null;
     const myH2H = h2h?.find((r) => r.teamId === myTeamId) ?? null;
@@ -218,7 +244,7 @@ function CategoryEdgeContent() {
     // mode, just read off the profiles this page already built.
     const myRank = format === "h2hcat"
       ? (myH2H?.rank ?? 0)
-      : (standings.find((s) => s.teamId === myTeamId)?.projectedRank ?? 0);
+      : (rotoRawStandings?.find((s) => s.teamId === myTeamId)?.projectedRank ?? 0);
 
     // MPG has no z-score model (it isn't an FHE-scored category), but the
     // dashboard's quick-rank bars ask for it alongside the real ones — a
@@ -243,7 +269,7 @@ function CategoryEdgeContent() {
       myRoster, lineup, effectiveStarters, effectiveBench, scored, edges, totalPoints, maxPoints, top10,
       teamCount: league.teamCount, myProfile, myH2H, myRank, mpgRank, mpgValue, leagueAvgPerGame, leagueAvgTotal,
     };
-  }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight]);
+  }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight, statMode]);
 
   // Derived purely for the dashboard summary — kept separate from `computed`
   // so that block stays focused on the real analysis math. TO greys out
