@@ -2,6 +2,7 @@ import type { LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile } from "./anal
 import type { FheCategory, LeaguePointsFormula } from "./league";
 import { buildDepthWeightedProfiles, buildDepthWeightedTeamProfile } from "./power-rankings";
 import { LINEUP_VALUE_MODE_LABEL, type LineupValueMode } from "./lineup";
+import { EFFICIENCY_BASE_SALARY_WEIGHT, rankBy, rankToZ } from "../value/real-salary-model";
 
 /**
  * Pure trade-simulation math for the Trade Edge tool: "if these players moved
@@ -13,36 +14,50 @@ import { LINEUP_VALUE_MODE_LABEL, type LineupValueMode } from "./lineup";
  * actually crack the real lineup at the depth being assessed.
  */
 
-/** The four ways a Deep Edge user can rank a player: three flavors of the
+/** The five ways a Deep Edge user can rank a player: three flavors of the
  *  FHE global category-value engine (always available, independent of the
- *  league's own scoring rules), plus the league's own real fantasy-points
+ *  league's own scoring rules), the league's own real fantasy-points
  *  formula (only meaningful — and only offered — for a points-scored
- *  league). Distinct from LineupValueMode's "league" mode: Trade Edge asks
+ *  league), plus a Trade-Edge-only fifth mode, `surplusV` (see
+ *  computeLeagueSurplusValues below): dynasty leagues with real/custom
+ *  salary data can rank by production-vs-cost instead of pure category
+ *  value. Distinct from LineupValueMode's "league" mode: Trade Edge asks
  *  the user to pick explicitly rather than defaulting to the connected
  *  league's own LeagueV, since a trade's "who's better" read should stay
- *  stable while the user tries different partners/teams. A plain alias of
- *  LineupValueMode (minus "league") rather than an independent type — same
- *  "Rank lineup by" set Category Edge/Roster Edge use, see
- *  UI_VALUE_MODE_OPTIONS in lineup.ts (Ash's consistency sweep, 2026-08-18). */
-export type TradeValueMode = Exclude<LineupValueMode, "league">;
+ *  stable while the user tries different partners/teams. Almost a plain
+ *  alias of LineupValueMode (minus "league") — same "Rank lineup by" set
+ *  Category Edge/Roster Edge use, see UI_VALUE_MODE_OPTIONS in lineup.ts
+ *  (Ash's consistency sweep, 2026-08-18) — except `surplusV`, which is NOT
+ *  a valid LineupValueMode on its own (lineup slotting has no notion of
+ *  "surplus"); see lineupModeFor's fallback. */
+export type TradeValueMode = Exclude<LineupValueMode, "league"> | "surplusV";
 
 export const TRADE_VALUE_MODE_LABEL: Record<TradeValueMode, string> = {
   eightCatV: LINEUP_VALUE_MODE_LABEL.eightCatV, nineCatV: LINEUP_VALUE_MODE_LABEL.nineCatV,
   minus1V: LINEUP_VALUE_MODE_LABEL.minus1V, fpts: LINEUP_VALUE_MODE_LABEL.fpts,
+  surplusV: "Surplus $",
 };
 
-/** TradeValueMode IS a LineupValueMode now (fpts is a first-class value
- *  there too — see lineupValueOf in lineup.ts) — this is just the identity,
- *  kept as a named function so existing call sites don't churn. */
-export function lineupModeFor(mode: TradeValueMode): LineupValueMode {
-  return mode;
+/** TradeValueMode is a LineupValueMode for every mode except `surplusV`
+ *  (fpts is a first-class value there too — see lineupValueOf in lineup.ts).
+ *  Surplus value is a trade-asset valuation overlay, not a category-value
+ *  system — it can't rank players into roster slots on its own, so lineup
+ *  CONSTRUCTION (who actually starts) falls back to `fallback`, the same
+ *  category mode surplus itself was computed against (see
+ *  computeLeagueSurplusValues's `baseMode` param at each call site). */
+export function lineupModeFor(mode: TradeValueMode, fallback: LineupValueMode): LineupValueMode {
+  return mode === "surplusV" ? fallback : mode;
 }
 
 /** This player's value under the chosen mode — the same number
  *  buildOptimalLineup ends up ranking by by construction (see
- *  lineupModeFor). Used for the player-card "value rank" and for
+ *  lineupModeFor), except `surplusV`, which reads off the precomputed
+ *  league-wide map (see computeLeagueSurplusValues — a single player's
+ *  surplus can't be computed in isolation, it depends on the whole league's
+ *  salary curve). Used for the player-card "value rank" and for
  *  summarizeAssets' give/receive totals. */
-export function valueOf(p: ResolvedPlayer, mode: TradeValueMode): number | null {
+export function valueOf(p: ResolvedPlayer, mode: TradeValueMode, surplusByFantraxId?: ReadonlyMap<string, number>): number | null {
+  if (mode === "surplusV") return surplusByFantraxId?.get(p.fantraxId) ?? null;
   if (mode === "fpts") return p.pointsValue;
   return p.catV?.perGame[mode] ?? null;
 }
@@ -59,8 +74,8 @@ export interface TradeAssetSummary {
   totalSalary: number | null;
 }
 
-export function summarizeAssets(players: ResolvedPlayer[], mode: TradeValueMode): TradeAssetSummary {
-  const values = players.map((p) => valueOf(p, mode)).filter((v): v is number => v != null);
+export function summarizeAssets(players: ResolvedPlayer[], mode: TradeValueMode, surplusByFantraxId?: ReadonlyMap<string, number>): TradeAssetSummary {
+  const values = players.map((p) => valueOf(p, mode, surplusByFantraxId)).filter((v): v is number => v != null);
   const ranks = players.map((p) => p.consensusRank).filter((v): v is number => v != null);
   const salaries = players.map((p) => p.salary).filter((v): v is number => v != null);
   return {
@@ -69,6 +84,69 @@ export function summarizeAssets(players: ResolvedPlayer[], mode: TradeValueMode)
     avgConsensusRank: ranks.length > 0 ? ranks.reduce((a, b) => a + b, 0) / ranks.length : null,
     totalSalary: salaries.length > 0 ? salaries.reduce((a, b) => a + b, 0) : null,
   };
+}
+
+/**
+ * League-specific surplus value: production value vs. actual in-league
+ * salary, for the CONNECTED league's own rostered pool (all teams — the same
+ * population VAL RK/DYN RK already rank within) — a simpler cousin of
+ * /real-salary-rankings' site-wide model (see real-salary-model.ts), scoped
+ * to one Fantrax league's own real-or-custom salary numbers instead of the
+ * FHE global consensus pool. Deliberately does NOT reuse that model's
+ * computeMarketValue/blendScore/cheapnessCredit: those hardcode
+ * NBA_MINIMUM_SALARY and a rookie-scale/two-way ContractClass, both
+ * real-NBA-dollar / roster-status assumptions that don't hold for a
+ * salaryFormat:"custom" league (an arbitrary commissioner-defined dollar
+ * unit) or for Fantrax's own contract labels (no reliable rookie-scale
+ * signal). Reuses only the genuinely generic pieces: rankToZ (rank -> a
+ * comparable z-score) and rankBy.
+ *
+ * Method: rank the league's own rostered players by `baseMode` (whichever
+ * category value the league would otherwise default to — never `"surplusV"`
+ * itself, that would be circular) and convert to a production z-score;
+ * separately rank salaried players cheapest-first and convert to a
+ * cheapness z-score the same way; blend them at the site-wide model's own
+ * 60/40 cheapness/production split (EFFICIENCY_BASE_SALARY_WEIGHT, kept for
+ * conceptual consistency); sort by the blend descending and quantile-map
+ * that order onto the league's own real salary curve (sorted descending) —
+ * i.e. "what he'd be paid here if pay followed merit". surplus = expected -
+ * actual. A player with no salary on file (unsigned/no roster spot) is
+ * excluded from the curve and gets no entry in the returned map, matching
+ * the site-wide model's own unsigned-player handling (see RealSalaryComputed).
+ */
+export function computeLeagueSurplusValues(
+  players: ResolvedPlayer[],
+  baseMode: Exclude<TradeValueMode, "surplusV">,
+): Map<string, number> {
+  const poolSize = players.length;
+  const productionRank = rankBy(
+    players.map((p) => ({ playerId: p.fantraxId, p })),
+    ({ p }) => valueOf(p, baseMode) ?? -Infinity,
+  );
+  const salariedRows = players.filter((p) => p.salary != null).map((p) => ({ playerId: p.fantraxId, p }));
+  const cheapnessRank = rankBy(salariedRows, ({ p }) => -(p.salary as number));
+
+  const blend = players.map((p) => {
+    const productionZ = rankToZ(productionRank.get(p.fantraxId) ?? poolSize, poolSize);
+    const hasSalary = p.salary != null;
+    const cheapnessZ = hasSalary ? rankToZ(cheapnessRank.get(p.fantraxId) ?? salariedRows.length, salariedRows.length) : 0;
+    const cheapWeight = hasSalary ? EFFICIENCY_BASE_SALARY_WEIGHT : 0;
+    const productionWeight = hasSalary ? 1 - EFFICIENCY_BASE_SALARY_WEIGHT : 1;
+    return { fantraxId: p.fantraxId, salary: p.salary, blendScore: cheapWeight * cheapnessZ + productionWeight * productionZ };
+  });
+
+  const byBlend = [...blend].sort((a, b) => b.blendScore - a.blendScore);
+  const salaryCurve = players.map((p) => p.salary).filter((s): s is number => s != null).sort((a, b) => b - a);
+  const lastBlend = byBlend.length - 1;
+  const lastCurve = salaryCurve.length - 1;
+
+  const surplus = new Map<string, number>();
+  byBlend.forEach((row, i) => {
+    if (row.salary == null || lastCurve < 0) return; // no cap hit to compare against
+    const expected = salaryCurve[lastBlend <= 0 ? 0 : Math.round((i * lastCurve) / lastBlend)];
+    surplus.set(row.fantraxId, expected - row.salary);
+  });
+  return surplus;
 }
 
 /**
@@ -130,8 +208,14 @@ export function tradeProfiles(
   const { league } = analysis;
   const scored = overrides?.scored ?? league.categories.scored;
   const positionSlots = overrides?.positionSlots ?? league.positionSlots;
-  const formula: LeaguePointsFormula | null = valueMode === "fpts" ? league.pointsFormula : null;
-  const lineupMode = lineupModeFor(valueMode);
+  // categoryFallback is what lineup CONSTRUCTION falls back to when valueMode
+  // is "surplusV" (see lineupModeFor) — computed from the resulting lineupMode
+  // rather than raw valueMode so a points league that fell back to "fpts"
+  // still gets its real formula wired through, exactly like picking "fpts"
+  // directly already does.
+  const categoryFallback: LineupValueMode = league.scoringMode === "points" ? "fpts" : (scored.length === 8 ? "eightCatV" : "nineCatV");
+  const lineupMode = lineupModeFor(valueMode, categoryFallback);
+  const formula: LeaguePointsFormula | null = lineupMode === "fpts" ? league.pointsFormula : null;
 
   const rosterA = analysis.rosters.find((r) => r.teamId === teamAId);
   const rosterB = analysis.rosters.find((r) => r.teamId === teamBId);
