@@ -524,16 +524,28 @@ const PICK_CARD_MIN_HEIGHT = 152;
  *  radius) as PlayerMiniCard so a row of picks reads as the same kind of
  *  object as a row of players, round-tinted per roundAccent() (Ash,
  *  2026-08-14: "cards that match the same size as a player card... shade
- *  them in diff colours, for 1st/2nd/3rd/4th round"). */
-function DraftPickCard({ pick }: { pick: TeamDraftPick }) {
+ *  them in diff colours, for 1st/2nd/3rd/4th round"). `checked`/`onToggle`
+ *  are optional — display-only callers (Roster Edge's own pick panel) pass
+ *  neither and get a plain non-interactive card; Trade Edge (the only
+ *  selectable caller so far) passes both, mirroring PlayerMiniCard's own
+ *  checked/onToggle shape so a pick and a player read as the same kind of
+ *  selectable trade asset. */
+function DraftPickCard({ pick, checked, onToggle }: { pick: TeamDraftPick; checked?: boolean; onToggle?: () => void }) {
   const { bg, border } = roundAccent(pick.round);
+  const selectable = Boolean(onToggle);
+  const Tag = selectable ? "button" : "div";
   return (
-    <div
+    <Tag
+      type={selectable ? "button" : undefined}
+      onClick={onToggle}
       title={pick.originalOwnerLabel ? `Acquired from ${pick.originalOwnerLabel}` : undefined}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
-        padding: "10px 6px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14, border: `1px solid ${border}`, background: bg,
-        textAlign: "center", color: "var(--rt-ink)",
+        padding: "10px 6px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14,
+        border: `1px solid ${checked ? "var(--rt-primary)" : border}`,
+        background: checked ? "rgba(93,95,239,0.10)" : bg,
+        textAlign: "center", color: "var(--rt-ink)", cursor: selectable ? "pointer" : "default",
+        font: "inherit", width: "100%",
       }}
     >
       <div style={{ fontSize: 20, fontWeight: 800 }}>{ordinal(pick.round)}</div>
@@ -544,7 +556,7 @@ function DraftPickCard({ pick }: { pick: TeamDraftPick }) {
       {pick.originalOwnerLabel && (
         <div style={{ fontSize: 9.5, color: "var(--rt-muted)", lineHeight: 1.2 }}>via {pick.originalOwnerLabel}</div>
       )}
-    </div>
+    </Tag>
   );
 }
 
@@ -575,9 +587,15 @@ function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; s
  * still renders (as DraftPickEmptyCard) rather than disappearing.
  */
 export function DraftPickCardsGrid({
-  teamName, picks, seasonYear, draftStatus,
+  teamName, picks, seasonYear, draftStatus, selectedKeys, onTogglePick,
 }: {
   teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
+  /** Trade Edge only — omit both for a plain display grid (Roster Edge's own
+   *  usage). `selectedKeys` holds the same `${year}-${round}-${i}` string
+   *  each card is already keyed by below, so the caller doesn't need a
+   *  separate id scheme for picks the way it does for players' fantraxId. */
+  selectedKeys?: ReadonlySet<string>;
+  onTogglePick?: (key: string) => void;
 }) {
   const rows = draftPickYearRows(picks, seasonYear);
   return (
@@ -586,7 +604,17 @@ export function DraftPickCardsGrid({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(108px, 1fr))", gap: 8 }}>
         {rows.map(({ year, picks: yearPicks }) =>
           yearPicks.length > 0
-            ? yearPicks.map((p, i) => <DraftPickCard key={`${year}-${p.round}-${i}`} pick={p} />)
+            ? yearPicks.map((p, i) => {
+                const key = `${year}-${p.round}-${i}`;
+                return (
+                  <DraftPickCard
+                    key={key}
+                    pick={p}
+                    checked={selectedKeys?.has(key)}
+                    onToggle={onTogglePick ? () => onTogglePick(key) : undefined}
+                  />
+                );
+              })
             : <DraftPickEmptyCard key={year} year={year} seasonYear={seasonYear} draftStatus={draftStatus} />,
         )}
       </div>
