@@ -85,7 +85,8 @@ dependency — a fixed 12-team assumption would misprice a pick in a 30-team,
 17-man-roster league.
 
 **Downtown Fantasy Sports — Angle Dynasty League (real league, league id 23)**
-— pulled 50 real trade-analysis polls into
+— pulled the FULL trade-analysis history (85 real trade polls, Jun 15 through
+present — the entire off-season since the league opened trading) into
 [data/downtown-fantasy-trade-analysis.csv](../data/downtown-fantasy-trade-analysis.csv):
 every trade's real players (name/position/actual salary $), picks, and FAAB on
 both sides, plus the league's real 3-way vote (Team A wins / Team B wins /
