@@ -7,6 +7,8 @@ import { IconChevronLeft } from "../../../_components/icons";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../../_components/sortable-table";
 import { useActiveLeague } from "../../../_lib/use-saved-leagues";
 import { CUSTOM_VALUATIONS_STALE_AFTER_MS, relativeTime, useNow } from "../../../_lib/relative-time";
+import { formatCustomSalary, formatSalary } from "../../../_components/roster-table";
+import { DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import type { CustomValuationsDoc, LedgerRow } from "@/lib/fantrax/custom-valuations-store";
 
 type SortKey = "tradeRank" | "asset" | "owner" | "dynRank" | "tradeValue" | "salary";
@@ -68,6 +70,8 @@ function AssetValuesContent() {
 
   const now = useNow();
   const stale = doc && now != null ? now - new Date(doc.generatedAt).getTime() > CUSTOM_VALUATIONS_STALE_AFTER_MS : false;
+  const salaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
+  const formatRowSalary = salaryFormat === "custom" ? formatCustomSalary : formatSalary;
 
   return (
     <HubShell hasLeague={Boolean(saved)} breadcrumb={saved ? `${saved.leagueName} · Custom asset values` : "Custom asset values"}>
@@ -103,6 +107,17 @@ function AssetValuesContent() {
             ) : (
               <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>
                 {loadingDoc ? "Loading…" : "Not generated yet — build the ledger below."}
+              </span>
+            )}
+            {doc && doc.realSalaryEfficiencyWeight != null && Math.abs(doc.realSalaryEfficiencyWeight - 0.30) > 0.001 && (
+              <span
+                title="Away from the 30% default — this ledger was generated with a custom consensus/efficiency blend from Settings."
+                style={{
+                  fontSize: 11.5, fontWeight: 700, padding: "4px 10px", borderRadius: 999,
+                  background: "var(--rt-primary)", color: "var(--rt-on-primary)", whiteSpace: "nowrap",
+                }}
+              >
+                {Math.round(doc.realSalaryEfficiencyWeight * 100)}% cheap/production blend
               </span>
             )}
             <button
@@ -168,7 +183,7 @@ function AssetValuesContent() {
                         <td className="l">{row.owner}</td>
                         <td>{row.dynRank ?? "—"}</td>
                         <td style={{ fontWeight: 700 }}>{row.tradeValue.toFixed(3)}</td>
-                        <td>{row.salary != null ? `$${row.salary}` : "—"}</td>
+                        <td>{formatRowSalary(row.salary)}</td>
                         <td>{row.contract ?? "—"}</td>
                       </tr>
                     ))}

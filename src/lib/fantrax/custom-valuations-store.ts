@@ -60,6 +60,13 @@ export interface CustomValuationsDoc {
   pickCount: number;
   extraPickCount: number;
   rows: LedgerRow[];
+  /** The real-salary efficiency-weight actually used to produce THIS
+   *  generation (see SavedLeagueSettings.realSalaryEfficiencyWeight) — the
+   *  weight baked into the ledger, not necessarily whatever the Settings
+   *  slider currently shows (the user can move the slider without hitting
+   *  Regenerate yet, so those two can disagree). Null for a non-real-salary
+   *  league, where this setting has no effect at all. */
+  realSalaryEfficiencyWeight: number | null;
 }
 
 type LocalFile = Record<string, Record<string, CustomValuationsDoc>>; // owner -> leagueId -> doc

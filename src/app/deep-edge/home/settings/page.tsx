@@ -42,6 +42,7 @@ interface Draft {
   keeperPolicy: string;
   contractRules: ContractRule[];
   rookieSalaryScale: RookieSalaryTier[];
+  realSalaryEfficiencyWeight: number;
   rookieDraftRounds: number;
   taxiSquad: boolean;
   waiverType: "faab" | "rolling";
@@ -105,6 +106,7 @@ function buildDraft(saved: SavedLeague, analysis: LeagueAnalysis | null): Draft 
     keeperPolicy: s.keeperPolicy ?? DEFAULT_ADVANCED_SETTINGS.keeperPolicy,
     contractRules: s.contractRules ?? DEFAULT_ADVANCED_SETTINGS.contractRules,
     rookieSalaryScale: s.rookieSalaryScale ?? DEFAULT_ADVANCED_SETTINGS.rookieSalaryScale,
+    realSalaryEfficiencyWeight: s.realSalaryEfficiencyWeight ?? DEFAULT_ADVANCED_SETTINGS.realSalaryEfficiencyWeight,
     rookieDraftRounds: s.rookieDraftRounds ?? DEFAULT_ADVANCED_SETTINGS.rookieDraftRounds,
     taxiSquad: s.taxiSquad ?? DEFAULT_ADVANCED_SETTINGS.taxiSquad,
     waiverType: s.waiverType ?? DEFAULT_ADVANCED_SETTINGS.waiverType,
@@ -289,6 +291,7 @@ function DeepEdgeSettingsContent() {
             keeperPolicy: draft.keeperPolicy,
             contractRules: draft.contractRules,
             rookieSalaryScale: draft.rookieSalaryScale,
+            realSalaryEfficiencyWeight: draft.realSalaryEfficiencyWeight,
             rookieDraftRounds: draft.rookieDraftRounds,
             taxiSquad: draft.taxiSquad,
             waiverType: draft.waiverType,
@@ -866,6 +869,47 @@ function DeepEdgeSettingsContent() {
                     >
                       + Add tier
                     </button>
+                  </div>
+                </>
+              )}
+              {draft.salaryFormat === "real" && (
+                <>
+                  {divider}
+                  <div style={{ padding: "18px 0" }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 3 }}>Custom value blend</div>
+                    <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 14, maxWidth: 520 }}>
+                      How much should generating custom league values weigh cheap, productive contracts against pure
+                      dynasty consensus rank? Every real-salary league gets the same 30% default — a league with
+                      unusually deep cap room or tight roster limits may need to lean harder toward cheap production
+                      (or expensive contracts may need to matter less) than that default assumes.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <span style={{ fontSize: 11.5, color: "var(--rt-muted)", whiteSpace: "nowrap" }}>Consensus-driven</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={Math.round(draft.realSalaryEfficiencyWeight * 100)}
+                        onChange={(e) => update("realSalaryEfficiencyWeight", Number(e.target.value) / 100)}
+                        style={{ flex: 1 }}
+                      />
+                      <span style={{ fontSize: 11.5, color: "var(--rt-muted)", whiteSpace: "nowrap" }}>Cheap production-driven</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--rt-font-mono)" }}>
+                        {Math.round(draft.realSalaryEfficiencyWeight * 100)}% weight on cheap/production
+                      </span>
+                      {Math.round(draft.realSalaryEfficiencyWeight * 100) !== 30 && (
+                        <button
+                          type="button"
+                          onClick={() => update("realSalaryEfficiencyWeight", 0.30)}
+                          style={{ background: "none", border: "none", color: "var(--rt-primary)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                        >
+                          Reset to default (30%)
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </>
               )}

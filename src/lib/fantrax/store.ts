@@ -146,6 +146,19 @@ export interface SavedLeagueSettings {
    *  prompt was shown (Yes or No) — null/absent means never asked. Set
    *  either way so the prompt doesn't nag on every visit. */
   customValuationsPromptedAt?: string | null;
+  /** Real-salary leagues only: how much the custom ledger's base value
+   *  should weigh cheap/productive players vs. pure dynasty consensus rank —
+   *  0 = consensus alone (salary irrelevant), 1 = efficiency alone (cheap
+   *  production maximally rewarded, expensive contracts maximally
+   *  penalized). Undefined = the site-wide Real Salary Rankings default
+   *  (0.30, "Balanced"). Every real-salary league gets that same fixed blend
+   *  today regardless of its own cap situation — some leagues (very deep
+   *  cap room, punitive roster limits) genuinely need a different tradeoff
+   *  (Ash, 2026-08-24: "this league may need to blend in more value to
+   *  cheap/productive players and even less value to expensive contracts... I
+   *  will shift the math slightly and then re-generate"). See
+   *  custom-valuations.ts's own doc on where this actually gets applied. */
+  realSalaryEfficiencyWeight?: number;
 
   // Waivers & trades — not Fantrax-detectable; default and let the user adjust.
   waiverType?: "faab" | "rolling";

@@ -55,7 +55,7 @@ export type ValueDisplayMode = Exclude<LineupValueMode, "league">;
 
 export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";
-  return `$${(n / 1_000_000).toFixed(2)}M`;
+  return `$${(n / 1_000_000).toFixed(1)}M`;
 }
 export function formatContract(info: ContractInfo | undefined): string {
   if (!info) return "—";

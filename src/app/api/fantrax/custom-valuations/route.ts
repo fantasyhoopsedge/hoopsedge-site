@@ -70,6 +70,7 @@ export async function POST(request: Request) {
       contractRules: settings.contractRules,
       rookieSalaryScale: settings.rookieSalaryScale,
       keeperPolicy: settings.keeperPolicy,
+      realSalaryEfficiencyWeight: settings.realSalaryEfficiencyWeight,
     });
     const doc = await saveCustomValuations(auth.access.owner, body.leagueId, { leagueId: body.leagueId, ...result });
     return NextResponse.json({ doc });
