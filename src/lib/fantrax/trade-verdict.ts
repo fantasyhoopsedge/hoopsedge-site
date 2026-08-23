@@ -44,21 +44,50 @@
  * "Adjusted Value" stays in the same units (z-score / dollars / fpts) as
  * every other number Trade Edge already shows — no new value system.
  *
+ * ── Non-negative asset floor ─────────────────────────────────────────────
+ * The reference tool's own "Value" column is a pure trade-asset scale — no
+ * player, however bad, is worth less than a small positive floor, because a
+ * roster spot is never a liability in a trade. FHE's underlying modes don't
+ * have that property for free: nineCatV/eightCatV/minus1V are z-scores
+ * centered on the pool average (a below-average rostered player is legitimately
+ * negative), and surplusV is a real ROI figure that's SUPPOSED to go very
+ * negative for a bad contract (see trade-edge.ts's computeLeagueSurplusValues
+ * doc — that's a different, correct concept: cost-vs-production, not
+ * trade-asset worth). Left alone, an adjustment multiplier (always positive)
+ * applied to a negative raw value just carries the negative sign through
+ * unchanged, which is exactly the "a player can have negative trade value"
+ * outcome the reference model never allows. ASSET_FLOOR_PCT_OF_TOP clamps
+ * the value that gets adjusted and summed — never the value used to RANK the
+ * asset within the pool/trade, so a truly replacement-level or badly-overpaid
+ * asset still correctly ranks at the bottom, it just bottoms out near a small
+ * positive number instead of going negative, same as the reference.
+ *
  * ── Pick valuation ───────────────────────────────────────────────────────
  * Draft picks carry zero value anywhere else in Trade Edge's trade math.
  * Rather than copying the reference's absolute pick values (another site's
  * numbers as gospel, and its "MaxList" isn't FHE's), each of its 15 pick
  * tiers is converted to a RATIO against that source's own #1-overall player
- * value, then that ratio is applied to FHE's OWN #1-ranked player's value in
- * the currently selected mode — see pickEquivalentValue(). The reference
- * only prices 2026/2027 picks; a flat ~0.8x/year decay (see YEAR_DECAY,
- * derived from the ~0.74-0.84x decay observed between the reference's own
- * 2026 and 2027 rows) extrapolates further-out years.
+ * value, then that ratio is applied to FHE's OWN #1-ranked player's base
+ * value (see pickEquivalentValue()). The reference only prices 2026/2027
+ * picks; a flat ~0.8x/year decay (see YEAR_DECAY, derived from the
+ * ~0.74-0.84x decay observed between the reference's own 2026 and 2027
+ * rows) extrapolates further-out years.
+ *
+ * ── Base value (2026-08-23) ───────────────────────────────────────────────
+ * This module used to call trade-edge.ts's valueOf() itself, keyed on a
+ * TradeValueMode + an optional surplus map. It now takes a precomputed
+ * `Map<fantraxId, number>` instead (see trade-value.ts's
+ * computeBaseTradeValues) — base value is fully determined by the league's
+ * own settings (league type, salary basis), not a mode the caller happens to
+ * pass in, and this module doesn't need to know how that number was derived,
+ * only that every asset already has one on a comparable scale. `family`
+ * replaces `mode` for the one thing pick valuation still needs to know: which
+ * reference tier table (categories vs. points) applies.
  */
 import type { ResolvedPlayer } from "./analyze";
 import type { TeamDraftPick } from "./league";
+import { DRAFT_BOARD } from "../rookie-board";
 import { rankBy } from "../value/real-salary-model";
-import { valueOf, type TradeValueMode } from "./trade-edge";
 
 // ── percentile helpers ──────────────────────────────────────────────────────
 
@@ -92,34 +121,25 @@ function adjustmentMultiplier(poolPct: number, tradePct: number): number {
   return 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradePct ** 1.3 + 0.22 * poolPct ** 1.28;
 }
 
-// ── pool ranking (mode-aware) ───────────────────────────────────────────────
+// ── pool ranking ─────────────────────────────────────────────────────────
 
-/** Every asset's rank within `leaguePlayers` for `mode` — reuses the
- *  precomputed catVRank for the three category modes; freshly ranks the pool
- *  for surplusV/fpts, which have no precomputed rank. Computed once per
- *  verdict, not per-asset, to avoid re-sorting the pool for every player. */
+/** Every asset's rank within `leaguePlayers` by base value. Computed once
+ *  per verdict, not per-asset, to avoid re-sorting the pool for every
+ *  player. A player with no entry in `baseValueByFantraxId` ranks last
+ *  (-Infinity), same as before. */
 function poolRanksFor(
   leaguePlayers: readonly ResolvedPlayer[],
-  mode: TradeValueMode,
-  surplusByFantraxId: ReadonlyMap<string, number> | undefined,
+  baseValueByFantraxId: ReadonlyMap<string, number>,
 ): ReadonlyMap<string, number> {
-  if (mode === "eightCatV" || mode === "nineCatV" || mode === "minus1V") {
-    const out = new Map<string, number>();
-    for (const p of leaguePlayers) {
-      const r = p.catVRank?.perGame[mode];
-      if (r != null) out.set(p.fantraxId, r);
-    }
-    return out;
-  }
   return rankBy(
     leaguePlayers.map((p) => ({ playerId: p.fantraxId, p })),
-    ({ p }) => valueOf(p, mode, surplusByFantraxId) ?? -Infinity,
+    ({ p }) => baseValueByFantraxId.get(p.fantraxId) ?? -Infinity,
   );
 }
 
 // ── pick valuation ───────────────────────────────────────────────────────
 
-interface PickTier {
+export interface PickTier {
   minPick: number;
   maxPick: number;
   /** tier value ÷ that source's own #1-overall player value. */
@@ -128,9 +148,12 @@ interface PickTier {
 
 /** Reference: "ALL ACCESS - BETA - NBA Dynasty Trade Calculator (Categories
  *  - July 2026)", Values sheet rows 1-15, ÷ MaxList (Victor Wembanyama,
- *  1590). Used for eightCatV/nineCatV/minus1V/surplusV — the category-value
- *  family — since the source's own player list is category-weighted. */
-const CATEGORIES_PICK_TIERS: Record<number, PickTier[]> = {
+ *  1590). Used for `family: "categories"` — every base value EXCEPT a points
+ *  league's fpts, since the source's own player list is category-weighted.
+ *  Exported so callers building an artifact/report can enumerate the SAME
+ *  bracket boundaries directly (2028+ reuses the LAST_TABLE_YEAR=2027 shape,
+ *  see ratioForPick's own year-clamp) rather than duplicating the numbers. */
+export const CATEGORIES_PICK_TIERS: Record<number, PickTier[]> = {
   2026: [
     { minPick: 1, maxPick: 2, ratio: 770 / 1590 },
     { minPick: 3, maxPick: 4, ratio: 590 / 1590 },
@@ -153,7 +176,7 @@ const CATEGORIES_PICK_TIERS: Record<number, PickTier[]> = {
 };
 
 /** Same reference, points-league version — Values sheet ÷ MaxList (Victor
- *  Wembanyama, 1777.83). Used only for `fpts` mode. */
+ *  Wembanyama, 1777.83). Used only for `family: "points"`. */
 const POINTS_PICK_TIERS: Record<number, PickTier[]> = {
   2026: [
     { minPick: 1, maxPick: 2, ratio: 740 / 1777.8273512041 },
@@ -201,7 +224,62 @@ function averageRatioForRound(tiers: readonly PickTier[], roundMin: number, roun
   return count > 0 ? weighted / count : 0;
 }
 
-function ratioForPick(pick: TeamDraftPick, table: Record<number, PickTier[]>): number {
+// ── rookie board tie-in (2026-08-23) ────────────────────────────────────
+//
+// CATEGORIES_PICK_TIERS[2026] is a generic pick-SLOT bracket table —
+// "whoever the #4 pick turns out to be is worth X." FHE already has a real
+// answer to "who": the rookie board (rookie-board.ts, /draft-board) ranks
+// AND TIERS this exact draft class. Once the board covers a pick's slot
+// (this year's class only — see ROOKIE_BOARD_DRAFT_YEAR, since there's no
+// board yet for a class that hasn't been scouted), its own 8 tiers replace
+// the generic bracket lookup — reusing CATEGORIES_PICK_TIERS[2026]'s own 8
+// ratios (already tier-shaped: 8 descending brackets, same count as the
+// board's own 8 tiers) rather than inventing new numbers. Every other year,
+// and any pick beyond the board's own coverage, falls through to the
+// original generic-bracket behavior unchanged.
+const ROOKIE_BOARD_DRAFT_YEAR = 2026;
+
+/** Deliberately modest (Ash, 2026-08-23: "slight value weight to the players
+ *  at the top of the tier vs the bottom") — a tier's best prospect reads
+ *  ~7.5% above the tier's base value, its weakest ~7.5% below, linearly
+ *  interpolated by rank position within the tier. Safely small: every
+ *  adjacent pair of reference tier values differs by far more than this
+ *  15% total spread, so it can never cross into a neighboring tier's band. */
+const WITHIN_TIER_SPREAD = 0.15;
+
+/** null when this pick slot falls outside the board's own coverage (58
+ *  ranked prospects as of the 2026-06-27 board) — the caller falls back to
+ *  the generic bracket table exactly as before. */
+function rookieBoardRatio(overallPick: number): number | null {
+  // Beyond the board's own coverage (currently 58 ranked prospects, out of
+  // 60 possible picks): inherit the board's own worst-ranked prospect's
+  // value rather than falling through to ratioForPick's flat, un-gradiented
+  // bracket lookup. That fallback doesn't know about the within-tier
+  // gradient applied to the picks just above it, so it can (and did, on a
+  // 58-deep board: picks 59-60 read HIGHER than pick 58) read above the
+  // board's own bottom prospect — a monotonicity break a real draft-value
+  // curve should never have (found 2026-08-23 auditing OBG's pick order).
+  const maxBoardRank = DRAFT_BOARD.length > 0 ? Math.max(...DRAFT_BOARD.map((p) => p.rank)) : 0;
+  const effectiveRank = maxBoardRank > 0 ? Math.min(overallPick, maxBoardRank) : overallPick;
+  const player = DRAFT_BOARD.find((p) => p.rank === effectiveRank);
+  if (!player) return null;
+  const tierRatios = CATEGORIES_PICK_TIERS[ROOKIE_BOARD_DRAFT_YEAR]?.map((t) => t.ratio);
+  const baseRatio = tierRatios?.[player.tier - 1];
+  if (baseRatio == null) return null; // more board tiers than reference brackets — fail safe, not silently wrong
+
+  const tierRanks = DRAFT_BOARD.filter((p) => p.tier === player.tier).map((p) => p.rank);
+  const n = tierRanks.length;
+  if (n <= 1) return baseRatio;
+  const tierStart = Math.min(...tierRanks);
+  const t = (player.rank - tierStart) / (n - 1); // 0 = top of tier, 1 = bottom of tier
+  return baseRatio * (1 + WITHIN_TIER_SPREAD / 2 - WITHIN_TIER_SPREAD * t);
+}
+
+function ratioForPick(pick: TeamDraftPick, table: Record<number, PickTier[]>, family: "categories" | "points"): number {
+  if (family === "categories" && pick.year === ROOKIE_BOARD_DRAFT_YEAR && pick.overallPick != null) {
+    const boardRatio = rookieBoardRatio(pick.overallPick);
+    if (boardRatio != null) return boardRatio; // no year-decay — this IS the current draft class
+  }
   const roundMin = (pick.round - 1) * 30 + 1;
   const roundMax = pick.round * 30;
   const year = Math.min(pick.year, LAST_TABLE_YEAR);
@@ -214,22 +292,22 @@ function ratioForPick(pick: TeamDraftPick, table: Record<number, PickTier[]>): n
   return averageRatioForRound(tiers, roundMin, roundMax) * decay;
 }
 
-/** A draft pick's value in the SAME units as `mode` (z-score / dollars /
- *  fpts) — the ratio-transplant described in the module doc. `topValue` is
- *  the #1-ranked player's value in `leaguePlayers` under `mode` (i.e. this
- *  league's own top asset, not the reference's). Null when the pool has no
- *  valued players at all (nothing to scale against). */
+/** A draft pick's value in the SAME units as the base value map — the
+ *  ratio-transplant described in the module doc. `topValue` is the
+ *  #1-ranked player's base value in `leaguePlayers` (i.e. this league's own
+ *  top asset, not the reference's). Null when the pool has no valued
+ *  players at all (nothing to scale against). */
 export function pickEquivalentValue(
   pick: TeamDraftPick,
   leaguePlayers: readonly ResolvedPlayer[],
-  mode: TradeValueMode,
-  surplusByFantraxId: ReadonlyMap<string, number> | undefined,
+  baseValueByFantraxId: ReadonlyMap<string, number>,
+  family: "categories" | "points",
 ): number | null {
-  const table = mode === "fpts" ? POINTS_PICK_TIERS : CATEGORIES_PICK_TIERS;
-  const ratio = ratioForPick(pick, table);
+  const table = family === "points" ? POINTS_PICK_TIERS : CATEGORIES_PICK_TIERS;
+  const ratio = ratioForPick(pick, table, family);
   let topValue = -Infinity;
   for (const p of leaguePlayers) {
-    const v = valueOf(p, mode, surplusByFantraxId);
+    const v = baseValueByFantraxId.get(p.fantraxId);
     if (v != null && v > topValue) topValue = v;
   }
   if (!Number.isFinite(topValue)) return null;
@@ -263,7 +341,6 @@ export interface TradeVerdict {
 
 interface VerdictAssetInput {
   label: string;
-  fantraxId?: string; // players only — used to look up catVRank/surplus
   player?: ResolvedPlayer;
   pick?: TeamDraftPick;
 }
@@ -279,16 +356,30 @@ export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],
   leaguePlayers: readonly ResolvedPlayer[],
-  mode: TradeValueMode,
-  surplusByFantraxId: ReadonlyMap<string, number> | undefined,
+  baseValueByFantraxId: ReadonlyMap<string, number>,
+  family: "categories" | "points",
   fairnessThresholdPct = 0.18,
 ): TradeVerdict {
-  const poolRanks = poolRanksFor(leaguePlayers, mode, surplusByFantraxId);
+  const poolRanks = poolRanksFor(leaguePlayers, baseValueByFantraxId);
   const poolSize = leaguePlayers.length;
 
+  let topValue = -Infinity;
+  for (const p of leaguePlayers) {
+    const v = baseValueByFantraxId.get(p.fantraxId);
+    if (v != null && v > topValue) topValue = v;
+  }
+  const hasTopValue = Number.isFinite(topValue);
+  /** See module doc, "Non-negative asset floor". 2% of the pool's own top
+   *  asset — small enough to leave every genuinely above-replacement player
+   *  untouched, large enough that a badly-overpaid or below-replacement
+   *  asset reads as "nearly worthless" rather than "zero" (a hard 0 floor
+   *  would make every bench-level asset in a trade look identical). */
+  const ASSET_FLOOR_PCT_OF_TOP = 0.02;
+  const assetFloor = hasTopValue ? Math.abs(topValue) * ASSET_FLOOR_PCT_OF_TOP : 0;
+
   function rawValueOf(a: VerdictAssetInput): number | null {
-    if (a.player) return valueOf(a.player, mode, surplusByFantraxId);
-    if (a.pick) return pickEquivalentValue(a.pick, leaguePlayers, mode, surplusByFantraxId);
+    if (a.player) return baseValueByFantraxId.get(a.player.fantraxId) ?? null;
+    if (a.pick) return pickEquivalentValue(a.pick, leaguePlayers, baseValueByFantraxId, family);
     return null;
   }
   function poolPercentileOf(a: VerdictAssetInput, raw: number): number {
@@ -299,7 +390,7 @@ export function computeTradeVerdict(
     // Picks (and any player missing a pool rank) fall back to a value-based
     // percentile against the same pool's raw values, keeping the ratio on
     // the same bounded [0,1] scale rather than skipping the term entirely.
-    const poolValues = leaguePlayers.map((p) => valueOf(p, mode, surplusByFantraxId)).filter((v): v is number => v != null);
+    const poolValues = [...baseValueByFantraxId.values()];
     return percentileWithin(raw, poolValues);
   }
 
@@ -310,10 +401,14 @@ export function computeTradeVerdict(
   function buildSide(assets: readonly VerdictAssetInput[]): TradeVerdictSide {
     const built: TradeVerdictAsset[] = [];
     for (const a of assets) {
-      const raw = rawValueOf(a);
-      if (raw == null) continue;
-      const poolPct = poolPercentileOf(a, raw);
-      const tradePct = percentileWithin(raw, allRaw);
+      const trueRaw = rawValueOf(a);
+      if (trueRaw == null) continue;
+      // Percentiles rank against the TRUE value, so a below-replacement or
+      // badly-overpaid asset still lands at the bottom of the pool/trade —
+      // only the magnitude that gets adjusted and summed is floored below.
+      const poolPct = poolPercentileOf(a, trueRaw);
+      const tradePct = percentileWithin(trueRaw, allRaw);
+      const raw = Math.max(trueRaw, assetFloor);
       const adjusted = raw * adjustmentMultiplier(poolPct, tradePct);
       built.push({ label: a.label, rawValue: raw, adjustedValue: adjusted });
     }
@@ -333,20 +428,42 @@ export function computeTradeVerdict(
   // A ratio-based variance breaks down when either side is near zero (e.g. a
   // late pick for a small FAAB amount, which this module has no value for
   // yet) — dividing two tiny numbers can read as an arbitrarily large %
-  // even though almost nothing actually changed hands. Below a floor scaled
-  // to the pool's own top asset (found while validating this module against
-  // 85 real trades — several near-zero trades the community called "Fair"
-  // were reading 200%+ variance and getting called for whichever side was
-  // merely non-negative), treat the trade as Fair outright rather than let
-  // the ratio decide.
-  let topValue = -Infinity;
-  for (const p of leaguePlayers) {
-    const v = valueOf(p, mode, surplusByFantraxId);
-    if (v != null && v > topValue) topValue = v;
-  }
-  const negligibleFloor = Number.isFinite(topValue) ? Math.abs(topValue) * 0.03 : 0;
+  // even though almost nothing actually changed hands.
+  //
+  // FIXED (2026-08-23): this used to compare `diff` against a floor scaled
+  // to the POOL's single most valuable player (topValue * 3%) — reasonable-
+  // sounding, but wrong on two counts. First, comparing the wrong operand:
+  // `diff` is small whenever the two sides are close in value, which is
+  // supposed to be the FAIR case anyway — this doesn't distinguish "both
+  // sides are genuinely worthless" from "both sides are large and roughly
+  // equal" (a real, correctly-Fair trade the percentage check below already
+  // handles). Second, and the one that actually mattered in practice:
+  // topValue is a single outlier (the league's own Jokić-tier player), so
+  // 3% of it is still large relative to almost every ORDINARY trade — most
+  // real players, even good rotation ones, land well under that in a
+  // percentile-bounded z-score scale. Backtested against 85 real Downtown
+  // Fantasy Sports trades (Angle Dynasty League, a real-salary league — base
+  // value must be the real-salary rank, not a raw z-score, to reproduce
+  // this): the old floor swallowed the correct call on the clear majority of
+  // player-only misses, including several the league voted 90-100% one-sided
+  // on, because BOTH sides' adjusted totals — while meaningfully different
+  // from each other — sat under 3% of the pool's best player regardless.
+  //
+  // Replaced with what the comment above actually describes wanting to
+  // catch: a trade where NEITHER side has a single asset worth more than the
+  // floor a below-replacement asset gets clamped to (assetFloor) — i.e.
+  // nothing of real value changed hands on EITHER side, not merely "the two
+  // sides happen to be close." A trade with any genuinely-valued asset on
+  // either side always reaches the percentage check below instead.
+  const bothSidesWorthless = sideAAssets.every((a) => {
+    const v = rawValueOf(a);
+    return v == null || v <= assetFloor;
+  }) && sideBAssets.every((a) => {
+    const v = rawValueOf(a);
+    return v == null || v <= assetFloor;
+  });
   const winner: TradeVerdict["winner"] =
-    Math.abs(diff) < negligibleFloor || variancePct < fairnessThresholdPct ? "Fair" : diff > 0 ? "A" : "B";
+    bothSidesWorthless || variancePct < fairnessThresholdPct ? "Fair" : diff > 0 ? "A" : "B";
 
   return { sideA, sideB, winner, variancePct, valueAdjustedNeeded: -diff };
 }

@@ -258,10 +258,19 @@ export const CHEAPNESS_CREDIT: Record<ContractClass, number> = {
  * displayed Salary and a real Surplus, exactly like a two-way. Only the cheapness
  * sub-score is zeroed, which shrinks the Efficiency adjuster toward zero rather
  * than reweighting it into production.
- */
-export function cheapnessCredit(cls: ContractClass, salary: number | null): number {
+ *
+ * `minSalary` defaults to NBA_MINIMUM_SALARY (real dollars) so every existing
+ * caller is unaffected — but that constant is meaningless on a custom-salary
+ * Fantrax league's own invented dollar unit (small integers like $1-$70,
+ * confirmed live 2026-08-13, see formatCustomSalary's own doc). A caller on
+ * that scale should pass its own floor (or 0 to disable the gate entirely) —
+ * found 2026-08-23 wiring rookie-scale credit into trade-value.ts's
+ * customSalaryValues: every custom-salary player was silently failing this
+ * gate (all real-dollar minimums dwarf any custom integer), zeroing the
+ * cheapness sub-score for the WHOLE league regardless of contract class. */
+export function cheapnessCredit(cls: ContractClass, salary: number | null, minSalary: number = NBA_MINIMUM_SALARY): number {
   if (salary == null) return 0;
-  if (salary < NBA_MINIMUM_SALARY) return 0;
+  if (salary < minSalary) return 0;
   return CHEAPNESS_CREDIT[cls];
 }
 
@@ -311,7 +320,7 @@ export interface RealSalaryComputed {
   surplusValue: number | null;
 }
 
-function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
+export function blendScore(r: RealSalaryFactors, preset: WeightPreset, minSalary: number = NBA_MINIMUM_SALARY): number {
   // No production data at all (2026-08-03): the whole Efficiency adjuster goes
   // to zero, so consensus is the only thing placing him. (Not identical to his
   // published slot — a zero adjuster still ranks against neighbours who have
@@ -330,7 +339,7 @@ function blendScore(r: RealSalaryFactors, preset: WeightPreset): number {
   // (CHEAPNESS_CREDIT) shrinks Efficiency rather than reweighting it into
   // production — see CHEAPNESS_CREDIT. Identical to the old formula for both
   // rookie-scale and standard deals, where the credit is 1.
-  const salaryWeight = baseSalaryWeight * cheapnessCredit(cls, r.salary);
+  const salaryWeight = baseSalaryWeight * cheapnessCredit(cls, r.salary, minSalary);
   const productionWeight = 1 - baseSalaryWeight;
   const efficiencyZ = salaryWeight * r.salaryZ + productionWeight * r.productionZ;
   return preset.consensus * r.consensusZ + preset.efficiency * efficiencyZ;

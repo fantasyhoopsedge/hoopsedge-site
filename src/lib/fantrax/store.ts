@@ -2,9 +2,12 @@ import { promises as fs } from "fs";
 import path from "path";
 import { createClient as createSb, type SupabaseClient } from "@supabase/supabase-js";
 import type { FantraxDatasetKey, FheCategory } from "./league";
-import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "./league-tags";
+import {
+  DEFAULT_LEAGUE_TAGS, type ContractRule, type LeagueFormat, type LeagueType,
+  type RookieSalaryTier, type SalaryFormat,
+} from "./league-tags";
 
-export { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat };
+export { DEFAULT_LEAGUE_TAGS, type ContractRule, type LeagueFormat, type LeagueType, type RookieSalaryTier, type SalaryFormat };
 
 /**
  * Storage for a user's linked Fantrax leagues.
@@ -124,6 +127,25 @@ export interface SavedLeagueSettings {
   keeperPolicy?: string; // "all" | "10" .. "1"
   rookieDraftRounds?: number;
   taxiSquad?: boolean;
+  /** This league's own contract-label prefix scheme (F/R/J/E or whatever
+   *  house convention it uses) — see ContractRule's own doc for why this is
+   *  per-league, not a global decoder. Empty/absent = today's behavior,
+   *  every contract treated identically regardless of label. */
+  contractRules?: ContractRule[];
+  /** This league's own rookie-scale salary-by-draft-position table — see
+   *  RookieSalaryTier's own doc. */
+  rookieSalaryScale?: RookieSalaryTier[];
+  /** Opt-in switch: when true, Trade Edge reads base value from the cached
+   *  custom-valuations ledger (fx_custom_valuations, via
+   *  custom-valuations-store.ts) instead of computing the default cascade
+   *  fresh (trade-value.ts's computeBaseTradeValues). Off by default — the
+   *  default cascade is already correct per league type, this is an
+   *  opt-in upgrade, not a replacement. */
+  useCustomValuations?: boolean;
+  /** ISO timestamp of the last time Home's "customize your league assets?"
+   *  prompt was shown (Yes or No) — null/absent means never asked. Set
+   *  either way so the prompt doesn't nag on every visit. */
+  customValuationsPromptedAt?: string | null;
 
   // Waivers & trades — not Fantrax-detectable; default and let the user adjust.
   waiverType?: "faab" | "rolling";

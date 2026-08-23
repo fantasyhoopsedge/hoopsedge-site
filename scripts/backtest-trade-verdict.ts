@@ -121,7 +121,11 @@ async function main() {
     const v = minus1vByEspn.get(eid);
     if (v == null) return null;
     return {
-      fantraxId: name, name, slot: "Bench", eligible: [], nbaTeam: "", status: "", salary: null, contract: null,
+      // fantraxId must be the ESPN id, matching baseValueByFantraxId's keys
+      // (built from the pool below, which is eid-keyed) — NOT the name, or
+      // every trade-participant player silently misses the map lookup and
+      // scores as null (skipped, contributing 0 to its side's total).
+      fantraxId: eid, name, slot: "Bench", eligible: [], nbaTeam: "", status: "", salary: null, contract: null,
       playerId: null, fheId: null, source: "projection", cats: {}, catsTotals: {}, leagueV: null, pointsValue: null,
       nineCatV: null, consensusRank: null, gamesPlayed: null, minutesPerGame: null, usgPct: null, statLine: null,
       catV: { perGame: { nineCatV: null, minus1V: v, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
@@ -146,6 +150,10 @@ async function main() {
     } as unknown as ResolvedPlayer;
   }
   const leaguePlayers = fullSorted.map(([eid, v], i) => fakePoolPlayer(eid, v, i + 1));
+  // computeTradeVerdict now takes a precomputed base-value map (trade-value.ts)
+  // instead of a mode — this backtest's base value is each player's own
+  // minus1V, same as the old "minus1V" mode it used to pass directly.
+  const baseValueByFantraxId = new Map(fullSorted.map(([eid, v]) => [eid, v]));
   const resolvedNames = [...espnIdByName.keys()].filter((n) => rankByName.has(n));
   console.log(`\nFull pool: ${leaguePlayers.length} players. ${resolvedNames.length}/${allNames.size} trade-participant names resolved into it.\n`);
 
@@ -174,7 +182,7 @@ async function main() {
     const bAssets = toAssets(bItems);
     if (aAssets.length === 0 && bAssets.length === 0) continue; // pure FAAB-for-FAAB, nothing to score
 
-    const verdict = computeTradeVerdict(aAssets, bAssets, leaguePlayers, "minus1V", undefined);
+    const verdict = computeTradeVerdict(aAssets, bAssets, leaguePlayers, baseValueByFantraxId, "categories");
     const real = realVerdict(r);
     const predicted = verdict.winner;
     const match = predicted === real;

@@ -78,12 +78,17 @@ async function main() {
   const hugo = fakePlayer("Hugo Gonzalez");
   const pool = [flagg, vj, ajay, hugo];
 
+  // computeTradeVerdict now takes a precomputed base-value map (trade-value.ts)
+  // instead of a mode — this diag's base value is just each player's own
+  // minus1V (the same numbers fakePlayer() already carries).
+  const baseValueByFantraxId = new Map(pool.map((p) => [p.fantraxId, p.catV!.perGame.minus1V!]));
+
   const verdict = computeTradeVerdict(
     [{ label: "VJ Edgecombe", player: vj }, { label: "Ajay Mitchell", player: ajay }, { label: "Hugo Gonzalez", player: hugo }],
     [{ label: "Cooper Flagg", player: flagg }],
     pool,
-    "minus1V",
-    undefined,
+    baseValueByFantraxId,
+    "categories",
   );
 
   console.log("Side A (VJ+Ajay+Hugo):", JSON.stringify(verdict.sideA, null, 1));
