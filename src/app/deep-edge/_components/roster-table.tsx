@@ -593,9 +593,12 @@ export function DraftPickCardsGrid({
   /** Trade Edge only — omit both for a plain display grid (Roster Edge's own
    *  usage). `selectedKeys` holds the same `${year}-${round}-${i}` string
    *  each card is already keyed by below, so the caller doesn't need a
-   *  separate id scheme for picks the way it does for players' fantraxId. */
+   *  separate id scheme for picks the way it does for players' fantraxId.
+   *  `onTogglePick` hands back the pick object alongside its key — the key
+   *  alone isn't enough for the caller to reconstruct WHICH pick was
+   *  toggled without duplicating this grid's own year/round grouping. */
   selectedKeys?: ReadonlySet<string>;
-  onTogglePick?: (key: string) => void;
+  onTogglePick?: (key: string, pick: TeamDraftPick) => void;
 }) {
   const rows = draftPickYearRows(picks, seasonYear);
   return (
@@ -611,7 +614,7 @@ export function DraftPickCardsGrid({
                     key={key}
                     pick={p}
                     checked={selectedKeys?.has(key)}
-                    onToggle={onTogglePick ? () => onTogglePick(key) : undefined}
+                    onToggle={onTogglePick ? () => onTogglePick(key, p) : undefined}
                   />
                 );
               })

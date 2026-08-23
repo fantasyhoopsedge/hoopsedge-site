@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, categoryTier, rankTierLabel, resolveEffectiveScoring, teamPerGameStat, type CategoryTier, type OptimalLineup } from "@/lib/fantrax/lineup";
@@ -16,6 +16,7 @@ import {
   computeLeagueSurplusValues, lineupModeFor, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
   type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
+import { computeTradeVerdict, type TradeVerdict } from "@/lib/fantrax/trade-verdict";
 import {
   DraftPickCardsGrid, formatContract, formatCustomContract, formatCustomSalary, formatSalary,
   posDisplayFor, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat,
@@ -334,6 +335,69 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalar
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function pickLabel(pick: TeamDraftPick): string {
+  return `${pick.year} ${ordinal(pick.round)}${pick.overallPick != null ? ` (#${pick.overallPick})` : ""}`;
+}
+
+/** A single adjusted-value number for the Trade Verdict panel — same
+ *  ± convention as formatNetDelta, but generic across every TradeValueMode
+ *  rather than one FheCategory's raw stat, since the verdict's own adjusted
+ *  totals are in z-score/dollar/fpts units depending on what's selected. */
+function formatVerdictValue(n: number, mode: TradeValueMode, salaryFormat: SalaryFormat): string {
+  const sign = n > 0.0005 ? "+" : n < -0.0005 ? "-" : "±";
+  if (mode === "surplusV") {
+    const fmt = salaryFormat === "custom" ? formatCustomSalary : formatSalary;
+    return `${sign}${fmt(Math.abs(n))}`;
+  }
+  return `${sign}${Math.abs(n).toFixed(2)}`;
+}
+
+/**
+ * The fairness call Trade Edge never had at all before this (see
+ * docs/trade-agent-gap-analysis.md's original "measures of success" review,
+ * requirement 1) — who wins, by how much, and how much the losing side would
+ * need to add to even it out. `verdict.sideA` is what MY team ends up
+ * receiving; `verdict.sideB` is what the partner ends up receiving (i.e.
+ * what I'm sending them) — so `winner === "A"` reads as "I win this trade,"
+ * matching how a manager actually reads their own trade screen. Built on
+ * computeTradeVerdict's star-concentration-aware adjustment (see
+ * trade-verdict.ts) — validated this isn't cosmetic: it correctly flips a
+ * real 3-for-1 trade a naive linear sum got backwards, matching a real
+ * league's 100% community vote.
+ */
+function TradeVerdictPanel({
+  verdict, myTeamName, theirTeamName, valueMode, salaryFormat,
+}: {
+  verdict: TradeVerdict; myTeamName: string; theirTeamName: string; valueMode: TradeValueMode; salaryFormat: SalaryFormat;
+}) {
+  const verdictLabel = verdict.winner === "Fair" ? "Fair trade" : verdict.winner === "A" ? `${myTeamName} wins` : `${theirTeamName} wins`;
+  const verdictColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
+  return (
+    <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)", marginBottom: 20 }}>
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rt-muted)", marginBottom: 12 }}>TRADE VERDICT</div>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+        <span style={{ fontSize: 22, fontWeight: 800, color: verdictColor }}>{verdictLabel}</span>
+        <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>{(verdict.variancePct * 100).toFixed(0)}% variance</span>
+        {verdict.winner !== "Fair" && (
+          <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>
+            {verdict.winner === "A" ? theirTeamName : myTeamName} needs {formatVerdictValue(Math.abs(verdict.valueAdjustedNeeded), valueMode, salaryFormat)} more to even it out
+          </span>
+        )}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 11, color: "var(--rt-muted)", marginBottom: 4 }}>{myTeamName.toUpperCase()} RECEIVES — ADJUSTED VALUE</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{formatVerdictValue(verdict.sideA.adjustedTotal, valueMode, salaryFormat)}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 11, color: "var(--rt-muted)", marginBottom: 4 }}>{theirTeamName.toUpperCase()} RECEIVES — ADJUSTED VALUE</div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{formatVerdictValue(verdict.sideB.adjustedTotal, valueMode, salaryFormat)}</div>
+        </div>
       </div>
     </div>
   );
@@ -705,6 +769,13 @@ function TradeEdgeContent() {
   const [teamBId, setTeamBId] = useState<string | null>(null);
   const [sendIds, setSendIds] = useState<Set<string>>(new Set());
   const [receiveIds, setReceiveIds] = useState<Set<string>>(new Set());
+  // Draft picks selected on each side of the trade — keyed by the same
+  // `${year}-${round}-${i}` string DraftPickCardsGrid already generates for
+  // its own React keys, storing the pick object alongside it since the key
+  // alone can't be turned back into a pick without duplicating that grid's
+  // own year/round grouping (see DraftPickCardsGrid's onTogglePick doc).
+  const [sendPickIds, setSendPickIds] = useState<Map<string, TeamDraftPick>>(new Map());
+  const [receivePickIds, setReceivePickIds] = useState<Map<string, TeamDraftPick>>(new Map());
   const [statMode, setStatMode] = useState<"perGame" | "totals">("perGame");
   const [activePanel, setActivePanel] = useState<"none" | "rankings" | "category">("none");
   const [cols, setCols] = useState<{ salary: boolean; contract: boolean }>({ salary: false, contract: false });
@@ -873,6 +944,8 @@ function TradeEdgeContent() {
     setResetKey(teamBId);
     setSendIds(new Set());
     setReceiveIds(new Set());
+    setSendPickIds(new Map());
+    setReceivePickIds(new Map());
     setActivePanel("none");
   }
 
@@ -936,10 +1009,30 @@ function TradeEdgeContent() {
     return tradeProfiles(analysis, myTeamId, teamBId, sendIds, receiveIds, depth, weight, valueMode, effective);
   }, [analysis, effective, myTeamId, teamBId, sendIds, receiveIds, depth, weight, valueMode, activePanel]);
 
-  const hasTradeSelected = sendIds.size > 0 || receiveIds.size > 0;
+  const hasTradeSelected = sendIds.size > 0 || receiveIds.size > 0 || sendPickIds.size > 0 || receivePickIds.size > 0;
 
   const sendPlayers = useMemo(() => myRoster?.players.filter((p) => sendIds.has(p.fantraxId)) ?? [], [myRoster, sendIds]);
   const receivePlayers = useMemo(() => theirRoster?.players.filter((p) => receiveIds.has(p.fantraxId)) ?? [], [theirRoster, receiveIds]);
+  const sendPicks = useMemo(() => [...sendPickIds.values()], [sendPickIds]);
+  const receivePicks = useMemo(() => [...receivePickIds.values()], [receivePickIds]);
+
+  // Cheap relative to tradeProfiles (no 30-team lineup solve) — computed
+  // eagerly on every selection change rather than gated behind activePanel.
+  // sideA is what MY team ends up receiving, sideB what the partner ends up
+  // receiving (i.e. what I'm sending) — see TradeVerdictPanel's own doc for
+  // why that mapping, not the reverse, is what reads naturally on screen.
+  const tradeVerdict = useMemo(() => {
+    if (!myTeamId || !teamBId || !hasTradeSelected) return null;
+    const myTeamGets = [
+      ...receivePlayers.map((p) => ({ label: p.name, player: p })),
+      ...receivePicks.map((pk) => ({ label: pickLabel(pk), pick: pk })),
+    ];
+    const theirTeamGets = [
+      ...sendPlayers.map((p) => ({ label: p.name, player: p })),
+      ...sendPicks.map((pk) => ({ label: pickLabel(pk), pick: pk })),
+    ];
+    return computeTradeVerdict(myTeamGets, theirTeamGets, leaguePlayers, valueMode, leagueSurplusByFantraxId);
+  }, [myTeamId, teamBId, hasTradeSelected, sendPlayers, sendPicks, receivePlayers, receivePicks, leaguePlayers, valueMode, leagueSurplusByFantraxId]);
 
   const hasLeague = Boolean(saved);
 
@@ -1167,9 +1260,9 @@ function TradeEdgeContent() {
           ) : (
             <>
               {([
-                { roster: myRoster, players: myPlayersSorted, ids: sendIds, setIds: setSendIds, assessed: myAssessed, title: `${myRoster.teamName} — select who you send` },
-                { roster: theirRoster, players: theirPlayersSorted, ids: receiveIds, setIds: setReceiveIds, assessed: theirAssessed, title: `${theirRoster.teamName} — select who you receive` },
-              ] as const).map(({ roster, players, ids, setIds, assessed, title }) => (
+                { roster: myRoster, players: myPlayersSorted, ids: sendIds, setIds: setSendIds, pickIds: sendPickIds, setPickIds: setSendPickIds, assessed: myAssessed, title: `${myRoster.teamName} — select who you send` },
+                { roster: theirRoster, players: theirPlayersSorted, ids: receiveIds, setIds: setReceiveIds, pickIds: receivePickIds, setPickIds: setReceivePickIds, assessed: theirAssessed, title: `${theirRoster.teamName} — select who you receive` },
+              ] as const).map(({ roster, players, ids, setIds, pickIds, setPickIds, assessed, title }) => (
                 <div key={roster.teamId} style={{ marginBottom: 24 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{title}</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(108px, 1fr))", gap: 8 }}>
@@ -1195,6 +1288,12 @@ function TradeEdgeContent() {
                         picks={draftPicksByTeamId.get(roster.teamId) ?? []}
                         seasonYear={analysis.league.seasonYear}
                         draftStatus={draftStatus}
+                        selectedKeys={new Set(pickIds.keys())}
+                        onTogglePick={(key, pick) => setPickIds((m) => {
+                          const n = new Map(m);
+                          if (n.has(key)) n.delete(key); else n.set(key, pick);
+                          return n;
+                        })}
                       />
                     </div>
                   )}
@@ -1229,6 +1328,16 @@ function TradeEdgeContent() {
                   <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={leagueSurplusByFantraxId} />
 
                   <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
+
+                  {tradeVerdict && myRoster && theirRoster && (
+                    <TradeVerdictPanel
+                      verdict={tradeVerdict}
+                      myTeamName={myRoster.teamName}
+                      theirTeamName={theirRoster.teamName}
+                      valueMode={valueMode}
+                      salaryFormat={salaryFormat}
+                    />
+                  )}
 
                   <div style={{ display: "flex", gap: 10, marginBottom: 28 }}>
                     <button
