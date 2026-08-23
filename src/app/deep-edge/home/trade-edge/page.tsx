@@ -370,6 +370,43 @@ function formatVerdictValue(n: number, mode: TradeValueMode, salaryFormat: Salar
  * real 3-for-1 trade a naive linear sum got backwards, matching a real
  * league's 100% community vote.
  */
+/** One traded asset's raw → adjusted read, sorted highest-adjusted-first by
+ *  the caller so the piece actually driving the verdict sits at the top of
+ *  its column — the whole point of showing this breakdown is to make WHY
+ *  the verdict landed where it did legible, not just assert a total. */
+function TradeVerdictAssetRow({ asset, mode, salaryFormat }: { asset: TradeVerdict["sideA"]["assets"][number]; mode: TradeValueMode; salaryFormat: SalaryFormat }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "9px 12px", borderRadius: 10, background: "var(--rt-surface-soft)" }}>
+      <span style={{ fontSize: 12.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.label}</span>
+      <span style={{ display: "flex", alignItems: "baseline", gap: 7, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)" }}>
+          {formatVerdictValue(asset.rawValue, mode, salaryFormat)}
+        </span>
+        <span style={{ fontSize: 12.5, fontFamily: "var(--rt-font-mono)", fontWeight: 700 }}>
+          {formatVerdictValue(asset.adjustedValue, mode, salaryFormat)}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+function TradeVerdictSideColumn({
+  teamName, side, mode, salaryFormat,
+}: { teamName: string; side: TradeVerdict["sideA"]; mode: TradeValueMode; salaryFormat: SalaryFormat }) {
+  const sorted = [...side.assets].sort((a, b) => b.adjustedValue - a.adjustedValue);
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
+        <div style={{ fontSize: 11, color: "var(--rt-muted)", fontWeight: 700 }}>{teamName.toUpperCase()} RECEIVES</div>
+        <div style={{ fontSize: 16, fontWeight: 800, fontFamily: "var(--rt-font-mono)" }}>{formatVerdictValue(side.adjustedTotal, mode, salaryFormat)}</div>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {sorted.map((a, i) => <TradeVerdictAssetRow key={`${a.label}-${i}`} asset={a} mode={mode} salaryFormat={salaryFormat} />)}
+      </div>
+    </div>
+  );
+}
+
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, valueMode, salaryFormat,
 }: {
@@ -380,7 +417,7 @@ function TradeVerdictPanel({
   return (
     <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)", marginBottom: 20 }}>
       <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rt-muted)", marginBottom: 12 }}>TRADE VERDICT</div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
         <span style={{ fontSize: 22, fontWeight: 800, color: verdictColor }}>{verdictLabel}</span>
         <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>{(verdict.variancePct * 100).toFixed(0)}% variance</span>
         {verdict.winner !== "Fair" && (
@@ -389,15 +426,12 @@ function TradeVerdictPanel({
           </span>
         )}
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div>
-          <div style={{ fontSize: 11, color: "var(--rt-muted)", marginBottom: 4 }}>{myTeamName.toUpperCase()} RECEIVES — ADJUSTED VALUE</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{formatVerdictValue(verdict.sideA.adjustedTotal, valueMode, salaryFormat)}</div>
-        </div>
-        <div>
-          <div style={{ fontSize: 11, color: "var(--rt-muted)", marginBottom: 4 }}>{theirTeamName.toUpperCase()} RECEIVES — ADJUSTED VALUE</div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>{formatVerdictValue(verdict.sideB.adjustedTotal, valueMode, salaryFormat)}</div>
-        </div>
+      <div style={{ fontSize: 11, color: "var(--rt-muted)", marginBottom: 14 }}>
+        Each asset shows its raw value, then the value actually driving the verdict — adjusted for how concentrated it is (a true top piece is worth more than the same value spread across several lesser ones).
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
+        <TradeVerdictSideColumn teamName={myTeamName} side={verdict.sideA} mode={valueMode} salaryFormat={salaryFormat} />
+        <TradeVerdictSideColumn teamName={theirTeamName} side={verdict.sideB} mode={valueMode} salaryFormat={salaryFormat} />
       </div>
     </div>
   );
