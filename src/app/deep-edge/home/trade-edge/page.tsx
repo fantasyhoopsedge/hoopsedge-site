@@ -421,13 +421,22 @@ function formatVerdictValue(n: number): string {
 }
 
 /** A team's power-ranking position within `profiles` — the same standings
- *  function PowerRankingsCompareTable itself uses per format, just reduced to
- *  the one team's rank number. Null when the team isn't found (shouldn't
- *  happen for a connected league's own team, but a profile list can be empty
- *  before data loads). */
-function teamRankOf(profiles: TeamCategoryProfile[], format: RosterTableFormat, scored: readonly FheCategory[], teamId: string): number | null {
+ *  function PowerRankingsCompareTable (and the standalone Power Rankings
+ *  tool) itself uses per format, just reduced to the one team's rank number.
+ *  Null when the team isn't found (shouldn't happen for a connected league's
+ *  own team, but a profile list can be empty before data loads).
+ *
+ *  Roto MUST go through rotoStandingsByRawStat with the caller's own statMode
+ *  — not projectRotoStandings' z-score-based ranking, which this used to call
+ *  regardless of the Per Game/Totals toggle. That silently disagreed with
+ *  every other roto standings table on this same page (Ash, 2026-08-24: "the
+ *  power rank before and after is not linked to the displayed power rank
+ *  before and after" — caught live on FBI Super20, badge read 9th while the
+ *  before/after compare table right below it, and the real Power Rankings
+ *  tool, both read 5th for the same team/lineup). */
+function teamRankOf(profiles: TeamCategoryProfile[], format: RosterTableFormat, scored: readonly FheCategory[], teamId: string, statMode: "perGame" | "totals"): number | null {
   if (format === "roto") {
-    return projectRotoStandings(profiles, scored).find((r) => r.teamId === teamId)?.projectedRank ?? null;
+    return rotoStandingsByRawStat(profiles, scored, statMode).find((r) => r.teamId === teamId)?.projectedRank ?? null;
   }
   const rows = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles);
   return rows.find((r) => r.teamId === teamId)?.rank ?? null;
@@ -645,7 +654,7 @@ function TradeVerdictSideColumn({
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, myTeamId, myPlayers, myPicks, theirPlayers, theirPicks, leaguePlayers, baseValueByFantraxId,
   secondRankMode, secondRankLabel, showSalary, salaryFormat, family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, enrich, seasonYear,
-  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter,
+  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode,
 }: {
   verdict: TradeVerdict; myTeamName: string; theirTeamName: string; myTeamId: string;
   /** sideA (myTeamName) is what I RECEIVE — receivePlayers/receivePicks;
@@ -673,6 +682,11 @@ function TradeVerdictPanel({
    *  always available immediately, no launch required. Null when the league
    *  doesn't play with salaries. */
   salaryBefore: number | null; salaryAfter: number | null;
+  /** Same Per Game/Totals basis toggle the before/after compare table below
+   *  uses (PowerRankingsCompareTable) — the Power Rank tile must be computed
+   *  on the same basis or it silently disagrees with the table right under
+   *  it. */
+  statMode: "perGame" | "totals";
 }) {
   const verdictLabel = verdict.winner === "Fair" ? "Fair trade" : verdict.winner === "A" ? `${myTeamName} wins` : `${theirTeamName} wins`;
   const verdictColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
@@ -684,8 +698,8 @@ function TradeVerdictPanel({
   const theirNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "B" ? "var(--rt-up)" : "var(--rt-down)";
   const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, ledgerValues, onRequestValue };
 
-  const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId) : null;
-  const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId) : null;
+  const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode) : null;
+  const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode) : null;
   const fptsBefore = trade && family === "points" ? teamFptsPerGame(trade.before, myTeamId) : null;
   const fptsAfter = trade && family === "points" ? teamFptsPerGame(trade.after, myTeamId) : null;
   const salaryDelta = salaryBefore != null && salaryAfter != null ? salaryAfter - salaryBefore : null;
@@ -1908,7 +1922,7 @@ function TradeEdgeContent() {
                       currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} ledgerValues={ledgerValues}
                       onRequestValue={() => setActivePanel("rankings")}
                       trade={trade} rowFormat={rowFormat} scored={effective?.scored ?? []} teamCount={teamCount}
-                      salaryBefore={salaryBefore} salaryAfter={salaryAfter}
+                      salaryBefore={salaryBefore} salaryAfter={salaryAfter} statMode={statMode}
                     />
                   )}
 
