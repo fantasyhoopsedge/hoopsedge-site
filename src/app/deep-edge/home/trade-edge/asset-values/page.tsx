@@ -7,12 +7,50 @@ import { IconChevronLeft } from "../../../_components/icons";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../../_components/sortable-table";
 import { useActiveLeague } from "../../../_lib/use-saved-leagues";
 import { CUSTOM_VALUATIONS_STALE_AFTER_MS, relativeTime, useNow } from "../../../_lib/relative-time";
-import { formatCustomSalary, formatSalary } from "../../../_components/roster-table";
+import { formatCustomSalary, formatSalary, TeamLogo } from "../../../_components/roster-table";
+import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import type { CustomValuationsDoc, LedgerRow } from "@/lib/fantrax/custom-valuations-store";
 
 type SortKey = "tradeRank" | "asset" | "owner" | "dynRank" | "tradeValue" | "salary";
 type TypeFilter = "all" | "player" | "pick";
+
+/** Custom trade rank vs. dynasty consensus rank, same visual language as
+ *  Dynasty Consensus' own expert-vs-consensus cell (rankings-table.tsx's
+ *  VsConsCell): green ↑N when this league's own custom value ranks the
+ *  asset HIGHER (a smaller rank number) than pure consensus does, red ↓N
+ *  when lower, muted "—" for a pick (no consensus counterpart at all) or an
+ *  unchanged rank. Ash, 2026-08-24: "show the movement in custom rank vs the
+ *  dynasty consensus." */
+function MovementCell({ dynRank, tradeRank }: { dynRank: number | null; tradeRank: number | null }) {
+  if (dynRank == null || tradeRank == null) return <span style={{ color: "var(--rt-muted)" }}>—</span>;
+  const delta = dynRank - tradeRank;
+  if (delta === 0) return <span style={{ color: "var(--rt-muted)" }}>—</span>;
+  const up = delta > 0;
+  return (
+    <span style={{ color: up ? "var(--rt-up)" : "var(--rt-down)", fontWeight: 700 }}>
+      {up ? "↑" : "↓"}{Math.abs(delta)}
+    </span>
+  );
+}
+
+/** Headshot + name + position, shared by both table variants. Picks get no
+ *  headshot (they aren't a player) — just the label. */
+function AssetCell({ row }: { row: LedgerRow }) {
+  if (row.type === "pick") {
+    return <span className="de-player-name">{row.asset}</span>;
+  }
+  const initials = row.asset.split(" ").map((w) => w[0]).slice(0, 2).join("");
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <PlayerHeadshot name={row.asset} size={26} initials={initials} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} rookie={row.isRookie} />
+      <span>
+        <span className="de-player-name">{row.asset}</span>
+        {row.pos && <span style={{ color: "var(--rt-muted)", marginLeft: 6, fontSize: 11 }}>{row.pos}</span>}
+      </span>
+    </div>
+  );
+}
 
 function AssetValuesContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
@@ -72,10 +110,42 @@ function AssetValuesContent() {
   const stale = doc && now != null ? now - new Date(doc.generatedAt).getTime() > CUSTOM_VALUATIONS_STALE_AFTER_MS : false;
   const salaryFormat = saved?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
   const formatRowSalary = salaryFormat === "custom" ? formatCustomSalary : formatSalary;
+  // Two looks, per Ash (2026-08-24): a dynasty/keeper league is styled after
+  // Dynasty Consensus (headshot, team logo, movement vs. that same consensus
+  // rank) — the whole point of a custom ledger there is "how does MY league's
+  // math disagree with the public consensus." A redraft league has no
+  // consensus rank to compare against at all (dynRank is populated from the
+  // SAME site-wide dynasty board regardless of league type, but it means
+  // nothing to a redraft manager) — styled after the player value
+  // rankings/projections pages instead: a plain rank/value list, no
+  // consensus-movement column.
+  const leagueType = saved?.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType;
+  const isDynasty = leagueType === "dynasty" || leagueType === "keeper";
 
   return (
     <HubShell hasLeague={Boolean(saved)} breadcrumb={saved ? `${saved.leagueName} · Custom asset values` : "Custom asset values"}>
       <style>{DEEP_EDGE_TABLE_CSS}</style>
+      {/* Redesign pass, Ash 2026-08-24: every column — header and data alike —
+          now matches the player-name cell's own look (--rt-font-sans, 15px,
+          weight 400) instead of the smaller mono numeric convention every
+          other .de-table uses; applies to both the dynasty and redraft
+          variants, so the earlier dynasty-only font override is superseded
+          by this uniform rule. Player names render in standard mixed case —
+          the shared .de-player-name class' own uppercase transform (and an
+          earlier font-variant-caps: small-caps attempt here, which Geist
+          synthesizes as full-height caps rather than true small caps,
+          visually oversized next to the rest of the row) are both turned
+          off for this table specifically. */}
+      <style>{`
+        .de-table-assetvalues th, .de-table-assetvalues td {
+          font-family: var(--rt-font-sans) !important;
+          font-size: 15px !important;
+          font-weight: 400;
+        }
+        .de-table-assetvalues th { text-transform: none; letter-spacing: 0; }
+        .de-table-assetvalues .de-player-name { text-transform: none; font-variant-caps: normal; }
+        .de-table-wrap-freeze { max-height: calc(100vh - 380px); min-height: 320px; overflow-y: auto; }
+      `}</style>
       <Link href={`/deep-edge/home/trade-edge${saved ? `?league=${encodeURIComponent(saved.leagueId)}` : ""}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--rt-muted)", fontSize: 13, textDecoration: "none", marginBottom: 16 }}>
         <IconChevronLeft size={14} /> Back to Trade Edge
       </Link>
@@ -162,14 +232,16 @@ function AssetValuesContent() {
                 <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>{filteredRows.length} assets</span>
               </div>
 
-              <div className="de-table-wrap">
-                <table className="de-table">
+              <div className="de-table-wrap de-table-wrap-freeze">
+                <table className="de-table de-table-assetvalues">
                   <thead>
                     <tr>
                       <SortTh<SortKey> label="RANK" sortKey="tradeRank" sort={sort} onSort={onSort} />
                       <SortTh<SortKey> label="ASSET" sortKey="asset" sort={sort} onSort={onSort} align="left" />
+                      <th className="l">TEAM</th>
                       <SortTh<SortKey> label="OWNER" sortKey="owner" sort={sort} onSort={onSort} align="left" />
-                      <SortTh<SortKey> label="DYN RANK" sortKey="dynRank" sort={sort} onSort={onSort} />
+                      {isDynasty && <SortTh<SortKey> label="DYN RANK" sortKey="dynRank" sort={sort} onSort={onSort} />}
+                      {isDynasty && <th>VS CONSENSUS</th>}
                       <SortTh<SortKey> label="TRADE VALUE" sortKey="tradeValue" sort={sort} onSort={onSort} />
                       <SortTh<SortKey> label="SALARY" sortKey="salary" sort={sort} onSort={onSort} />
                       <th>CONTRACT</th>
@@ -179,9 +251,11 @@ function AssetValuesContent() {
                     {sorted.map((row) => (
                       <tr key={`${row.type}-${row.asset}-${row.owner}`} className={row.owner === saved.teamName ? "mine" : ""}>
                         <td>{row.tradeRank != null && row.tradeRank <= 10 ? <span style={{ color: "var(--rt-primary)", fontWeight: 700 }}>{row.tradeRank}</span> : row.tradeRank}</td>
-                        <td className="l"><span className="de-player-name">{row.asset}</span>{row.pos ? <span style={{ color: "var(--rt-muted)", marginLeft: 6, fontSize: 11 }}>{row.pos}</span> : null}</td>
+                        <td className="l"><AssetCell row={row} /></td>
+                        <td className="l">{row.nbaTeam ? <TeamLogo team={row.nbaTeam} size={34} /> : <span style={{ color: "var(--rt-muted)" }}>—</span>}</td>
                         <td className="l">{row.owner}</td>
-                        <td>{row.dynRank ?? "—"}</td>
+                        {isDynasty && <td>{row.dynRank ?? "—"}</td>}
+                        {isDynasty && <td><MovementCell dynRank={row.dynRank} tradeRank={row.tradeRank} /></td>}
                         <td style={{ fontWeight: 700 }}>{row.tradeValue.toFixed(3)}</td>
                         <td>{formatRowSalary(row.salary)}</td>
                         <td>{row.contract ?? "—"}</td>

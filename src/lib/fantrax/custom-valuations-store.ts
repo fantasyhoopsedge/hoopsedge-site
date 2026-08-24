@@ -44,7 +44,17 @@ export interface LedgerRow {
    *  disagreeing — card showed rank #177 for a pick the ledger ranked #302)
    *  instead of recomputing a different value via the generic ratio model. */
   pickKey: string | null;
+  /** Fantrax eligibility, already filtered to real positions (posDisplayFor)
+   *  — "Flx"/other roster-slot-only tags never appear here, only PG/SG/SF/
+   *  PF/C/G/F as this league's own positionSlots actually recognizes. Null
+   *  for a pick. */
   pos: string | null;
+  /** Canonical NBA_TEAM_ABBRS code for a player/FA row (see nba-teams.ts) —
+   *  null for a pick, or a player resolve.ts couldn't attach a team to. */
+  nbaTeam: string | null;
+  /** 2026 draft class flag — same headshot-source-ordering signal
+   *  PlayerHeadshot's own `rookie` prop reads elsewhere. False for a pick. */
+  isRookie: boolean;
   dynRank: number | null;
   tradeValue: number;
   tradeRank: number | null;

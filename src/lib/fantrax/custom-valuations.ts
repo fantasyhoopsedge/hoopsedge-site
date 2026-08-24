@@ -43,6 +43,27 @@ function salaryForPick(tiers: RookieSalaryTier[] | undefined, overallPick: numbe
   return hit?.salary ?? null;
 }
 
+/** Same filter roster-table.tsx's own posDisplayFor() applies — duplicated
+ *  for the same server/client boundary reason as formatRealContractLabel
+ *  below. Drops "Flx" (and any other roster-slot-only tag) from Fantrax
+ *  eligibility, keeping only real positions this league's own positionSlots
+ *  actually recognizes (Ash, 2026-08-24: "use the fantrax eligibility but do
+ *  not display FLX as a position"). */
+const MAIN_POSITIONS = new Set(["PG", "SG", "SF", "PF", "C"]);
+function posDisplayForLedger(eligible: string[], positionSlots: Record<string, number> | undefined): string {
+  const showG = (positionSlots?.G ?? 0) > 0;
+  const showF = (positionSlots?.F ?? 0) > 0;
+  return eligible
+    .filter((e) => {
+      const upper = e.toUpperCase();
+      if (MAIN_POSITIONS.has(upper)) return true;
+      if (upper === "G") return showG;
+      if (upper === "F") return showF;
+      return false;
+    })
+    .join("/") || "";
+}
+
 /** Same "Xyr/$Y.YM" shape roster-table.tsx's own formatContract() renders —
  *  duplicated rather than imported since that module is a client component
  *  ("use client") and this one is server-only; both are tiny, framework-free
@@ -402,7 +423,9 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     // offer, so an unrostered player there still correctly shows nothing.
     const salary = p.salary ?? (salaryFormat === "real" ? realContractInfo?.currentSalary ?? null : null);
     rows.push({
-      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null, pos: (p.eligible || []).join("/") || null,
+      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null,
+      pos: posDisplayForLedger(p.eligible || [], analysis.league.positionSlots) || null,
+      nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
       dynRank, tradeValue: v, tradeRank: null,
       salary, contract,
       owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
@@ -430,7 +453,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
       rows.push({
         asset: pickLabel(pick), type: "pick", fantraxId: null,
         pickKey: pick.overallPick != null ? `${draftYear}:${pick.overallPick}` : null,
-        pos: null, dynRank: null, tradeValue: v, tradeRank: null,
+        pos: null, nbaTeam: null, isRookie: false, dynRank: null, tradeValue: v, tradeRank: null,
         salary: pick.overallPick != null ? salaryForPick(rookieSalaryScale, pick.overallPick) : null,
         contract: null, owner: teamNameByTeamId.get(r.teamId) ?? "—",
       });
@@ -466,7 +489,8 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
       const v = decayFromAnchor(anchor, yearsOut);
       extraPickCount++;
       rows.push({
-        asset: `${year} #${tier.minPick}-${tier.maxPick}`, type: "pick", fantraxId: null, pickKey: null, pos: null, dynRank: null,
+        asset: `${year} #${tier.minPick}-${tier.maxPick}`, type: "pick", fantraxId: null, pickKey: null,
+        pos: null, nbaTeam: null, isRookie: false, dynRank: null,
         tradeValue: v, tradeRank: null, salary: null, contract: null, owner: "—",
       });
     }
