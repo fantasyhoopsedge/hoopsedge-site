@@ -1,12 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
+import type { CustomValuationsDoc } from "@/lib/fantrax/custom-valuations-store";
 import { HubShell } from "../_components/hub-shell";
 import { GoDeepGrid } from "../_components/go-deep-grid";
 import { AddLeagueModal } from "../_components/add-league-modal";
 import { useActiveLeague } from "../_lib/use-saved-leagues";
+import { CUSTOM_VALUATIONS_STALE_AFTER_MS, relativeTime, useNow } from "../_lib/relative-time";
 
 function HomeHubContent() {
   // Shows only the currently-active league's card (matches the sidebar's
@@ -14,8 +17,62 @@ function HomeHubContent() {
   // full card here was the actual bug report, not a design choice.
   const { leagues, saved: league, loading, refresh } = useActiveLeague();
   const [showAddLeague, setShowAddLeague] = useState(false);
+  const [promptBusy, setPromptBusy] = useState(false);
+  const [ledgerDoc, setLedgerDoc] = useState<CustomValuationsDoc | null>(null);
+  const router = useRouter();
 
   const hasLeague = Boolean(league);
+
+  // The "would you like to customize the value of your league assets?"
+  // onboarding prompt only ever fires for dynasty leagues (redraft/keeper
+  // have no long-lived asset ledger worth customizing) and only once per
+  // league — customValuationsPromptedAt is set on either answer, never just
+  // on "yes" (Ash's own asset-values plan, 2026-08-23).
+  const showCustomValuationsPrompt =
+    Boolean(league) && league!.settings.leagueType === "dynasty" && !league!.settings.customValuationsPromptedAt;
+  const recommendCustomValuations = league?.settings.salaryFormat === "real" || league?.settings.salaryFormat === "custom";
+
+  useEffect(() => {
+    if (!league?.settings.useCustomValuations) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived state when the league/toggle this effect depends on changes, not a plain render-time computation (same pattern as trade-edge/page.tsx's resetKey guards)
+      setLedgerDoc(null);
+      return;
+    }
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`)
+      .then((r) => r.json())
+      .then((d) => setLedgerDoc(d.doc ?? null))
+      .catch(() => setLedgerDoc(null));
+  }, [league?.leagueId, league?.settings.useCustomValuations]);
+
+  const now = useNow();
+  const ledgerStale = ledgerDoc && now != null ? now - new Date(ledgerDoc.generatedAt).getTime() > CUSTOM_VALUATIONS_STALE_AFTER_MS : false;
+
+  function respondToCustomValuationsPrompt(yes: boolean) {
+    if (!league || promptBusy) return;
+    setPromptBusy(true);
+    fetch("/api/fantrax/saved", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
+        settings: {
+          ...league.settings,
+          customValuationsPromptedAt: new Date().toISOString(),
+          useCustomValuations: yes ? true : league.settings.useCustomValuations,
+        },
+      }),
+    })
+      .then(async () => {
+        await refresh();
+        if (yes) {
+          const needsScale = league.settings.salaryFormat === "custom" && (league.settings.rookieSalaryScale ?? []).length === 0;
+          router.push(needsScale
+            ? `/deep-edge/home/settings?league=${encodeURIComponent(league.leagueId)}`
+            : `/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`);
+        }
+      })
+      .finally(() => setPromptBusy(false));
+  }
 
   return (
     <HubShell
@@ -117,6 +174,54 @@ function HomeHubContent() {
               </span>
             ))}
           </div>
+
+          {showCustomValuationsPrompt && (
+            <div style={{ marginTop: 18, padding: 16, borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)" }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>Would you like to customize the value of your league assets?</div>
+              <p style={{ fontSize: 12.5, color: "var(--rt-muted)", margin: "0 0 12px", maxWidth: 520 }}>
+                Revalue every player, free agent, and draft pick against this league&apos;s own rules — real dynasty
+                consensus at each pick slot, plus any house contract or rookie-scale rules you set.
+                {recommendCustomValuations && " Highly recommended for a salary-cap dynasty league like this one."}
+              </p>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  disabled={promptBusy}
+                  onClick={() => respondToCustomValuationsPrompt(true)}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "none", background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: promptBusy ? "default" : "pointer" }}
+                >
+                  Yes, customize
+                </button>
+                <button
+                  type="button"
+                  disabled={promptBusy}
+                  onClick={() => respondToCustomValuationsPrompt(false)}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 12.5, cursor: promptBusy ? "default" : "pointer" }}
+                >
+                  No, use standard values
+                </button>
+              </div>
+            </div>
+          )}
+
+          {league.settings.useCustomValuations && (
+            <div style={{ marginTop: 18, padding: "10px 16px", borderRadius: 100, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              {ledgerDoc ? (
+                <span style={{ fontSize: 12, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
+                  {ledgerStale ? "⚠ Custom values may be stale — " : "Custom values · "}
+                  generated {relativeTime(ledgerDoc.generatedAt)}
+                </span>
+              ) : (
+                <span style={{ fontSize: 12, color: "var(--rt-muted)" }}>Custom values on — not generated yet</span>
+              )}
+              <Link
+                href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
+                style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "var(--rt-primary)", textDecoration: "none" }}
+              >
+                Regenerate
+              </Link>
+            </div>
+          )}
         </div>
       ) : (
         <div style={{ padding: 22, borderRadius: 24, border: "1px dashed var(--rt-hairline)", marginBottom: 32, textAlign: "center", color: "var(--rt-muted)", fontSize: 13.5 }}>

@@ -2,7 +2,7 @@ import "server-only";
 import rankings from "@/lib/dynasty-rankings.json";
 import { playerIdentity } from "@/lib/player-identity/bundled";
 import { getRealSalaryValues, getRosterExtras } from "@/lib/value/real-salary-data";
-import { rankBy } from "@/lib/value/real-salary-model";
+import { contractClassOf, rankBy, type ContractClass } from "@/lib/value/real-salary-model";
 
 type BoardPlayer = { player: string; consensusRank: number };
 
@@ -37,19 +37,25 @@ const REAL_SALARY_SEASON = 2027;
  * (Aggressive/Conservative/etc.), which re-ranks client-side and isn't
  * reproduced here.
  */
-export async function getSalaryRankByFheId(): Promise<Record<string, number>> {
+/** `poolSize` is the population the ranks were computed within — the total
+ *  row count of the site-wide Real Salary Rankings pool for this season, NOT
+ *  any one Fantrax league's own roster size. A caller converting one of
+ *  these ranks to a z-score (`rankToZ`) must use THIS number as the
+ *  denominator, never a connected league's own `poolSize` (see Trade Edge's
+ *  base-value cascade — src/lib/fantrax/trade-value.ts). */
+export async function getSalaryRankByFheId(): Promise<{ rankByFheId: Record<string, number>; poolSize: number }> {
   const values = await getRealSalaryValues(REAL_SALARY_SEASON);
   const ranked = rankBy(
     values.map((v) => ({ playerId: v.player_id, score: v.expected_cap_hit })),
     (r) => r.score,
   );
-  const out: Record<string, number> = {};
+  const rankByFheId: Record<string, number> = {};
   for (const v of values) {
-    if (!v.fhe_id || out[v.fhe_id] != null) continue;
+    if (!v.fhe_id || rankByFheId[v.fhe_id] != null) continue;
     const rank = ranked.get(v.player_id);
-    if (rank != null) out[v.fhe_id] = rank;
+    if (rank != null) rankByFheId[v.fhe_id] = rank;
   }
-  return out;
+  return { rankByFheId, poolSize: values.length };
 }
 
 /**
@@ -74,6 +80,16 @@ export function getDynastyRankByFheId(): Record<string, number> {
   return out;
 }
 
+/** Population size `getDynastyRankByFheId`'s ranks were drawn from — the
+ *  dynasty board's own player count, read live rather than hardcoded so it
+ *  tracks board growth automatically. Same "ranks need their SOURCE
+ *  population's size, not a connected league's own pool size" rule as
+ *  `getSalaryRankByFheId`'s `poolSize` — see Trade Edge's base-value
+ *  cascade (src/lib/fantrax/trade-value.ts). */
+export function getConsensusPoolSize(): number {
+  return (rankings as BoardPlayer[]).length;
+}
+
 export interface ContractInfo {
   currentSalary: number;
   /** Years remaining FROM THE CURRENT SEASON, not the deal's original term —
@@ -83,6 +99,12 @@ export interface ContractInfo {
   yearsRemaining: number;
   /** Sum of currentSalary + whichever of yr2/yr3/yr4 nba_roster has. */
   totalRemaining: number;
+  /** contractClassOf(nba_roster.contract_status) — drives Trade Edge's
+   *  asset-card "Rookie Scale" tier (see _components/asset-tiers.ts). Has the
+   *  same known Wembanyama-style data gap that model carries: a real
+   *  rookie-scale deal nba_roster hasn't tagged "Rookie Scale" reads as
+   *  "standard" here too. */
+  contractClass: ContractClass;
 }
 
 // ageFromDob mirrors real-salary-rankings/page.tsx's own helper: computed
@@ -129,7 +151,21 @@ export async function getContractByFheId(): Promise<Record<string, ContractInfo>
       currentSalary: v.salary,
       yearsRemaining: years.length,
       totalRemaining: years.reduce((a, b) => a + b, 0),
+      contractClass: contractClassOf(extra?.contract_status ?? null),
     };
+  }
+  return out;
+}
+
+/** fhe_id -> true for a player nba_roster tags as a 2nd-year NBA player
+ *  (`is_sophomore`) — drives Trade Edge's asset-card "Sophomore" tier (see
+ *  _components/asset-tiers.ts). Omits anyone nba_roster has no extras row
+ *  for (never a false positive from a missing row). */
+export async function getSophomoreByFheId(): Promise<Record<string, boolean>> {
+  const extras = await getRosterExtras();
+  const out: Record<string, boolean> = {};
+  for (const e of extras) {
+    if (e.fhe_id && e.is_sophomore) out[e.fhe_id] = true;
   }
   return out;
 }

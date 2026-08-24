@@ -6,7 +6,7 @@ import type { LeagueAnalysis } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, FHE_CATEGORIES, type FantraxLeague, type FheCategory } from "@/lib/fantrax/league";
 import {
   DEFAULT_ADVANCED_SETTINGS, DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES, STANDARD_POSITION_SLOTS,
-  type LeagueFormat, type LeagueType, type SalaryFormat,
+  type ContractRule, type ContractRuleKind, type LeagueFormat, type LeagueType, type RookieSalaryTier, type SalaryFormat,
 } from "@/lib/fantrax/league-tags";
 import type { SavedLeague } from "@/lib/fantrax/store";
 import { HubShell } from "../../_components/hub-shell";
@@ -40,6 +40,9 @@ interface Draft {
   maxContractLengthEnabled: boolean;
   maxContractLength: number;
   keeperPolicy: string;
+  contractRules: ContractRule[];
+  rookieSalaryScale: RookieSalaryTier[];
+  realSalaryEfficiencyWeight: number;
   rookieDraftRounds: number;
   taxiSquad: boolean;
   waiverType: "faab" | "rolling";
@@ -101,6 +104,9 @@ function buildDraft(saved: SavedLeague, analysis: LeagueAnalysis | null): Draft 
     maxContractLengthEnabled: s.maxContractLengthEnabled ?? (salaryFormat === "custom"),
     maxContractLength: Math.min(5, s.maxContractLength ?? DEFAULT_ADVANCED_SETTINGS.maxContractLength),
     keeperPolicy: s.keeperPolicy ?? DEFAULT_ADVANCED_SETTINGS.keeperPolicy,
+    contractRules: s.contractRules ?? DEFAULT_ADVANCED_SETTINGS.contractRules,
+    rookieSalaryScale: s.rookieSalaryScale ?? DEFAULT_ADVANCED_SETTINGS.rookieSalaryScale,
+    realSalaryEfficiencyWeight: s.realSalaryEfficiencyWeight ?? DEFAULT_ADVANCED_SETTINGS.realSalaryEfficiencyWeight,
     rookieDraftRounds: s.rookieDraftRounds ?? DEFAULT_ADVANCED_SETTINGS.rookieDraftRounds,
     taxiSquad: s.taxiSquad ?? DEFAULT_ADVANCED_SETTINGS.taxiSquad,
     waiverType: s.waiverType ?? DEFAULT_ADVANCED_SETTINGS.waiverType,
@@ -283,6 +289,9 @@ function DeepEdgeSettingsContent() {
             maxContractLengthEnabled: draft.maxContractLengthEnabled,
             maxContractLength: draft.maxContractLength,
             keeperPolicy: draft.keeperPolicy,
+            contractRules: draft.contractRules,
+            rookieSalaryScale: draft.rookieSalaryScale,
+            realSalaryEfficiencyWeight: draft.realSalaryEfficiencyWeight,
             rookieDraftRounds: draft.rookieDraftRounds,
             taxiSquad: draft.taxiSquad,
             waiverType: draft.waiverType,
@@ -358,6 +367,34 @@ function DeepEdgeSettingsContent() {
   function removeConference(confIndex: number) {
     if (!draft || draft.conferences.length <= 1) return;
     update("conferences", draft.conferences.filter((_, i) => i !== confIndex));
+  }
+
+  function updateContractRule(i: number, patch: Partial<ContractRule>) {
+    if (!draft) return;
+    update("contractRules", draft.contractRules.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  }
+  function addContractRule() {
+    if (!draft) return;
+    update("contractRules", [...draft.contractRules, { prefix: "", kind: "standard" as ContractRuleKind }]);
+  }
+  function removeContractRule(i: number) {
+    if (!draft) return;
+    update("contractRules", draft.contractRules.filter((_, idx) => idx !== i));
+  }
+
+  function updateRookieSalaryTier(i: number, patch: Partial<RookieSalaryTier>) {
+    if (!draft) return;
+    update("rookieSalaryScale", draft.rookieSalaryScale.map((t, idx) => (idx === i ? { ...t, ...patch } : t)));
+  }
+  function addRookieSalaryTier() {
+    if (!draft) return;
+    const last = draft.rookieSalaryScale[draft.rookieSalaryScale.length - 1];
+    const minPick = last ? last.maxPick + 1 : 1;
+    update("rookieSalaryScale", [...draft.rookieSalaryScale, { minPick, maxPick: minPick, salary: 1 }]);
+  }
+  function removeRookieSalaryTier(i: number) {
+    if (!draft) return;
+    update("rookieSalaryScale", draft.rookieSalaryScale.filter((_, idx) => idx !== i));
   }
 
   return (
@@ -731,6 +768,151 @@ function DeepEdgeSettingsContent() {
               <SettingsRow label="Taxi / prospect squad">
                 <ToggleSwitch checked={draft.taxiSquad} onChange={(v) => update("taxiSquad", v)} ariaLabel="Taxi / prospect squad" />
               </SettingsRow>
+              {draft.salaryFormat === "custom" && (
+                <>
+                  {divider}
+                  <div style={{ padding: "18px 0" }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 3 }}>Contract label rules</div>
+                    <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 12, maxWidth: 520 }}>
+                      Teach Trade Edge what this league&apos;s own contract-label prefixes mean (Fantrax label &quot;E26-27&quot; has prefix &quot;E&quot;) —
+                      a rookie-scale deal gets extra trade value credit, a fixed-length no-renewal contract gets discounted as its forced drop
+                      approaches. Unmatched prefixes stay standard, unchanged.
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {draft.contractRules.map((rule, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <input
+                            type="text"
+                            value={rule.prefix}
+                            onChange={(e) => updateContractRule(i, { prefix: e.target.value.toUpperCase().slice(0, 4) })}
+                            placeholder="E"
+                            style={{ ...numInputStyle, width: 56, textAlign: "center", fontFamily: "var(--rt-font-mono)" }}
+                          />
+                          <select
+                            value={rule.kind}
+                            onChange={(e) => updateContractRule(i, { kind: e.target.value as ContractRuleKind })}
+                            style={{ ...selectStyle, flex: "1 1 220px" }}
+                          >
+                            <option value="standard">No special treatment</option>
+                            <option value="rookieScale">Rookie-scale (value bump)</option>
+                            <option value="expiring">Fixed-length, auto-drop (value discount)</option>
+                          </select>
+                          {rule.kind === "expiring" && (
+                            <Stepper value={rule.maxYears ?? 2} onChange={(v) => updateContractRule(i, { maxYears: v })} min={1} max={5} suffix="yr max" />
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeContractRule(i)}
+                            style={{ height: 34, padding: "0 10px", borderRadius: 8, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-muted)", fontSize: 12.5, cursor: "pointer" }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addContractRule}
+                      style={{ marginTop: 10, height: 34, padding: "0 14px", borderRadius: 8, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      + Add rule
+                    </button>
+                  </div>
+                  {divider}
+                  <div style={{ padding: "18px 0" }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 3 }}>Rookie salary scale</div>
+                    <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 12, maxWidth: 520 }}>
+                      This league&apos;s own rookie-scale salary by draft-pick range (e.g. pick 1 → $14, picks 31-60 → $1) —
+                      used to price a draft pick as a trade asset when generating custom league values.
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {draft.rookieSalaryScale.map((tier, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Picks</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={tier.minPick}
+                            onChange={(e) => updateRookieSalaryTier(i, { minPick: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                            style={{ ...numInputStyle, width: 56, textAlign: "center" }}
+                          />
+                          <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>–</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={tier.maxPick}
+                            onChange={(e) => updateRookieSalaryTier(i, { maxPick: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                            style={{ ...numInputStyle, width: 56, textAlign: "center" }}
+                          />
+                          <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>→ $</span>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={tier.salary}
+                            onChange={(e) => updateRookieSalaryTier(i, { salary: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                            style={{ ...numInputStyle, width: 72, textAlign: "center" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeRookieSalaryTier(i)}
+                            style={{ height: 34, padding: "0 10px", borderRadius: 8, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-muted)", fontSize: 12.5, cursor: "pointer" }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addRookieSalaryTier}
+                      style={{ marginTop: 10, height: 34, padding: "0 14px", borderRadius: 8, border: "1px solid var(--rt-hairline)", background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}
+                    >
+                      + Add tier
+                    </button>
+                  </div>
+                </>
+              )}
+              {draft.salaryFormat === "real" && (
+                <>
+                  {divider}
+                  <div style={{ padding: "18px 0" }}>
+                    <div style={{ fontSize: 14.5, fontWeight: 700, marginBottom: 3 }}>Custom value blend</div>
+                    <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 14, maxWidth: 520 }}>
+                      How much should generating custom league values weigh cheap, productive contracts against pure
+                      dynasty consensus rank? Every real-salary league gets the same 30% default — a league with
+                      unusually deep cap room or tight roster limits may need to lean harder toward cheap production
+                      (or expensive contracts may need to matter less) than that default assumes.
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                      <span style={{ fontSize: 11.5, color: "var(--rt-muted)", whiteSpace: "nowrap" }}>Consensus-driven</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={5}
+                        value={Math.round(draft.realSalaryEfficiencyWeight * 100)}
+                        onChange={(e) => update("realSalaryEfficiencyWeight", Number(e.target.value) / 100)}
+                        style={{ flex: 1 }}
+                      />
+                      <span style={{ fontSize: 11.5, color: "var(--rt-muted)", whiteSpace: "nowrap" }}>Cheap production-driven</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--rt-font-mono)" }}>
+                        {Math.round(draft.realSalaryEfficiencyWeight * 100)}% weight on cheap/production
+                      </span>
+                      {Math.round(draft.realSalaryEfficiencyWeight * 100) !== 30 && (
+                        <button
+                          type="button"
+                          onClick={() => update("realSalaryEfficiencyWeight", 0.30)}
+                          style={{ background: "none", border: "none", color: "var(--rt-primary)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+                        >
+                          Reset to default (30%)
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
             </SettingsCard>
           )}
 

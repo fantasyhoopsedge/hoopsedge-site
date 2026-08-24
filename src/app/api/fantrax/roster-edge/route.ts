@@ -3,7 +3,7 @@ import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
 import { getCachedLeagueAnalysis } from "@/lib/fantrax/league-cache";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
-import { getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "@/lib/fantrax/roster-edge";
+import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, getSophomoreByFheId } from "@/lib/fantrax/roster-edge";
 
 /**
  * Same league analysis /api/fantrax/league builds, plus the salary-rank/
@@ -39,14 +39,25 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [analysis, salaryRankByFheId, contractByFheId, ageByFheId] = await Promise.all([
+    const [analysis, { rankByFheId: salaryRankByFheId, poolSize: realSalaryPoolSize }, contractByFheId, ageByFheId, sophomoreByFheId] = await Promise.all([
       getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType),
       getSalaryRankByFheId(),
       getContractByFheId(),
       getAgeByFheId(),
+      getSophomoreByFheId(),
     ]);
     const dynastyRankByFheId = getDynastyRankByFheId();
-    return NextResponse.json({ ...analysis, salaryRankByFheId, contractByFheId, dynastyRankByFheId, ageByFheId });
+    const consensusPoolSize = getConsensusPoolSize();
+    return NextResponse.json({
+      ...analysis,
+      salaryRankByFheId,
+      realSalaryPoolSize,
+      contractByFheId,
+      dynastyRankByFheId,
+      consensusPoolSize,
+      ageByFheId,
+      sophomoreByFheId,
+    });
   } catch (err) {
     if (err instanceof FantraxError) {
       return NextResponse.json({ error: err.message }, { status: err.status === 404 ? 404 : 502 });

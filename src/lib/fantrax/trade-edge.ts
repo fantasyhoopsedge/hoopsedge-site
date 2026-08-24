@@ -18,10 +18,12 @@ import { EFFICIENCY_BASE_SALARY_WEIGHT, rankBy, rankToZ } from "../value/real-sa
  *  FHE global category-value engine (always available, independent of the
  *  league's own scoring rules), the league's own real fantasy-points
  *  formula (only meaningful — and only offered — for a points-scored
- *  league), plus a Trade-Edge-only fifth mode, `surplusV` (see
- *  computeLeagueSurplusValues below): dynasty leagues with real/custom
- *  salary data can rank by production-vs-cost instead of pure category
- *  value. Distinct from LineupValueMode's "league" mode: Trade Edge asks
+ *  league), plus a Trade-Edge-only fifth mode, `surplusV` — labeled "Trade
+ *  Value" (see TRADE_VALUE_MODE_LABEL): reads off Trade Edge's base-value
+ *  cascade (trade-value.ts's computeBaseTradeValues), which is a consensus
+ *  rank / real-or-custom-salary blend / season projection depending on the
+ *  league's own settings, not a mode the caller picks. Distinct from
+ *  LineupValueMode's "league" mode: Trade Edge asks
  *  the user to pick explicitly rather than defaulting to the connected
  *  league's own LeagueV, since a trade's "who's better" read should stay
  *  stable while the user tries different partners/teams. Almost a plain
@@ -35,27 +37,32 @@ export type TradeValueMode = Exclude<LineupValueMode, "league"> | "surplusV";
 export const TRADE_VALUE_MODE_LABEL: Record<TradeValueMode, string> = {
   eightCatV: LINEUP_VALUE_MODE_LABEL.eightCatV, nineCatV: LINEUP_VALUE_MODE_LABEL.nineCatV,
   minus1V: LINEUP_VALUE_MODE_LABEL.minus1V, fpts: LINEUP_VALUE_MODE_LABEL.fpts,
-  surplusV: "Surplus $",
+  // Renamed from "Surplus $" (2026-08-23): this tag no longer means a
+  // dynasty cost-vs-production surplus specifically — it reads off Trade
+  // Edge's base-value cascade (trade-value.ts), which can be a consensus
+  // rank, a real/custom-salary blend, or a season projection depending on
+  // league type. "Trade Value" is the honest label for whichever one that is.
+  surplusV: "Trade Value",
 };
 
 /** TradeValueMode is a LineupValueMode for every mode except `surplusV`
  *  (fpts is a first-class value there too — see lineupValueOf in lineup.ts).
- *  Surplus value is a trade-asset valuation overlay, not a category-value
+ *  Trade value is a trade-asset valuation overlay, not a category-value
  *  system — it can't rank players into roster slots on its own, so lineup
  *  CONSTRUCTION (who actually starts) falls back to `fallback`, the same
- *  category mode surplus itself was computed against (see
- *  computeLeagueSurplusValues's `baseMode` param at each call site). */
+ *  category mode Trade Edge's base-value cascade uses for its own
+ *  production input (see trade-value.ts's categoryFallbackMode). */
 export function lineupModeFor(mode: TradeValueMode, fallback: LineupValueMode): LineupValueMode {
   return mode === "surplusV" ? fallback : mode;
 }
 
 /** This player's value under the chosen mode — the same number
  *  buildOptimalLineup ends up ranking by by construction (see
- *  lineupModeFor), except `surplusV`, which reads off the precomputed
- *  league-wide map (see computeLeagueSurplusValues — a single player's
- *  surplus can't be computed in isolation, it depends on the whole league's
- *  salary curve). Used for the player-card "value rank" and for
- *  summarizeAssets' give/receive totals. */
+ *  lineupModeFor), except `surplusV`, which reads off a precomputed
+ *  league-wide map (see trade-value.ts's computeBaseTradeValues — a single
+ *  player's base value can't be computed in isolation, it depends on the
+ *  whole league's own settings and pool). Used for the player-card "value
+ *  rank" and for summarizeAssets' give/receive totals. */
 export function valueOf(p: ResolvedPlayer, mode: TradeValueMode, surplusByFantraxId?: ReadonlyMap<string, number>): number | null {
   if (mode === "surplusV") return surplusByFantraxId?.get(p.fantraxId) ?? null;
   if (mode === "fpts") return p.pointsValue;
@@ -87,6 +94,20 @@ export function summarizeAssets(players: ResolvedPlayer[], mode: TradeValueMode,
 }
 
 /**
+ * RETIRED (2026-08-23) — no longer called anywhere in Trade Edge. Superseded
+ * by trade-value.ts's computeBaseTradeValues, which reuses real-salary-
+ * model.ts's ACTUAL blendScore/WEIGHT_PRESETS (this function's own doc below
+ * explains why it originally avoided that reuse — the concern was
+ * `contractClass`/NBA_MINIMUM_SALARY specifically, which the new module
+ * still avoids the same way, just while reusing blendScore itself for the
+ * custom-salary case). Also, this function conflates a real cost-vs-
+ * production ROI figure (correctly negative for a bad contract) with
+ * trade-asset value (never negative) — see trade-value.ts's module doc for
+ * the full writeup of why Trade Edge stopped using surplus as its base
+ * value. Left here, unexported from anywhere active, in case a future pass
+ * wants to surface Surplus $ again as a secondary info stat (not the trade-
+ * math input) — see trade-value.ts's own module doc.
+ *
  * League-specific surplus value: production value vs. actual in-league
  * salary, for the CONNECTED league's own rostered pool (all teams — the same
  * population VAL RK/DYN RK already rank within) — a simpler cousin of
