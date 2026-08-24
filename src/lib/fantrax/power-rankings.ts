@@ -226,6 +226,18 @@ export function rotoStandingsByRawStat(
   mode: "perGame" | "totals",
 ): RotoStandingRow[] {
   const valueOf = mode === "perGame" ? weightedPerGame : totalsValue;
+  // valueOf returns the raw, unsigned stat (a real turnover COUNT, since it
+  // also drives the displayed cell text via formatTotal/formatPerGame) — but
+  // ranking/sorting needs "higher is better" for every category, and for TO
+  // that's backwards (fewer turnovers wins). statValue() above already
+  // negates TO for exactly this reason on the z-score path; rankValue is the
+  // same fix for this raw-stat path, sort-only so the displayed number stays
+  // a real positive count. Missing this negated every roto/H2H raw-stat
+  // table's TO column league-wide — highest turnover count ranked #1,
+  // scored the most roto points for it, and painted green in the heatmap
+  // (Ash, 2026-08-24: "TOs are showing opposite value... high = good however
+  // it should be Low = Good").
+  const rankValue = (s: TeamCategoryProfile["statTotals"], cat: FheCategory) => (cat === "TO" ? -valueOf(s, cat) : valueOf(s, cat));
   const n = profiles.length;
   const rows: RotoStandingRow[] = profiles.map((p) => ({
     teamId: p.teamId, teamName: p.teamName, points: {}, ranks: {}, totalPoints: 0, projectedRank: 0,
@@ -233,11 +245,11 @@ export function rotoStandingsByRawStat(
   const byId = new Map(rows.map((r) => [r.teamId, r]));
 
   for (const cat of scored) {
-    const ordered = [...profiles].sort((a, b) => valueOf(b.statTotals, cat) - valueOf(a.statTotals, cat));
+    const ordered = [...profiles].sort((a, b) => rankValue(b.statTotals, cat) - rankValue(a.statTotals, cat));
     let i = 0;
     while (i < ordered.length) {
       let j = i;
-      while (j + 1 < ordered.length && valueOf(ordered[j + 1].statTotals, cat) === valueOf(ordered[i].statTotals, cat)) j += 1;
+      while (j + 1 < ordered.length && rankValue(ordered[j + 1].statTotals, cat) === rankValue(ordered[i].statTotals, cat)) j += 1;
       const sharedPoints = Array.from({ length: j - i + 1 }, (_, k) => n - (i + k)).reduce((a, b) => a + b, 0) / (j - i + 1);
       for (let k = i; k <= j; k += 1) {
         const row = byId.get(ordered[k].teamId);

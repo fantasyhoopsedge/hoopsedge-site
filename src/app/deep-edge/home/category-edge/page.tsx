@@ -118,6 +118,18 @@ function CategoryEdgeContent() {
   const [forcedIn, setForcedIn] = useState<Set<string>>(new Set());
   const [forcedOut, setForcedOut] = useState<Set<string>>(new Set());
   const [showAdjust, setShowAdjust] = useState(false);
+  // Which roster this whole page is built for — defaults to the connected
+  // league's own team (analysis.myTeamId), but any team can be viewed
+  // (Ash, 2026-08-24: "allow league team to be selected... defaults to my
+  // team always" — there was no way to look at anyone else's lineup here).
+  // Null means "use my team"; reset to null on a league switch so a team id
+  // from the PREVIOUS league never gets treated as this one's selection.
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived state when the league this effect depends on changes, not a plain render-time computation (same pattern as home/page.tsx's own league-switch resets)
+    setSelectedTeamId(null);
+  }, [saved?.leagueId]);
 
   useEffect(() => {
     if (!saved) return;
@@ -185,9 +197,13 @@ function CategoryEdgeContent() {
     return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null, valueMode });
   }, [analysis, effective, depth, weight, format, valueMode]);
 
+  const activeTeamId = selectedTeamId ?? analysis?.myTeamId ?? null;
+  const isMyTeam = Boolean(analysis?.myTeamId) && activeTeamId === analysis?.myTeamId;
+
   const computed = useMemo(() => {
-    if (!analysis || !analysis.myTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
-    const { league, myTeamId } = analysis;
+    if (!analysis || !activeTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
+    const { league } = analysis;
+    const myTeamId = activeTeamId;
     const { scored, positionSlots } = effective;
     const myRoster = analysis.rosters.find((r) => r.teamId === myTeamId);
     if (!myRoster) return null;
@@ -269,7 +285,7 @@ function CategoryEdgeContent() {
       myRoster, lineup, effectiveStarters, effectiveBench, scored, edges, totalPoints, maxPoints, top10,
       teamCount: league.teamCount, myProfile, myH2H, myRank, mpgRank, mpgValue, leagueAvgPerGame, leagueAvgTotal,
     };
-  }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight, statMode]);
+  }, [analysis, activeTeamId, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight, statMode]);
 
   // Derived purely for the dashboard summary — kept separate from `computed`
   // so that block stays focused on the real analysis math. TO greys out
@@ -301,12 +317,34 @@ function CategoryEdgeContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Category Edge</h1>
         <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
           {computed ? `${computed.scored.length}-CAT ${format === "roto" ? "ROTO" : "H2H"}` : "9-CAT ROTO"}
         </span>
         <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>Z-SCORE WEIGHTED</span>
+        {analysis && analysis.rosters.length > 0 && (
+          <select
+            value={activeTeamId ?? ""}
+            onChange={(e) => {
+              setSelectedTeamId(e.target.value || null);
+              setForcedIn(new Set());
+              setForcedOut(new Set());
+            }}
+            style={{
+              marginLeft: "auto", height: 34, padding: "0 12px", borderRadius: 10, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 12.5, fontWeight: 600,
+            }}
+          >
+            {[...analysis.rosters]
+              .sort((a, b) => a.teamName.localeCompare(b.teamName))
+              .map((r) => (
+                <option key={r.teamId} value={r.teamId}>
+                  {r.teamName}{r.teamId === analysis.myTeamId ? " (you)" : ""}
+                </option>
+              ))}
+          </select>
+        )}
       </div>
 
       {loadingSaved || (saved && !analysis && !error) ? (
@@ -336,13 +374,15 @@ function CategoryEdgeContent() {
         </p>
       ) : !computed ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>
-          This league doesn&apos;t have your team selected — pick your team from Settings first.
+          {analysis && analysis.rosters.length > 0
+            ? "Pick a team above to get started."
+            : "This league doesn't have your team selected — pick your team from Settings first."}
         </p>
       ) : (
         <>
           <style>{CHIP_TOOLTIP_CSS}</style>
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 24px", maxWidth: 640 }}>
-            Your best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
+            {isMyTeam ? "Your" : `${computed.myRoster.teamName}'s`} best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
             driven by z-scores; the numbers shown are real {statMode === "perGame" ? "per-game averages" : "season totals"}.
           </p>
 
