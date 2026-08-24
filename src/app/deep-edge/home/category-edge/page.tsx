@@ -232,23 +232,31 @@ function CategoryEdgeContent() {
     );
     if (myProfileIdx >= 0) profiles[myProfileIdx] = myProfile;
 
-    // Per-category tiers/ranks stay z-score based (the "Z-SCORE WEIGHTED"
-    // badge next to the page title is deliberate — see categoryEdges' own
-    // per-cat rank/points).
+    // Overall roto standing must read off the SAME basis Power Rankings uses
+    // (raw-stat rotisserie points, see rotoStandingsByRawStat's own doc) —
+    // not z-score totals. Those two rankings are genuinely different math
+    // and disagreed here (Ash, 2026-08-20): this page was reporting a
+    // z-score-based "POWER RANKING" while Power Rankings reports a raw-stat
+    // one for the identical team/depth/value mode. `statMode` (Per game/
+    // Totals) is this page's own equivalent of Power Rankings' rotoBasis
+    // toggle, so it drives the same raw-stat basis here.
     const standings = projectRotoStandings(profiles, scored);
-    const edges = categoryEdges(myTeamId, profiles, standings, scored);
+    const rotoRawStandings = format === "roto" ? rotoStandingsByRawStat(profiles, scored, statMode) : null;
+    // Per-category ranks/tiers, radar chart, and quick-rank bars all read off
+    // `edges` — for a roto league that MUST be the same raw-stat, statMode-
+    // aware standings as the ring above, or every per-category rank on the
+    // page stays frozen while only the ring moves when Per Game/Totals is
+    // toggled (Ash, 2026-08-24: "I would expect all of the charts and cat
+    // ranks to move... does not appear to be dynamic" — confirmed live:
+    // toggling Totals moved the ring 9th→6th but left every category row,
+    // the radar chart, and both quick-rank panels unchanged). H2H has no
+    // raw-stat equivalent (no Per Game/Totals concept in its win-simulation
+    // model), so it keeps the z-score standings unchanged.
+    const edgeStandings = format === "roto" ? rotoRawStandings! : standings;
+    const edges = categoryEdges(myTeamId, profiles, edgeStandings, scored);
     const maxPoints = scored.length * league.teamCount;
     const top10 = edges.filter((e) => e.rank <= 10).length;
 
-    // Overall roto standing must read off the SAME basis Power Rankings uses
-    // (raw-stat rotisserie points, see rotoStandingsByRawStat's own doc) —
-    // not the z-score totals above. Those two rankings are genuinely
-    // different math and disagreed here (Ash, 2026-08-20): this page was
-    // reporting a z-score-based "POWER RANKING" while Power Rankings reports
-    // a raw-stat one for the identical team/depth/value mode. `statMode`
-    // (Per game/Totals) is this page's own equivalent of Power Rankings'
-    // rotoBasis toggle, so it drives the same raw-stat basis here.
-    const rotoRawStandings = format === "roto" ? rotoStandingsByRawStat(profiles, scored, statMode) : null;
     const totalPoints = format === "roto"
       ? Math.round(rotoRawStandings!.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0)
       : (standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0);
