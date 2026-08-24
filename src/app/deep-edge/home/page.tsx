@@ -23,18 +23,29 @@ function HomeHubContent() {
 
   const hasLeague = Boolean(league);
 
+  // Whether this league is actually using custom values — a real, already-
+  // generated ledger is the ground truth (a user can generate one straight
+  // from the asset-values page, bypassing this prompt entirely), not just
+  // the settings flag the onboarding prompt itself sets on "Yes, customize"
+  // (Ash, 2026-08-24: "it is not clear to the user that custom asset values
+  // are used" — the status pill below used to be gated on that flag alone,
+  // so a league with a real generated ledger but an unanswered prompt showed
+  // neither the pill nor an accurate state, just the onboarding question).
+  const usingCustomValuations = Boolean(ledgerDoc) || Boolean(league?.settings.useCustomValuations);
+
   // The "would you like to customize the value of your league assets?"
   // onboarding prompt only ever fires for dynasty leagues (redraft/keeper
   // have no long-lived asset ledger worth customizing) and only once per
   // league — customValuationsPromptedAt is set on either answer, never just
-  // on "yes" (Ash's own asset-values plan, 2026-08-23).
+  // on "yes" (Ash's own asset-values plan, 2026-08-23). Also suppressed once
+  // a ledger already exists, regardless of that flag — asking "would you
+  // like to customize?" makes no sense once the league is already doing it.
   const showCustomValuationsPrompt =
-    Boolean(league) && league!.settings.leagueType === "dynasty" && !league!.settings.customValuationsPromptedAt;
+    Boolean(league) && league!.settings.leagueType === "dynasty" && !league!.settings.customValuationsPromptedAt && !usingCustomValuations;
   const recommendCustomValuations = league?.settings.salaryFormat === "real" || league?.settings.salaryFormat === "custom";
 
   useEffect(() => {
-    if (!league?.settings.useCustomValuations) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived state when the league/toggle this effect depends on changes, not a plain render-time computation (same pattern as trade-edge/page.tsx's resetKey guards)
+    if (!league) {
       setLedgerDoc(null);
       return;
     }
@@ -42,7 +53,8 @@ function HomeHubContent() {
       .then((r) => r.json())
       .then((d) => setLedgerDoc(d.doc ?? null))
       .catch(() => setLedgerDoc(null));
-  }, [league?.leagueId, league?.settings.useCustomValuations]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally keyed on the stable leagueId, not the whole league object (which changes identity on every /api/fantrax/saved refresh, e.g. after answering the prompt below) — re-keying on identity would refetch the ledger on every settings save instead of only on an actual league switch.
+  }, [league?.leagueId]);
 
   const now = useNow();
   const ledgerStale = ledgerDoc && now != null ? now - new Date(ledgerDoc.generatedAt).getTime() > CUSTOM_VALUATIONS_STALE_AFTER_MS : false;
@@ -204,21 +216,33 @@ function HomeHubContent() {
             </div>
           )}
 
-          {league.settings.useCustomValuations && (
-            <div style={{ marginTop: 18, padding: "10px 16px", borderRadius: 100, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {usingCustomValuations && (
+            <div style={{ marginTop: 18, padding: "14px 18px", borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              <span
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700,
+                  color: ledgerDoc && !ledgerStale ? "var(--rt-up)" : "var(--rt-down)",
+                }}
+              >
+                ● Custom asset values active
+              </span>
               {ledgerDoc ? (
-                <span style={{ fontSize: 12, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
-                  {ledgerStale ? "⚠ Custom values may be stale — " : "Custom values · "}
-                  generated {relativeTime(ledgerDoc.generatedAt)}
+                <span style={{ fontSize: 12.5, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
+                  {ledgerStale && "⚠ May be stale — "}
+                  Last refreshed {relativeTime(ledgerDoc.generatedAt)}
                 </span>
               ) : (
-                <span style={{ fontSize: 12, color: "var(--rt-muted)" }}>Custom values on — not generated yet</span>
+                <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet — this league is still showing standard values</span>
               )}
               <Link
                 href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
-                style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: "var(--rt-primary)", textDecoration: "none" }}
+                style={{
+                  marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
+                  background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
+                  display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
+                }}
               >
-                Regenerate
+                {ledgerDoc ? "View & regenerate" : "Generate now"}
               </Link>
             </div>
           )}
