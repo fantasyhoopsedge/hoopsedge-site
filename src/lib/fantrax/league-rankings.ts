@@ -348,12 +348,35 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // instead of falling out of the ranking entirely.
   const customMap = new Map(standardMap);
   const ledgerByPickKey = new Map<string, number>();
+  // Trade Edge reads a ledger-covered asset's RANK straight off row.tradeRank
+  // (see DraftPickCardsGrid's ledgerRankByPickKey/ledgerRankByFantraxId docs,
+  // roster-table.tsx) — the ledger's own once-computed rank within ITS OWN
+  // pool. This page used to instead re-derive every rank via toRanked(customMap)
+  // below, which sorts a DIFFERENT pool (standardMap's full corePlayers +
+  // every real/bracket pick, vs. the ledger's own rows) — same VALUE, but a
+  // different neighboring population, so the two surfaces could and did show
+  // two different rank numbers for the exact same real asset (Ash, 2026-08-25:
+  // "trade cards in trade edge are not matching the league rankings... the
+  // entire point of generating the league rankings... is to use for the
+  // trade edge tool"). Captured here so the "custom" ranked map below can
+  // overwrite its own computed rank with the ledger's real one wherever the
+  // ledger actually covers that asset — same precedence Trade Edge itself
+  // already uses, so the two surfaces can no longer drift for a covered asset.
+  const ledgerRankByFantraxId = new Map<string, number>();
+  const ledgerRankByPickKey = new Map<string, number>();
   if (customDoc) {
     for (const row of customDoc.rows) {
       if (row.fantraxId) customMap.set(row.fantraxId, row.tradeValue);
       if (row.pickKey) ledgerByPickKey.set(row.pickKey, row.tradeValue);
+      if (row.fantraxId && row.tradeRank != null) ledgerRankByFantraxId.set(row.fantraxId, row.tradeRank);
+      if (row.pickKey && row.tradeRank != null) ledgerRankByPickKey.set(row.pickKey, row.tradeRank);
     }
   }
+  // pickKey ("year:overallPick") -> this AssetRow's own key — pickKey alone
+  // isn't a valid lookup into `assets`/`customMap` (a real pick's AssetRow key
+  // also carries the owning team id), so the ledger-rank override below needs
+  // this to translate one into the other for a current-year pick.
+  const pickKeyToAssetKey = new Map<string, string>();
 
   const assets: AssetRow[] = [];
   for (const p of corePlayers) {
@@ -403,6 +426,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const realVal = pickEquivalentValue(pick, corePlayers, realMap, family);
       if (standardVal == null && realVal == null) continue; // no priceable pool at all
       const pickKey = pick.overallPick != null ? `${pick.year}:${pick.overallPick}` : null;
+      if (pickKey != null) pickKeyToAssetKey.set(pickKey, key);
       const ledgerVal = pickKey != null ? ledgerByPickKey.get(pickKey) : undefined;
       const customVal = ledgerVal ?? standardVal;
       assets.push({
@@ -466,13 +490,31 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     return "redraft";
   })();
 
+  // Rank override: any asset the generated ledger actually covers shows
+  // ITS ledger rank (row.tradeRank) here, not toRanked(customMap)'s own
+  // freshly re-sorted one — see ledgerRankByFantraxId/ledgerRankByPickKey's
+  // doc above for why the two could otherwise disagree for the same asset.
+  // Only .rank changes; .value already came from the same row.tradeValue
+  // either way, so this never touches the number this page displays as
+  // "Asset Value," only the RANK column and MINUS1/9CAT/8CAT/FPTS's ranking.
+  const customRanked = toRanked(customMap);
+  for (const [fantraxId, rank] of ledgerRankByFantraxId) {
+    const entry = customRanked[fantraxId];
+    if (entry) customRanked[fantraxId] = { ...entry, rank };
+  }
+  for (const [pickKey, rank] of ledgerRankByPickKey) {
+    const assetKey = pickKeyToAssetKey.get(pickKey);
+    const entry = assetKey ? customRanked[assetKey] : undefined;
+    if (assetKey && entry) customRanked[assetKey] = { ...entry, rank };
+  }
+
   return {
     assets,
     values: {
       standard: toRanked(standardMap),
       real: toRanked(realMap),
       redraft: toRanked(redraftMap),
-      custom: toRanked(customMap),
+      custom: customRanked,
     },
     ledgerMode: customDoc?.mode ?? null,
     ledgerGeneratedAt: customDoc?.generatedAt ?? null,

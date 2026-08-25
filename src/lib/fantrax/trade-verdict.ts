@@ -33,13 +33,29 @@
  * negative for a below-replacement player), which behave badly inside a
  * `(ratio)^8` term. This module substitutes PERCENTILE-WITHIN-POOL (via
  * ResolvedPlayer.catVRank where it exists, or a freshly-ranked pool for
- * surplusV/fpts, which have no precomputed rank) for `Value/MaxList`, and
- * PERCENTILE-WITHIN-THIS-TRADE for `Value/MaxTrade` — same tuned exponents,
- * applied to a bounded [0,1] ratio instead of a raw magnitude ratio that
- * could be negative or unbounded. The reference's 4th term's "+2000"
- * denominator offset (a scale-specific dampener) has no clean percentile
- * analog and isn't needed for numerical stability once the input is already
- * bounded — dropped, using the same pool percentile as the 1st term instead.
+ * surplusV/fpts, which have no precomputed rank) for `Value/MaxList` — same
+ * tuned exponents, applied to a bounded [0,1] ratio instead of a raw
+ * magnitude ratio that could be negative or unbounded. The reference's 4th
+ * term's "+2000" denominator offset (a scale-specific dampener) has no
+ * clean percentile analog and isn't needed for numerical stability once the
+ * input is already bounded — dropped, using the same pool percentile as the
+ * 1st term instead.
+ *
+ * `Value/MaxTrade` (the 3rd term) is now a LITERAL ratio, not a percentile
+ * (Ash, 2026-08-25: "we changed the curve to move away from z-score... why
+ * create something that isn't backed up by anything? go with [a literal
+ * ratio]"). Dynasty's base value (curveValueAtRank, dynasty-value-curve.ts)
+ * is always strictly positive now, so the sign problem that motivated the
+ * original percentile substitution no longer applies there; redraft and the
+ * keeper z-score blend still can go negative, so the ratio is computed
+ * against each asset's ALREADY-FLOORED value (see "Non-negative asset
+ * floor" below — never negative) rather than the true raw value, and the
+ * denominator (the trade's own floored max) is guarded against ~0. This
+ * means the top asset in a trade now gets EXACTLY ratio 1.0 for this term,
+ * same as the reference — a real behavior change from the prior rank-based
+ * percentile, which compressed every trade down to the same ordinal split
+ * regardless of how large the actual value gap was.
+ *
  * The multiplier still applies to the asset's real selected-mode value, so
  * "Adjusted Value" stays in the same units (z-score / dollars / fpts) as
  * every other number Trade Edge already shows — no new value system.
@@ -103,9 +119,10 @@ function rankToPercentile(rank: number, poolSize: number): number {
 }
 
 /** Percentile of `value` among `allValues` (best = highest value = percentile
- *  near 1.0). Used for "how dominant is this asset within THIS TRADE" —
- *  the reference's `Value/MaxTrade` term, adapted the same way as the pool
- *  percentile above. */
+ *  near 1.0). Used for the 1st/4th terms' pool percentile (`poolPercentileOf`'s
+ *  own fallback when an asset has no precomputed pool rank) — the 3rd term
+ *  (`Value/MaxTrade`) is now a literal ratio, not a percentile; see
+ *  `tradeRatioOf` below. */
 function percentileWithin(value: number, allValues: readonly number[]): number {
   const n = allValues.length;
   if (n === 0) return 0.5;
@@ -113,12 +130,26 @@ function percentileWithin(value: number, allValues: readonly number[]): number {
   return rankToPercentile(rank, n);
 }
 
-/** The reference's tuned adjustment multiplier, adapted to run on bounded
- *  percentiles instead of raw value ratios (see module doc). `poolPct` feeds
- *  both the 1st and 4th terms (the reference's own "+2000"-dampened 4th term
- *  has no percentile analog and isn't needed for stability here — dropped). */
-function adjustmentMultiplier(poolPct: number, tradePct: number): number {
-  return 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradePct ** 1.3 + 0.22 * poolPct ** 1.28;
+/** The reference's own literal `Value/MaxTrade` ratio — `value` and every
+ *  entry in `allValuesInTrade` are already-floored (never negative, see
+ *  "Non-negative asset floor"), so this is always well-defined and in
+ *  (0, 1]; the top asset in the trade lands on exactly 1.0, same as the
+ *  reference. `maxInTrade <= EPS` (every asset in the trade floored to
+ *  ~nothing, only reachable if hasTopValue was false — an empty/valueless
+ *  pool) falls back to 0 rather than dividing by ~zero. */
+function tradeRatioOf(value: number, allValuesInTrade: readonly number[]): number {
+  const maxInTrade = allValuesInTrade.length > 0 ? Math.max(...allValuesInTrade) : 0;
+  if (maxInTrade <= EPS) return 0;
+  return Math.min(1, value / maxInTrade);
+}
+
+/** The reference's tuned adjustment multiplier. `poolPct` (bounded [0,1]
+ *  percentile, see module doc) feeds both the 1st and 4th terms (the
+ *  reference's own "+2000"-dampened 4th term has no percentile analog and
+ *  isn't needed for stability here — dropped). `tradeRatio` is the literal
+ *  `Value/MaxTrade` ratio (see tradeRatioOf), matching the reference exactly. */
+function adjustmentMultiplier(poolPct: number, tradeRatio: number): number {
+  return 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradeRatio ** 1.3 + 0.22 * poolPct ** 1.28;
 }
 
 // ── pool ranking ─────────────────────────────────────────────────────────
@@ -384,7 +415,14 @@ interface VerdictAssetInput {
  *  avoid over-fitting a single trade's wobble on an 85-trade sample. 24%
  *  drops to 42/85 (49%) under Pink — below even the unreshaped curve's
  *  43/85, confirming the old threshold was calibrated to a curve shape that
- *  no longer ships. Re-tune again if the base-value scale changes further. */
+ *  no longer ships. Re-tune again if the base-value scale changes further.
+ *
+ *  NOT yet re-swept (2026-08-25) after switching the 3rd term from a
+ *  rank-percentile to a literal Value/MaxTrade ratio (see "The formula"
+ *  above) — that's exactly this kind of curve-shape change (the top asset
+ *  in a trade now scores materially higher on this term than before), but
+ *  scripts/backtest-trade-verdict.ts needs live Supabase credentials this
+ *  sandbox doesn't have. Re-run the sweep before trusting 18% here. */
 export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],
@@ -427,22 +465,27 @@ export function computeTradeVerdict(
     return percentileWithin(raw, poolValues);
   }
 
-  const allRaw = [...sideAAssets, ...sideBAssets]
+  // Floored (never-negative) values for every asset in THIS trade — the
+  // denominator (MaxTrade) and every numerator for the literal Value/MaxTrade
+  // ratio both read off this list, so the top asset in the trade lands on
+  // EXACTLY 1.0 for that term, same as the reference (see tradeRatioOf).
+  const allFlooredInTrade = [...sideAAssets, ...sideBAssets]
     .map(rawValueOf)
-    .filter((v): v is number => v != null);
+    .filter((v): v is number => v != null)
+    .map((v) => Math.max(v, assetFloor));
 
   function buildSide(assets: readonly VerdictAssetInput[]): TradeVerdictSide {
     const built: TradeVerdictAsset[] = [];
     for (const a of assets) {
       const trueRaw = rawValueOf(a);
       if (trueRaw == null) continue;
-      // Percentiles rank against the TRUE value, so a below-replacement or
-      // badly-overpaid asset still lands at the bottom of the pool/trade —
-      // only the magnitude that gets adjusted and summed is floored below.
+      // poolPct ranks against the TRUE value, so a below-replacement or
+      // badly-overpaid asset still lands at the bottom of the pool — only
+      // the magnitude that gets adjusted and summed (raw, below) is floored.
       const poolPct = poolPercentileOf(a, trueRaw);
-      const tradePct = percentileWithin(trueRaw, allRaw);
       const raw = Math.max(trueRaw, assetFloor);
-      const adjusted = raw * adjustmentMultiplier(poolPct, tradePct);
+      const tradeRatio = tradeRatioOf(raw, allFlooredInTrade);
+      const adjusted = raw * adjustmentMultiplier(poolPct, tradeRatio);
       built.push({ label: a.label, rawValue: raw, adjustedValue: adjusted });
     }
     return {
