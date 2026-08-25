@@ -62,7 +62,7 @@ function HomeHubContent() {
       setLedgerDoc(null);
       return;
     }
-    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`)
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setLedgerDoc(d.doc ?? null))
       .catch(() => setLedgerDoc(null));

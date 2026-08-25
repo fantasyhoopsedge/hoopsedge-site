@@ -142,7 +142,7 @@ function LeagueRankingsContent() {
     if (saved.settings.rookieSalaryScale?.length) params.set("rookieSalaryScale", JSON.stringify(saved.settings.rookieSalaryScale));
     if (saved.settings.useCustomValuations) params.set("useCustomValuations", "1");
     if (saved.settings.useGeneratedPickValues) params.set("useGeneratedPickValues", "1");
-    fetch(`/api/fantrax/league-rankings?${params}`)
+    fetch(`/api/fantrax/league-rankings?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
         if (d.error) { setError(d.error); return; }
