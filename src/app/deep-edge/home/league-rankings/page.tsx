@@ -32,8 +32,34 @@ import type { LeagueRankingsResult, RankingsBasis } from "@/lib/fantrax/league-r
 
 type AssetTypeFilter = "all" | "player" | "pick";
 type StatMode = "perGame" | "totals";
+/** Same key set and mutually-exclusive precedence as dynasty-rankings' own
+ *  classOf() (Consensus Dynasty) — rookie beats sophomore beats veteran, so
+ *  a player is exactly one of the three, never double-counted. */
+type ClassFilterKey = "rookie" | "soph" | "vet";
+const POSITION_OPTIONS = ["G", "F", "C"] as const;
+type PositionFilterKey = (typeof POSITION_OPTIONS)[number];
 
 const STAT_CATS: readonly FheCategory[] = ["PTS", "FG3", "REB", "AST", "STL", "BLK", "FG", "FT", "TO"];
+
+/** A player's class bucket — mirrors dynasty-rankings' own classOf() exactly
+ *  (rookie takes precedence over sophomore, which takes precedence over
+ *  veteran). Null for a pick — it has no class of its own, so an active
+ *  class filter excludes every pick rather than guessing one. */
+function classOf(a: { kind: "player" | "pick"; isRookie: boolean; isSophomore: boolean }): ClassFilterKey | null {
+  if (a.kind !== "player") return null;
+  if (a.isRookie) return "rookie";
+  if (a.isSophomore) return "soph";
+  return "vet";
+}
+
+/** "Touches" the position group — same plain substring convention
+ *  dynasty-rankings' own position filter uses (PG/SG both contain "G", SF/PF
+ *  both contain "F", "C" is exact) against the asset's own eligibility
+ *  string. Null/empty pos (a pick, or a player with no eligibility on file)
+ *  never matches, so an active position filter excludes picks too. */
+function touchesPosition(pos: string | null, group: PositionFilterKey): boolean {
+  return Boolean(pos?.includes(group));
+}
 
 interface ColState {
   salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean;
@@ -84,6 +110,8 @@ function LeagueRankingsContent() {
   const [assetType, setAssetType] = useState<AssetTypeFilter>("all");
   const [ownerFilter, setOwnerFilter] = useState("all");
   const [nbaTeamFilter, setNbaTeamFilter] = useState("all");
+  const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
+  const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
   const [statMode, setStatMode] = useState<StatMode>("perGame");
   const [cols, setCols] = useState<ColState>(DEFAULT_COLS);
   const [showCols, setShowCols] = useState(false);
@@ -159,14 +187,16 @@ function LeagueRankingsContent() {
     const filtered = data.assets.filter(
       (a) => (assetType === "all" || a.kind === assetType)
         && (ownerFilter === "all" || a.owner === ownerFilter)
-        && (nbaTeamFilter === "all" || a.nbaTeam === nbaTeamFilter),
+        && (nbaTeamFilter === "all" || a.nbaTeam === nbaTeamFilter)
+        && (classFilter.size === 0 || classFilter.has(classOf(a)!))
+        && (positionFilter.size === 0 || [...positionFilter].some((g) => touchesPosition(a.pos, g))),
     );
     const withValue = filtered
       .map((a) => ({ asset: a, ranked: values[a.key] ?? null }))
       .filter((r) => r.ranked != null || basis !== "redraft" || r.asset.kind === "player");
     withValue.sort((a, b) => (b.ranked?.value ?? -Infinity) - (a.ranked?.value ?? -Infinity));
     return withValue.map((r) => ({ asset: r.asset, rank: r.ranked?.rank ?? null, value: r.ranked?.value ?? null }));
-  }, [data, basis, assetType, ownerFilter, nbaTeamFilter]);
+  }, [data, basis, assetType, ownerFilter, nbaTeamFilter, classFilter, positionFilter]);
 
   const summary = useMemo(() => {
     let salary = 0, salaryCount = 0, gp = 0, gpCount = 0, min = 0, minCount = 0;
@@ -315,6 +345,52 @@ function LeagueRankingsContent() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Position + Class — both multi-select unions, same convention
+              Consensus Dynasty's own ControlsBar uses (ALL clears the set;
+              each pill toggles independently; any combination unions, so
+              ROOKIES + SOPHOMORES together shows either). Applied to every
+              filter and the summary row alike — nothing here is exempt
+              (Ash, 2026-08-25: "summary stats etc apply to all filters
+              regardless of what the filter is"). */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Position</span>
+            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              <button type="button" onClick={() => setPositionFilter(new Set())} style={pill(positionFilter.size === 0)}>ALL</button>
+              {POSITION_OPTIONS.map((pos) => (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => setPositionFilter((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(pos)) next.delete(pos); else next.add(pos);
+                    return next;
+                  })}
+                  style={pill(positionFilter.has(pos))}
+                >
+                  {pos}
+                </button>
+              ))}
+            </div>
+            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600, marginLeft: 8 }}>Class</span>
+            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              <button type="button" onClick={() => setClassFilter(new Set())} style={pill(classFilter.size === 0)}>ALL</button>
+              {([["rookie", "Rookies"], ["soph", "Sophomores"], ["vet", "Veterans"]] as [ClassFilterKey, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setClassFilter((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(key)) next.delete(key); else next.add(key);
+                    return next;
+                  })}
+                  style={pill(classFilter.has(key))}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
 

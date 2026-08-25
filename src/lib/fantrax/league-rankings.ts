@@ -4,7 +4,7 @@ import type { FantraxDatasetKey } from "./resolve";
 import type { ResolvedPlayer } from "./analyze";
 import type { FheCategory, TeamDraftPick } from "./league";
 import type { LeagueType, SalaryFormat } from "./league-tags";
-import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "./roster-edge";
+import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, getSophomoreByFheId } from "./roster-edge";
 import { computeBaseTradeValues, computeKeeperWeight } from "./trade-value";
 import { CATEGORIES_PICK_TIERS, pickEquivalentValue } from "./trade-verdict";
 import { playerIdentity } from "../player-identity/bundled";
@@ -54,6 +54,11 @@ export interface AssetRow {
   pos: string | null;
   nbaTeam: string | null;
   isRookie: boolean;
+  /** True for a player in their SECOND NBA season — same
+   *  getSophomoreByFheId() signal Trade Edge's own asset-tier coloring
+   *  reads (roster-table.tsx's playerAssetTier). False (never null) for a
+   *  pick — a draft asset has no season count of its own. */
+  isSophomore: boolean;
   owner: string;
   salary: number | null;
   contract: string | null;
@@ -151,10 +156,11 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   const rostered: ResolvedPlayer[] = analysis.rosters.flatMap((r) => r.players);
   const admin = createAdminClient();
 
-  const [salaryRank, contractByFheId, ageByFheId, customDoc] = await Promise.all([
+  const [salaryRank, contractByFheId, ageByFheId, sophomoreByFheId, customDoc] = await Promise.all([
     getSalaryRankByFheId(),
     getContractByFheId(),
     getAgeByFheId(),
+    getSophomoreByFheId(),
     getCustomValuations(owner, leagueId),
   ]);
   const salaryRankByFheId = salaryRank.rankByFheId;
@@ -278,6 +284,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     assets.push({
       key: p.fantraxId, kind: "player", name: p.name, fantraxId: p.fantraxId,
       pos: p.eligible?.join("/") || null, nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
+      isSophomore: p.fheId ? sophomoreByFheId[p.fheId] ?? false : false,
       owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
       salary: p.salary ?? (salaryFormat === "real" && p.fheId ? contractByFheId[p.fheId]?.currentSalary ?? null : null),
       contract: salaryFormat === "real" && p.fheId
@@ -318,7 +325,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const customVal = ledgerVal ?? standardVal;
       assets.push({
         key, kind: "pick", name: pickLabel(pick), fantraxId: null,
-        pos: null, nbaTeam: null, isRookie: false, owner: r.teamName,
+        pos: null, nbaTeam: null, isRookie: false, isSophomore: false, owner: r.teamName,
         salary: pick.overallPick != null ? salaryForPick(settings.rookieSalaryScale, pick.overallPick) : null,
         contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
         gamesPlayed: null, minutesPerGame: null, usgPct: null,
@@ -354,7 +361,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const key = `bracket:${year}:${tier.minPick}-${tier.maxPick}`;
       assets.push({
         key, kind: "pick", name: `${year} #${tier.minPick}-${tier.maxPick}`, fantraxId: null,
-        pos: null, nbaTeam: null, isRookie: false, owner: "—",
+        pos: null, nbaTeam: null, isRookie: false, isSophomore: false, owner: "—",
         salary: null, contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
         gamesPlayed: null, minutesPerGame: null, usgPct: null,
         nineCatV: null, eightCatV: null, minus1V: null, fpts: null,
