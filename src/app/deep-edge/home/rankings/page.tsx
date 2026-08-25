@@ -62,6 +62,10 @@ function PowerRankingsContent() {
   const [formatOverride, setFormatOverride] = useState<RankingsFormat | null>(null);
   const [rotoView, setRotoView] = useState<"perGame" | "totals" | "points">("points");
   const [pointsBasis, setPointsBasis] = useState<"perGame" | "totals">("perGame");
+  // "" = All teams. Only relevant when the league has Standings conferences
+  // turned on (Settings → League basics → Standings) — otherwise there's
+  // nothing to filter by and this control doesn't render at all.
+  const [conferenceFilter, setConferenceFilter] = useState<string>("");
   const rotoBasis: "perGame" | "totals" = rotoView === "points" ? pointsBasis : rotoView;
   // Which value flavor fills each position slot with the best-ranked eligible
   // player (buildOptimalLineup's own valueMode) — same "Rank lineup by" set
@@ -110,6 +114,7 @@ function PowerRankingsContent() {
   if ((saved?.leagueId ?? null) !== resetKey) {
     setResetKey(saved?.leagueId ?? null);
     setFormatOverride(null);
+    setConferenceFilter("");
   }
   const format = formatOverride ?? derivedFormat;
   const scoringMode = analysis?.league.scoringMode ?? null;
@@ -173,6 +178,25 @@ function PowerRankingsContent() {
     else arr.sort((a, b) => b.winPct - a.winPct);
     return arr;
   }, [h2hRecords, h2hSort]);
+
+  // Standings conferences (Settings → League basics) — only teams the user
+  // actually grouped, so an unassigned team never silently vanishes from
+  // "All" but also never shows up under a conference filter it isn't in.
+  const conferences = useMemo(() => saved?.settings.conferences ?? [], [saved?.settings.conferences]);
+  const conferencesEnabled = (saved?.settings.conferencesEnabled ?? false) && conferences.length > 0;
+  const conferenceTeamIds = useMemo(() => {
+    if (!conferenceFilter) return null;
+    const conf = conferences.find((c) => c.name === conferenceFilter);
+    return conf ? new Set(conf.teamIds) : null;
+  }, [conferenceFilter, conferences]);
+  const rotoRows = useMemo(
+    () => (conferenceTeamIds ? rotoSort.sorted.filter((r) => conferenceTeamIds.has(r.teamId)) : rotoSort.sorted),
+    [rotoSort.sorted, conferenceTeamIds],
+  );
+  const h2hRows = useMemo(
+    () => (conferenceTeamIds ? h2hSorted.filter((r) => conferenceTeamIds.has(r.teamId)) : h2hSorted),
+    [h2hSorted, conferenceTeamIds],
+  );
 
   const myTeamId = analysis?.myTeamId ?? null;
 
@@ -424,6 +448,17 @@ function PowerRankingsContent() {
             </span>
           </div>
 
+          {conferencesEnabled && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Conference</span>
+              <SegmentedControl<string>
+                options={[{ value: "", label: "All" }, ...conferences.map((c) => ({ value: c.name, label: c.name }))]}
+                value={conferenceFilter}
+                onChange={setConferenceFilter}
+              />
+            </div>
+          )}
+
           {format === "roto" && rotoStandings && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
@@ -451,7 +486,7 @@ function PowerRankingsContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {rotoSort.sorted.map((row, i) => {
+                    {rotoRows.map((row, i) => {
                       const profile = profiles!.find((p) => p.teamId === row.teamId)!;
                       return (
                         <tr
@@ -518,7 +553,7 @@ function PowerRankingsContent() {
                     </tr>
                   </thead>
                   <tbody>
-                    {h2hSorted.map((row, i) => (
+                    {h2hRows.map((row, i) => (
                       <tr
                         key={row.teamId}
                         className={row.teamId === saved.teamId ? "mine" : ""}

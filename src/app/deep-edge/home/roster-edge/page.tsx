@@ -426,16 +426,27 @@ function RosterEdgeContent() {
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
             {([
               ["salary", "Salary"], ["contract", "Contract"], ["dynastyRank", "Dynasty rank"], ["salaryRank", "Salary rank"],
-            ] as [keyof OptionalCols, string][]).map(([key, label]) => (
-              <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 5, cursor: "pointer" }}>
-                <input
-                  type="checkbox"
-                  checked={cols[key]}
-                  onChange={() => setCols((c) => ({ ...c, [key]: !c[key] }))}
-                />
-                {label}
-              </label>
-            ))}
+            ] as [keyof OptionalCols, string][]).map(([key, label]) => {
+              // Same non-salary-league gate as showSalary/showContract below —
+              // disabled + explained instead of tickable-but-inert (see
+              // team-roster-panel.tsx's identical fix, Ash, 2026-08-24).
+              const disabled = (key === "salary" || key === "contract") && salaryFormat === "none";
+              return (
+                <label
+                  key={key}
+                  title={disabled ? "This league has no salary data (Settings → Salary mode → Non-salary)" : undefined}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!disabled && cols[key]}
+                    disabled={disabled}
+                    onChange={() => setCols((c) => ({ ...c, [key]: !c[key] }))}
+                  />
+                  {label}
+                </label>
+              );
+            })}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap", fontSize: 12 }}>
