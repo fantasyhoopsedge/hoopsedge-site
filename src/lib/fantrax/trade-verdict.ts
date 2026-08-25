@@ -357,22 +357,28 @@ interface VerdictAssetInput {
  *  threshold from 2%-100% against the 85-trade backtest
  *  (data/downtown-fantasy-trade-analysis.csv), through THIS module's own
  *  unmodified pickEquivalentValue/rookieBoardRatio (real rookie board, not a
- *  synthetic approximation) — 22% and 24% tie for the plateau's peak, 43/85
- *  (51%), matching the old rankToZ scale's own best-threshold ceiling (23%,
- *  also 43/85) exactly, while additionally fixing a real defect the z-score
- *  scale had (see dynasty-value-curve.ts's doc — the non-negative floor was
- *  collapsing every below-replacement asset onto one flat constant
- *  regardless of how far below replacement it actually was). 24% sits on a
- *  wide flat plateau (42-43/85 from 18%-30%), not a narrow spike, so it
- *  isn't overfit to this one dataset. Re-tune again if the base-value scale
- *  changes further. */
+ *  synthetic approximation) — 22% and 24% tied for the plateau's peak, 43/85
+ *  (51%), at the time.
+ *
+ *  Re-tuned AGAIN the same day after reshaping the curve's top end (the
+ *  "Pink" blend — see dynasty-value-curve.ts's doc): flattening the top
+ *  compresses the value spread between assets, which mechanically shrinks
+ *  the variance% a genuinely fair trade produces, so the old 24% no longer
+ *  sits on the accuracy plateau. Re-swept against the same 85-trade
+ *  backtest with Pink live — 16-18% is now the plateau (47-48/85, 55-56%),
+ *  with 17% the single-point peak (48/85); 18% ships as the threshold
+ *  instead of the exact peak, one point off it but on the same plateau, to
+ *  avoid over-fitting a single trade's wobble on an 85-trade sample. 24%
+ *  drops to 42/85 (49%) under Pink — below even the unreshaped curve's
+ *  43/85, confirming the old threshold was calibrated to a curve shape that
+ *  no longer ships. Re-tune again if the base-value scale changes further. */
 export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],
   leaguePlayers: readonly ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number>,
   family: "categories" | "points",
-  fairnessThresholdPct = 0.24,
+  fairnessThresholdPct = 0.18,
 ): TradeVerdict {
   const poolRanks = poolRanksFor(leaguePlayers, baseValueByFantraxId);
   const poolSize = leaguePlayers.length;
