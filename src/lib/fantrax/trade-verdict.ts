@@ -349,16 +349,30 @@ interface VerdictAssetInput {
  *  through the star-concentration-aware adjustment, and reads a winner off
  *  the totals. `fairnessThresholdPct` mirrors the reference's own
  *  green/red Variance indicator; its exact cutoff wasn't visible in the
- *  workbook's formulas, so 18% is a starting default meant to be tuned
- *  against the 85-trade backtest (scripts/backtest-surplus-model.ts), not a
- *  value carried over from the reference itself. */
+ *  workbook's formulas (its own conditional-formatting rule fires at a flat
+ *  5%, but that's calibrated to the workbook's literal raw-ratio formula,
+ *  which this module doesn't run — see the "formula" section of this file's
+ *  doc). Re-tuned 2026-08-25 after switching dynasty base values from
+ *  rankToZ to the List Value curve (dynasty-value-curve.ts): swept every
+ *  threshold from 2%-100% against the 85-trade backtest
+ *  (data/downtown-fantasy-trade-analysis.csv), through THIS module's own
+ *  unmodified pickEquivalentValue/rookieBoardRatio (real rookie board, not a
+ *  synthetic approximation) — 22% and 24% tie for the plateau's peak, 43/85
+ *  (51%), matching the old rankToZ scale's own best-threshold ceiling (23%,
+ *  also 43/85) exactly, while additionally fixing a real defect the z-score
+ *  scale had (see dynasty-value-curve.ts's doc — the non-negative floor was
+ *  collapsing every below-replacement asset onto one flat constant
+ *  regardless of how far below replacement it actually was). 24% sits on a
+ *  wide flat plateau (42-43/85 from 18%-30%), not a narrow spike, so it
+ *  isn't overfit to this one dataset. Re-tune again if the base-value scale
+ *  changes further. */
 export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],
   leaguePlayers: readonly ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number>,
   family: "categories" | "points",
-  fairnessThresholdPct = 0.18,
+  fairnessThresholdPct = 0.24,
 ): TradeVerdict {
   const poolRanks = poolRanksFor(leaguePlayers, baseValueByFantraxId);
   const poolSize = leaguePlayers.length;
