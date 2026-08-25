@@ -4,13 +4,13 @@ import { Suspense, useEffect, useMemo, useState, type CSSProperties } from "reac
 import { HubShell } from "../../_components/hub-shell";
 import { DEEP_EDGE_TABLE_CSS } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
-import { TeamLogo, formatSalary, formatCustomSalary, formatRank, formatStat } from "../../_components/roster-table";
+import { TeamLogo, formatSalary, formatCustomSalary, formatRank, statBg, valueBg } from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { TAG_META } from "@/app/team-rosters/_components/trend-insight";
 import { CATEGORY_LABEL, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
 import { formatTotal } from "@/lib/fantrax/power-rankings";
 import { DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
-import type { LeagueRankingsResult, RankingsBasis } from "@/lib/fantrax/league-rankings";
+import type { AssetRow, LeagueRankingsResult, RankingsBasis } from "@/lib/fantrax/league-rankings";
 
 /**
  * League Rankings (Ash, 2026-08-25, revised 2026-08-25) — "a place to
@@ -92,11 +92,82 @@ function pill(active: boolean, activeBg = "var(--rt-canvas)"): CSSProperties {
 
 /** A raw per-game category stat, scaled to a season total when statMode is
  *  "totals" — same convention RosterTableRow itself uses (formatTotal for
- *  totals, FG%/FT% exempt since a percentage has no "total" form). */
+ *  totals, FG%/FT% exempt since a percentage has no "total" form). Counting
+ *  stats read to 1 decimal; FG%/FT% read as a percentage to 1 decimal
+ *  ("50.3%"), a deliberate departure from the rest of the app's ".503"
+ *  convention (Ash, 2026-08-25: "FG% 50.3%"). */
 function statCell(raw: number | undefined, cat: FheCategory, gamesPlayed: number | null, statMode: StatMode): string {
   if (raw == null) return "—";
-  if (statMode === "totals" && cat !== "FG" && cat !== "FT") return formatTotal(cat, raw * (gamesPlayed ?? 0));
-  return formatStat(cat, raw);
+  if (cat === "FG" || cat === "FT") return `${(raw * 100).toFixed(1)}%`;
+  if (statMode === "totals") return formatTotal(cat, raw * (gamesPlayed ?? 0));
+  return raw.toFixed(1);
+}
+
+/** Weighted per-game average of a counting stat across a set of rows — Σ each
+ *  row's own total (rate × its own GP) ÷ Σ GP — the summary-row counterpart
+ *  to roster-table.tsx's own weightedAverage, operating on AssetRow's
+ *  already-resolved catsRaw instead of a ResolvedPlayer. */
+function weightedCatAverage(rows: { asset: AssetRow }[], cat: FheCategory): number | null {
+  if (cat === "FG" || cat === "FT") {
+    let makes = 0, atts = 0;
+    for (const { asset: a } of rows) {
+      const attempts = cat === "FG" ? a.fgAttempts : a.ftAttempts;
+      const pct = a.catsRaw[cat];
+      const g = a.gamesPlayed ?? 0;
+      if (attempts == null || pct == null || g <= 0) continue;
+      atts += attempts * g; makes += attempts * pct * g;
+    }
+    return atts > 0 ? makes / atts : null;
+  }
+  let total = 0, games = 0;
+  for (const { asset: a } of rows) {
+    const raw = a.catsRaw[cat];
+    const g = a.gamesPlayed ?? 0;
+    if (raw == null || g <= 0) continue;
+    total += raw * g; games += g;
+  }
+  return games > 0 ? total / games : null;
+}
+
+/** Σ each row's own season total (rate × its own GP) — the TOTALS-mode
+ *  counterpart to weightedCatAverage's per-game rate. FG%/FT% still read as
+ *  the blended attempts-weighted rate — a season shooting percentage isn't
+ *  meaningful summed across rows. */
+function summedCatTotal(rows: { asset: AssetRow }[], cat: FheCategory): number | null {
+  if (cat === "FG" || cat === "FT") return weightedCatAverage(rows, cat);
+  let total = 0, any = false;
+  for (const { asset: a } of rows) {
+    const raw = a.catsRaw[cat];
+    const g = a.gamesPlayed ?? 0;
+    if (raw == null || g <= 0) continue;
+    total += raw * g; any = true;
+  }
+  return any ? total : null;
+}
+
+function summaryCatCell(rows: { asset: AssetRow }[], cat: FheCategory, statMode: StatMode): string {
+  if (cat === "FG" || cat === "FT") {
+    const avg = weightedCatAverage(rows, cat);
+    return avg != null ? `${(avg * 100).toFixed(1)}%` : "—";
+  }
+  if (statMode === "totals") {
+    const total = summedCatTotal(rows, cat);
+    return total != null ? formatTotal(cat, total) : "—";
+  }
+  const avg = weightedCatAverage(rows, cat);
+  return avg != null ? avg.toFixed(1) : "—";
+}
+
+/** Simple arithmetic mean of a numeric field across rows, ignoring nulls —
+ *  used for the summary row's non-volume-weighted columns (age, ranks,
+ *  Minus1V/9CatV/8CatV/FPTS). */
+function avgOf<T>(rows: T[], pick: (row: T) => number | null): number | null {
+  let sum = 0, n = 0;
+  for (const row of rows) {
+    const v = pick(row);
+    if (v != null) { sum += v; n++; }
+  }
+  return n > 0 ? sum / n : null;
 }
 
 function LeagueRankingsContent() {
@@ -177,6 +248,32 @@ function LeagueRankingsContent() {
     }
   }, [visibleBasisTabs, basis]);
 
+  // MINUS1/9CAT/8CAT/FPTS display as a RANK, not the raw value (Ash,
+  // 2026-08-25: "display MINUS1, 9CAT, 8CAT, FPTS as the ranking, not the
+  // value") — computed client-side within this league's FULL asset pool
+  // (data.assets, not the filtered/visible rows), since no precomputed FPTS
+  // rank exists anywhere server-side and a filtered-pool rank would use a
+  // different denominator than the other three. Picks never carry these
+  // fields, so only "player" rows enter each ranking.
+  const catValueRanks = useMemo(() => {
+    function buildRank(pick: (a: AssetRow) => number | null): Map<string, number> {
+      const withValue = (data?.assets ?? [])
+        .filter((a) => a.kind === "player")
+        .map((a) => ({ key: a.key, v: pick(a) }))
+        .filter((r): r is { key: string; v: number } => r.v != null);
+      withValue.sort((a, b) => b.v - a.v);
+      const m = new Map<string, number>();
+      withValue.forEach((r, i) => m.set(r.key, i + 1));
+      return m;
+    }
+    return {
+      minus1: buildRank((a) => a.minus1V),
+      nineCat: buildRank((a) => a.nineCatV),
+      eightCat: buildRank((a) => a.eightCatV),
+      fpts: buildRank((a) => a.fpts),
+    };
+  }, [data]);
+
   // Filter narrows which rows show; it never renumbers them — every row
   // keeps its own real rank from the full pool (data.values[basis][key].rank),
   // matching the sort order those ranks already imply (Ash, 2026-08-25:
@@ -198,6 +295,14 @@ function LeagueRankingsContent() {
     return withValue.map((r) => ({ asset: r.asset, rank: r.ranked?.rank ?? null, value: r.ranked?.value ?? null }));
   }, [data, basis, assetType, ownerFilter, nbaTeamFilter, classFilter, positionFilter]);
 
+  // Every visible stat summarizes at the top under the current filter set —
+  // not just salary/GP/MIN (Ash, 2026-08-25: "ensure every stat is
+  // summarised at the top when filters are applied"). Counting-stat
+  // categories and MIN use a GP-weighted average (or a summed total in
+  // totals mode); FG%/FT% use the attempts-weighted rate
+  // (weightedCatAverage); everything else (age, ranks, trade value,
+  // Minus1V/9CatV/8CatV/FPTS) is a plain arithmetic mean of whatever rows
+  // have a value.
   const summary = useMemo(() => {
     let salary = 0, salaryCount = 0, gp = 0, gpCount = 0, min = 0, minCount = 0;
     for (const { asset: a } of rankedRows) {
@@ -208,9 +313,21 @@ function LeagueRankingsContent() {
         minCount++;
       }
     }
+    const cats: Partial<Record<FheCategory, string>> = {};
+    for (const cat of STAT_CATS) cats[cat] = summaryCatCell(rankedRows, cat, statMode);
     return {
       count: rankedRows.length, salaryTotal: salary, salaryCount,
       gpAvg: gpCount > 0 ? gp / gpCount : null, minAvg: minCount > 0 ? min / minCount : null,
+      tradeValueAvg: avgOf(rankedRows, (r) => r.value),
+      ageAvg: avgOf(rankedRows, (r) => r.asset.age),
+      dynRankAvg: avgOf(rankedRows, (r) => r.asset.dynRank),
+      salaryRankAvg: avgOf(rankedRows, (r) => r.asset.salaryRank),
+      usgAvg: avgOf(rankedRows, (r) => r.asset.usgPct),
+      minus1Avg: avgOf(rankedRows, (r) => r.asset.minus1V),
+      nineCatAvg: avgOf(rankedRows, (r) => r.asset.nineCatV),
+      eightCatAvg: avgOf(rankedRows, (r) => r.asset.eightCatV),
+      fptsAvg: avgOf(rankedRows, (r) => r.asset.fpts),
+      cats,
     };
   }, [rankedRows, statMode]);
 
@@ -429,27 +546,28 @@ function LeagueRankingsContent() {
                       uses, over whatever's currently visible (Ash,
                       2026-08-25: "should be wired into the table and sit
                       above the first player displayed... operate similar to
-                      the roster edge summary"). Only salary/GP/MIN summarize
-                      here — per Ash's own scope for this page. */}
+                      the roster edge summary" / "ensure every stat is
+                      summarised at the top when filters are applied"). Every
+                      visible numeric column summarizes. */}
                   {rankedRows.length > 0 && (
                     <tr className="lr-summary-row">
                       <td colSpan={3} className="l">Σ {summary.count} shown{statMode === "totals" ? " — totals" : " — per game"}</td>
                       {cols.fantasyTeam && <td>—</td>}
-                      {cols.tradeValue && <td>—</td>}
-                      {cols.age && <td>—</td>}
+                      {cols.tradeValue && <td>{summary.tradeValueAvg != null ? Math.round(summary.tradeValueAvg) : "—"}</td>}
+                      {cols.age && <td>{summary.ageAvg != null ? summary.ageAvg.toFixed(1) : "—"}</td>}
                       {cols.salary && <td>{summary.salaryCount > 0 ? fmtSalary(summary.salaryTotal) : "—"}</td>}
                       {cols.contract && <td>—</td>}
-                      {cols.dynastyRank && <td>—</td>}
-                      {cols.salaryRank && <td>—</td>}
+                      {cols.dynastyRank && <td>{summary.dynRankAvg != null ? formatRank(Math.round(summary.dynRankAvg)) : "—"}</td>}
+                      {cols.salaryRank && <td>{summary.salaryRankAvg != null ? formatRank(Math.round(summary.salaryRankAvg)) : "—"}</td>}
                       {cols.trend && <td>—</td>}
                       {cols.gp && <td>{summary.gpAvg != null ? summary.gpAvg.toFixed(1) : "—"}</td>}
                       {cols.min && <td>{summary.minAvg != null ? summary.minAvg.toFixed(1) : "—"}</td>}
-                      {cols.usg && <td>—</td>}
-                      {cols.minus1 && <td>—</td>}
-                      {cols.nineCat && <td>—</td>}
-                      {cols.eightCat && <td>—</td>}
-                      {cols.fpts && isPointsLeague && <td>—</td>}
-                      {STAT_CATS.filter((cat) => cols.cats[cat]).map((cat) => <td key={cat}>—</td>)}
+                      {cols.usg && <td>{summary.usgAvg != null ? `${summary.usgAvg.toFixed(1)}%` : "—"}</td>}
+                      {cols.minus1 && <td>{summary.minus1Avg != null ? summary.minus1Avg.toFixed(2) : "—"}</td>}
+                      {cols.nineCat && <td>{summary.nineCatAvg != null ? summary.nineCatAvg.toFixed(2) : "—"}</td>}
+                      {cols.eightCat && <td>{summary.eightCatAvg != null ? summary.eightCatAvg.toFixed(2) : "—"}</td>}
+                      {cols.fpts && isPointsLeague && <td>{summary.fptsAvg != null ? summary.fptsAvg.toFixed(2) : "—"}</td>}
+                      {STAT_CATS.filter((cat) => cols.cats[cat]).map((cat) => <td key={cat}>{summary.cats[cat] ?? "—"}</td>)}
                     </tr>
                   )}
                   {rankedRows.map(({ asset: a, rank, value }) => (
@@ -468,7 +586,7 @@ function LeagueRankingsContent() {
                       </td>
                       <td>{a.nbaTeam ? <TeamLogo team={a.nbaTeam} size={34} /> : <span style={{ color: "var(--rt-muted)" }}>—</span>}</td>
                       {cols.fantasyTeam && <td className="l">{a.owner}</td>}
-                      {cols.tradeValue && <td style={{ fontWeight: 700 }}>{value != null ? value.toFixed(1) : "—"}</td>}
+                      {cols.tradeValue && <td style={{ fontWeight: 700 }}>{value != null ? Math.round(value) : "—"}</td>}
                       {cols.age && <td>{a.age != null ? a.age.toFixed(1) : "—"}</td>}
                       {cols.salary && <td>{fmtSalary(a.salary)}</td>}
                       {cols.contract && <td>{a.contract ?? "—"}</td>}
@@ -486,12 +604,16 @@ function LeagueRankingsContent() {
                       {cols.gp && <td>{a.gamesPlayed ?? "—"}</td>}
                       {cols.min && <td>{a.minutesPerGame != null ? (statMode === "totals" ? Math.round(a.minutesPerGame * (a.gamesPlayed ?? 0)).toLocaleString("en-US") : a.minutesPerGame.toFixed(1)) : "—"}</td>}
                       {cols.usg && <td>{a.usgPct != null ? `${a.usgPct.toFixed(1)}%` : "—"}</td>}
-                      {cols.minus1 && <td>{a.minus1V != null ? a.minus1V.toFixed(2) : "—"}</td>}
-                      {cols.nineCat && <td>{a.nineCatV != null ? a.nineCatV.toFixed(2) : "—"}</td>}
-                      {cols.eightCat && <td>{a.eightCatV != null ? a.eightCatV.toFixed(2) : "—"}</td>}
-                      {cols.fpts && isPointsLeague && <td>{a.fpts != null ? a.fpts.toFixed(2) : "—"}</td>}
+                      {/* MINUS1/9CAT/8CAT/FPTS show as a RANK (item 4), with
+                          the SAME light z-score-style tint the value itself
+                          would have gotten — valueBg's own tighter anchors,
+                          matching /seasonal-rankings' Value column. */}
+                      {cols.minus1 && <td style={{ background: valueBg(a.minus1V) }}>{formatRank(catValueRanks.minus1.get(a.key) ?? null)}</td>}
+                      {cols.nineCat && <td style={{ background: valueBg(a.nineCatV) }}>{formatRank(catValueRanks.nineCat.get(a.key) ?? null)}</td>}
+                      {cols.eightCat && <td style={{ background: valueBg(a.eightCatV) }}>{formatRank(catValueRanks.eightCat.get(a.key) ?? null)}</td>}
+                      {cols.fpts && isPointsLeague && <td style={{ background: valueBg(a.fpts) }}>{formatRank(catValueRanks.fpts.get(a.key) ?? null)}</td>}
                       {STAT_CATS.filter((cat) => cols.cats[cat]).map((cat) => (
-                        <td key={cat}>{statCell(a.cats[cat], cat, a.gamesPlayed, statMode)}</td>
+                        <td key={cat} style={{ background: statBg(a.catsZ[cat]) }}>{statCell(a.catsRaw[cat], cat, a.gamesPlayed, statMode)}</td>
                       ))}
                     </tr>
                   ))}

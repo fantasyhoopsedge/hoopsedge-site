@@ -1,7 +1,7 @@
 import "server-only";
 import { getCachedLeagueAnalysis } from "./league-cache";
 import type { FantraxDatasetKey } from "./resolve";
-import type { ResolvedPlayer } from "./analyze";
+import type { ResolvedPlayer, StatLine } from "./analyze";
 import type { FheCategory, TeamDraftPick } from "./league";
 import type { LeagueType, SalaryFormat } from "./league-tags";
 import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, getSophomoreByFheId } from "./roster-edge";
@@ -74,13 +74,24 @@ export interface AssetRow {
   minus1V: number | null;
   fpts: number | null;
   pickYear: number | null;
-  /** Per-game raw category stats (PTS/FG3/REB/AST/STL/BLK/FG%/FT%/TO) — the
-   *  same shape ResolvedPlayer.cats already carries for a rostered player,
-   *  copied straight across; for a free agent, built from season_player_stats'
-   *  own raw columns (rostered players never touch this query, so there's no
-   *  double-source risk of the two disagreeing for the same player). Empty
-   *  for a pick — a draft asset has no box score. */
-  cats: Partial<Record<FheCategory, number>>;
+  /** Per-game RAW category stats (PTS/FG3/REB/AST/STL/BLK/FG%/FT%/TO) — for
+   *  display, sourced from ResolvedPlayer.statLine (rostered player) or
+   *  season_player_stats' own raw columns (free agent). NEVER read
+   *  ResolvedPlayer.cats here — that field is z-scores, not raw stats (see
+   *  catsZ below); conflating the two mislabeled every stat cell in this
+   *  table's first ship. Empty for a pick — a draft asset has no box score. */
+  catsRaw: Partial<Record<FheCategory, number>>;
+  /** Per-game category Z-SCORES — ResolvedPlayer.cats for a rostered player,
+   *  season_player_values' v_* columns (CATEGORY_VALUE_COLUMN) for a free
+   *  agent. Drives conditional-format tinting only, never displayed as a raw
+   *  number. Empty for a pick. */
+  catsZ: Partial<Record<FheCategory, number>>;
+  /** Per-game FG/FT attempts — the volume side of a volume-weighted FG%/FT%
+   *  summary (Σ attempts×pct÷Σ attempts, same shape roster-table.tsx's own
+   *  weightedAverage uses), which a plain average of per-player percentages
+   *  can't produce correctly. Null for a pick. */
+  fgAttempts: number | null;
+  ftAttempts: number | null;
 }
 
 export interface RankedValue {
@@ -128,6 +139,44 @@ export interface LeagueRankingsInput {
   dataset: FantraxDatasetKey;
   leagueType: LeagueType;
   settings: LeagueRankingsSettings;
+}
+
+/** Canonicalizes Fantrax position eligibility down to one of G, F, C, G/F,
+ *  F/C, G/C, G/F/C — collapsing PG/SG into G and SF/PF into F, and dropping
+ *  every non-position slot (Flx, Util, numbered flex, …) outright rather than
+ *  gating them behind the league's own slot config the way roster-table.tsx's
+ *  posDisplayFor does. This table shows one simplified label per asset, not a
+ *  per-slot eligibility list (Ash, 2026-08-25: "remove any ref to FLX
+ *  position and simplify player position eligibility"). */
+function positionGroup(eligible: string[] | undefined): string | null {
+  if (!eligible || eligible.length === 0) return null;
+  let g = false, f = false, c = false;
+  for (const raw of eligible) {
+    const e = raw.toUpperCase();
+    if (e === "PG" || e === "SG" || e === "G") g = true;
+    else if (e === "SF" || e === "PF" || e === "F") f = true;
+    else if (e === "C") c = true;
+  }
+  const parts = [g && "G", f && "F", c && "C"].filter(Boolean) as string[];
+  return parts.length > 0 ? parts.join("/") : null;
+}
+
+/** Raw per-game category line off a rostered player's own statLine — the
+ *  RAW counterpart to ResolvedPlayer.cats (z-scores). Never read `.cats` for
+ *  display; see AssetRow.catsRaw's own doc for why. */
+function rawCatsFromStatLine(s: StatLine | null): Partial<Record<FheCategory, number>> {
+  if (!s) return {};
+  const out: Partial<Record<FheCategory, number>> = {};
+  if (s.pts != null) out.PTS = s.pts;
+  if (s.fg3m != null) out.FG3 = s.fg3m;
+  if (s.reb != null) out.REB = s.reb;
+  if (s.ast != null) out.AST = s.ast;
+  if (s.stl != null) out.STL = s.stl;
+  if (s.blk != null) out.BLK = s.blk;
+  if (s.tov != null) out.TO = s.tov;
+  if (s.fg_pct != null) out.FG = s.fg_pct;
+  if (s.ft_pct != null) out.FT = s.ft_pct;
+  return out;
 }
 
 function pickLabel(pick: TeamDraftPick): string {
@@ -190,22 +239,38 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   }
   const espnIds = [...new Set(espnIdByFantraxId.values())];
   const faPlayers: ResolvedPlayer[] = [];
+  const faZByFantraxId = new Map<string, Partial<Record<FheCategory, number>>>();
   if (espnIds.length > 0) {
     const [{ data: svRows, error }, { data: statRows, error: statError }] = await Promise.all([
       admin
         .from("season_player_values")
-        .select("player_id,value,minus1v")
+        // v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to — spelled out
+        // (not built from CATEGORY_VALUE_COLUMN) so Supabase's typed client
+        // can parse this as a literal select string.
+        .select("player_id,value,minus1v,v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection").eq("league_size", 450)
         .in("player_id", espnIds),
       admin
         .from("season_player_stats")
-        .select("player_id,g,mpg,pts,fg3m,reb,ast,stl,blk,tov,fg_pct,ft_pct")
+        .select("player_id,g,mpg,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
         .in("player_id", espnIds),
     ]);
     if (error) throw new Error(error.message);
     if (statError) throw new Error(statError.message);
-    const valueByEspnId = new Map((svRows ?? []).map((r) => [r.player_id as string, { nineCatV: r.value as number | null, minus1V: r.minus1v as number | null }]));
+    const valueByEspnId = new Map((svRows ?? []).map((row) => {
+      const catsZ: Partial<Record<FheCategory, number>> = {};
+      if (row.v_pts != null) catsZ.PTS = row.v_pts;
+      if (row.v_fg3 != null) catsZ.FG3 = row.v_fg3;
+      if (row.v_reb != null) catsZ.REB = row.v_reb;
+      if (row.v_ast != null) catsZ.AST = row.v_ast;
+      if (row.v_stl != null) catsZ.STL = row.v_stl;
+      if (row.v_blk != null) catsZ.BLK = row.v_blk;
+      if (row.v_fg != null) catsZ.FG = row.v_fg;
+      if (row.v_ft != null) catsZ.FT = row.v_ft;
+      if (row.v_to != null) catsZ.TO = row.v_to;
+      return [row.player_id, { nineCatV: row.value, minus1V: row.minus1v, catsZ }] as const;
+    }));
     const statByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, r]));
     for (const fa of rawFAs) {
       const espnId = espnIdByFantraxId.get(fa.fantraxId);
@@ -219,16 +284,28 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
         AST: stat.ast ?? undefined, STL: stat.stl ?? undefined, BLK: stat.blk ?? undefined,
         FG: stat.fg_pct ?? undefined, FT: stat.ft_pct ?? undefined, TO: stat.tov ?? undefined,
       } : {};
+      // Full raw line (incl. attempts) so AssetRow.catsRaw/fgAttempts/
+      // ftAttempts can read a free agent the same way as a rostered player
+      // — off .statLine — rather than a second, FA-only code path.
+      const faStatLine: StatLine | null = stat ? {
+        pts: stat.pts, fg3m: stat.fg3m, reb: stat.reb, ast: stat.ast, stl: stat.stl, blk: stat.blk,
+        tov: stat.tov, fga: stat.fga, fg_pct: stat.fg_pct, fta: stat.fta, ft_pct: stat.ft_pct,
+      } : null;
       faPlayers.push({
         fantraxId: fa.fantraxId, name: fa.name, slot: "FA", eligible: fa.eligible ?? [],
         nbaTeam: fa.nbaTeam ?? "", status: "FA", salary: null, contract: null,
         playerId: espnId, fheId: fheId ?? null, source: "projection", cats, catsTotals: {},
         leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
-        gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: null, statLine: null,
+        gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: null, statLine: faStatLine,
         catV: { perGame: { nineCatV: v.nineCatV, minus1V: v.minus1V, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         catVRank: { perGame: { nineCatV: null, minus1V: null, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         trendTags: null, ambiguousName: false, smallSample: false, isRookie: false,
+        // AssetRow's z-score column (catsZ, below) reads this off the FA
+        // ResolvedPlayer directly via faZByFantraxId rather than a real
+        // ResolvedPlayer field — ResolvedPlayer has no z-score slot for a
+        // freestanding FA the way `cats` covers a resolved league player.
       } as unknown as ResolvedPlayer);
+      faZByFantraxId.set(fa.fantraxId, v.catsZ);
     }
   }
 
@@ -281,9 +358,10 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   const assets: AssetRow[] = [];
   for (const p of corePlayers) {
     const trendTag: TrendTag | null = p.trendTags?.nineCatV ?? null;
+    const isFA = !rosteredIds.has(p.fantraxId);
     assets.push({
       key: p.fantraxId, kind: "player", name: p.name, fantraxId: p.fantraxId,
-      pos: p.eligible?.join("/") || null, nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
+      pos: positionGroup(p.eligible), nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
       isSophomore: p.fheId ? sophomoreByFheId[p.fheId] ?? false : false,
       owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
       salary: p.salary ?? (salaryFormat === "real" && p.fheId ? contractByFheId[p.fheId]?.currentSalary ?? null : null),
@@ -297,7 +375,11 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       gamesPlayed: p.gamesPlayed ?? null, minutesPerGame: p.minutesPerGame ?? null, usgPct: p.usgPct ?? null,
       nineCatV: p.catV?.perGame.nineCatV ?? null, eightCatV: p.catV?.perGame.eightCatV ?? null,
       minus1V: p.catV?.perGame.minus1V ?? null, fpts: p.pointsValue ?? null,
-      pickYear: null, cats: p.cats ?? {},
+      pickYear: null,
+      catsRaw: rawCatsFromStatLine(p.statLine),
+      catsZ: isFA ? (faZByFantraxId.get(p.fantraxId) ?? {}) : (p.cats ?? {}),
+      fgAttempts: p.statLine?.fga ?? null,
+      ftAttempts: p.statLine?.fta ?? null,
     });
   }
 
@@ -330,7 +412,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
         contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
         gamesPlayed: null, minutesPerGame: null, usgPct: null,
         nineCatV: null, eightCatV: null, minus1V: null, fpts: null,
-        pickYear: pick.year, cats: {},
+        pickYear: pick.year, catsRaw: {}, catsZ: {}, fgAttempts: null, ftAttempts: null,
       });
       if (standardVal != null) standardMap.set(key, standardVal);
       if (realVal != null) realMap.set(key, realVal);
@@ -365,7 +447,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
         salary: null, contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
         gamesPlayed: null, minutesPerGame: null, usgPct: null,
         nineCatV: null, eightCatV: null, minus1V: null, fpts: null,
-        pickYear: year, cats: {},
+        pickYear: year, catsRaw: {}, catsZ: {}, fgAttempts: null, ftAttempts: null,
       });
       if (standardVal != null) standardMap.set(key, standardVal);
       if (realVal != null) realMap.set(key, realVal);
