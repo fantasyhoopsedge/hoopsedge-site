@@ -68,7 +68,7 @@ function AssetValuesContent() {
       return;
     }
     setLoadingDoc(true);
-    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(saved.leagueId)}`)
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(saved.leagueId)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => { if (d.error) setError(d.error); else setDoc(d.doc ?? null); })
       .catch((err) => setError(String(err)))

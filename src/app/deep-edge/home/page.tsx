@@ -8,6 +8,7 @@ import type { CustomValuationsDoc } from "@/lib/fantrax/custom-valuations-store"
 import { HubShell } from "../_components/hub-shell";
 import { GoDeepGrid } from "../_components/go-deep-grid";
 import { AddLeagueModal } from "../_components/add-league-modal";
+import { Modal } from "../_components/modal";
 import { useActiveLeague } from "../_lib/use-saved-leagues";
 import { CUSTOM_VALUATIONS_STALE_AFTER_MS, relativeTime, useNow } from "../_lib/relative-time";
 
@@ -24,45 +25,100 @@ function HomeHubContent() {
   const router = useRouter();
 
   const hasLeague = Boolean(league);
+  const leagueType = league?.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType;
+  const salaryFormat = league?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
+  const isCustomSalaryLeague = salaryFormat === "custom";
+  const isRedraft = leagueType === "redraft";
 
-  // Whether this league is actually using custom values — a real, already-
-  // generated ledger is the ground truth (a user can generate one straight
-  // from the asset-values page, bypassing this prompt entirely), not just
-  // the settings flag the onboarding prompt itself sets on "Yes, customize"
-  // (Ash, 2026-08-24: "it is not clear to the user that custom asset values
-  // are used" — the status pill below used to be gated on that flag alone,
-  // so a league with a real generated ledger but an unanswered prompt showed
-  // neither the pill nor an accurate state, just the onboarding question).
-  const usingCustomValuations = Boolean(ledgerDoc) || Boolean(league?.settings.useCustomValuations);
+  // One unified generator (Ash, 2026-08-25 redesign) — a single "generate
+  // asset values" action per league, dispatching internally to whichever
+  // ledger mode is actually right for this league: a custom-salary league
+  // gets the FULL ledger (players + FAs + picks, against its own salary/
+  // contract rules); every other non-redraft league (standard dynasty,
+  // keeper, real-salary) gets the PICKS-ONLY ledger (players stay on
+  // standard/real values, only draft picks get individually priced at real
+  // dynasty consensus per slot). Redraft has no long-lived asset ledger
+  // worth generating at all — no prompt, no button, no reset, ever.
+  // `valuationMode` is the single ground-truth read for "has this league's
+  // generator been run, and which flavor" — a real generated doc wins over
+  // the settings flag alone, same reasoning as the original single-block
+  // version (Ash, 2026-08-24: "it is not clear to the user that custom
+  // asset values are used").
+  const valuationMode: "full" | "picksOnly" | null =
+    ledgerDoc?.mode ?? (league?.settings.useCustomValuations ? "full" : league?.settings.useGeneratedPickValues ? "picksOnly" : null);
+  const hasGeneratedValues = valuationMode != null;
 
-  // The standard-league counterpart to usingCustomValuations above — a
-  // league that generated ONLY draft-pick values (Ash, 2026-08-25: "a new
-  // button on the home screen... for leagues that apply the standard base
-  // asset values"), never the full player/FA revaluation. Same ground-truth
-  // convention: a real generated doc of that mode wins over the settings
-  // flag alone. Mutually exclusive with usingCustomValuations in the UI
-  // below — a league already doing full custom valuations has no use for
-  // this separate flow, its picks are already priced.
-  const isDynastyOrKeeper = league?.settings.leagueType === "dynasty" || league?.settings.leagueType === "keeper";
-  const usingGeneratedPickValues = ledgerDoc?.mode === "picksOnly" || Boolean(league?.settings.useGeneratedPickValues);
+  // The auto-popup fires once per league — the first time Home loads for a
+  // connected, not-yet-prompted, not-yet-valued league, any type except
+  // redraft (Ash, 2026-08-25: "auto-popup once per league... for redraft
+  // there is no action to take"). customValuationsPromptedAt is set on
+  // EITHER answer (yes or no), never just yes, so declining also permanently
+  // dismisses it — same "ask once" convention the original dynasty-only
+  // prompt used, just widened to every non-redraft league type.
+  const showGeneratorPrompt =
+    Boolean(league) && !isRedraft && !league!.settings.customValuationsPromptedAt && !hasGeneratedValues;
+  // The same modal reopens manually from the persistent "Assets not valued"
+  // card's own button once the auto-popup has already been dismissed once
+  // (customValuationsPromptedAt set) — a declined league still needs a way
+  // back into the generator without waiting for a fresh league connect.
+  const [manualGeneratorOpen, setManualGeneratorOpen] = useState(false);
+  const generatorModalOpen = Boolean(league) && !isRedraft && (showGeneratorPrompt || manualGeneratorOpen);
+  // Two-step "are you sure" INSIDE the same popup (Ash: "provide the user
+  // with some feedback as he/she clicks yes... are you sure?") — local UI
+  // state only, reset whenever the modal itself stops showing.
+  const [confirmingGenerate, setConfirmingGenerate] = useState(false);
+  useEffect(() => {
+    if (!generatorModalOpen) setConfirmingGenerate(false);
+  }, [generatorModalOpen]);
+  function closeGeneratorModal() {
+    setManualGeneratorOpen(false);
+    if (showGeneratorPrompt) respondToGeneratorPrompt(false);
+  }
 
-  // The "would you like to customize the value of your league assets?"
-  // onboarding prompt only ever fires for dynasty leagues (redraft/keeper
-  // have no long-lived asset ledger worth customizing) and only once per
-  // league — customValuationsPromptedAt is set on either answer, never just
-  // on "yes" (Ash's own asset-values plan, 2026-08-23). Also suppressed once
-  // a ledger already exists, regardless of that flag — asking "would you
-  // like to customize?" makes no sense once the league is already doing it.
-  const showCustomValuationsPrompt =
-    Boolean(league) && league!.settings.leagueType === "dynasty" && !league!.settings.customValuationsPromptedAt && !usingCustomValuations;
-  const recommendCustomValuations = league?.settings.salaryFormat === "real" || league?.settings.salaryFormat === "custom";
+  // League-type-aware popup copy (Ash: custom-salary -> "generate custom
+  // asset values"; standard dynasty/real-salary -> "run default FHE asset
+  // values for that particular league type"; keeper -> "standard dynasty
+  // consensus").
+  function generatorCopy(): { body: string; areYouSure: string } {
+    if (isCustomSalaryLeague) {
+      return {
+        body: "This is a custom-salary league. Generate custom asset values to price every player, free agent, and draft pick against your league's own salary and contract rules?",
+        areYouSure: "You are about to generate custom asset values for this league. Are you sure?",
+      };
+    }
+    if (leagueType === "keeper") {
+      return {
+        body: "Generate standard dynasty consensus asset values for this keeper league — draft picks priced individually at real dynasty consensus per slot; players stay on standard values.",
+        areYouSure: "You are about to generate standard dynasty consensus asset values for this league. Are you sure?",
+      };
+    }
+    const flavor = salaryFormat === "real" ? "real-salary" : "standard dynasty";
+    return {
+      body: `Run FHE's default ${flavor} asset values for this league — draft picks priced individually at each current-year slot; players stay on standard values.`,
+      areYouSure: `You are about to generate default FHE ${flavor} asset values for this league. Are you sure?`,
+    };
+  }
+
+  // "Which rankings are driving trade value right now" (Ash: "display on
+  // the home screen which rankings are driving the trade value") — a custom
+  // full ledger always wins; otherwise players price off whichever base the
+  // league itself uses (real salary vs. standard consensus dynasty), and
+  // redraft leagues have no long-lived basis at all. This intentionally
+  // doesn't replicate trade-verdict.ts's keeper-blend-weight threshold — a
+  // nuance for the FULL League Rankings page's own basis tabs, not this
+  // one-line home-screen summary.
+  function drivingBasisLabel(): string {
+    if (isRedraft) return "Redraft (FHE projections)";
+    if (valuationMode === "full") return "Custom generated";
+    return salaryFormat === "real" ? "Real salary" : "Consensus dynasty";
+  }
 
   useEffect(() => {
     if (!league) {
       setLedgerDoc(null);
       return;
     }
-    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`)
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setLedgerDoc(d.doc ?? null))
       .catch(() => setLedgerDoc(null));
@@ -72,39 +128,9 @@ function HomeHubContent() {
   const now = useNow();
   const ledgerStale = ledgerDoc && now != null ? now - new Date(ledgerDoc.generatedAt).getTime() > CUSTOM_VALUATIONS_STALE_AFTER_MS : false;
 
-  function respondToCustomValuationsPrompt(yes: boolean) {
-    if (!league || promptBusy) return;
-    setPromptBusy(true);
-    fetch("/api/fantrax/saved", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
-        settings: {
-          ...league.settings,
-          customValuationsPromptedAt: new Date().toISOString(),
-          useCustomValuations: yes ? true : league.settings.useCustomValuations,
-        },
-      }),
-    })
-      .then(async () => {
-        await refresh();
-        if (yes) {
-          const needsScale = league.settings.salaryFormat === "custom" && (league.settings.rookieSalaryScale ?? []).length === 0;
-          router.push(needsScale
-            ? `/deep-edge/home/settings?league=${encodeURIComponent(league.leagueId)}`
-            : `/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`);
-        }
-      })
-      .finally(() => setPromptBusy(false));
-  }
-
-  // "Generate draft pick values" — the standard-league counterpart to
-  // respondToCustomValuationsPrompt(true) above, but a direct action rather
-  // than a yes/no prompt (Ash's own framing was "a new button... to
-  // generate," not another onboarding question). Computes the picksOnly
-  // ledger immediately, then flips useGeneratedPickValues so Trade Edge
-  // starts reading it, mirroring the full-custom flow's own settings write.
+  // "Generate draft pick values" — computes the picksOnly ledger immediately,
+  // then flips useGeneratedPickValues so Trade Edge starts reading it. The
+  // unified generator's "yes" action for every non-custom-salary league type.
   function generatePickValues() {
     if (!league || pickValuesBusy) return;
     setPickValuesBusy(true);
@@ -129,7 +155,7 @@ function HomeHubContent() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
-            settings: { ...league.settings, useGeneratedPickValues: true },
+            settings: { ...league.settings, useGeneratedPickValues: true, customValuationsPromptedAt: new Date().toISOString() },
           }),
         });
         await refresh();
@@ -138,17 +164,64 @@ function HomeHubContent() {
       .finally(() => setPickValuesBusy(false));
   }
 
+  // Single dispatch point for the popup's "Yes, generate" confirm step
+  // (isCustomSalaryLeague -> full ledger, via the existing asset-values
+  // page flow so rookie-scale setup isn't skipped; everything else ->
+  // picksOnly, generated inline) and for "Not now" / decline (mark
+  // customValuationsPromptedAt so the popup never reappears for this
+  // league, no generation).
+  function respondToGeneratorPrompt(yes: boolean) {
+    if (!league || promptBusy) return;
+    if (!yes) {
+      setPromptBusy(true);
+      fetch("/api/fantrax/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
+          settings: { ...league.settings, customValuationsPromptedAt: new Date().toISOString() },
+        }),
+      })
+        .then(() => refresh())
+        .finally(() => setPromptBusy(false));
+      return;
+    }
+    if (isCustomSalaryLeague) {
+      setPromptBusy(true);
+      fetch("/api/fantrax/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
+          settings: { ...league.settings, customValuationsPromptedAt: new Date().toISOString(), useCustomValuations: true },
+        }),
+      })
+        .then(async () => {
+          await refresh();
+          const needsScale = (league.settings.rookieSalaryScale ?? []).length === 0;
+          router.push(needsScale
+            ? `/deep-edge/home/settings?league=${encodeURIComponent(league.leagueId)}`
+            : `/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`);
+        })
+        .finally(() => setPromptBusy(false));
+      return;
+    }
+    generatePickValues();
+  }
+
   // "Reset" — clears the cached ledger AND flips the matching settings flag
   // back off, so the league falls back to standard values everywhere and
   // reads as "not generated" again, not as "generated but ignored" (Ash,
   // 2026-08-25: "user can run, reset or run again at any point and user will
-  // always know what is active"). `flag` names which opt-in this reset is
-  // for — resetting one never touches the other, since a league only ever
-  // has one of the two active at a time (see isDynastyOrKeeper block's own
-  // doc on why they're mutually exclusive in the UI).
+  // always know what is active"). Always shown once valued, but now gated
+  // behind its own warning popup first (Ash: "if user clicks reset, launch
+  // a pop up to warn that trading will not function properly without the
+  // assets valued").
   const [resetBusy, setResetBusy] = useState(false);
-  function resetGeneratedValues(flag: "useCustomValuations" | "useGeneratedPickValues") {
-    if (!league || resetBusy) return;
+  const [confirmingReset, setConfirmingReset] = useState(false);
+  function resetGeneratedValues() {
+    if (!league || resetBusy || !valuationMode) return;
+    const flag = valuationMode === "full" ? "useCustomValuations" : "useGeneratedPickValues";
     setResetBusy(true);
     fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`, { method: "DELETE" })
       .then(() => fetch("/api/fantrax/saved", {
@@ -163,7 +236,10 @@ function HomeHubContent() {
         setLedgerDoc(null);
         await refresh();
       })
-      .finally(() => setResetBusy(false));
+      .finally(() => {
+        setResetBusy(false);
+        setConfirmingReset(false);
+      });
   }
 
   return (
@@ -267,112 +343,27 @@ function HomeHubContent() {
             ))}
           </div>
 
-          {showCustomValuationsPrompt && (
-            <div style={{ marginTop: 18, padding: 16, borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>Would you like to customize the value of your league assets?</div>
-              <p style={{ fontSize: 12.5, color: "var(--rt-muted)", margin: "0 0 12px", maxWidth: 520 }}>
-                Revalue every player, free agent, and draft pick against this league&apos;s own rules — real dynasty
-                consensus at each pick slot, plus any house contract or rookie-scale rules you set.
-                {recommendCustomValuations && " Highly recommended for a salary-cap dynasty league like this one."}
-              </p>
-              <div style={{ display: "flex", gap: 10 }}>
-                <button
-                  type="button"
-                  disabled={promptBusy}
-                  onClick={() => respondToCustomValuationsPrompt(true)}
-                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "none", background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: promptBusy ? "default" : "pointer" }}
-                >
-                  Yes, customize
-                </button>
-                <button
-                  type="button"
-                  disabled={promptBusy}
-                  onClick={() => respondToCustomValuationsPrompt(false)}
-                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 12.5, cursor: promptBusy ? "default" : "pointer" }}
-                >
-                  No, use standard values
-                </button>
-              </div>
-            </div>
-          )}
-
-          {usingCustomValuations && (
+          {/* Unified asset-value status — red until the generator has run at
+              all (any type except redraft), green once it has, always
+              showing which basis is driving real trade value and whether
+              draft assets specifically are valued (Ash, 2026-08-25: "mark
+              red on the home screen that assets are not valued... display
+              which rankings are driving the trade value... display if
+              draft assets have been valued"). Redraft leagues get none of
+              this — there's no long-lived ledger for them to run. */}
+          {!isRedraft && (
             <div style={{ marginTop: 18, padding: "14px 18px", borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              <span
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700,
-                  color: ledgerDoc && !ledgerStale ? "var(--rt-up)" : "var(--rt-down)",
-                }}
-              >
-                ● Custom asset values active
-              </span>
-              {ledgerDoc ? (
-                <span style={{ fontSize: 12.5, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
-                  {ledgerStale && "⚠ May be stale — "}
-                  Last refreshed {relativeTime(ledgerDoc.generatedAt)}
-                </span>
-              ) : (
-                <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet — this league is still showing standard values</span>
-              )}
-              <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                <Link
-                  href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
-                  style={{
-                    height: 32, padding: "0 16px", borderRadius: 100, border: "none",
-                    background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
-                    display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
-                  }}
-                >
-                  {ledgerDoc ? "View & regenerate" : "Generate now"}
-                </Link>
-                {ledgerDoc && (
-                  <button
-                    type="button"
-                    disabled={resetBusy}
-                    onClick={() => resetGeneratedValues("useCustomValuations")}
-                    style={{
-                      height: 32, padding: "0 16px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
-                      background: "transparent", color: "var(--rt-down)", fontWeight: 700, fontSize: 12.5,
-                      cursor: resetBusy ? "default" : "pointer", whiteSpace: "nowrap",
-                    }}
-                  >
-                    Reset
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Standard-league counterpart to the custom-valuations block
-              above — draft-pick values alone, real dynasty-consensus (or
-              real-salary) rank per current-year slot, for a dynasty/keeper
-              league that hasn't opted into full custom asset valuations
-              (Ash, 2026-08-25: "a new button on the home screen... to
-              generate the value of draft pick assets for dynasty and keeper
-              leagues... used for leagues that apply the standard base asset
-              values"). Hidden once a league IS doing full custom
-              valuations — its picks are already priced there, this would
-              just be a redundant second control. */}
-          {isDynastyOrKeeper && !usingCustomValuations && (
-            <div style={{ marginTop: 18, padding: "14px 18px", borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              {usingGeneratedPickValues ? (
+              {hasGeneratedValues ? (
                 <>
-                  <span
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700,
-                      color: ledgerDoc && !ledgerStale ? "var(--rt-up)" : "var(--rt-down)",
-                    }}
-                  >
-                    ● Generated draft pick values active
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: ledgerStale ? "var(--rt-down)" : "var(--rt-up)" }}>
+                    ● Asset values active
                   </span>
-                  {ledgerDoc ? (
-                    <span style={{ fontSize: 12.5, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
-                      {ledgerStale && "⚠ May be stale — "}
-                      Last refreshed {relativeTime(ledgerDoc.generatedAt)}
-                    </span>
-                  ) : (
-                    <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet</span>
-                  )}
+                  <span style={{ fontSize: 12.5, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
+                    {ledgerStale && "⚠ May be stale — "}
+                    Driving trade value: <strong style={{ color: "var(--rt-ink)" }}>{drivingBasisLabel()}</strong>
+                    {" · "}Draft assets valued: <strong style={{ color: "var(--rt-ink)" }}>Yes</strong>
+                    {ledgerDoc && ` · Last refreshed ${relativeTime(ledgerDoc.generatedAt)}`}
+                  </span>
                   <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                     <Link
                       href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
@@ -382,41 +373,41 @@ function HomeHubContent() {
                         display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
                       }}
                     >
-                      {ledgerDoc ? "View & regenerate" : "Generate now"}
+                      View & regenerate
                     </Link>
-                    {ledgerDoc && (
-                      <button
-                        type="button"
-                        disabled={resetBusy}
-                        onClick={() => resetGeneratedValues("useGeneratedPickValues")}
-                        style={{
-                          height: 32, padding: "0 16px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
-                          background: "transparent", color: "var(--rt-down)", fontWeight: 700, fontSize: 12.5,
-                          cursor: resetBusy ? "default" : "pointer", whiteSpace: "nowrap",
-                        }}
-                      >
-                        Reset
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      disabled={resetBusy}
+                      onClick={() => setConfirmingReset(true)}
+                      style={{
+                        height: 32, padding: "0 16px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
+                        background: "transparent", color: "var(--rt-down)", fontWeight: 700, fontSize: 12.5,
+                        cursor: resetBusy ? "default" : "pointer", whiteSpace: "nowrap",
+                      }}
+                    >
+                      Reset
+                    </button>
                   </div>
                 </>
               ) : (
                 <>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700, color: "var(--rt-down)" }}>
+                    ● Assets not valued
+                  </span>
                   <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>
-                    Price every draft pick individually — real dynasty consensus at each current-year slot — instead
-                    of the generic bracket estimate. Players stay on standard values.
+                    Trade value will not work properly until you generate asset values for this league.
                   </span>
                   <button
                     type="button"
-                    disabled={pickValuesBusy}
-                    onClick={generatePickValues}
+                    disabled={pickValuesBusy || promptBusy}
+                    onClick={() => setManualGeneratorOpen(true)}
                     style={{
                       marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
                       background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
-                      cursor: pickValuesBusy ? "default" : "pointer", whiteSpace: "nowrap",
+                      cursor: pickValuesBusy || promptBusy ? "default" : "pointer", whiteSpace: "nowrap",
                     }}
                   >
-                    {pickValuesBusy ? "Generating…" : "Generate draft pick values"}
+                    {pickValuesBusy ? "Generating…" : "Generate asset values"}
                   </button>
                 </>
               )}
@@ -444,6 +435,93 @@ function HomeHubContent() {
             void refresh();
           }}
         />
+      )}
+
+      {/* Auto-popup — fires once per league, the first time Home loads for a
+          connected, not-yet-valued, non-redraft league (Ash: "prompt the
+          user to generate league asset trade values with a pop up"), and
+          reopens manually from the "Assets not valued" card's own button
+          once already dismissed once. Backdrop click and "Not now" both
+          route through closeGeneratorModal — a single, predictable dismiss
+          path that only writes customValuationsPromptedAt the first time
+          (the auto-popup case), not on every manual reopen/cancel. */}
+      {league && generatorModalOpen && (
+        <Modal onClose={closeGeneratorModal} width={480}>
+          {!confirmingGenerate ? (
+            <>
+              <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 10px" }}>Generate league asset trade values?</h2>
+              <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 20px" }}>{generatorCopy().body}</p>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingGenerate(true)}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "none", background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}
+                >
+                  Yes, generate
+                </button>
+                <button
+                  type="button"
+                  disabled={promptBusy}
+                  onClick={closeGeneratorModal}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 12.5, cursor: promptBusy ? "default" : "pointer" }}
+                >
+                  Not now
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 10px" }}>Are you sure?</h2>
+              <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 20px" }}>{generatorCopy().areYouSure}</p>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  disabled={promptBusy || pickValuesBusy}
+                  onClick={() => { setManualGeneratorOpen(false); respondToGeneratorPrompt(true); }}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "none", background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: promptBusy || pickValuesBusy ? "default" : "pointer" }}
+                >
+                  {promptBusy || pickValuesBusy ? "Generating…" : "Confirm — generate now"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmingGenerate(false)}
+                  style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 12.5, cursor: "pointer" }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
+
+      {/* Reset warning — always a confirm step, never a bare action (Ash:
+          "if user clicks reset, launch a pop up to warn that trading will
+          not function properly without the assets valued"). */}
+      {confirmingReset && (
+        <Modal onClose={() => setConfirmingReset(false)} width={440}>
+          <h2 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 10px" }}>Reset asset values?</h2>
+          <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 20px" }}>
+            Trading will not function properly until you generate asset values again for this league.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button
+              type="button"
+              disabled={resetBusy}
+              onClick={resetGeneratedValues}
+              style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "none", background: "var(--rt-down)", color: "#fff", fontWeight: 700, fontSize: 12.5, cursor: resetBusy ? "default" : "pointer" }}
+            >
+              {resetBusy ? "Resetting…" : "Confirm — reset"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirmingReset(false)}
+              style={{ height: 36, padding: "0 18px", borderRadius: 100, border: "1px solid var(--rt-hairline)", background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 12.5, cursor: "pointer" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </Modal>
       )}
     </HubShell>
   );

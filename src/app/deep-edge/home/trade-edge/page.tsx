@@ -1233,7 +1233,13 @@ function TradeEdgeContent() {
       setCustomLedger(null);
       return;
     }
-    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(saved.leagueId)}`)
+    // no-store: a GET this page's own effect re-issues on every mount could
+    // otherwise serve the browser's cached response for this exact URL —
+    // this is the ledger the picker cards (DraftPickCardsGrid) AND the
+    // Trade Verdict table both read pick/player values from, so a stale hit
+    // here reads as "regenerated on the asset-values page but the trade
+    // cards still show the old number" (Ash, 2026-08-25).
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(saved.leagueId)}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => setCustomLedger(d.doc ?? null))
       .catch(() => setCustomLedger(null));
