@@ -38,7 +38,7 @@ const YEAR_DECAY = 0.8; // same constant trade-verdict.ts documents (~0.74-0.84x
  *  null (still valued, just with no salary/contract-rule signal to feed
  *  into the blend — same "absent evidence" handling blendScore already
  *  gives any player with no salary on file). */
-function salaryForPick(tiers: RookieSalaryTier[] | undefined, overallPick: number): number | null {
+export function salaryForPick(tiers: RookieSalaryTier[] | undefined, overallPick: number): number | null {
   const hit = (tiers ?? []).find((t) => overallPick >= t.minPick && overallPick <= t.maxPick);
   return hit?.salary ?? null;
 }
@@ -184,7 +184,7 @@ const DEFAULT_EFFICIENCY_WEIGHT = 0.30; // matches WEIGHT_PRESETS.balanced.effic
  *  deliberate v1 scope cut, not an oversight (Ash, 2026-08-24: "the ability
  *  to shift the math in settings... I will shift the math slightly and then
  *  re-generate"). */
-async function getRealSalaryRankByFheId(
+export async function getRealSalaryRankByFheId(
   admin: ReturnType<typeof createAdminClient>,
   efficiencyWeight: number | undefined,
 ): Promise<{ rankByFheId: Map<string, number>; poolSize: number }> {
