@@ -349,9 +349,29 @@ interface VerdictAssetInput {
  *  through the star-concentration-aware adjustment, and reads a winner off
  *  the totals. `fairnessThresholdPct` mirrors the reference's own
  *  green/red Variance indicator; its exact cutoff wasn't visible in the
- *  workbook's formulas, so 18% is a starting default meant to be tuned
- *  against the 85-trade backtest (scripts/backtest-surplus-model.ts), not a
- *  value carried over from the reference itself. */
+ *  workbook's formulas (its own conditional-formatting rule fires at a flat
+ *  5%, but that's calibrated to the workbook's literal raw-ratio formula,
+ *  which this module doesn't run — see the "formula" section of this file's
+ *  doc). Re-tuned 2026-08-25 after switching dynasty base values from
+ *  rankToZ to the List Value curve (dynasty-value-curve.ts): swept every
+ *  threshold from 2%-100% against the 85-trade backtest
+ *  (data/downtown-fantasy-trade-analysis.csv), through THIS module's own
+ *  unmodified pickEquivalentValue/rookieBoardRatio (real rookie board, not a
+ *  synthetic approximation) — 22% and 24% tied for the plateau's peak, 43/85
+ *  (51%), at the time.
+ *
+ *  Re-tuned AGAIN the same day after reshaping the curve's top end (the
+ *  "Pink" blend — see dynasty-value-curve.ts's doc): flattening the top
+ *  compresses the value spread between assets, which mechanically shrinks
+ *  the variance% a genuinely fair trade produces, so the old 24% no longer
+ *  sits on the accuracy plateau. Re-swept against the same 85-trade
+ *  backtest with Pink live — 16-18% is now the plateau (47-48/85, 55-56%),
+ *  with 17% the single-point peak (48/85); 18% ships as the threshold
+ *  instead of the exact peak, one point off it but on the same plateau, to
+ *  avoid over-fitting a single trade's wobble on an 85-trade sample. 24%
+ *  drops to 42/85 (49%) under Pink — below even the unreshaped curve's
+ *  43/85, confirming the old threshold was calibrated to a curve shape that
+ *  no longer ships. Re-tune again if the base-value scale changes further. */
 export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],

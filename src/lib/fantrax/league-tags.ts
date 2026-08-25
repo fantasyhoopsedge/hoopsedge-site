@@ -148,6 +148,7 @@ export const DEFAULT_ADVANCED_SETTINGS = {
   rookieSalaryScale: [] as RookieSalaryTier[],
   useCustomValuations: false,
   customValuationsPromptedAt: null as string | null,
+  useGeneratedPickValues: false,
   // Matches the site-wide Real Salary Rankings "Balanced" preset (30%
   // efficiency / 70% consensus) — see SavedLeagueSettings.realSalaryEfficiencyWeight.
   realSalaryEfficiencyWeight: 0.30,

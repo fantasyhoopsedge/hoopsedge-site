@@ -19,6 +19,8 @@ function HomeHubContent() {
   const [showAddLeague, setShowAddLeague] = useState(false);
   const [promptBusy, setPromptBusy] = useState(false);
   const [ledgerDoc, setLedgerDoc] = useState<CustomValuationsDoc | null>(null);
+  const [pickValuesBusy, setPickValuesBusy] = useState(false);
+  const [pickValuesError, setPickValuesError] = useState("");
   const router = useRouter();
 
   const hasLeague = Boolean(league);
@@ -32,6 +34,17 @@ function HomeHubContent() {
   // so a league with a real generated ledger but an unanswered prompt showed
   // neither the pill nor an accurate state, just the onboarding question).
   const usingCustomValuations = Boolean(ledgerDoc) || Boolean(league?.settings.useCustomValuations);
+
+  // The standard-league counterpart to usingCustomValuations above — a
+  // league that generated ONLY draft-pick values (Ash, 2026-08-25: "a new
+  // button on the home screen... for leagues that apply the standard base
+  // asset values"), never the full player/FA revaluation. Same ground-truth
+  // convention: a real generated doc of that mode wins over the settings
+  // flag alone. Mutually exclusive with usingCustomValuations in the UI
+  // below — a league already doing full custom valuations has no use for
+  // this separate flow, its picks are already priced.
+  const isDynastyOrKeeper = league?.settings.leagueType === "dynasty" || league?.settings.leagueType === "keeper";
+  const usingGeneratedPickValues = ledgerDoc?.mode === "picksOnly" || Boolean(league?.settings.useGeneratedPickValues);
 
   // The "would you like to customize the value of your league assets?"
   // onboarding prompt only ever fires for dynasty leagues (redraft/keeper
@@ -84,6 +97,45 @@ function HomeHubContent() {
         }
       })
       .finally(() => setPromptBusy(false));
+  }
+
+  // "Generate draft pick values" — the standard-league counterpart to
+  // respondToCustomValuationsPrompt(true) above, but a direct action rather
+  // than a yes/no prompt (Ash's own framing was "a new button... to
+  // generate," not another onboarding question). Computes the picksOnly
+  // ledger immediately, then flips useGeneratedPickValues so Trade Edge
+  // starts reading it, mirroring the full-custom flow's own settings write.
+  function generatePickValues() {
+    if (!league || pickValuesBusy) return;
+    setPickValuesBusy(true);
+    setPickValuesError("");
+    fetch("/api/fantrax/custom-valuations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        leagueId: league.leagueId,
+        teamId: league.teamId,
+        dataset: league.settings.defaultDataset ?? "2027:projection",
+        settings: league.settings,
+        mode: "picksOnly",
+      }),
+    })
+      .then((r) => r.json())
+      .then(async (d) => {
+        if (d.error) { setPickValuesError(d.error); return; }
+        setLedgerDoc(d.doc ?? null);
+        await fetch("/api/fantrax/saved", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
+            settings: { ...league.settings, useGeneratedPickValues: true },
+          }),
+        });
+        await refresh();
+      })
+      .catch((err) => setPickValuesError(String(err)))
+      .finally(() => setPickValuesBusy(false));
   }
 
   return (
@@ -244,6 +296,71 @@ function HomeHubContent() {
               >
                 {ledgerDoc ? "View & regenerate" : "Generate now"}
               </Link>
+            </div>
+          )}
+
+          {/* Standard-league counterpart to the custom-valuations block
+              above — draft-pick values alone, real dynasty-consensus (or
+              real-salary) rank per current-year slot, for a dynasty/keeper
+              league that hasn't opted into full custom asset valuations
+              (Ash, 2026-08-25: "a new button on the home screen... to
+              generate the value of draft pick assets for dynasty and keeper
+              leagues... used for leagues that apply the standard base asset
+              values"). Hidden once a league IS doing full custom
+              valuations — its picks are already priced there, this would
+              just be a redundant second control. */}
+          {isDynastyOrKeeper && !usingCustomValuations && (
+            <div style={{ marginTop: 18, padding: "14px 18px", borderRadius: 14, background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+              {usingGeneratedPickValues ? (
+                <>
+                  <span
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 700,
+                      color: ledgerDoc && !ledgerStale ? "var(--rt-up)" : "var(--rt-down)",
+                    }}
+                  >
+                    ● Generated draft pick values active
+                  </span>
+                  {ledgerDoc ? (
+                    <span style={{ fontSize: 12.5, color: ledgerStale ? "var(--rt-down)" : "var(--rt-muted)" }}>
+                      {ledgerStale && "⚠ May be stale — "}
+                      Last refreshed {relativeTime(ledgerDoc.generatedAt)}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet</span>
+                  )}
+                  <Link
+                    href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
+                    style={{
+                      marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
+                      background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
+                      display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {ledgerDoc ? "View & regenerate" : "Generate now"}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>
+                    Price every draft pick individually — real dynasty consensus at each current-year slot — instead
+                    of the generic bracket estimate. Players stay on standard values.
+                  </span>
+                  <button
+                    type="button"
+                    disabled={pickValuesBusy}
+                    onClick={generatePickValues}
+                    style={{
+                      marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
+                      background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
+                      cursor: pickValuesBusy ? "default" : "pointer", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {pickValuesBusy ? "Generating…" : "Generate draft pick values"}
+                  </button>
+                </>
+              )}
+              {pickValuesError && <p style={{ width: "100%", margin: 0, fontSize: 12, color: "var(--rt-down)" }}>{pickValuesError}</p>}
             </div>
           )}
         </div>

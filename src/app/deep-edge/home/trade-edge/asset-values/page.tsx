@@ -75,6 +75,17 @@ function AssetValuesContent() {
       .finally(() => setLoadingDoc(false));
   }, [saved]);
 
+  // Which flavor of ledger this page is regenerating — read off the
+  // league's own settings, never off whatever `doc` currently happens to
+  // hold (a stale/never-generated doc has no mode to trust). A league using
+  // full custom valuations always regenerates "full"; a standard league
+  // that's opted into generated pick values regenerates "picksOnly" — never
+  // silently overwrite one flavor with the other (Ash's own framing keeps
+  // them as two distinct leagues/paths, not a per-click choice).
+  const regenerateMode: "full" | "picksOnly" = saved?.settings.useGeneratedPickValues && !saved?.settings.useCustomValuations
+    ? "picksOnly"
+    : "full";
+
   function regenerate() {
     if (!saved) return;
     setRegenerating(true);
@@ -87,6 +98,7 @@ function AssetValuesContent() {
         teamId: saved.teamId,
         dataset: saved.settings.defaultDataset ?? "2027:projection",
         settings: saved.settings,
+        mode: regenerateMode,
       }),
     })
       .then((r) => r.json())
@@ -150,11 +162,23 @@ function AssetValuesContent() {
         <IconChevronLeft size={14} /> Back to Trade Edge
       </Link>
 
-      <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Custom asset values</h1>
+      <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>
+        {regenerateMode === "picksOnly" ? "Draft pick values" : "Custom asset values"}
+      </h1>
       <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 20px", maxWidth: 640 }}>
-        Every rostered player, free agent, and draft pick in {saved?.leagueName ?? "your league"}, revalued against
-        this league&apos;s own rules — real dynasty consensus at each pick slot, house contract rules, and
-        sign-aware decay for future-year picks.
+        {regenerateMode === "picksOnly" ? (
+          <>
+            Every draft pick in {saved?.leagueName ?? "your league"}, priced individually — real dynasty consensus
+            (or real-salary rank) at each current-year slot, sign-aware decay for future-year picks. Players and
+            free agents stay on this league&apos;s standard base values.
+          </>
+        ) : (
+          <>
+            Every rostered player, free agent, and draft pick in {saved?.leagueName ?? "your league"}, revalued against
+            this league&apos;s own rules — real dynasty consensus at each pick slot, house contract rules, and
+            sign-aware decay for future-year picks.
+          </>
+        )}
       </p>
 
       {loadingSaved ? (

@@ -30,9 +30,16 @@
  *    field) as a fraction of the roster. First-pass heuristic, not a
  *    validated curve — see computeKeeperWeight.
  *
- * Every branch lands on a directly comparable scale: real, comparable
- * z-scores (either already-computed catV z-scores, or rank -> z via
- * rankToZ), never a raw dollar/rank magnitude. A rank must be converted
+ * Every branch lands on a directly comparable scale. Redraft (genuine catV
+ * z-scores) and a keeper league's blend with it stay on rankToZ() — signed,
+ * pool-relative, exactly as before. A pure dynasty league's three branches
+ * (standard/real/custom) use curveValueAtRank() instead (dynasty-value-
+ * curve.ts, 2026-08-25): the reference tool's own hand-authored, always-
+ * positive List Value table, not a z-score. See that module's doc for why —
+ * in short, rankToZ's floor-collision bug (two similarly-salaried players
+ * reading identically in Trade Edge because both fell below
+ * ASSET_FLOOR_PCT_OF_TOP) doesn't exist on a curve that's already strictly
+ * positive and shaped for exactly this purpose. A rank must be converted
  * using the SIZE OF THE POPULATION IT WAS COMPUTED WITHIN — production and
  * custom-salary ranks are local to this league's own roster pool
  * (leaguePoolSize), but consensus rank and the real-salary rank are BOTH
@@ -51,6 +58,12 @@ import {
   type RealSalaryFactors,
   type WeightPreset,
 } from "../value/real-salary-model";
+import { curveValueAtRank } from "../value/dynasty-value-curve";
+
+/** rankToZ (keeper blend, still z-scale) or curveValueAtRank (pure dynasty,
+ *  List Value scale) — the one thing that differs between the two paths
+ *  through the SAME three branches below. */
+type RankToValue = (rank: number, poolSize: number) => number;
 
 // ── contract-label rules (2026-08-23) ───────────────────────────────────
 //
@@ -105,16 +118,37 @@ const ROOKIE_SCALE_PRESET: WeightPreset = { consensus: 0.70, efficiency: 0.30, r
  *  Subtracting a positive penalty lowers the value regardless of its sign.
  *  `PENALTY_SCALE` (one z-unit) is a documented starting constant, not
  *  backtested — there's no real-trade dataset yet for expiring-contract
- *  discounts the way trade-verdict.ts's star-concentration curve had. */
+ *  discounts the way trade-verdict.ts's star-concentration curve had. Used
+ *  only on the keeper-blend path (rankToValue = rankToZ), where the output
+ *  is still genuinely signed and a subtraction is safe. */
 const EXPIRING_PENALTY_SCALE = 1.0;
 
-function expiringDiscount(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
+/** Curve-scale analog of the same idea: expressed as a FRACTION of the
+ *  player's own curve value rather than a flat subtraction. A flat
+ *  subtraction doesn't port — 1.0 point is nothing off a 1590 Wembanyama and
+ *  would zero out (or invert the ranking of) a 3-point replacement player.
+ *  Safe here specifically because curveValueAtRank's output is always
+ *  strictly positive (unlike rankToZ's), so a multiplicative discount can
+ *  never flip a bad value into a better-looking one the way it would on a
+ *  signed z-score (see EXPIRING_PENALTY_SCALE's own doc, and
+ *  trade-verdict.ts's non-negative-floor doc for the same hazard). Not
+ *  backtested, same as EXPIRING_PENALTY_SCALE — a documented starting point. */
+const EXPIRING_PENALTY_MAX_FRACTION = 0.35;
+
+function expiringRemainingFraction(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
   const maxYears = rule.maxYears ?? 1;
   const expiry = contractExpirySeason(contract);
-  if (expiry == null || maxYears <= 0) return EXPIRING_PENALTY_SCALE; // unparseable label -> treat as fully expiring now
+  if (expiry == null || maxYears <= 0) return 0; // unparseable label -> treat as fully expiring now
   const yearsRemaining = Math.max(0, expiry - currentSeason);
-  const remainingFraction = Math.min(1, (yearsRemaining + 1) / maxYears);
-  return (1 - remainingFraction) * EXPIRING_PENALTY_SCALE;
+  return Math.min(1, (yearsRemaining + 1) / maxYears);
+}
+
+function expiringDiscount(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
+  return (1 - expiringRemainingFraction(rule, contract, currentSeason)) * EXPIRING_PENALTY_SCALE;
+}
+
+function expiringDiscountFraction(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
+  return (1 - expiringRemainingFraction(rule, contract, currentSeason)) * EXPIRING_PENALTY_MAX_FRACTION;
 }
 
 export type ValueBasis = "standard" | "real" | "custom";
@@ -174,17 +208,21 @@ export function computeKeeperWeight(policy: string | undefined, totalRosterSlots
   return Math.max(0, Math.min(1, n / totalRosterSlots));
 }
 
-function consensusZOf(p: ResolvedPlayer, consensusPoolSize: number): number | null {
+function consensusZOf(p: ResolvedPlayer, consensusPoolSize: number, rankToValue: RankToValue): number | null {
   if (p.consensusRank == null) return null;
-  return rankToZ(p.consensusRank, consensusPoolSize);
+  return rankToValue(p.consensusRank, consensusPoolSize);
 }
 
 /** Standard-dynasty / consensus-only branch, and the fallback for a
  *  real-salary player the site-wide table doesn't cover. */
-function consensusOnlyValues(players: readonly ResolvedPlayer[], consensusPoolSize: number): Map<string, number> {
+function consensusOnlyValues(
+  players: readonly ResolvedPlayer[],
+  consensusPoolSize: number,
+  rankToValue: RankToValue,
+): Map<string, number> {
   const out = new Map<string, number>();
   for (const p of players) {
-    const z = consensusZOf(p, consensusPoolSize);
+    const z = consensusZOf(p, consensusPoolSize, rankToValue);
     if (z != null) out.set(p.fantraxId, z);
   }
   return out;
@@ -195,13 +233,14 @@ function realSalaryValues(
   rankByFheId: ReadonlyMap<string, number>,
   poolSize: number,
   consensusPoolSize: number,
+  rankToValue: RankToValue,
 ): Map<string, number> {
-  const fallback = consensusOnlyValues(players, consensusPoolSize);
+  const fallback = consensusOnlyValues(players, consensusPoolSize, rankToValue);
   const out = new Map<string, number>();
   for (const p of players) {
     const rank = p.fheId != null ? rankByFheId.get(p.fheId) : undefined;
     if (rank != null) {
-      out.set(p.fantraxId, rankToZ(rank, poolSize));
+      out.set(p.fantraxId, rankToValue(rank, poolSize));
     } else {
       // Not in the site-wide Real Salary pool (e.g. outside FHE's ecosystem)
       // — fall back to consensus rather than dropping the asset entirely.
@@ -226,6 +265,7 @@ function customSalaryValues(
   consensusPoolSize: number,
   contractRules: readonly ContractRule[],
   currentSeason: number,
+  rankToValue: RankToValue,
 ): Map<string, number> {
   const salariedRows = players.filter((p) => p.salary != null);
   const cheapnessRank = rankBy(
@@ -233,6 +273,11 @@ function customSalaryValues(
     ({ p }) => -(p.salary as number),
   );
 
+  // consensusZ/productionZ/salaryZ feed blendScore()'s own internal
+  // weighting (shared with the site-wide /real-salary-rankings model) and
+  // are used ONLY to produce a rank order here — they stay z-scale
+  // (rankToZ) regardless of rankToValue, which applies solely to the FINAL
+  // per-player output a few lines down.
   const rows: (RealSalaryFactors & { rule: ContractRule | null })[] = players.map((p) => {
     const consensusRank = p.consensusRank ?? consensusPoolSize; // no rank -> treat as last place, not a crash
     const rank = cheapnessRank.get(p.fantraxId);
@@ -263,16 +308,26 @@ function customSalaryValues(
     ({ r }) => blendScore(r, r.contractClass === "rookie-scale" ? ROOKIE_SCALE_PRESET : WEIGHT_PRESETS.balanced, 0),
   );
   const rowByFantraxId = new Map(rows.map((r) => [r.playerId, r]));
+  // z-scale (keeper blend): subtract a flat penalty — safe, since a negative
+  // z legitimately means below-replacement and subtraction never flips its
+  // sign. Curve scale (pure dynasty): multiply by a fraction instead — the
+  // curve is always positive, where a flat subtraction would be meaningless
+  // at one end of the curve and destructive at the other (see
+  // EXPIRING_PENALTY_MAX_FRACTION's own doc).
+  const isCurveScale = rankToValue === curveValueAtRank;
   const out = new Map<string, number>();
   for (const p of players) {
     const rank = blendRank.get(p.fantraxId);
     if (rank == null) continue;
-    const z = rankToZ(rank, leaguePoolSize);
+    const value = rankToValue(rank, leaguePoolSize);
     const row = rowByFantraxId.get(p.fantraxId);
     if (row?.rule?.kind === "expiring") {
-      out.set(p.fantraxId, z - expiringDiscount(row.rule, p.contract, currentSeason));
+      const discounted = isCurveScale
+        ? value * (1 - expiringDiscountFraction(row.rule, p.contract, currentSeason))
+        : value - expiringDiscount(row.rule, p.contract, currentSeason);
+      out.set(p.fantraxId, discounted);
     } else {
-      out.set(p.fantraxId, z);
+      out.set(p.fantraxId, value);
     }
   }
   return out;
@@ -288,14 +343,15 @@ function dynastyValues(
   realSalaryPoolSize: number | undefined,
   contractRules: readonly ContractRule[],
   currentSeason: number,
+  rankToValue: RankToValue,
 ): Map<string, number> {
   if (valueBasis === "real" && realSalaryRankByFheId && realSalaryPoolSize) {
-    return realSalaryValues(players, realSalaryRankByFheId, realSalaryPoolSize, consensusPoolSize);
+    return realSalaryValues(players, realSalaryRankByFheId, realSalaryPoolSize, consensusPoolSize, rankToValue);
   }
   if (valueBasis === "custom") {
-    return customSalaryValues(players, categoryFallbackMode, leaguePoolSize, consensusPoolSize, contractRules, currentSeason);
+    return customSalaryValues(players, categoryFallbackMode, leaguePoolSize, consensusPoolSize, contractRules, currentSeason, rankToValue);
   }
-  return consensusOnlyValues(players, consensusPoolSize);
+  return consensusOnlyValues(players, consensusPoolSize, rankToValue);
 }
 
 function redraftValues(
@@ -325,20 +381,24 @@ export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, num
     return redraftValues(players, categoryFallbackMode, redraftBaseMode);
   }
 
-  const dynasty = () => dynastyValues(
+  const dynasty = (rankToValue: RankToValue) => dynastyValues(
     players, valueBasis, categoryFallbackMode, leaguePoolSize, consensusPoolSize,
-    realSalaryRankByFheId, realSalaryPoolSize, contractRules ?? [], currentSeason,
+    realSalaryRankByFheId, realSalaryPoolSize, contractRules ?? [], currentSeason, rankToValue,
   );
 
-  if (leagueType === "dynasty") return dynasty();
+  // A pure dynasty league (100% dynasty weight, nothing to blend against a
+  // z-scored redraft value) uses the List Value curve. A keeper league that
+  // blends dynasty-equivalent values with genuine redraft z-scores below
+  // keeps rankToZ, so the two things being averaged stay on the same scale.
+  if (leagueType === "dynasty") return dynasty(curveValueAtRank);
 
   // Keeper: blend redraft and dynasty-equivalent values by keeperWeight.
   const weight = computeKeeperWeight(keeperPolicy, totalRosterSlots);
   if (weight <= 0) return redraftValues(players, categoryFallbackMode, redraftBaseMode);
-  if (weight >= 1) return dynasty();
+  if (weight >= 1) return dynasty(curveValueAtRank);
 
   const redraft = redraftValues(players, categoryFallbackMode, redraftBaseMode);
-  const dyn = dynasty();
+  const dyn = dynasty(rankToZ);
   const out = new Map<string, number>();
   for (const p of players) {
     const r = redraft.get(p.fantraxId);
