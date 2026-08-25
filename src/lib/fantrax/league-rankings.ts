@@ -2,11 +2,11 @@ import "server-only";
 import { getCachedLeagueAnalysis } from "./league-cache";
 import type { FantraxDatasetKey } from "./resolve";
 import type { ResolvedPlayer } from "./analyze";
-import type { TeamDraftPick } from "./league";
+import type { FheCategory, TeamDraftPick } from "./league";
 import type { LeagueType, SalaryFormat } from "./league-tags";
-import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId } from "./roster-edge";
-import { computeBaseTradeValues } from "./trade-value";
-import { pickEquivalentValue } from "./trade-verdict";
+import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, getSophomoreByFheId } from "./roster-edge";
+import { computeBaseTradeValues, computeKeeperWeight } from "./trade-value";
+import { CATEGORIES_PICK_TIERS, pickEquivalentValue } from "./trade-verdict";
 import { playerIdentity } from "../player-identity/bundled";
 import { createAdminClient } from "../../utils/supabase/admin";
 import { getCustomValuations } from "./custom-valuations-store";
@@ -54,6 +54,11 @@ export interface AssetRow {
   pos: string | null;
   nbaTeam: string | null;
   isRookie: boolean;
+  /** True for a player in their SECOND NBA season — same
+   *  getSophomoreByFheId() signal Trade Edge's own asset-tier coloring
+   *  reads (roster-table.tsx's playerAssetTier). False (never null) for a
+   *  pick — a draft asset has no season count of its own. */
+  isSophomore: boolean;
   owner: string;
   salary: number | null;
   contract: string | null;
@@ -69,6 +74,13 @@ export interface AssetRow {
   minus1V: number | null;
   fpts: number | null;
   pickYear: number | null;
+  /** Per-game raw category stats (PTS/FG3/REB/AST/STL/BLK/FG%/FT%/TO) — the
+   *  same shape ResolvedPlayer.cats already carries for a rostered player,
+   *  copied straight across; for a free agent, built from season_player_stats'
+   *  own raw columns (rostered players never touch this query, so there's no
+   *  double-source risk of the two disagreeing for the same player). Empty
+   *  for a pick — a draft asset has no box score. */
+  cats: Partial<Record<FheCategory, number>>;
 }
 
 export interface RankedValue {
@@ -84,6 +96,13 @@ export interface LeagueRankingsResult {
   salaryFormat: SalaryFormat;
   positionSlots: Record<string, number>;
   family: "categories" | "points";
+  /** Whichever basis Trade Edge is ACTUALLY pricing this league's assets
+   *  with right now, per its own settings (useCustomValuations /
+   *  useGeneratedPickValues / leagueType / salaryFormat / keeper blend
+   *  weight) — the client highlights this tab so "which of these four
+   *  numbers is the real one elsewhere in the app" is never a guess (Ash,
+   *  2026-08-25). */
+  activeBasis: RankingsBasis;
 }
 
 /** Only the settings fields this module actually reads — narrower than the
@@ -98,6 +117,8 @@ export interface LeagueRankingsSettings {
   realSalaryEfficiencyWeight: number | undefined;
   contractRules: SavedLeagueSettings["contractRules"];
   rookieSalaryScale: SavedLeagueSettings["rookieSalaryScale"];
+  useCustomValuations: boolean | undefined;
+  useGeneratedPickValues: boolean | undefined;
 }
 
 export interface LeagueRankingsInput {
@@ -135,10 +156,11 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   const rostered: ResolvedPlayer[] = analysis.rosters.flatMap((r) => r.players);
   const admin = createAdminClient();
 
-  const [salaryRank, contractByFheId, ageByFheId, customDoc] = await Promise.all([
+  const [salaryRank, contractByFheId, ageByFheId, sophomoreByFheId, customDoc] = await Promise.all([
     getSalaryRankByFheId(),
     getContractByFheId(),
     getAgeByFheId(),
+    getSophomoreByFheId(),
     getCustomValuations(owner, leagueId),
   ]);
   const salaryRankByFheId = salaryRank.rankByFheId;
@@ -177,14 +199,14 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
         .in("player_id", espnIds),
       admin
         .from("season_player_stats")
-        .select("player_id,g,mpg")
+        .select("player_id,g,mpg,pts,fg3m,reb,ast,stl,blk,tov,fg_pct,ft_pct")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
         .in("player_id", espnIds),
     ]);
     if (error) throw new Error(error.message);
     if (statError) throw new Error(statError.message);
     const valueByEspnId = new Map((svRows ?? []).map((r) => [r.player_id as string, { nineCatV: r.value as number | null, minus1V: r.minus1v as number | null }]));
-    const statByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, { g: r.g as number | null, mpg: r.mpg as number | null }]));
+    const statByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, r]));
     for (const fa of rawFAs) {
       const espnId = espnIdByFantraxId.get(fa.fantraxId);
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
@@ -192,10 +214,15 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const v = valueByEspnId.get(espnId);
       if (!v || v.nineCatV == null) continue;
       const stat = statByEspnId.get(espnId);
+      const cats: Partial<Record<FheCategory, number>> = stat ? {
+        PTS: stat.pts ?? undefined, FG3: stat.fg3m ?? undefined, REB: stat.reb ?? undefined,
+        AST: stat.ast ?? undefined, STL: stat.stl ?? undefined, BLK: stat.blk ?? undefined,
+        FG: stat.fg_pct ?? undefined, FT: stat.ft_pct ?? undefined, TO: stat.tov ?? undefined,
+      } : {};
       faPlayers.push({
         fantraxId: fa.fantraxId, name: fa.name, slot: "FA", eligible: fa.eligible ?? [],
         nbaTeam: fa.nbaTeam ?? "", status: "FA", salary: null, contract: null,
-        playerId: espnId, fheId: fheId ?? null, source: "projection", cats: {}, catsTotals: {},
+        playerId: espnId, fheId: fheId ?? null, source: "projection", cats, catsTotals: {},
         leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
         gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: null, statLine: null,
         catV: { perGame: { nineCatV: v.nineCatV, minus1V: v.minus1V, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
@@ -257,6 +284,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     assets.push({
       key: p.fantraxId, kind: "player", name: p.name, fantraxId: p.fantraxId,
       pos: p.eligible?.join("/") || null, nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
+      isSophomore: p.fheId ? sophomoreByFheId[p.fheId] ?? false : false,
       owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
       salary: p.salary ?? (salaryFormat === "real" && p.fheId ? contractByFheId[p.fheId]?.currentSalary ?? null : null),
       contract: salaryFormat === "real" && p.fheId
@@ -269,13 +297,23 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       gamesPlayed: p.gamesPlayed ?? null, minutesPerGame: p.minutesPerGame ?? null, usgPct: p.usgPct ?? null,
       nineCatV: p.catV?.perGame.nineCatV ?? null, eightCatV: p.catV?.perGame.eightCatV ?? null,
       minus1V: p.catV?.perGame.minus1V ?? null, fpts: p.pointsValue ?? null,
-      pickYear: null,
+      pickYear: null, cats: p.cats ?? {},
     });
   }
+
+  // draftYear = the soonest year any team holds a pick for — the imminent,
+  // already-slotted draft class (same convention custom-valuations.ts uses).
+  // Only picks in THIS year get an individual, team-owned row below; every
+  // later year collapses into shared tier buckets (see the bracket loop
+  // further down) — Ash, 2026-08-25: "for future draft assets... grouping
+  // those assets into buckets and not assigning them to league teams."
+  const allPickYears = analysis.league.rosters.flatMap((r) => r.draftPicks.map((p) => p.year));
+  const draftYear = allPickYears.length > 0 ? Math.min(...allPickYears) : new Date().getFullYear();
 
   const seenPick = new Set<string>();
   for (const r of analysis.league.rosters) {
     for (const pick of r.draftPicks) {
+      if (pick.year !== draftYear) continue;
       const key = `${r.teamId}:${pick.year}:${pick.round}:${pick.overallPick ?? "R"}`;
       if (seenPick.has(key)) continue;
       seenPick.add(key);
@@ -287,18 +325,64 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const customVal = ledgerVal ?? standardVal;
       assets.push({
         key, kind: "pick", name: pickLabel(pick), fantraxId: null,
-        pos: null, nbaTeam: null, isRookie: false, owner: r.teamName,
+        pos: null, nbaTeam: null, isRookie: false, isSophomore: false, owner: r.teamName,
         salary: pick.overallPick != null ? salaryForPick(settings.rookieSalaryScale, pick.overallPick) : null,
         contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
         gamesPlayed: null, minutesPerGame: null, usgPct: null,
         nineCatV: null, eightCatV: null, minus1V: null, fpts: null,
-        pickYear: pick.year,
+        pickYear: pick.year, cats: {},
       });
       if (standardVal != null) standardMap.set(key, standardVal);
       if (realVal != null) realMap.set(key, realVal);
       if (customVal != null) customMap.set(key, customVal);
     }
   }
+
+  // Future years: one row per (year, tier) BUCKET, not per real team pick —
+  // e.g. "2027 #1-3" once, covering every team's pick in that range, instead
+  // of 30 nearly-identical individually-owned rows nobody can actually slot
+  // yet (a future draft order isn't set). Reuses pickEquivalentValue against
+  // a synthetic representative pick at the tier's own minPick — same
+  // ratio-transplant + year-decay math a real pick in that slot would get,
+  // just not attached to any one team. "Custom" has no real ledger anchor
+  // for a bucket that was never a real, individually-priced pick, so it
+  // falls back to the standard number, same overlay convention as everywhere
+  // else in this file.
+  const bracketYears = [...new Set(
+    analysis.league.rosters.flatMap((r) => r.draftPicks.map((p) => p.year)).filter((y) => y > draftYear),
+  )].sort((a, b) => a - b);
+  const tiers = CATEGORIES_PICK_TIERS[2027] ?? [];
+  for (const year of bracketYears) {
+    for (const tier of tiers) {
+      const synthetic: TeamDraftPick = { year, round: 1, overallPick: tier.minPick, originalOwnerLabel: null };
+      const standardVal = pickEquivalentValue(synthetic, corePlayers, standardMap, family);
+      const realVal = pickEquivalentValue(synthetic, corePlayers, realMap, family);
+      if (standardVal == null && realVal == null) continue;
+      const key = `bracket:${year}:${tier.minPick}-${tier.maxPick}`;
+      assets.push({
+        key, kind: "pick", name: `${year} #${tier.minPick}-${tier.maxPick}`, fantraxId: null,
+        pos: null, nbaTeam: null, isRookie: false, isSophomore: false, owner: "—",
+        salary: null, contract: null, dynRank: null, salaryRank: null, age: null, trendTag: null,
+        gamesPlayed: null, minutesPerGame: null, usgPct: null,
+        nineCatV: null, eightCatV: null, minus1V: null, fpts: null,
+        pickYear: year, cats: {},
+      });
+      if (standardVal != null) standardMap.set(key, standardVal);
+      if (realVal != null) realMap.set(key, realVal);
+      customMap.set(key, standardVal ?? realVal!);
+    }
+  }
+
+  // Whichever basis Trade Edge is actually pricing this league with right
+  // now — see LeagueRankingsResult.activeBasis's own doc.
+  const activeBasis: RankingsBasis = (() => {
+    if (settings.useCustomValuations || settings.useGeneratedPickValues) return "custom";
+    if (leagueType === "redraft") return "redraft";
+    if (leagueType === "dynasty") return settings.salaryFormat === "real" ? "real" : "standard";
+    const weight = computeKeeperWeight(settings.keeperPolicy, totalRosterSlots);
+    if (weight >= 0.5) return settings.salaryFormat === "real" ? "real" : "standard";
+    return "redraft";
+  })();
 
   return {
     assets,
@@ -313,5 +397,6 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     salaryFormat,
     positionSlots: analysis.league.positionSlots ?? {},
     family,
+    activeBasis,
   };
 }

@@ -163,6 +163,16 @@ export const CATEGORIES_PICK_TIERS: Record<number, PickTier[]> = {
     { minPick: 23, maxPick: 30, ratio: 55 / 1590 },
     { minPick: 31, maxPick: 39, ratio: 40 / 1590 },
     { minPick: 40, maxPick: 60, ratio: 20 / 1590 },
+    // 3rd/4th-round bucket — a dynasty league whose rookie draft runs past
+    // 2 rounds (some draft rookies AND free agents in the same event) can
+    // hold a real pick past #60. Without this, ratioForPick's fallback
+    // (averageRatioForRound) finds ZERO tiers overlapping that round and
+    // silently prices the pick at ratio 0 — not a missing number, a WRONG
+    // one (Ash, 2026-08-25: "i added an extra bucket for leagues where
+    // draft picks go to 4 rounds... draft picks exceed pick 60"). Ratio
+    // continues this table's own exact halving pattern (40->20 was already
+    // an exact half; 20->10 matches it), same convention as the 2027 row.
+    { minPick: 61, maxPick: 100, ratio: 10 / 1590 },
   ],
   2027: [
     { minPick: 1, maxPick: 3, ratio: 500 / 1590 },
@@ -172,6 +182,7 @@ export const CATEGORIES_PICK_TIERS: Record<number, PickTier[]> = {
     { minPick: 19, maxPick: 29, ratio: 55 / 1590 },
     { minPick: 30, maxPick: 45, ratio: 40 / 1590 },
     { minPick: 46, maxPick: 60, ratio: 20 / 1590 },
+    { minPick: 61, maxPick: 100, ratio: 10 / 1590 }, // see the 2026 row's own doc above
   ],
 };
 
@@ -187,6 +198,7 @@ const POINTS_PICK_TIERS: Record<number, PickTier[]> = {
     { minPick: 23, maxPick: 30, ratio: 130 / 1777.8273512041 },
     { minPick: 31, maxPick: 39, ratio: 80 / 1777.8273512041 },
     { minPick: 40, maxPick: 60, ratio: 40 / 1777.8273512041 },
+    { minPick: 61, maxPick: 100, ratio: 20 / 1777.8273512041 }, // see CATEGORIES_PICK_TIERS' own doc on this 3rd/4th-round bucket
   ],
   2027: [
     { minPick: 1, maxPick: 3, ratio: 500 / 1777.8273512041 },
@@ -196,6 +208,7 @@ const POINTS_PICK_TIERS: Record<number, PickTier[]> = {
     { minPick: 19, maxPick: 29, ratio: 150 / 1777.8273512041 },
     { minPick: 30, maxPick: 45, ratio: 80 / 1777.8273512041 },
     { minPick: 46, maxPick: 60, ratio: 40 / 1777.8273512041 },
+    { minPick: 61, maxPick: 100, ratio: 20 / 1777.8273512041 },
   ],
 };
 

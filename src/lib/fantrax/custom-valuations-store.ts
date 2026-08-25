@@ -149,3 +149,25 @@ export async function saveCustomValuations(
   await writeLocal(all);
   return saved;
 }
+
+/** "Reset" — clears the cached ledger entirely (no doc, not an empty one),
+ *  so getCustomValuations goes back to reporting "never generated" and the
+ *  league falls back to standard values everywhere until the user runs
+ *  Generate again. Ash, 2026-08-25: "give an option to reset those values...
+ *  user can run, reset or run again at any point." A no-op (not an error)
+ *  when nothing was cached to begin with. */
+export async function deleteCustomValuations(owner: string, leagueId: string): Promise<void> {
+  if (FX_SUPABASE_ENABLED) {
+    const { error } = await serviceClient()
+      .from("fx_custom_valuations")
+      .delete()
+      .eq("owner", owner)
+      .eq("league_id", leagueId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  const all = await readLocal();
+  if (!all[owner]) return;
+  delete all[owner][leagueId];
+  await writeLocal(all);
+}
