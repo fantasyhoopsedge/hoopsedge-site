@@ -49,11 +49,16 @@ export async function GET(request: Request) {
   }
   const contractRules = parseJsonParam<ContractRule[]>("contractRules");
   const rookieSalaryScale = parseJsonParam<RookieSalaryTier[]>("rookieSalaryScale");
+  const useCustomValuations = searchParams.get("useCustomValuations") === "1";
+  const useGeneratedPickValues = searchParams.get("useGeneratedPickValues") === "1";
 
   try {
     const result = await computeLeagueRankings({
       leagueId, owner: auth.access.owner, teamId, dataset, leagueType,
-      settings: { salaryFormat, keeperPolicy, realSalaryEfficiencyWeight, contractRules, rookieSalaryScale },
+      settings: {
+        salaryFormat, keeperPolicy, realSalaryEfficiencyWeight, contractRules, rookieSalaryScale,
+        useCustomValuations, useGeneratedPickValues,
+      },
     });
     return NextResponse.json(result);
   } catch (err) {

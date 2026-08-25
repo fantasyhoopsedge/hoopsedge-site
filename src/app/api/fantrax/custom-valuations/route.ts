@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
 import { computeCustomLedger, computePickValuesLedger } from "@/lib/fantrax/custom-valuations";
-import { getCustomValuations, saveCustomValuations } from "@/lib/fantrax/custom-valuations-store";
+import { deleteCustomValuations, getCustomValuations, saveCustomValuations } from "@/lib/fantrax/custom-valuations-store";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
 import type { SavedLeagueSettings } from "@/lib/fantrax/store";
 
@@ -12,6 +12,12 @@ import type { SavedLeagueSettings } from "@/lib/fantrax/store";
  *
  *   GET  ?leagueId=… — read the cached ledger only, never recomputes (same
  *        read-only contract as getLiveBoard() for the rookie board).
+ *   DELETE ?leagueId=… — "Reset": clears the cached ledger entirely (Ash,
+ *        2026-08-25: "give an option to reset those values... user can run,
+ *        reset or run again at any point"). The CALLER still has to flip
+ *        useCustomValuations/useGeneratedPickValues back off via
+ *        /api/fantrax/saved — this endpoint only clears the generated data,
+ *        it doesn't touch league settings.
  *   POST { leagueId, teamId, dataset, settings, mode? } — the "Regenerate"
  *        action: runs computeCustomLedger() fresh and overwrites the cached
  *        row. `mode: "picksOnly"` (Ash, 2026-08-25: "a new button on the
@@ -39,6 +45,22 @@ export async function GET(request: Request) {
   try {
     const doc = await getCustomValuations(auth.access.owner, leagueId);
     return NextResponse.json({ doc });
+  } catch (err) {
+    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const auth = await authorizeFantrax();
+  if (!auth.ok) return auth.response;
+
+  const leagueId = (new URL(request.url).searchParams.get("leagueId") ?? "").trim();
+  if (!isLeagueId(leagueId)) {
+    return NextResponse.json({ error: "A valid leagueId is required." }, { status: 400 });
+  }
+  try {
+    await deleteCustomValuations(auth.access.owner, leagueId);
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
   }

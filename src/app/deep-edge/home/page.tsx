@@ -138,6 +138,34 @@ function HomeHubContent() {
       .finally(() => setPickValuesBusy(false));
   }
 
+  // "Reset" — clears the cached ledger AND flips the matching settings flag
+  // back off, so the league falls back to standard values everywhere and
+  // reads as "not generated" again, not as "generated but ignored" (Ash,
+  // 2026-08-25: "user can run, reset or run again at any point and user will
+  // always know what is active"). `flag` names which opt-in this reset is
+  // for — resetting one never touches the other, since a league only ever
+  // has one of the two active at a time (see isDynastyOrKeeper block's own
+  // doc on why they're mutually exclusive in the UI).
+  const [resetBusy, setResetBusy] = useState(false);
+  function resetGeneratedValues(flag: "useCustomValuations" | "useGeneratedPickValues") {
+    if (!league || resetBusy) return;
+    setResetBusy(true);
+    fetch(`/api/fantrax/custom-valuations?leagueId=${encodeURIComponent(league.leagueId)}`, { method: "DELETE" })
+      .then(() => fetch("/api/fantrax/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leagueId: league.leagueId, leagueName: league.leagueName, teamId: league.teamId, teamName: league.teamName,
+          settings: { ...league.settings, [flag]: false },
+        }),
+      }))
+      .then(async () => {
+        setLedgerDoc(null);
+        await refresh();
+      })
+      .finally(() => setResetBusy(false));
+  }
+
   return (
     <HubShell
       hasLeague={hasLeague}
@@ -286,16 +314,32 @@ function HomeHubContent() {
               ) : (
                 <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet — this league is still showing standard values</span>
               )}
-              <Link
-                href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
-                style={{
-                  marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
-                  background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
-                  display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
-                }}
-              >
-                {ledgerDoc ? "View & regenerate" : "Generate now"}
-              </Link>
+              <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                <Link
+                  href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
+                  style={{
+                    height: 32, padding: "0 16px", borderRadius: 100, border: "none",
+                    background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
+                    display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
+                  }}
+                >
+                  {ledgerDoc ? "View & regenerate" : "Generate now"}
+                </Link>
+                {ledgerDoc && (
+                  <button
+                    type="button"
+                    disabled={resetBusy}
+                    onClick={() => resetGeneratedValues("useCustomValuations")}
+                    style={{
+                      height: 32, padding: "0 16px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
+                      background: "transparent", color: "var(--rt-down)", fontWeight: 700, fontSize: 12.5,
+                      cursor: resetBusy ? "default" : "pointer", whiteSpace: "nowrap",
+                    }}
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -329,16 +373,32 @@ function HomeHubContent() {
                   ) : (
                     <span style={{ fontSize: 12.5, color: "var(--rt-down)" }}>⚠ Not generated yet</span>
                   )}
-                  <Link
-                    href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
-                    style={{
-                      marginLeft: "auto", height: 32, padding: "0 16px", borderRadius: 100, border: "none",
-                      background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
-                      display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
-                    }}
-                  >
-                    {ledgerDoc ? "View & regenerate" : "Generate now"}
-                  </Link>
+                  <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                    <Link
+                      href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(league.leagueId)}`}
+                      style={{
+                        height: 32, padding: "0 16px", borderRadius: 100, border: "none",
+                        background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 12.5,
+                        display: "inline-flex", alignItems: "center", textDecoration: "none", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {ledgerDoc ? "View & regenerate" : "Generate now"}
+                    </Link>
+                    {ledgerDoc && (
+                      <button
+                        type="button"
+                        disabled={resetBusy}
+                        onClick={() => resetGeneratedValues("useGeneratedPickValues")}
+                        style={{
+                          height: 32, padding: "0 16px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
+                          background: "transparent", color: "var(--rt-down)", fontWeight: 700, fontSize: 12.5,
+                          cursor: resetBusy ? "default" : "pointer", whiteSpace: "nowrap",
+                        }}
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
