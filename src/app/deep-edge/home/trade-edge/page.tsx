@@ -1224,7 +1224,11 @@ function TradeEdgeContent() {
   }, [saved]);
 
   useEffect(() => {
-    if (!saved?.settings.useCustomValuations) {
+    // Fetched whenever EITHER opt-in is on — full custom valuations, or the
+    // standard-league "generate draft pick values" flow (Ash, 2026-08-25).
+    // Which one the fetched doc actually IS (doc.mode) still gates what it's
+    // allowed to feed below — see baseValueByFantraxId's own doc.
+    if (!saved?.settings.useCustomValuations && !saved?.settings.useGeneratedPickValues) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived state when the league/toggle this effect depends on changes, not a plain render-time computation (same pattern as this file's own teamBId resetKey guard above)
       setCustomLedger(null);
       return;
@@ -1233,7 +1237,7 @@ function TradeEdgeContent() {
       .then((r) => r.json())
       .then((d) => setCustomLedger(d.doc ?? null))
       .catch(() => setCustomLedger(null));
-  }, [saved?.leagueId, saved?.settings.useCustomValuations]);
+  }, [saved?.leagueId, saved?.settings.useCustomValuations, saved?.settings.useGeneratedPickValues]);
 
   const derivedFormat = useMemo(() => {
     if (!analysis || !saved) return null;
@@ -1427,7 +1431,13 @@ function TradeEdgeContent() {
   // a custom pick's verdict contribution inherits the custom PLAYER floor
   // even though its own displayed rank comes from the ledger directly.
   const baseValueByFantraxId = useMemo(() => {
-    if (!customLedger) return defaultBaseValueByFantraxId;
+    // A picksOnly doc (the standard-league "generate draft pick values"
+    // flow) carries no player/FA rows at all — every row is type "pick"
+    // with fantraxId null — so this loop is naturally a no-op for one. The
+    // mode check is still explicit rather than implicit: never let a
+    // picks-only generation silently start overriding player base values
+    // just because a future picksOnly doc happened to carry a fantraxId.
+    if (!customLedger || customLedger.mode === "picksOnly") return defaultBaseValueByFantraxId;
     const merged = new Map(defaultBaseValueByFantraxId);
     for (const row of customLedger.rows) {
       if (row.fantraxId) merged.set(row.fantraxId, row.tradeValue);
@@ -1733,7 +1743,11 @@ function TradeEdgeContent() {
                     ? customLedger
                       ? "Reading base value from this league's own custom asset ledger."
                       : "Custom valuations are on for this league, but nothing's been generated yet."
-                    : "Value your league's own assets — real dynasty rank per pick, house contract rules."}
+                    : saved.settings.useGeneratedPickValues
+                      ? customLedger
+                        ? "Draft picks priced from this league's own generated pick values; players stay on standard values."
+                        : "Draft pick values are on for this league, but nothing's been generated yet."
+                      : "Value your league's own assets — real dynasty rank per pick, house contract rules."}
                   <Link
                     href={`/deep-edge/home/trade-edge/asset-values?league=${encodeURIComponent(saved.leagueId)}`}
                     style={{ fontWeight: 600, color: "var(--rt-primary)", textDecoration: "none" }}

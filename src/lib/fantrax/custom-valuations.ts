@@ -1,7 +1,7 @@
 import "server-only";
 import { getCachedLeagueAnalysis } from "./league-cache";
 import type { FantraxDatasetKey } from "./resolve";
-import type { ResolvedPlayer } from "./analyze";
+import type { LeagueAnalysis, ResolvedPlayer } from "./analyze";
 import type { TeamDraftPick } from "./league";
 import type { ContractRule, LeagueType, RookieSalaryTier, SalaryFormat } from "./league-tags";
 import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, type ContractInfo } from "./roster-edge";
@@ -224,6 +224,12 @@ export interface CustomLedgerResult {
   pickCount: number;
   extraPickCount: number;
   rows: LedgerRow[];
+  /** "full" = every rostered player/FA/pick revalued (computeCustomLedger);
+   *  "picksOnly" = draft-pick values alone, generated for a league that
+   *  otherwise reads standard base values (computePickValuesLedger below) —
+   *  see CustomValuationsDoc.mode's own doc for how a consumer must gate on
+   *  this. */
+  mode: "full" | "picksOnly";
   realSalaryEfficiencyWeight: number | null;
 }
 
@@ -310,7 +316,139 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     }
   }
 
-  // ── current-year picks: rookie board's own candidate pool, sorted by REAL ──
+  const teamNameByPlayerFantraxId = new Map<string, string>();
+  for (const r of analysis.rosters) for (const p of r.players) teamNameByPlayerFantraxId.set(p.fantraxId, r.teamName);
+
+  const currentSeason = Number(dataset.split(":")[0]) || REAL_SALARY_SEASON;
+  // rawBaseValueByFantraxId comes back from buildPickAssetRows itself — it's
+  // computeBaseTradeValues' own output over the FULL candidate pool
+  // (rostered + FA + synthesized picks together), the same single call the
+  // pre-refactor version made once and read for both players AND picks.
+  // Recomputing a second time over rostered+FA ALONE would be wrong for
+  // valueBasis "custom": customSalaryValues ranks players POOL-RELATIVELY
+  // (rankBy against whatever's in the array), so dropping ~60 pick
+  // candidates from that array would shift every real player's rank (and
+  // therefore value) versus the original combined computation — reusing
+  // this map instead of a fresh, narrower call is what keeps player values
+  // byte-identical to before this function was split in two.
+  const { rows: pickRows, pickCount, extraPickCount, rawBaseValueByFantraxId } = buildPickAssetRows({
+    analysis, corePlayers: [...rostered, ...faPlayers], dynastyRankByFheId, idx, rookieSalaryScale,
+    leagueType, valueBasis, categoryFallbackMode, consensusPoolSize, realSalaryRankByFheId, realSalaryPoolSize,
+    keeperPolicy, contractRules, currentSeason,
+  });
+
+  // Durability discount — real players only (rostered + free agents), never
+  // a rookie-pick placeholder (no age/games history to discount, and a
+  // prospect's own risk is already what the pick-value curve prices). Uses
+  // this league's own TOTAL roster capacity (maxTotalPlayers), not the
+  // active-lineup totalRosterSlots buildPickAssetRows computed for the
+  // computeBaseTradeValues call above — the discount is about whether the
+  // league can even afford to CARRY a risky asset on the bench, not whether
+  // he'd start every night.
+  const baseValueByFantraxId = new Map(rawBaseValueByFantraxId);
+  for (const p of [...rostered, ...faPlayers]) {
+    const raw = baseValueByFantraxId.get(p.fantraxId);
+    if (raw == null) continue;
+    const age = p.fheId ? ageByFheId[p.fheId] : undefined;
+    const multiplier = durabilityMultiplier(age, p.gamesPlayed, analysis.league.maxTotalPlayers);
+    if (multiplier < 1) baseValueByFantraxId.set(p.fantraxId, applyDurabilityDiscount(raw, multiplier));
+  }
+
+  const rows: LedgerRow[] = [];
+  for (const p of [...rostered, ...faPlayers]) {
+    const v = baseValueByFantraxId.get(p.fantraxId);
+    if (v == null) continue;
+    const dynRank = p.fheId ? dynastyRankByFheId[p.fheId] ?? null : null;
+    // Real-salary league: the real years/dollars-remaining contract (null
+    // only when the site-wide contract table itself has nothing for him — a
+    // genuinely unsigned/undrafted player). Custom-salary (or no salary
+    // data): Fantrax's own raw contract-label field, unchanged.
+    const realContractInfo = p.fheId ? contractByFheId[p.fheId] : undefined;
+    const contract = salaryFormat === "real" ? formatRealContractLabel(realContractInfo) : (p.contract ?? null);
+    // Fantrax's own roster salary (p.salary) is null for anyone NOT
+    // currently rostered in THIS league — true for every free agent
+    // regardless of format, so it silently blanked SALARY for the whole FA
+    // list even though CONTRACT (above) already had his real current-season
+    // salary sitting right there (Ash, 2026-08-24: "free agents salary is
+    // missing"). Falls back to that same real figure for a real-salary
+    // league; a custom-salary league has no such site-wide fallback to
+    // offer, so an unrostered player there still correctly shows nothing.
+    const salary = p.salary ?? (salaryFormat === "real" ? realContractInfo?.currentSalary ?? null : null);
+    rows.push({
+      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null,
+      pos: posDisplayForLedger(p.eligible || [], analysis.league.positionSlots) || null,
+      nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
+      dynRank, tradeValue: v, tradeRank: null,
+      salary, contract,
+      owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
+    });
+  }
+  rows.push(...pickRows);
+
+  rows.sort((a, b) => b.tradeValue - a.tradeValue);
+  rows.forEach((r, i) => { r.tradeRank = i + 1; });
+
+  return {
+    playerCount: rows.filter((r) => r.type === "player").length,
+    pickCount,
+    extraPickCount,
+    rows,
+    mode: "full",
+    realSalaryEfficiencyWeight: salaryFormat === "real" ? (input.realSalaryEfficiencyWeight ?? DEFAULT_EFFICIENCY_WEIGHT) : null,
+  };
+}
+
+/**
+ * The pick-only half of computeCustomLedger — extracted so a STANDARD
+ * (non-custom-valuation) dynasty/keeper league can generate the SAME real,
+ * individually-slotted pick values (current-year picks anonymized to real
+ * prospects at real dynasty-consensus rank, future years sign-aware-decayed
+ * off that same curve) without pulling in the rest of the custom ledger
+ * (durability discount, custom-salary contract rules, per-league efficiency
+ * weight — all genuinely custom-VALUATION concerns a standard league opts
+ * out of by definition). Called by both computeCustomLedger (`corePlayers`
+ * = this league's real rostered + FA pool, so a synthesized pick competes
+ * for base value against real players exactly as before) and
+ * computePickValuesLedger below (`corePlayers` = [] — see that function's
+ * own doc for why an empty pool is still correct there).
+ */
+interface PickAssetRowsInput {
+  analysis: LeagueAnalysis;
+  corePlayers: ResolvedPlayer[];
+  dynastyRankByFheId: Record<string, number>;
+  idx: ReturnType<typeof playerIdentity>;
+  rookieSalaryScale: RookieSalaryTier[] | undefined;
+  leagueType: LeagueType;
+  valueBasis: ValueBasis;
+  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">;
+  consensusPoolSize: number;
+  realSalaryRankByFheId: Map<string, number>;
+  realSalaryPoolSize: number;
+  keeperPolicy: string | undefined;
+  contractRules: ContractRule[] | undefined;
+  currentSeason: number;
+}
+interface PickAssetRowsResult {
+  rows: LedgerRow[];
+  pickCount: number;
+  extraPickCount: number;
+  /** computeBaseTradeValues' own output over the full corePlayers+pick pool
+   *  — handed back so a caller with its own corePlayers (computeCustomLedger)
+   *  can price ITS OWN player rows off the exact same computation, rather
+   *  than running a second, narrower one that would (for valueBasis
+   *  "custom" specifically) rank players against a different pool and so
+   *  disagree with this function's own pick values. See computeCustomLedger's
+   *  own call site for why that matters. */
+  rawBaseValueByFantraxId: Map<string, number>;
+}
+function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
+  const {
+    analysis, corePlayers, dynastyRankByFheId, idx, rookieSalaryScale, leagueType, valueBasis,
+    categoryFallbackMode, consensusPoolSize, realSalaryRankByFheId, realSalaryPoolSize, keeperPolicy,
+    contractRules, currentSeason,
+  } = input;
+
+  // current-year picks: rookie board's own candidate pool, sorted by REAL
   // dynasty consensus rank (not the board's own internal 1-N ordering — see
   // trade-value.ts's module doc for why those two disagree player-for-player).
   // draftYear = the SOONEST year any team holds a pick for — real draft-pick
@@ -351,37 +489,15 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     } as unknown as ResolvedPlayer);
   });
 
-  const teamNameByPlayerFantraxId = new Map<string, string>();
-  for (const r of analysis.rosters) for (const p of r.players) teamNameByPlayerFantraxId.set(p.fantraxId, r.teamName);
   const teamNameByTeamId = new Map(analysis.league.rosters.map((r) => [r.teamId, r.teamName]));
-
-  const allCandidates = [...rostered, ...faPlayers, ...pickPlayers];
   const totalRosterSlots = Object.values(analysis.league.positionSlots ?? {}).reduce((a, b) => a + b, 0);
   const leaguePoolSize = analysis.league.poolSize;
-
-  const currentSeason = Number(dataset.split(":")[0]) || REAL_SALARY_SEASON;
   const rawBaseValueByFantraxId = computeBaseTradeValues({
-    players: allCandidates, leagueType, valueBasis, categoryFallbackMode,
+    players: [...corePlayers, ...pickPlayers], leagueType, valueBasis, categoryFallbackMode,
     redraftBaseMode: "native", leaguePoolSize, consensusPoolSize,
     realSalaryRankByFheId, realSalaryPoolSize, keeperPolicy, totalRosterSlots,
     contractRules, currentSeason,
   });
-
-  // Durability discount — real players only (rostered + free agents), never
-  // a rookie-pick placeholder (no age/games history to discount, and a
-  // prospect's own risk is already what the pick-value curve prices). Uses
-  // this league's own TOTAL roster capacity (maxTotalPlayers), not the
-  // active-lineup totalRosterSlots above — the discount is about whether the
-  // league can even afford to CARRY a risky asset on the bench, not whether
-  // he'd start every night.
-  const baseValueByFantraxId = new Map(rawBaseValueByFantraxId);
-  for (const p of [...rostered, ...faPlayers]) {
-    const raw = baseValueByFantraxId.get(p.fantraxId);
-    if (raw == null) continue;
-    const age = p.fheId ? ageByFheId[p.fheId] : undefined;
-    const multiplier = durabilityMultiplier(age, p.gamesPlayed, analysis.league.maxTotalPlayers);
-    if (multiplier < 1) baseValueByFantraxId.set(p.fantraxId, applyDurabilityDiscount(raw, multiplier));
-  }
 
   // Running clamp: guarantees pick order == value order using only real,
   // pool-comparable signal — no external reference-table floor (see
@@ -391,7 +507,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
   let runningCap = Infinity;
   for (let overallPick = 1; overallPick <= topN.length; overallPick++) {
     const fid = pickPlayerFantraxIdByOverallPick.get(overallPick);
-    const raw = fid ? baseValueByFantraxId.get(fid) ?? null : null;
+    const raw = fid ? rawBaseValueByFantraxId.get(fid) ?? null : null;
     if (raw == null) {
       pickValues.push(pickValues.length > 0 ? pickValues[pickValues.length - 1] : null);
       continue;
@@ -402,36 +518,6 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
   }
   const pickValueFor = (overallPick: number): number | null => pickValues[overallPick - 1] ?? null;
 
-  const rows: LedgerRow[] = [];
-  for (const p of [...rostered, ...faPlayers]) {
-    const v = baseValueByFantraxId.get(p.fantraxId);
-    if (v == null) continue;
-    const dynRank = p.fheId ? dynastyRankByFheId[p.fheId] ?? null : null;
-    // Real-salary league: the real years/dollars-remaining contract (null
-    // only when the site-wide contract table itself has nothing for him — a
-    // genuinely unsigned/undrafted player). Custom-salary (or no salary
-    // data): Fantrax's own raw contract-label field, unchanged.
-    const realContractInfo = p.fheId ? contractByFheId[p.fheId] : undefined;
-    const contract = salaryFormat === "real" ? formatRealContractLabel(realContractInfo) : (p.contract ?? null);
-    // Fantrax's own roster salary (p.salary) is null for anyone NOT
-    // currently rostered in THIS league — true for every free agent
-    // regardless of format, so it silently blanked SALARY for the whole FA
-    // list even though CONTRACT (above) already had his real current-season
-    // salary sitting right there (Ash, 2026-08-24: "free agents salary is
-    // missing"). Falls back to that same real figure for a real-salary
-    // league; a custom-salary league has no such site-wide fallback to
-    // offer, so an unrostered player there still correctly shows nothing.
-    const salary = p.salary ?? (salaryFormat === "real" ? realContractInfo?.currentSalary ?? null : null);
-    rows.push({
-      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null,
-      pos: posDisplayForLedger(p.eligible || [], analysis.league.positionSlots) || null,
-      nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
-      dynRank, tradeValue: v, tradeRank: null,
-      salary, contract,
-      owner: rosteredIds.has(p.fantraxId) ? (teamNameByPlayerFantraxId.get(p.fantraxId) ?? "—") : "Free agent",
-    });
-  }
-
   function pickLabel(pick: TeamDraftPick): string {
     const ordinal = pick.round === 1 ? "1st" : pick.round === 2 ? "2nd" : `${pick.round}th`;
     const slot = pick.overallPick != null ? ` (#${pick.overallPick})` : "";
@@ -439,6 +525,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     return `${pick.year} ${ordinal}${slot}${origin}`;
   }
 
+  const rows: LedgerRow[] = [];
   let pickCount = 0;
   const seenPick = new Set<string>();
   for (const r of analysis.league.rosters) {
@@ -496,14 +583,63 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     }
   }
 
+  return { rows, pickCount, extraPickCount, rawBaseValueByFantraxId };
+}
+
+export interface PickValuesInput {
+  leagueId: string;
+  teamId: string | null;
+  dataset: FantraxDatasetKey;
+  leagueType: LeagueType;
+  /** Only "standard" (consensus) and "real" (real salary) — the two base
+   *  values computed as a pure per-player rank lookup against a site-wide
+   *  table, independent of the rest of the candidate pool. "custom" salary
+   *  needs the real rostered+FA pool to rank against (customSalaryValues in
+   *  trade-value.ts) and stays on the full custom-ledger path (computeCustomLedger),
+   *  which "standard base asset values" leagues by definition aren't using. */
+  valueBasis: Extract<ValueBasis, "standard" | "real">;
+  rookieSalaryScale: RookieSalaryTier[] | undefined;
+}
+
+/**
+ * "Generate draft pick values" — the standard-league counterpart to
+ * computeCustomLedger's pick section, for a dynasty/keeper league that
+ * hasn't opted into full custom asset valuations (Ash, 2026-08-25: "a new
+ * button on the home screen... to generate the value of draft pick assets
+ * for dynasty and keeper leagues... used for leagues that apply the
+ * standard base asset values"). Reuses buildPickAssetRows with an EMPTY
+ * corePlayers pool — correct because "standard"/"real" valueBasis price
+ * every player (real or synthesized-rookie) via a pure per-player rank
+ * lookup against a site-wide table (dynasty consensus rank or real-salary
+ * rank), never pool-relative — so a synthesized pick's own value doesn't
+ * depend on which other players happen to be in the candidate array. Saved
+ * into the SAME store/table as the full ledger (custom-valuations-store.ts),
+ * tagged `mode: "picksOnly"` so a consumer never mistakes it for real player
+ * base values (see that field's own doc) — one row per league either way,
+ * whichever kind was generated most recently.
+ */
+export async function computePickValuesLedger(input: PickValuesInput): Promise<CustomLedgerResult> {
+  const { leagueId, teamId, dataset, leagueType, valueBasis, rookieSalaryScale } = input;
+
+  const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
+  const admin = createAdminClient();
+  const [salaryRank, dynastyRankByFheId] = await Promise.all([
+    valueBasis === "real" ? getRealSalaryRankByFheId(admin, undefined) : Promise.resolve({ rankByFheId: new Map<string, number>(), poolSize: 0 }),
+    Promise.resolve(getDynastyRankByFheId()),
+  ]);
+  const consensusPoolSize = getConsensusPoolSize();
+  const idx = playerIdentity();
+  const currentSeason = Number(dataset.split(":")[0]) || REAL_SALARY_SEASON;
+
+  const { rows, pickCount, extraPickCount } = buildPickAssetRows({
+    analysis, corePlayers: [], dynastyRankByFheId, idx, rookieSalaryScale,
+    leagueType, valueBasis, categoryFallbackMode: "nineCatV", consensusPoolSize,
+    realSalaryRankByFheId: salaryRank.rankByFheId, realSalaryPoolSize: salaryRank.poolSize,
+    keeperPolicy: undefined, contractRules: undefined, currentSeason,
+  });
+
   rows.sort((a, b) => b.tradeValue - a.tradeValue);
   rows.forEach((r, i) => { r.tradeRank = i + 1; });
 
-  return {
-    playerCount: rows.filter((r) => r.type === "player").length,
-    pickCount,
-    extraPickCount,
-    rows,
-    realSalaryEfficiencyWeight: salaryFormat === "real" ? (input.realSalaryEfficiencyWeight ?? DEFAULT_EFFICIENCY_WEIGHT) : null,
-  };
+  return { playerCount: 0, pickCount, extraPickCount, rows, mode: "picksOnly", realSalaryEfficiencyWeight: null };
 }

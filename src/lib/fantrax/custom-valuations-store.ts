@@ -70,6 +70,16 @@ export interface CustomValuationsDoc {
   pickCount: number;
   extraPickCount: number;
   rows: LedgerRow[];
+  /** "full" = every rostered player/FA/pick revalued against this league's
+   *  own rules (the original custom-valuations flow). "picksOnly" = draft-
+   *  pick values alone, generated for a STANDARD (non-custom) dynasty/keeper
+   *  league via computePickValuesLedger — a consumer must never merge a
+   *  picksOnly doc's rows into player base values (it has none — every row
+   *  is type "pick" — but a mode check is the explicit, future-proof guard
+   *  rather than relying on that always being true). Absent on a doc
+   *  generated before this field existed — treat missing as "full", the
+   *  only kind that could exist then. */
+  mode?: "full" | "picksOnly";
   /** The real-salary efficiency-weight actually used to produce THIS
    *  generation (see SavedLeagueSettings.realSalaryEfficiencyWeight) — the
    *  weight baked into the ledger, not necessarily whatever the Settings

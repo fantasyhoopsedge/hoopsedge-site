@@ -146,6 +146,18 @@ export interface SavedLeagueSettings {
    *  prompt was shown (Yes or No) — null/absent means never asked. Set
    *  either way so the prompt doesn't nag on every visit. */
   customValuationsPromptedAt?: string | null;
+  /** Opt-in switch, parallel to useCustomValuations but for a STANDARD
+   *  (non-custom) dynasty/keeper league: when true, Trade Edge additionally
+   *  reads draft-pick values from the cached ledger's pick rows (a
+   *  `mode: "picksOnly"` doc — see CustomValuationsDoc.mode) instead of the
+   *  generic ratio-model estimate (pickEquivalentValue). Player/FA base
+   *  values are UNAFFECTED either way — a picksOnly doc carries no player
+   *  rows to merge in the first place. Mutually exclusive in practice with
+   *  useCustomValuations (a league doing full custom valuations already
+   *  prices its own picks, it doesn't need this too), but not enforced as
+   *  such — the doc's own `mode` is the real gate, this flag only decides
+   *  whether to fetch it at all. */
+  useGeneratedPickValues?: boolean;
   /** Real-salary leagues only: how much the custom ledger's base value
    *  should weigh cheap/productive players vs. pure dynasty consensus rank —
    *  0 = consensus alone (salary irrelevant), 1 = efficiency alone (cheap

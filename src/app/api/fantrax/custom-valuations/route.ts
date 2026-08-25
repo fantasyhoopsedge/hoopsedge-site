@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
-import { computeCustomLedger } from "@/lib/fantrax/custom-valuations";
+import { computeCustomLedger, computePickValuesLedger } from "@/lib/fantrax/custom-valuations";
 import { getCustomValuations, saveCustomValuations } from "@/lib/fantrax/custom-valuations-store";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
 import type { SavedLeagueSettings } from "@/lib/fantrax/store";
@@ -12,8 +12,18 @@ import type { SavedLeagueSettings } from "@/lib/fantrax/store";
  *
  *   GET  ?leagueId=… — read the cached ledger only, never recomputes (same
  *        read-only contract as getLiveBoard() for the rookie board).
- *   POST { leagueId, teamId, dataset, settings } — the "Regenerate" action:
- *        runs computeCustomLedger() fresh and overwrites the cached row.
+ *   POST { leagueId, teamId, dataset, settings, mode? } — the "Regenerate"
+ *        action: runs computeCustomLedger() fresh and overwrites the cached
+ *        row. `mode: "picksOnly"` (Ash, 2026-08-25: "a new button on the
+ *        home screen... to generate the value of draft pick assets for
+ *        dynasty and keeper leagues... used for leagues that apply the
+ *        standard base asset values") runs computePickValuesLedger()
+ *        instead — draft-pick values alone, for a league that isn't opting
+ *        into full custom asset valuations. Both write the SAME
+ *        (owner, leagueId) row — a league is either standard (at most a
+ *        picksOnly doc) or custom (a full doc), never both at once, so
+ *        sharing the row is correct, not a collision. Default "full",
+ *        unchanged from before this field existed.
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -38,7 +48,7 @@ export async function POST(request: Request) {
   const auth = await authorizeFantrax();
   if (!auth.ok) return auth.response;
 
-  let body: { leagueId?: string; teamId?: string | null; dataset?: string; settings?: SavedLeagueSettings };
+  let body: { leagueId?: string; teamId?: string | null; dataset?: string; settings?: SavedLeagueSettings; mode?: "full" | "picksOnly" };
   try {
     body = await request.json();
   } catch {
@@ -55,11 +65,34 @@ export async function POST(request: Request) {
 
   const { settings } = body;
   const leagueType = settings.leagueType ?? "redraft";
-  const valueBasis = leagueType === "dynasty"
-    ? (settings.salaryFormat === "real" ? "real" : settings.salaryFormat === "custom" ? "custom" : "standard")
-    : "standard";
+  const mode = body.mode ?? "full";
 
   try {
+    if (mode === "picksOnly") {
+      // Draft-pick values alone (real dynasty consensus rank / real-salary
+      // rank at each pick slot) — never "custom" (customSalaryValues needs
+      // this league's real rostered+FA pool to rank against, which this
+      // path deliberately never loads; see computePickValuesLedger's own
+      // doc). A dynasty league on custom-salary format that lands here
+      // (settings.useCustomValuations off, but salaryFormat "custom")
+      // still gets a real, correct number — just consensus-based, the same
+      // fallback "standard" dynasty leagues already get everywhere else.
+      const valueBasis = leagueType === "dynasty" && settings.salaryFormat === "real" ? "real" : "standard";
+      const result = await computePickValuesLedger({
+        leagueId: body.leagueId,
+        teamId: body.teamId ?? null,
+        dataset,
+        leagueType,
+        valueBasis,
+        rookieSalaryScale: settings.rookieSalaryScale,
+      });
+      const doc = await saveCustomValuations(auth.access.owner, body.leagueId, { leagueId: body.leagueId, ...result });
+      return NextResponse.json({ doc });
+    }
+
+    const valueBasis = leagueType === "dynasty"
+      ? (settings.salaryFormat === "real" ? "real" : settings.salaryFormat === "custom" ? "custom" : "standard")
+      : "standard";
     const result = await computeCustomLedger({
       leagueId: body.leagueId,
       teamId: body.teamId ?? null,
