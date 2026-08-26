@@ -233,35 +233,24 @@ export interface CustomLedgerResult {
   realSalaryEfficiencyWeight: number | null;
 }
 
-export async function computeCustomLedger(input: CustomValuationsInput): Promise<CustomLedgerResult> {
-  const { leagueId, teamId, dataset, leagueType, valueBasis, salaryFormat, contractRules, rookieSalaryScale, keeperPolicy } = input;
-
-  const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
-  const rostered: ResolvedPlayer[] = analysis.rosters.flatMap((r) => r.players);
-  const rosteredIds = new Set(rostered.map((p) => p.fantraxId));
-  const admin = createAdminClient();
-
-  const [salaryRank, dynastyRankByFheId, ageByFheId, contractByFheId] = await Promise.all([
-    getRealSalaryRankByFheId(admin, input.realSalaryEfficiencyWeight),
-    Promise.resolve(getDynastyRankByFheId()),
-    getAgeByFheId(),
-    // Only meaningful for a real-salary league — Fantrax's own raw contract
-    // LABEL (ResolvedPlayer.contract, a custom-salary house convention, see
-    // LeagueRosterSpot's own doc) is what a custom-salary league already
-    // carries through below; a real-salary league's rows need the REAL
-    // years/dollars-remaining contract instead, which lives here, not on
-    // ResolvedPlayer at all (Ash, 2026-08-23: found every row reading
-    // CONTRACT "—" in a real-salary league — this was never wired in).
-    salaryFormat === "real" ? getContractByFheId() : Promise.resolve<Record<string, ContractInfo>>({}),
-  ]);
-  const realSalaryRankByFheId = salaryRank.rankByFheId;
-  const realSalaryPoolSize = salaryRank.poolSize;
-  const consensusPoolSize = getConsensusPoolSize();
-
-  const scoredCount = analysis.league.categories?.scored?.length ?? 9;
-  const categoryFallbackMode = categoryFallbackModeFor(analysis.league.scoringMode, scoredCount);
-
-  // ── free agents: resolve against the identity registry + season_player_values ──
+/**
+ * Resolves this league's Fantrax free agents against the identity registry +
+ * season_player_values, into the same ResolvedPlayer shape a rostered player
+ * already has. Shared by computeCustomLedger (the full ledger) and
+ * computePickValuesLedger (the picksOnly ledger's own rank-scaffold pool —
+ * see that function's own doc) so there is exactly ONE Fantrax-free-agent
+ * resolution implementation, not two that can silently drift apart — the
+ * league-rankings.ts free-agent loop was a THIRD copy of this same block
+ * until it and this one were both found still resolving by raw name instead
+ * of Fantrax id (Ash, 2026-08-26: duplicate "Jaylin Williams"/"Jalen
+ * Johnson" rows), which is exactly the kind of divergence three independent
+ * copies of one join invite.
+ */
+async function resolveFreeAgentPlayers(
+  analysis: LeagueAnalysis,
+  admin: ReturnType<typeof createAdminClient>,
+  dynastyRankByFheId: Record<string, number>,
+): Promise<ResolvedPlayer[]> {
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
   const espnIdByFantraxId = new Map<string, string>();
@@ -277,8 +266,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     // how a league's ghost/duplicate free-agent entry for a rostered player
     // (e.g. two "Jaylin Williams" or two "Jalen Johnson" rows, one rostered,
     // one a teamless free agent) ended up duplicated in the generated ledger
-    // with identical values under both rows — same bug fixed in
-    // league-rankings.ts's own free-agent loop.
+    // with identical values under both rows.
     const r = idx.resolve({ fantraxId: fa.fantraxId });
     if (r.kind === "matched" && r.identity.espnId) {
       espnIdByFantraxId.set(fa.fantraxId, r.identity.espnId);
@@ -327,6 +315,39 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
       } as unknown as ResolvedPlayer);
     }
   }
+  return faPlayers;
+}
+
+export async function computeCustomLedger(input: CustomValuationsInput): Promise<CustomLedgerResult> {
+  const { leagueId, teamId, dataset, leagueType, valueBasis, salaryFormat, contractRules, rookieSalaryScale, keeperPolicy } = input;
+
+  const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
+  const rostered: ResolvedPlayer[] = analysis.rosters.flatMap((r) => r.players);
+  const rosteredIds = new Set(rostered.map((p) => p.fantraxId));
+  const admin = createAdminClient();
+  const idx = playerIdentity();
+
+  const [salaryRank, dynastyRankByFheId, ageByFheId, contractByFheId] = await Promise.all([
+    getRealSalaryRankByFheId(admin, input.realSalaryEfficiencyWeight),
+    Promise.resolve(getDynastyRankByFheId()),
+    getAgeByFheId(),
+    // Only meaningful for a real-salary league — Fantrax's own raw contract
+    // LABEL (ResolvedPlayer.contract, a custom-salary house convention, see
+    // LeagueRosterSpot's own doc) is what a custom-salary league already
+    // carries through below; a real-salary league's rows need the REAL
+    // years/dollars-remaining contract instead, which lives here, not on
+    // ResolvedPlayer at all (Ash, 2026-08-23: found every row reading
+    // CONTRACT "—" in a real-salary league — this was never wired in).
+    salaryFormat === "real" ? getContractByFheId() : Promise.resolve<Record<string, ContractInfo>>({}),
+  ]);
+  const realSalaryRankByFheId = salaryRank.rankByFheId;
+  const realSalaryPoolSize = salaryRank.poolSize;
+  const consensusPoolSize = getConsensusPoolSize();
+
+  const scoredCount = analysis.league.categories?.scored?.length ?? 9;
+  const categoryFallbackMode = categoryFallbackModeFor(analysis.league.scoringMode, scoredCount);
+
+  const faPlayers = await resolveFreeAgentPlayers(analysis, admin, dynastyRankByFheId);
 
   const teamNameByPlayerFantraxId = new Map<string, string>();
   for (const r of analysis.rosters) for (const p of r.players) teamNameByPlayerFantraxId.set(p.fantraxId, r.teamName);
@@ -515,9 +536,27 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
   // pool-comparable signal — no external reference-table floor (see
   // trade-value.ts's module doc for why that floor was wrong: it made late
   // picks read above real, known, cheap productive players).
+  //
+  // Loop bound is `totalPicks` (every real, individually-slotted pick any
+  // team in the league actually holds), NOT `topN.length` (how many rookie-
+  // board prospects happened to resolve an identity AND carry a published
+  // dynasty consensus rank — the rookie board only names ~66 prospects
+  // total, nowhere near enough to cover a 3-round, 30-team draft's 90 real
+  // slots). Capping the loop at topN.length used to leave every pick beyond
+  // the last named prospect with NO value at all — pickValueFor() returned
+  // null, so the row-building loop below silently dropped that pick from
+  // the ledger entirely (Ash, 2026-08-26: HBB's real, team-owned 2026 3rd
+  // (#63) and (#88) picks in Woolridge DMD30 had no ledger row, so Trade
+  // Edge's cards fell back to ranking them against the whole real-player
+  // pool instead — reading as the league's 369th-best asset apiece, a wild,
+  // scale-broken number next to the ledger-covered picks around them).
+  // Every slot past topN.length still hits the `raw == null` branch below
+  // and flat-continues the last real, resolvable pick's value — the same
+  // fallback this loop already used for any individual gap, just no longer
+  // gated behind a bound that silently excluded genuine late-round picks.
   const pickValues: (number | null)[] = [];
   let runningCap = Infinity;
-  for (let overallPick = 1; overallPick <= topN.length; overallPick++) {
+  for (let overallPick = 1; overallPick <= Math.max(topN.length, totalPicks); overallPick++) {
     const fid = pickPlayerFantraxIdByOverallPick.get(overallPick);
     const raw = fid ? rawBaseValueByFantraxId.get(fid) ?? null : null;
     if (raw == null) {
@@ -643,15 +682,51 @@ export async function computePickValuesLedger(input: PickValuesInput): Promise<C
   const idx = playerIdentity();
   const currentSeason = Number(dataset.split(":")[0]) || REAL_SALARY_SEASON;
 
-  const { rows, pickCount, extraPickCount } = buildPickAssetRows({
-    analysis, corePlayers: [], dynastyRankByFheId, idx, rookieSalaryScale,
-    leagueType, valueBasis, categoryFallbackMode: "nineCatV", consensusPoolSize,
+  // The real rostered + free-agent pool — needed even though this ledger
+  // never stores a player ROW (mode "picksOnly" carries picks alone), purely
+  // as the rank-scaffold every pick's tradeRank gets placed within. Without
+  // it (this used to pass corePlayers: []), buildPickAssetRows had no real
+  // players to rank picks against at all, so the tradeRank it assigned below
+  // was each pick's place among OTHER PICKS ONLY — a much smaller,
+  // differently-scaled pool than the ~550-asset one every other rank number
+  // in the app means (computeCustomLedger's own full-ledger rows, and
+  // League Rankings' own toRanked(standardMap)/(realMap), all rank picks
+  // together WITH real players in one combined sort). A picks-only-pool rank
+  // of "10" silently meant something totally different from a full-pool
+  // rank of "10" once it reached Trade Edge's cards, which read this number
+  // as if it were the latter (Ash, 2026-08-26: Woolridge DMD30's HBB 2026
+  // 1st #6 showed ledger rank #10 — correct only "among this league's other
+  // picks," not among the league's real ~550 assets it was displayed
+  // alongside).
+  const scoredCount = analysis.league.categories?.scored?.length ?? 9;
+  const categoryFallbackMode = categoryFallbackModeFor(analysis.league.scoringMode, scoredCount);
+  const rostered: ResolvedPlayer[] = analysis.rosters.flatMap((r) => r.players);
+  const faPlayers = await resolveFreeAgentPlayers(analysis, admin, dynastyRankByFheId);
+  const corePlayers = [...rostered, ...faPlayers];
+
+  const { rows, pickCount, extraPickCount, rawBaseValueByFantraxId } = buildPickAssetRows({
+    analysis, corePlayers, dynastyRankByFheId, idx, rookieSalaryScale,
+    leagueType, valueBasis, categoryFallbackMode, consensusPoolSize,
     realSalaryRankByFheId: salaryRank.rankByFheId, realSalaryPoolSize: salaryRank.poolSize,
     keeperPolicy: undefined, contractRules: undefined, currentSeason,
   });
 
-  rows.sort((a, b) => b.tradeValue - a.tradeValue);
-  rows.forEach((r, i) => { r.tradeRank = i + 1; });
+  // Rank every pick row within the COMBINED real-player + pick pool (exactly
+  // the shape computeCustomLedger's own end-of-function sort uses, and
+  // exactly what league-rankings.ts's toRanked() means for every other rank
+  // number in the app) — only the pick rows get stored back into the
+  // ledger, but their tradeRank is computed as if the real players were
+  // sitting right there in the same sorted list, because on every OTHER
+  // surface that reads this number, they are.
+  const combined: { value: number; row?: LedgerRow }[] = [
+    ...corePlayers
+      .map((p) => rawBaseValueByFantraxId.get(p.fantraxId))
+      .filter((v): v is number => v != null)
+      .map((value) => ({ value })),
+    ...rows.map((row) => ({ value: row.tradeValue, row })),
+  ];
+  combined.sort((a, b) => b.value - a.value);
+  combined.forEach((entry, i) => { if (entry.row) entry.row.tradeRank = i + 1; });
 
   return { playerCount: 0, pickCount, extraPickCount, rows, mode: "picksOnly", realSalaryEfficiencyWeight: null };
 }
