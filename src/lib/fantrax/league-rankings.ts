@@ -480,9 +480,21 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   }
 
   // Whichever basis Trade Edge is actually pricing this league with right
-  // now — see LeagueRankingsResult.activeBasis's own doc.
+  // now — see LeagueRankingsResult.activeBasis's own doc. `useGeneratedPickValues`
+  // (the picksOnly ledger — standard dynasty/keeper/real-salary leagues'
+  // "generate draft pick values" flow) is NOT "custom": players there stay on
+  // standard/real values exactly like a league with no ledger at all, only
+  // picks get individually priced. Only `useCustomValuations` (the FULL
+  // ledger, custom-salary leagues) is really a distinct basis — this used to
+  // fold both flags into "custom" together, so a league running standard
+  // dynasty consensus + generated pick values showed the wrong tab lit green
+  // on the League Rankings page (Ash, 2026-08-25, live example: Woolridge
+  // DMD30 generated on standard dynasty consensus, but "Custom generated"
+  // carried the ● indicator instead of "Consensus dynasty"). Matches
+  // deep-edge/home/page.tsx's own drivingBasisLabel(), which already got
+  // this right for the same picksOnly case.
   const activeBasis: RankingsBasis = (() => {
-    if (settings.useCustomValuations || settings.useGeneratedPickValues) return "custom";
+    if (settings.useCustomValuations) return "custom";
     if (leagueType === "redraft") return "redraft";
     if (leagueType === "dynasty") return settings.salaryFormat === "real" ? "real" : "standard";
     const weight = computeKeeperWeight(settings.keeperPolicy, totalRosterSlots);
