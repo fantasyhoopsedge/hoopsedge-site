@@ -197,29 +197,6 @@ function toRanked(map: ReadonlyMap<string, number>): Record<string, RankedValue>
   return out;
 }
 
-/** Overwrites a freshly-toRanked() basis map's RANK (never its value — see
- *  the call sites' own doc) for every asset the generated ledger actually
- *  covers, straight from the ledger's own row.tradeRank. Factored out so the
- *  "custom" tab and, for a picksOnly ledger, whichever of standard/real it
- *  represents can all apply the identical override rather than three
- *  hand-copied loops silently drifting from each other. */
-function applyLedgerRankOverride(
-  ranked: Record<string, RankedValue>,
-  ledgerRankByFantraxId: ReadonlyMap<string, number>,
-  ledgerRankByPickKey: ReadonlyMap<string, number>,
-  pickKeyToAssetKey: ReadonlyMap<string, string>,
-): void {
-  for (const [fantraxId, rank] of ledgerRankByFantraxId) {
-    const entry = ranked[fantraxId];
-    if (entry) ranked[fantraxId] = { ...entry, rank };
-  }
-  for (const [pickKey, rank] of ledgerRankByPickKey) {
-    const assetKey = pickKeyToAssetKey.get(pickKey);
-    const entry = assetKey ? ranked[assetKey] : undefined;
-    if (assetKey && entry) ranked[assetKey] = { ...entry, rank };
-  }
-}
-
 export async function computeLeagueRankings(input: LeagueRankingsInput): Promise<LeagueRankingsResult> {
   const { leagueId, owner, teamId, dataset, leagueType, settings } = input;
   const salaryFormat = settings.salaryFormat ?? "none";
@@ -381,59 +358,38 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // ledger's own current-year slots) still reads a real, non-null number
   // instead of falling out of the ranking entirely.
   const customMap = new Map(standardMap);
+  // Every current-year pick's real, ledger-computed VALUE — a league's own
+  // generated ledger (Ash, 2026-08-25: "the entire point of generating the
+  // league rankings... is to use for the trade edge tool") is the more
+  // precise number wherever it covers an asset, in place of this page's own
+  // independently-computed one. RANK is never read off the ledger's own
+  // row.tradeRank here — see the toRanked() calls below for why trusting a
+  // number computed within a DIFFERENT pool (the ledger's own combined sort)
+  // for only SOME of a map's rows breaks that map's own self-consistency.
   const ledgerByPickKey = new Map<string, number>();
-  // Trade Edge reads a ledger-covered asset's RANK straight off row.tradeRank
-  // (see DraftPickCardsGrid's ledgerRankByPickKey/ledgerRankByFantraxId docs,
-  // roster-table.tsx) — the ledger's own once-computed rank within ITS OWN
-  // pool. This page used to instead re-derive every rank via toRanked(customMap)
-  // below, which sorts a DIFFERENT pool (standardMap's full corePlayers +
-  // every real/bracket pick, vs. the ledger's own rows) — same VALUE, but a
-  // different neighboring population, so the two surfaces could and did show
-  // two different rank numbers for the exact same real asset (Ash, 2026-08-25:
-  // "trade cards in trade edge are not matching the league rankings... the
-  // entire point of generating the league rankings... is to use for the
-  // trade edge tool"). Captured here so the "custom" ranked map below can
-  // overwrite its own computed rank with the ledger's real one wherever the
-  // ledger actually covers that asset — same precedence Trade Edge itself
-  // already uses, so the two surfaces can no longer drift for a covered asset.
-  const ledgerRankByFantraxId = new Map<string, number>();
-  const ledgerRankByPickKey = new Map<string, number>();
   if (customDoc) {
     for (const row of customDoc.rows) {
       if (row.fantraxId) customMap.set(row.fantraxId, row.tradeValue);
       if (row.pickKey) ledgerByPickKey.set(row.pickKey, row.tradeValue);
-      if (row.fantraxId && row.tradeRank != null) ledgerRankByFantraxId.set(row.fantraxId, row.tradeRank);
-      if (row.pickKey && row.tradeRank != null) ledgerRankByPickKey.set(row.pickKey, row.tradeRank);
     }
   }
   // A picksOnly ledger (the "generate draft pick values" flow for a
   // STANDARD, non-custom league — see CustomValuationsDoc.mode's own doc)
   // never touches "custom" at all: that basis stays a plain copy of
-  // standardMap for such a league. Its picks are real numbers Trade Edge
-  // already reads directly off the ledger (ledgerRankByPickKey in
-  // trade-edge/page.tsx applies unconditionally, regardless of which basis
-  // is "active") — but until now this page only ever overlaid the ledger
-  // onto the "custom" tab, so for a picksOnly league the tab actually
-  // driving real trade value (whichever of "standard"/"real" activeBasis
-  // resolves to below) kept showing ITS OWN independently-computed pick
-  // number instead of the ledger's, while Trade Edge's cards showed the
+  // standardMap for such a league. Its picks' real VALUE belongs on
+  // whichever of "standard"/"real" is genuinely driving trade value for the
+  // league (activeBasis below) — until this was added, that tab kept
+  // showing its own independently-computed pick number instead of the
   // ledger's. Same computation the picksOnly POST route itself uses to
   // decide which basis to generate against (custom-valuations/route.ts) —
   // must match exactly, or this overlay would apply to the wrong map (Ash,
   // 2026-08-26: Woolridge DMD30's HBB picks read Asset Value 287/91/53/… on
   // the "Consensus dynasty" tab — the one carrying the ● "driving real
   // trade value" indicator — while Trade Edge's cards for the SAME picks
-  // read ledger ranks #10/#26/#42/… computed from a completely different
-  // number).
+  // read a completely different number).
   const picksOnlyBasis: "standard" | "real" | null = customDoc?.mode === "picksOnly"
     ? (leagueType === "dynasty" && settings.salaryFormat === "real" ? "real" : "standard")
     : null;
-
-  // pickKey ("year:overallPick") -> this AssetRow's own key — pickKey alone
-  // isn't a valid lookup into `assets`/`customMap` (a real pick's AssetRow key
-  // also carries the owning team id), so the ledger-rank override below needs
-  // this to translate one into the other for a current-year pick.
-  const pickKeyToAssetKey = new Map<string, string>();
 
   const assets: AssetRow[] = [];
   for (const p of corePlayers) {
@@ -483,7 +439,6 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const realVal = pickEquivalentValue(pick, corePlayers, realMap, family);
       if (standardVal == null && realVal == null) continue; // no priceable pool at all
       const pickKey = pick.overallPick != null ? `${pick.year}:${pick.overallPick}` : null;
-      if (pickKey != null) pickKeyToAssetKey.set(pickKey, key);
       const ledgerVal = pickKey != null ? ledgerByPickKey.get(pickKey) : undefined;
       const customVal = ledgerVal ?? standardVal;
       assets.push({
@@ -566,31 +521,29 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     return "redraft";
   })();
 
-  // Rank override: any asset the generated ledger actually covers shows
-  // ITS ledger rank (row.tradeRank) here, not toRanked(customMap)'s own
-  // freshly re-sorted one — see ledgerRankByFantraxId/ledgerRankByPickKey's
-  // doc above for why the two could otherwise disagree for the same asset.
-  // Only .rank changes; .value already came from the same row.tradeValue
-  // either way, so this never touches the number this page displays as
-  // "Asset Value," only the RANK column and MINUS1/9CAT/8CAT/FPTS's ranking.
+  // RANK comes purely from toRanked() — ONE global sort per basis map, which
+  // is what guarantees every row's rank strictly increases as its value
+  // strictly decreases, with no exceptions. This used to instead overwrite
+  // a covered asset's rank with the generated ledger's own precomputed
+  // tradeRank verbatim (row.tradeRank) — a number computed within the
+  // LEDGER's own internal pool (custom-valuations.ts's combined sort, or,
+  // for a picksOnly doc, its own picks-vs-real-players scaffold), which is
+  // NOT the same pool this map's OTHER rows (bracket rows especially — see
+  // custom-valuations.ts's own bracket loop, priced by a completely
+  // different formula than league-rankings.ts's pickEquivalentValue) get
+  // ranked within. Patching a subset of one map's ranks with numbers from a
+  // differently-shaped pool is exactly what produced a real, visible bug: a
+  // later, lower-value row displaying a smaller (better) rank than the row
+  // directly above it (Ash, 2026-08-27 — a 2026 1st (#16) row ranked 170
+  // sat directly above a 2029 #4-8 bracket row ranked 167, impossible
+  // within one consistently numbered pool). The VALUE overlay above
+  // (customVal/ledgerVal already written into these maps) still puts every
+  // ledger-covered pick on the ledger's own number — only the RANK is now
+  // always freshly, consistently derived from THIS map's own sort, so it
+  // can never disagree with its own neighbors again.
   const customRanked = toRanked(customMap);
-  applyLedgerRankOverride(customRanked, ledgerRankByFantraxId, ledgerRankByPickKey, pickKeyToAssetKey);
-
-  // Same override, applied to whichever of standard/real a picksOnly
-  // ledger's picks were generated against (picksOnlyBasis) — see that
-  // constant's own doc. Only ever one of the two, and only for a picksOnly
-  // doc; a full-mode ledger never touches standard/real (those stay the
-  // league's genuine, un-overlaid consensus/real-salary numbers, exactly as
-  // before). ledgerRankByFantraxId is deliberately not passed here — a
-  // picksOnly doc carries no player rows, so it's always empty for one, and
-  // this basis's PLAYER ranks must stay the plain toRanked() computation.
   const standardRanked = toRanked(standardMap);
   const realRanked = toRanked(realMap);
-  if (picksOnlyBasis === "standard") {
-    applyLedgerRankOverride(standardRanked, new Map(), ledgerRankByPickKey, pickKeyToAssetKey);
-  } else if (picksOnlyBasis === "real") {
-    applyLedgerRankOverride(realRanked, new Map(), ledgerRankByPickKey, pickKeyToAssetKey);
-  }
 
   return {
     assets,

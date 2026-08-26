@@ -531,21 +531,51 @@ function decayFromAnchor(anchor: number, yearsOut: number): number {
   return anchor >= 0 ? anchor * factor : anchor / factor;
 }
 
-/** Rank a value against the ledger's OWN full asset pool (every row's
- *  tradeValue — players, free agents, and every priced pick together), the
- *  same population custom-valuations.ts itself ranks within
- *  (`tradeRank = 1 + count(rows with a greater value)`). Deliberately NOT
- *  leaguePlayers — that's a materially smaller, differently-composed pool
- *  (rostered players only, no free agents, no other picks), so ranking a
- *  ledger-derived value against it breaks the very monotonicity the decay is
- *  supposed to preserve: a genuinely smaller decayed value could read as a
- *  BETTER rank than its own undecayed anchor purely because the two ranks
- *  came from two different pools (caught live, 2026-08-23 — a real slot's
- *  anchor ranked #126 in the ledger; the very same anchor, decayed smaller,
- *  ranked #120 against leaguePlayers — impossible within one fixed pool). */
-function rankAmongValues(values: readonly number[], target: number): number {
+/** 1-based rank of `target` within a COMBINED pool: real players (`players`,
+ *  filtered through `valueOf`) together with every OTHER valued asset's raw
+ *  number (`extraValues` — a league's real+bracket draft-pick values, e.g.
+ *  the generated ledger's own rows). One consistent counting method for
+ *  every card on Trade Edge — player or pick, ledger-covered or not — so
+ *  numbers from two differently-shaped pools never end up displayed
+ *  side by side as though they meant the same thing.
+ *
+ *  This replaced two separate, INCOMPATIBLE approaches that used to coexist
+ *  here:
+ *   - A player's card used to rank him against `leaguePlayers` ALONE
+ *     (plain `rankAmong`, no picks at all), so his rank silently omitted
+ *     every draft pick the league actually holds — undercounting his TRUE
+ *     rank by exactly however many picks out-valued him (Ash, 2026-08-27:
+ *     Kyrie Irving's card read #74 against League Rankings' own #85 for the
+ *     SAME player — the 11-pick gap was exactly Woolridge DMD30's 11
+ *     real+bracket picks valued above him).
+ *   - A pick's card used to trust the generated ledger's OWN precomputed
+ *     rank verbatim for a current-year slot, but fall back to ranking a
+ *     projected/future value against ONLY the ledger's pick rows
+ *     (`extraValues` here, with no real players at all) for a future pick,
+ *     and ranking a no-ledger pick against `leaguePlayers` ALONE for a
+ *     standard/real-salary league with no ledger — three different pools
+ *     used across three tiers of the same function, patched onto League
+ *     Rankings' own toRanked() rank via a post-hoc override for whichever
+ *     picks the ledger covered. Mixing a subset of ledger-pool ranks into a
+ *     page otherwise numbered from a DIFFERENT pool produced a real,
+ *     visible bug: a later, lower-value row displaying a BETTER (smaller)
+ *     rank number than the row directly above it (Ash, 2026-08-27, League
+ *     Rankings: a 2026 1st (#16) row ranked 170 sat directly above a 2029
+ *     #4-8 bracket row ranked 167 — impossible within one consistently
+ *     numbered pool). */
+export function rankAmongCombined(
+  players: readonly ResolvedPlayer[],
+  valueOf: (p: ResolvedPlayer) => number | null,
+  extraValues: readonly number[],
+  target: number | null,
+): number | null {
+  if (target == null) return null;
   let rank = 1;
-  for (const v of values) if (v > target) rank++;
+  for (const p of players) {
+    const v = valueOf(p);
+    if (v != null && v > target) rank++;
+  }
+  for (const v of extraValues) if (v > target) rank++;
   return rank;
 }
 
@@ -565,9 +595,17 @@ export interface PickValueStatus {
   needsCalc: boolean;
 }
 
-/** A pick's trade-value rank, in priority order:
- *  1. The ledger's own real rank for a CURRENT-year pick with a known slot
- *     (the precise number the asset-values page itself shows).
+/** A pick's own trade value, in priority order — but ALWAYS ranked the same
+ *  way once found: rankAmongCombined() against real players (leaguePlayers)
+ *  plus every OTHER pick's value (pickLedgerValues), the one combined pool
+ *  every card on this page uses. Never the ledger's own precomputed
+ *  tradeRank verbatim — that number lives inside a differently-shaped pool
+ *  (custom-valuations.ts's own combined sort), and mixing it into a page
+ *  numbered from THIS pool is exactly what produced a real, visible bug: a
+ *  later, lower-value row displaying a smaller (better) rank than the row
+ *  above it (see rankAmongCombined's own doc for the live example).
+ *  1. The ledger's own real VALUE for a CURRENT-year pick with a known slot
+ *     (the precise number the asset-values page itself shows), ranked here.
  *  2. For a FUTURE-year pick with a projected slot (see trade-edge/page.tsx's
  *     withProjectedSlot — team-standing-based, only populated once the
  *     Power Rankings/Category Edge compare panel has been opened), the SAME
@@ -581,21 +619,18 @@ export interface PickValueStatus {
  *     whose slot hasn't been projected yet. No number is guessed here at
  *     all; the caller shows a "Value?" trigger instead once the pick is
  *     part of a proposed trade.
- *  4. The generic ratio-model estimate (pickEquivalentValue, ranked against
- *     leaguePlayers) — only reached when there's no custom ledger to be
- *     more precise than (a standard/real-salary league), where this really
- *     is the best number available, not a wrong one being hidden.
+ *  4. The generic ratio-model estimate (pickEquivalentValue) — only reached
+ *     when there's no custom ledger to be more precise than (a standard/
+ *     real-salary league), where this really is the best number available,
+ *     not a wrong one being hidden.
  *  Shared by DraftPickCardsGrid's own cards and Trade Edge's Trade Verdict
- *  table so a pick reads the same number everywhere — see
- *  ledgerRankByPickKey's own doc for why that consistency matters (a real
- *  bug: the card and the ledger used to disagree for the same real pick). */
+ *  table so a pick reads the same number everywhere. */
 export function pickValueStatus(
   pick: TeamDraftPick,
   opts: {
     leaguePlayers?: readonly ResolvedPlayer[];
     baseValueByFantraxId?: ReadonlyMap<string, number>;
     family?: "categories" | "points";
-    ledgerRankByPickKey?: ReadonlyMap<string, number>;
     /** overallPick -> that CURRENT-year pick's real custom-computed trade
      *  value — every ledger pick row that carries a pickKey, reindexed by
      *  its bare slot number so a future pick projected to the same slot can
@@ -606,32 +641,47 @@ export function pickValueStatus(
     /** This league's current/imminent draft year — a pick beyond it is a
      *  future pick eligible for tiers 2/3 above. */
     seasonYear?: number;
-    /** Every row's tradeValue in the ledger — the pool tier 2's decayed
-     *  value ranks against (rankAmongValues, not leaguePlayers — see that
-     *  function's own doc for why the two aren't interchangeable here). */
-    ledgerValues?: readonly number[];
+    /** Every OTHER pick's own value — the generated ledger's rows, PICK
+     *  rows only (a full-mode ledger's PLAYER rows must never end up here;
+     *  they're already counted once through `leaguePlayers` above, via
+     *  baseValueByFantraxId's own ledger-value overlay — see
+     *  trade-edge/page.tsx's own ledgerValues doc). Combined with
+     *  leaguePlayers via rankAmongCombined for every tier below. */
+    pickLedgerValues?: readonly number[];
   },
 ): PickValueStatus {
-  const { leaguePlayers, baseValueByFantraxId, family, ledgerRankByPickKey, currentYearPickValueByOverallPick, seasonYear, ledgerValues } = opts;
-  if (pick.overallPick != null) {
-    const ledgerRank = ledgerRankByPickKey?.get(`${pick.year}:${pick.overallPick}`);
-    if (ledgerRank != null) return { label: formatRank(ledgerRank), needsCalc: false };
-  }
+  const { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues } = opts;
+  const rankOf = (value: number | null): number | null =>
+    leaguePlayers
+      ? rankAmongCombined(leaguePlayers, (p) => baseValueByFantraxId?.get(p.fantraxId) ?? null, pickLedgerValues ?? [], value)
+      : null;
+
   const isFuture = seasonYear != null && pick.year > seasonYear;
+  // currentYearPickValueByOverallPick is keyed by bare overall-pick number,
+  // with no year attached — it only ever holds THIS league's current draft
+  // class. A future pick can carry a real overallPick too (withProjectedSlot
+  // in trade-edge/page.tsx assigns one from a team's projected standing), so
+  // this tier must explicitly exclude a future pick rather than let it match
+  // the current-year value at that same slot number undecayed — that's
+  // exactly what tier 2 below exists to compute correctly instead.
+  if (!isFuture && pick.overallPick != null && currentYearPickValueByOverallPick) {
+    const v = currentYearPickValueByOverallPick.get(pick.overallPick);
+    if (v != null) return { label: formatRank(rankOf(v)), needsCalc: false };
+  }
   const hasLedgerData = Boolean(currentYearPickValueByOverallPick && currentYearPickValueByOverallPick.size > 0);
   if (isFuture && hasLedgerData) {
-    if (pick.overallPick != null && ledgerValues) {
+    if (pick.overallPick != null) {
       const anchor = currentYearPickValueByOverallPick!.get(pick.overallPick);
       if (anchor != null) {
         const value = decayFromAnchor(anchor, pick.year - seasonYear!);
-        return { label: formatRank(rankAmongValues(ledgerValues, value)), needsCalc: false };
+        return { label: formatRank(rankOf(value)), needsCalc: false };
       }
     }
     return { label: "—", needsCalc: true };
   }
   if (!leaguePlayers || !baseValueByFantraxId || !family) return { label: "—", needsCalc: false };
   const v = pickEquivalentValue(pick, leaguePlayers, baseValueByFantraxId, family);
-  return { label: formatRank(rankAmong(leaguePlayers as ResolvedPlayer[], (p) => baseValueByFantraxId.get(p.fantraxId) ?? null, v)), needsCalc: false };
+  return { label: formatRank(rankOf(v)), needsCalc: false };
 }
 
 /** One draft-pick "card" — same footprint (grid cell width, padding, corner
@@ -757,7 +807,7 @@ function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; s
  * renders (as DraftPickEmptyCard) rather than disappearing.
  */
 export function DraftPickCardsGrid({
-  teamName, picks, seasonYear, draftStatus, selectedKeys, onTogglePick, leaguePlayers, baseValueByFantraxId, family, ledgerRankByPickKey,
+  teamName, picks, seasonYear, draftStatus, selectedKeys, onTogglePick, leaguePlayers, baseValueByFantraxId, family,
   currentYearPickValueByOverallPick, ledgerValues, onRequestValue, yearsWithLeagueData,
 }: {
   teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
@@ -779,31 +829,30 @@ export function DraftPickCardsGrid({
    *  toggled without duplicating this grid's own year/round grouping. */
   selectedKeys?: ReadonlySet<string>;
   onTogglePick?: (key: string, pick: TeamDraftPick) => void;
-  /** Last-resort fallback: feed pickEquivalentValue + rankAmong for each
-   *  card's hero stat — "this pick's equivalent trade value, ranked against
-   *  the league's real players" — used only when neither
-   *  ledgerRankByPickKey nor currentYearPickValueByOverallPick has an entry
-   *  for a given pick (no custom ledger at all, or the compare panel hasn't
-   *  been opened yet to project a future pick's slot). */
+  /** Last-resort fallback: feed pickEquivalentValue for each card's hero
+   *  stat — "this pick's equivalent trade value" — used only when
+   *  currentYearPickValueByOverallPick has no entry for a given pick (no
+   *  custom ledger at all, or the compare panel hasn't been opened yet to
+   *  project a future pick's slot). Always ranked the same combined-pool
+   *  way regardless of which tier supplied the value. */
   leaguePlayers?: readonly ResolvedPlayer[];
   baseValueByFantraxId?: ReadonlyMap<string, number>;
   family?: "categories" | "points";
-  /** `"${year}:${overallPick}"` -> that pick's real rank in the league's
-   *  custom asset ledger (the full player+pick pool the asset-values page
-   *  itself shows) — the precise number for a CURRENT-year pick with a known
-   *  slot, taking priority over both fallbacks below so the card and the
-   *  ledger never show two different ranks for the same real pick (Ash,
-   *  2026-08-23, caught via a live example: card read #177, ledger read
-   *  #302, for the same pick). */
-  ledgerRankByPickKey?: ReadonlyMap<string, number>;
   /** overallPick -> that CURRENT-year pick's real custom-computed trade
-   *  value, for a FUTURE pick projected to the same slot to sample instead
-   *  of the generic ratio model — see pickTradeValueRank's own doc (a real
-   *  bug: the generic model showed a future pick nearly TWICE as valuable
-   *  as the real curve says the same slot is worth). */
+   *  value — the precise number for a CURRENT-year pick with a known slot,
+   *  ranked (via pickValueStatus's rankOf) against leaguePlayers + every
+   *  other pick's value together, taking priority over the generic
+   *  ratio-model fallback below. Also what a FUTURE pick projected to the
+   *  same slot samples from instead of the generic model — see
+   *  pickTradeValueRank's own doc (a real bug: the generic model showed a
+   *  future pick nearly TWICE as valuable as the real curve says the same
+   *  slot is worth). */
   currentYearPickValueByOverallPick?: ReadonlyMap<number, number>;
-  /** Every ledger row's tradeValue — the pool a future pick's decayed value
-   *  ranks against (see pickValueStatus's own ledgerValues doc). */
+  /** Every OTHER pick's own value (the generated ledger's PICK rows only) —
+   *  combined with leaguePlayers for every tier of pickValueStatus's rankOf,
+   *  so a pick's card and a player's card are always counted against the
+   *  SAME pool. See pickValueStatus's own pickLedgerValues doc for why this
+   *  must never include a full-mode ledger's PLAYER rows. */
   ledgerValues?: readonly number[];
   /** Launches the Power Rankings compare (see trade-edge/page.tsx) so an
    *  unresolved future pick's real value gets computed — passed only once
@@ -812,7 +861,7 @@ export function DraftPickCardsGrid({
   onRequestValue?: () => void;
 }) {
   const rows = draftPickYearRows(picks, seasonYear, yearsWithLeagueData);
-  const statusFor = (pick: TeamDraftPick) => pickValueStatus(pick, { leaguePlayers, baseValueByFantraxId, family, ledgerRankByPickKey, currentYearPickValueByOverallPick, seasonYear, ledgerValues });
+  const statusFor = (pick: TeamDraftPick) => pickValueStatus(pick, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues: ledgerValues });
   return (
     <div>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{teamName} — Draft Picks</div>
