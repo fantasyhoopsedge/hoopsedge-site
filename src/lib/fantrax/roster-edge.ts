@@ -92,12 +92,23 @@ export function getConsensusPoolSize(): number {
 
 export interface ContractInfo {
   currentSalary: number;
-  /** Years remaining FROM THE CURRENT SEASON, not the deal's original term —
-   *  nba_roster only carries forward salary_yr2..yr4, not how many years the
-   *  contract was originally signed for, so this is the closest honest
-   *  answer to "Xyr" the data actually supports. */
+  /** The real, audited full contract length — read straight off
+   *  nba_roster.contract_years (Pocaro's cap-sheet team-by-team rebuild, see
+   *  the salary-roster-pipeline skill), not derived by counting non-null
+   *  salary_yr columns. That derivation used to be the only source here, and
+   *  it silently counted a Qualifying Offer / RFA cap-hold estimate
+   *  (flagged by nba_roster.salary_qo_years) as if it were a normal
+   *  continuing contract year — inflating both this figure and
+   *  totalRemaining for any player with one (Ash, 2026-08-27: Kyshawn
+   *  George's rookie-scale deal read "3yr/$17.0M" here — 2 real years plus
+   *  his 2028-29 QO estimate folded in as a third — against the audited
+   *  "4yr/$14.3M" nba_roster.contract_years/contract_total already carried).
+   *  Falls back to the old salary_yr-sum count only for a player/team
+   *  nba_roster hasn't been through that audit for yet (contract_years
+   *  null) — a real, if less precise, number rather than a blank cell. */
   yearsRemaining: number;
-  /** Sum of currentSalary + whichever of yr2/yr3/yr4 nba_roster has. */
+  /** nba_roster.contract_total when audited; otherwise the same salary_yr-sum
+   *  fallback as yearsRemaining, for the same reason. */
   totalRemaining: number;
   /** contractClassOf(nba_roster.contract_status) — drives Trade Edge's
    *  asset-card "Rookie Scale" tier (see _components/asset-tiers.ts). Has the
@@ -132,9 +143,10 @@ export async function getAgeByFheId(): Promise<Record<string, number>> {
   return out;
 }
 
-/** fhe_id -> current-season salary + years/total remaining on the deal.
- *  Omits unsigned free agents (real_salary_values.salary null — no contract
- *  to show) and anyone nba_roster has no extras row for. */
+/** fhe_id -> current-season salary + the real, audited full contract
+ *  (nba_roster.contract_years/contract_total when present; see ContractInfo's
+ *  own doc). Omits unsigned free agents (real_salary_values.salary null — no
+ *  contract to show) and anyone nba_roster has no extras row for. */
 export async function getContractByFheId(): Promise<Record<string, ContractInfo>> {
   const [values, extras] = await Promise.all([
     getRealSalaryValues(REAL_SALARY_SEASON),
@@ -145,12 +157,17 @@ export async function getContractByFheId(): Promise<Record<string, ContractInfo>
   for (const v of values) {
     if (!v.fhe_id || v.salary == null || out[v.fhe_id] != null) continue;
     const extra = extrasByFheId.get(v.fhe_id);
-    const years = [v.salary, extra?.salary_yr2, extra?.salary_yr3, extra?.salary_yr4]
+    // Fallback only — a player/team nba_roster hasn't audited yet
+    // (contract_years null) still needs SOME "years/total" answer, so this
+    // reproduces the old behavior for exactly that case. Never used when
+    // contract_years/contract_total are present; see ContractInfo's own doc
+    // for why those two win whenever they exist.
+    const fallbackYears = [v.salary, extra?.salary_yr2, extra?.salary_yr3, extra?.salary_yr4]
       .filter((s): s is number => s != null);
     out[v.fhe_id] = {
       currentSalary: v.salary,
-      yearsRemaining: years.length,
-      totalRemaining: years.reduce((a, b) => a + b, 0),
+      yearsRemaining: extra?.contract_years ?? fallbackYears.length,
+      totalRemaining: extra?.contract_total ?? fallbackYears.reduce((a, b) => a + b, 0),
       contractClass: contractClassOf(extra?.contract_status ?? null),
     };
   }
