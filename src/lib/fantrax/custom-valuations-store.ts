@@ -38,12 +38,28 @@ export interface LedgerRow {
    *  only — `"${draftYear}:${overallPick}"`. This is the one pick shape the
    *  ledger prices individually (real rookie-board-mapped consensus rank per
    *  slot); a future-year row is a generic bracket estimate shared by every
-   *  team's pick in that range, not tied to one real pick, so it gets no key.
+   *  team's pick in that range, not tied to one real pick, so it gets no key
+   *  here — see bracketKey below for ITS join key instead.
    *  Lets Trade Edge's live pick cards join onto the SAME number the ledger
    *  itself shows for that exact pick (Ash, 2026-08-23: found the two
    *  disagreeing — card showed rank #177 for a pick the ledger ranked #302)
    *  instead of recomputing a different value via the generic ratio model. */
   pickKey: string | null;
+  /** Set for a FUTURE-year bracket row only — `"${year}:${minPick}-${maxPick}"`
+   *  (the exact label custom-valuations.ts's own bracket loop and
+   *  league-rankings.ts's own bracket loop both derive independently from
+   *  CATEGORIES_PICK_TIERS, so the two always agree on the string even
+   *  though each computes its OWN tradeValue). Lets League Rankings overlay
+   *  THIS row's real, ledger-computed value onto its own bracket row for the
+   *  same (year, tier) instead of keeping its own independently-computed
+   *  ratio-transplant estimate — the two used a completely different pricing
+   *  formula for the identical synthetic pick (Ash, 2026-08-27: Woolridge
+   *  DMD30's 2027 #4-8 bracket read 469 in the ledger/Trade Edge's pool but
+   *  200 on League Rankings' own "Consensus dynasty" tab — a gap wide enough
+   *  that 3 extra bracket rows straddled Kyrie Irving's value on one side of
+   *  that divide and not the other, producing a real, visible #85-vs-#88
+   *  rank mismatch for the same player between the two surfaces). */
+  bracketKey: string | null;
   /** Fantrax eligibility, already filtered to real positions (posDisplayFor)
    *  — "Flx"/other roster-slot-only tags never appear here, only PG/SG/SF/
    *  PF/C/G/F as this league's own positionSlots actually recognizes. Null

@@ -366,11 +366,24 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // row.tradeRank here — see the toRanked() calls below for why trusting a
   // number computed within a DIFFERENT pool (the ledger's own combined sort)
   // for only SOME of a map's rows breaks that map's own self-consistency.
+  // Same idea for a FUTURE-year bracket row (`"${year}:${minPick}-${maxPick}"`,
+  // matching the label both this file's own bracket loop below and
+  // buildPickAssetRows independently derive from CATEGORIES_PICK_TIERS) —
+  // see LedgerRow.bracketKey's own doc for why this exists: the ledger's
+  // year-decay bracket curve and this file's own pickEquivalentValue ratio-
+  // transplant estimate priced the identical synthetic pick wildly
+  // differently (Ash, 2026-08-27: Woolridge DMD30's 2027 #4-8 bracket read
+  // 469 in the ledger but 200 via this file's own formula — a gap wide
+  // enough that 3 extra bracket rows straddled Kyrie Irving's value on one
+  // side of that divide and not the other, so his rank read #85 here but
+  // #88 on Trade Edge for the exact same underlying pool).
   const ledgerByPickKey = new Map<string, number>();
+  const ledgerByBracketKey = new Map<string, number>();
   if (customDoc) {
     for (const row of customDoc.rows) {
       if (row.fantraxId) customMap.set(row.fantraxId, row.tradeValue);
       if (row.pickKey) ledgerByPickKey.set(row.pickKey, row.tradeValue);
+      if (row.bracketKey) ledgerByBracketKey.set(row.bracketKey, row.tradeValue);
     }
   }
   // A picksOnly ledger (the "generate draft pick values" flow for a
@@ -469,10 +482,12 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // yet (a future draft order isn't set). Reuses pickEquivalentValue against
   // a synthetic representative pick at the tier's own minPick — same
   // ratio-transplant + year-decay math a real pick in that slot would get,
-  // just not attached to any one team. "Custom" has no real ledger anchor
-  // for a bucket that was never a real, individually-priced pick, so it
-  // falls back to the standard number, same overlay convention as everywhere
-  // else in this file.
+  // just not attached to any one team — as the FALLBACK only: the generated
+  // ledger's own bracket row (ledgerByBracketKey), when one exists, is the
+  // more precise number and takes priority, same "ledgerVal ?? standardVal"
+  // precedence current-year picks already use above. See LedgerRow.bracketKey's
+  // own doc for why this overlay exists at all — the two formulas priced the
+  // identical synthetic pick wildly differently.
   const bracketYears = [...new Set(
     analysis.league.rosters.flatMap((r) => r.draftPicks.map((p) => p.year)).filter((y) => y > draftYear),
   )].sort((a, b) => a - b);
@@ -484,6 +499,8 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       const realVal = pickEquivalentValue(synthetic, corePlayers, realMap, family);
       if (standardVal == null && realVal == null) continue;
       const key = `bracket:${year}:${tier.minPick}-${tier.maxPick}`;
+      const bracketKey = `${year}:${tier.minPick}-${tier.maxPick}`;
+      const ledgerBracketVal = ledgerByBracketKey.get(bracketKey);
       assets.push({
         key, kind: "pick", name: `${year} #${tier.minPick}-${tier.maxPick}`, fantraxId: null,
         pos: null, nbaTeam: null, isRookie: false, isSophomore: false, owner: "—",
@@ -494,7 +511,9 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       });
       if (standardVal != null) standardMap.set(key, standardVal);
       if (realVal != null) realMap.set(key, realVal);
-      customMap.set(key, standardVal ?? realVal!);
+      customMap.set(key, ledgerBracketVal ?? standardVal ?? realVal!);
+      if (ledgerBracketVal != null && picksOnlyBasis === "standard") standardMap.set(key, ledgerBracketVal);
+      if (ledgerBracketVal != null && picksOnlyBasis === "real") realMap.set(key, ledgerBracketVal);
     }
   }
 

@@ -408,7 +408,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     // offer, so an unrostered player there still correctly shows nothing.
     const salary = p.salary ?? (salaryFormat === "real" ? realContractInfo?.currentSalary ?? null : null);
     rows.push({
-      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null,
+      asset: p.name, type: "player", fantraxId: p.fantraxId, pickKey: null, bracketKey: null,
       pos: posDisplayForLedger(p.eligible || [], analysis.league.positionSlots) || null,
       nbaTeam: p.nbaTeam || null, isRookie: p.isRookie ?? false,
       dynRank, tradeValue: v, tradeRank: null,
@@ -590,7 +590,7 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
       pickCount++;
       rows.push({
         asset: pickLabel(pick), type: "pick", fantraxId: null,
-        pickKey: pick.overallPick != null ? `${draftYear}:${pick.overallPick}` : null,
+        pickKey: pick.overallPick != null ? `${draftYear}:${pick.overallPick}` : null, bracketKey: null,
         pos: null, nbaTeam: null, isRookie: false, dynRank: null, tradeValue: v, tradeRank: null,
         salary: pick.overallPick != null ? salaryForPick(rookieSalaryScale, pick.overallPick) : null,
         contract: null, owner: teamNameByTeamId.get(r.teamId) ?? "—",
@@ -628,6 +628,7 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
       extraPickCount++;
       rows.push({
         asset: `${year} #${tier.minPick}-${tier.maxPick}`, type: "pick", fantraxId: null, pickKey: null,
+        bracketKey: `${year}:${tier.minPick}-${tier.maxPick}`,
         pos: null, nbaTeam: null, isRookie: false, dynRank: null,
         tradeValue: v, tradeRank: null, salary: null, contract: null, owner: "—",
       });
