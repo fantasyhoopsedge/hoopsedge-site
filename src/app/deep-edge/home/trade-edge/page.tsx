@@ -21,7 +21,7 @@ import type { CustomValuationsDoc } from "@/lib/fantrax/custom-valuations-store"
 import { computeTradeVerdict, type TradeVerdict } from "@/lib/fantrax/trade-verdict";
 import {
   DraftPickCardsGrid, formatContract, formatCustomContract, formatCustomSalary, formatSalary,
-  pickValueStatus, posDisplayFor, rankAmong, statValue, weightedAverage, type EnrichData, type RosterTableFormat,
+  pickValueStatus, posDisplayFor, rankAmong, rankAmongCombined, statValue, weightedAverage, type EnrichData, type RosterTableFormat,
 } from "../../_components/roster-table";
 import { ASSET_TIER_COLOR, pickAssetTier, playerAssetTier, type ContractClass } from "../../_components/asset-tiers";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
@@ -160,47 +160,55 @@ function formatNetDelta(cat: FheCategory, net: number, mode: "perGame" | "totals
  *  every league type (consensus rank / real-or-custom-salary blend / season
  *  projection), never a raw dollar amount — so it ranks the same as every
  *  other mode now. Reused by both PlayerMiniCard and TradePreviewTable's VAL
- *  RK column so the two stay consistent. */
+ *  RK column so the two stay consistent. `pickValues` (the generated
+ *  ledger's own PICK rows, never player rows — see PlayerMiniCard's own doc)
+ *  only matters for `surplusV`, the one mode that's genuinely comparable to
+ *  a draft pick's own trade value; every other mode is a raw stat rank
+ *  (9CatV/Minus1V/FPTS) a pick has no value for at all, so it's ignored
+ *  there exactly like before. */
 function valueDisplayFor(
   p: ResolvedPlayer, mode: TradeValueMode, leaguePlayers: ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number> | undefined,
-  ledgerRankByFantraxId?: ReadonlyMap<string, number>,
+  pickValues: readonly number[] = [],
 ): string {
   if (mode === "surplusV") {
-    const ledgerRank = ledgerRankByFantraxId?.get(p.fantraxId);
-    if (ledgerRank != null) return `#${ledgerRank}`;
+    const rank = rankAmongCombined(leaguePlayers, (pl) => baseValueByFantraxId?.get(pl.fantraxId) ?? null, pickValues, baseValueByFantraxId?.get(p.fantraxId) ?? null);
+    return rank != null ? `#${rank}` : "—";
   }
   const rank = rankAmong(leaguePlayers, (pl) => valueOf(pl, mode, baseValueByFantraxId), valueOf(p, mode, baseValueByFantraxId));
   return rank != null ? `#${rank}` : "—";
 }
 
-/** A player's trade-value RANK against the league pool — the ONLY number
- *  PlayerMiniCard shows (Ash, 2026-08-23: "the only value to display on the
- *  card is the trade value rank"), always read off baseValueByFantraxId
- *  (the base-value cascade — custom ledger merged over the default cascade,
- *  or the default cascade alone) regardless of whichever TradeValueMode the
- *  page's own "Rank players by" selector happens to be set to. That selector
- *  still drives sort order/other displays; it no longer drives this card.
+/** A player's trade-value RANK — the ONLY number PlayerMiniCard shows (Ash,
+ *  2026-08-23: "the only value to display on the card is the trade value
+ *  rank"), always read off baseValueByFantraxId (the base-value cascade —
+ *  custom ledger merged over the default cascade, or the default cascade
+ *  alone) regardless of whichever TradeValueMode the page's own "Rank
+ *  players by" selector happens to be set to. That selector still drives
+ *  sort order/other displays; it no longer drives this card.
  *
- *  When a custom ledger is active, `ledgerRankByFantraxId` (the ledger's own
- *  precomputed `tradeRank`, keyed by fantraxId) is checked FIRST and used
- *  verbatim — never recomputed via rankAmong(leaguePlayers, …), which only
- *  ranks within the two trading rosters, a much smaller and differently-
- *  composed pool than the ledger's own ~552-asset ranking (Ash, 2026-08-23:
- *  found Buffalo Braves' cards showing #30/#87/#129… while the asset-values
- *  page ranked the SAME players #36/#104/#159 — the exact same class of
- *  card/ledger divergence already fixed for picks via ledgerRankByPickKey,
- *  now fixed the same way for players). Falls back to the recomputed rank
- *  only for a player the ledger never resolved a fantraxId for. */
+ *  Ranked via rankAmongCombined against `leaguePlayers` (every real player
+ *  in the league, already carrying the ledger's own value overlay through
+ *  baseValueByFantraxId when one applies) PLUS `pickValues` (the generated
+ *  ledger's own PICK rows) together — the SAME combined pool
+ *  pickValueStatus's picks rank against, so a player's card and a pick's
+ *  card are always counted the same way. NOT the ledger's own precomputed
+ *  tradeRank verbatim, which used to be trusted here first: that number
+ *  lives inside a DIFFERENT, ledger-internal pool shape, so trusting it for
+ *  SOME players while everyone else on the page reads a rank from THIS
+ *  pool silently produced two incompatible numbering systems on one page
+ *  (Ash, 2026-08-23, found Buffalo Braves' cards showing #30/#87/#129 while
+ *  the asset-values page ranked the SAME players #36/#104/#159; recurred
+ *  2026-08-27 as a player's card reading #74 against League Rankings' own
+ *  #85 for the same player — an 11-pick gap, exactly the picks the old
+ *  players-only pool silently excluded from the count). */
 function tradeValueRankFor(
   p: ResolvedPlayer,
   leaguePlayers: readonly ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number> | undefined,
-  ledgerRankByFantraxId?: ReadonlyMap<string, number>,
+  pickValues: readonly number[],
 ): string {
-  const ledgerRank = ledgerRankByFantraxId?.get(p.fantraxId);
-  if (ledgerRank != null) return `#${ledgerRank}`;
-  const rank = rankAmong(leaguePlayers as ResolvedPlayer[], (pl) => baseValueByFantraxId?.get(pl.fantraxId) ?? null, baseValueByFantraxId?.get(p.fantraxId) ?? null);
+  const rank = rankAmongCombined(leaguePlayers as ResolvedPlayer[], (pl) => baseValueByFantraxId?.get(pl.fantraxId) ?? null, pickValues, baseValueByFantraxId?.get(p.fantraxId) ?? null);
   return rank != null ? `#${rank}` : "—";
 }
 
@@ -223,13 +231,19 @@ function tradeValueRankFor(
  *  "remove the semi greyed application to some of the cards that was a
  *  legacy UI request." */
 function PlayerMiniCard({
-  player, checked, onToggle, tier, positionSlots, isSophomore, contractClass, leaguePlayers, baseValueByFantraxId, ledgerRankByFantraxId,
+  player, checked, onToggle, tier, positionSlots, isSophomore, contractClass, leaguePlayers, baseValueByFantraxId, pickValues,
 }: {
   player: ResolvedPlayer; checked: boolean; onToggle: () => void;
   tier: CategoryTier | null; positionSlots: Record<string, number>; isSophomore: boolean;
   contractClass: ContractClass | undefined; leaguePlayers: readonly ResolvedPlayer[];
   baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
-  ledgerRankByFantraxId?: ReadonlyMap<string, number>;
+  /** The generated ledger's own PICK rows (never player rows — a full-mode
+   *  ledger's player values already reach this card once, through
+   *  baseValueByFantraxId's own overlay; counting them again here via a
+   *  second, ledger-sourced array would double them into the pool). See
+   *  tradeValueRankFor's own doc for why this replaced trusting the
+   *  ledger's raw per-player rank. */
+  pickValues: readonly number[];
 }) {
   const initials = player.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
   const posDisplay = posDisplayFor(player.eligible, positionSlots).join("/");
@@ -237,7 +251,7 @@ function PlayerMiniCard({
     isRookie: player.isRookie, isSophomore, isRookieScaleContract: contractClass === "rookie-scale",
   });
   const { bg } = ASSET_TIER_COLOR[assetTier];
-  const rankLabel = tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerRankByFantraxId);
+  const rankLabel = tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, pickValues);
   const textShadow = "0 1px 3px rgba(0,0,0,0.45)";
   return (
     <button
@@ -514,14 +528,13 @@ function RankRing({ rank, of, size = 54, stroke = "var(--rt-primary)" }: { rank:
  *  match for the font type"). */
 function TradeVerdictAssetRow({
   player, pick, rawValue, adjustedValue, leaguePlayers, baseValueByFantraxId, secondRankMode, showSalary, salaryFormat,
-  family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, isSophomore, contractClass, seasonYear, currentYearPickValueByOverallPick, ledgerValues,
+  family, positionSlots, isSophomore, contractClass, seasonYear, currentYearPickValueByOverallPick, ledgerValues,
   onRequestValue,
 }: {
   player: ResolvedPlayer | null; pick: TeamDraftPick | null; rawValue: number; adjustedValue: number;
   leaguePlayers: ResolvedPlayer[]; baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
   secondRankMode: Exclude<TradeValueMode, "surplusV">; showSalary: boolean; salaryFormat: SalaryFormat;
-  family: "categories" | "points"; ledgerRankByPickKey: ReadonlyMap<string, number>;
-  ledgerRankByFantraxId: ReadonlyMap<string, number>; positionSlots: Record<string, number>;
+  family: "categories" | "points"; positionSlots: Record<string, number>;
   isSophomore: boolean; contractClass: ContractClass | undefined; seasonYear: number;
   currentYearPickValueByOverallPick: ReadonlyMap<number, number>; ledgerValues: readonly number[];
   /** Launches the Power Rankings compare so an unresolved future pick's
@@ -532,8 +545,8 @@ function TradeVerdictAssetRow({
 }) {
   const isCustomSalary = salaryFormat === "custom";
   const label = player ? player.name : pickLabel(pick!);
-  const pickStatus = player ? null : pickValueStatus(pick!, { leaguePlayers, baseValueByFantraxId, family, ledgerRankByPickKey, currentYearPickValueByOverallPick, seasonYear, ledgerValues });
-  const valRk = player ? tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerRankByFantraxId) : pickStatus!.label;
+  const pickStatus = player ? null : pickValueStatus(pick!, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues: ledgerValues });
+  const valRk = player ? tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerValues) : pickStatus!.label;
   const secondRk = player ? valueDisplayFor(player, secondRankMode, leaguePlayers, undefined) : "—";
   const salaryDisplay = player
     ? (isCustomSalary ? formatCustomSalary(player.salary) : formatSalary(player.salary))
@@ -590,14 +603,13 @@ function TradeVerdictAssetRow({
 
 function TradeVerdictSideColumn({
   teamName, teamNameColor, side, players, picks, leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel,
-  showSalary, salaryFormat, family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick,
+  showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick,
   ledgerValues, onRequestValue,
 }: {
   teamName: string; teamNameColor: string; side: TradeVerdict["sideA"]; players: ResolvedPlayer[]; picks: readonly TeamDraftPick[];
   leaguePlayers: ResolvedPlayer[]; baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
   secondRankMode: Exclude<TradeValueMode, "surplusV">; secondRankLabel: string;
   showSalary: boolean; salaryFormat: SalaryFormat; family: "categories" | "points";
-  ledgerRankByPickKey: ReadonlyMap<string, number>; ledgerRankByFantraxId: ReadonlyMap<string, number>;
   positionSlots: Record<string, number>;
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
   ledgerValues: readonly number[]; onRequestValue: () => void;
@@ -636,8 +648,7 @@ function TradeVerdictSideColumn({
                   key={r.label}
                   player={r.player} pick={r.pick} rawValue={a.rawValue} adjustedValue={a.adjustedValue}
                   leaguePlayers={leaguePlayers} baseValueByFantraxId={baseValueByFantraxId} secondRankMode={secondRankMode}
-                  showSalary={showSalary} salaryFormat={salaryFormat} family={family} ledgerRankByPickKey={ledgerRankByPickKey}
-                  ledgerRankByFantraxId={ledgerRankByFantraxId}
+                  showSalary={showSalary} salaryFormat={salaryFormat} family={family}
                   positionSlots={positionSlots} isSophomore={isSophomore} contractClass={contractClass} seasonYear={seasonYear}
                   currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} ledgerValues={ledgerValues}
                   onRequestValue={onRequestValue}
@@ -653,7 +664,7 @@ function TradeVerdictSideColumn({
 
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, myTeamId, myPlayers, myPicks, theirPlayers, theirPicks, leaguePlayers, baseValueByFantraxId,
-  secondRankMode, secondRankLabel, showSalary, salaryFormat, family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, enrich, seasonYear,
+  secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear,
   currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode,
 }: {
   verdict: TradeVerdict; myTeamName: string; theirTeamName: string; myTeamId: string;
@@ -664,7 +675,6 @@ function TradeVerdictPanel({
   leaguePlayers: ResolvedPlayer[]; baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
   secondRankMode: Exclude<TradeValueMode, "surplusV">; secondRankLabel: string;
   showSalary: boolean; salaryFormat: SalaryFormat; family: "categories" | "points";
-  ledgerRankByPickKey: ReadonlyMap<string, number>; ledgerRankByFantraxId: ReadonlyMap<string, number>;
   positionSlots: Record<string, number>;
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
   ledgerValues: readonly number[]; onRequestValue: () => void;
@@ -696,7 +706,7 @@ function TradeVerdictPanel({
   // losing side's reads red, both neutral on a fair trade.
   const myNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
   const theirNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "B" ? "var(--rt-up)" : "var(--rt-down)";
-  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, ledgerRankByPickKey, ledgerRankByFantraxId, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, ledgerValues, onRequestValue };
+  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, ledgerValues, onRequestValue };
 
   const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode) : null;
   const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode) : null;
@@ -842,7 +852,7 @@ function TradeVerdictPanel({
  *  line up exactly whether read stacked or side by side. */
 function TradePreviewTable({
   title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots, showSalary, showContract, salaryFormat,
-  surplusByFantraxId, ledgerRankByFantraxId,
+  surplusByFantraxId, pickValues,
 }: {
   title: string; players: ResolvedPlayer[]; scored: readonly FheCategory[]; enrich: EnrichData | null;
   leaguePlayers: ResolvedPlayer[]; valueMode: TradeValueMode; statMode: "perGame" | "totals";
@@ -851,7 +861,9 @@ function TradePreviewTable({
    *  default in leagues with no salary data (salaryFormat "none"). */
   showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
   surplusByFantraxId?: ReadonlyMap<string, number>;
-  ledgerRankByFantraxId?: ReadonlyMap<string, number>;
+  /** The generated ledger's own PICK rows — see valueDisplayFor's own doc
+   *  for why this only matters when valueMode is "surplusV". */
+  pickValues?: readonly number[];
 }) {
   if (players.length === 0) return null;
   const isCustomSalary = salaryFormat === "custom";
@@ -902,7 +914,7 @@ function TradePreviewTable({
               const dynastyRank = p.fheId ? enrich?.dynastyRankByFheId[p.fheId] : null;
               const age = p.fheId ? enrich?.ageByFheId?.[p.fheId] : null;
               const contract = p.fheId ? enrich?.contractByFheId[p.fheId] : undefined;
-              const valueDisplay = valueDisplayFor(p, valueMode, leaguePlayers, surplusByFantraxId, ledgerRankByFantraxId);
+              const valueDisplay = valueDisplayFor(p, valueMode, leaguePlayers, surplusByFantraxId, pickValues);
               const posDisplay = posDisplayFor(p.eligible, positionSlots).join("/");
               return (
                 <tr key={p.fantraxId}>
@@ -1431,11 +1443,12 @@ function TradeEdgeContent() {
   // free agents it could match against the identity registry), so any player
   // it missed still falls back to the always-complete default map instead of
   // silently reading as valueless. Picks are handled separately below
-  // (ledgerRankByPickKey) — a pick has no fantraxId, so it can't join
-  // through this map at all; the live trade-verdict panel's own pick math
-  // (pickEquivalentValue) still reads off whichever player map this is, so
-  // a custom pick's verdict contribution inherits the custom PLAYER floor
-  // even though its own displayed rank comes from the ledger directly.
+  // (ledgerValues/currentYearPickValueByOverallPick) — a pick has no
+  // fantraxId, so it can't join through this map at all; the live
+  // trade-verdict panel's own pick math (pickEquivalentValue) still reads
+  // off whichever player map this is, so a custom pick's verdict
+  // contribution inherits the custom PLAYER floor even though its own
+  // displayed rank comes from the ledger directly.
   const baseValueByFantraxId = useMemo(() => {
     // A picksOnly doc (the standard-league "generate draft pick values"
     // flow) carries no player/FA rows at all — every row is type "pick"
@@ -1450,36 +1463,6 @@ function TradeEdgeContent() {
     }
     return merged;
   }, [defaultBaseValueByFantraxId, customLedger]);
-  // A CURRENT-year pick's real rank in the ledger's own full asset pool —
-  // see DraftPickCardsGrid's ledgerRankByPickKey doc for why this fixed a
-  // real bug (card and ledger showing two different ranks for the same
-  // pick). Only current-year rows carry a pickKey (custom-valuations.ts
-  // only prices a future pick as a generic per-round bracket, not a real
-  // per-pick number), so this map is naturally empty for every future pick.
-  const ledgerRankByPickKey = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const row of customLedger?.rows ?? []) {
-      if (row.pickKey && row.tradeRank != null) map.set(row.pickKey, row.tradeRank);
-    }
-    return map;
-  }, [customLedger]);
-  // A player's real rank in the ledger's own full asset pool — the same
-  // card/ledger-divergence bug as ledgerRankByPickKey above, but for
-  // players: tradeValueRankFor previously always recomputed rank via
-  // rankAmong(leaguePlayers, …), which only ranks within the two trading
-  // rosters (a handful of teams), not the ledger's own ~552-asset pool
-  // (30 teams' rosters + FAs + picks) — so a player's card rank silently
-  // drifted from the asset-values page's own RANK column for the same
-  // player (Ash, 2026-08-23: Buffalo Braves' cards read #30/#87/#129 for
-  // players the ledger itself ranks #36/#104/#159). Read directly off
-  // this map first, same priority as ledgerRankByPickKey.
-  const ledgerRankByFantraxId = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const row of customLedger?.rows ?? []) {
-      if (row.fantraxId && row.tradeRank != null) map.set(row.fantraxId, row.tradeRank);
-    }
-    return map;
-  }, [customLedger]);
   // Every CURRENT-year pick's own real custom-computed VALUE, reindexed by
   // its bare overall-pick number — the real curve a projected FUTURE pick
   // samples from (pickTradeValueRank's tier 2) instead of the generic
@@ -1495,11 +1478,23 @@ function TradeEdgeContent() {
     }
     return map;
   }, [customLedger]);
-  // Every ledger row's own tradeValue — the SAME pool custom-valuations.ts
-  // itself ranks a row within (see roster-table.tsx's rankAmongValues doc
-  // for why a decayed future-pick value has to rank against THIS, not
-  // leaguePlayers, to stay monotonic with the ledger's own numbers).
-  const ledgerValues = useMemo(() => (customLedger?.rows ?? []).map((r) => r.tradeValue), [customLedger]);
+  // Every ledger PICK row's own tradeValue — never player rows (a full-mode
+  // ledger's `rows` mixes both; filtered here so this can double as the
+  // "every other draft pick's value" pool every player card's rank ALSO
+  // counts against via rankAmongCombined — counting player rows twice would
+  // silently inflate everyone's rank). This is what replaced the ledger's
+  // own precomputed tradeRank/tradeValue as the thing every card on this
+  // page ranks against: that number lives inside a DIFFERENT, ledger-
+  // internal combined pool (see rankAmongCombined's own doc in
+  // roster-table.tsx for the two live bugs that mismatch produced —
+  // Buffalo Braves' player cards 2026-08-23, then a non-monotonic rank
+  // between a current-year pick and a bracket row 2026-08-27). Ranking
+  // every card here against THIS SAME derived pool (leaguePlayers ∪
+  // pickLedgerValues), consistently, is what makes that impossible now.
+  const ledgerValues = useMemo(
+    () => (customLedger?.rows ?? []).filter((r) => r.type === "pick").map((r) => r.tradeValue),
+    [customLedger],
+  );
   // Draft-pick assets live on the raw league snapshot, not the resolved-player
   // rosters above — see LeagueRoster.draftPicks. Gate the whole grid on
   // whether ANY team has pick data — same reasoning as Roster Edge's own
@@ -1848,7 +1843,7 @@ function TradeEdgeContent() {
                         contractClass={p.fheId ? enrich?.contractByFheId[p.fheId]?.contractClass : undefined}
                         leaguePlayers={leaguePlayers}
                         baseValueByFantraxId={baseValueByFantraxId}
-                        ledgerRankByFantraxId={ledgerRankByFantraxId}
+                        pickValues={ledgerValues}
                         onToggle={() => setIds((s) => { const n = new Set(s); if (n.has(p.fantraxId)) n.delete(p.fantraxId); else n.add(p.fantraxId); return n; })}
                       />
                     ))}
@@ -1870,7 +1865,6 @@ function TradeEdgeContent() {
                         leaguePlayers={leaguePlayers}
                         baseValueByFantraxId={baseValueByFantraxId}
                         family={isPointsLeague ? "points" : "categories"}
-                        ledgerRankByPickKey={ledgerRankByPickKey}
                         currentYearPickValueByOverallPick={currentYearPickValueByOverallPick}
                         ledgerValues={ledgerValues}
                         onRequestValue={() => setActivePanel("rankings")}
@@ -1920,8 +1914,8 @@ function TradeEdgeContent() {
                     </div>
                   )}
 
-                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} ledgerRankByFantraxId={ledgerRankByFantraxId} />
-                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} ledgerRankByFantraxId={ledgerRankByFantraxId} />
+                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
+                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
 
                   <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
 
@@ -1936,8 +1930,7 @@ function TradeEdgeContent() {
                       leaguePlayers={leaguePlayers} baseValueByFantraxId={baseValueByFantraxId}
                       secondRankMode={secondRankMode} secondRankLabel={secondRankLabel}
                       showSalary={showSalary} salaryFormat={salaryFormat}
-                      family={isPointsLeague ? "points" : "categories"} ledgerRankByPickKey={ledgerRankByPickKey}
-                      ledgerRankByFantraxId={ledgerRankByFantraxId}
+                      family={isPointsLeague ? "points" : "categories"}
                       positionSlots={effective?.positionSlots ?? {}} enrich={enrich} seasonYear={seasonYear}
                       currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} ledgerValues={ledgerValues}
                       onRequestValue={() => setActivePanel("rankings")}
