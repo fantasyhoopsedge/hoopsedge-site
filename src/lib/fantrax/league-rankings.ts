@@ -197,6 +197,29 @@ function toRanked(map: ReadonlyMap<string, number>): Record<string, RankedValue>
   return out;
 }
 
+/** Overwrites a freshly-toRanked() basis map's RANK (never its value — see
+ *  the call sites' own doc) for every asset the generated ledger actually
+ *  covers, straight from the ledger's own row.tradeRank. Factored out so the
+ *  "custom" tab and, for a picksOnly ledger, whichever of standard/real it
+ *  represents can all apply the identical override rather than three
+ *  hand-copied loops silently drifting from each other. */
+function applyLedgerRankOverride(
+  ranked: Record<string, RankedValue>,
+  ledgerRankByFantraxId: ReadonlyMap<string, number>,
+  ledgerRankByPickKey: ReadonlyMap<string, number>,
+  pickKeyToAssetKey: ReadonlyMap<string, string>,
+): void {
+  for (const [fantraxId, rank] of ledgerRankByFantraxId) {
+    const entry = ranked[fantraxId];
+    if (entry) ranked[fantraxId] = { ...entry, rank };
+  }
+  for (const [pickKey, rank] of ledgerRankByPickKey) {
+    const assetKey = pickKeyToAssetKey.get(pickKey);
+    const entry = assetKey ? ranked[assetKey] : undefined;
+    if (assetKey && entry) ranked[assetKey] = { ...entry, rank };
+  }
+}
+
 export async function computeLeagueRankings(input: LeagueRankingsInput): Promise<LeagueRankingsResult> {
   const { leagueId, owner, teamId, dataset, leagueType, settings } = input;
   const salaryFormat = settings.salaryFormat ?? "none";
@@ -383,6 +406,29 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       if (row.pickKey && row.tradeRank != null) ledgerRankByPickKey.set(row.pickKey, row.tradeRank);
     }
   }
+  // A picksOnly ledger (the "generate draft pick values" flow for a
+  // STANDARD, non-custom league — see CustomValuationsDoc.mode's own doc)
+  // never touches "custom" at all: that basis stays a plain copy of
+  // standardMap for such a league. Its picks are real numbers Trade Edge
+  // already reads directly off the ledger (ledgerRankByPickKey in
+  // trade-edge/page.tsx applies unconditionally, regardless of which basis
+  // is "active") — but until now this page only ever overlaid the ledger
+  // onto the "custom" tab, so for a picksOnly league the tab actually
+  // driving real trade value (whichever of "standard"/"real" activeBasis
+  // resolves to below) kept showing ITS OWN independently-computed pick
+  // number instead of the ledger's, while Trade Edge's cards showed the
+  // ledger's. Same computation the picksOnly POST route itself uses to
+  // decide which basis to generate against (custom-valuations/route.ts) —
+  // must match exactly, or this overlay would apply to the wrong map (Ash,
+  // 2026-08-26: Woolridge DMD30's HBB picks read Asset Value 287/91/53/… on
+  // the "Consensus dynasty" tab — the one carrying the ● "driving real
+  // trade value" indicator — while Trade Edge's cards for the SAME picks
+  // read ledger ranks #10/#26/#42/… computed from a completely different
+  // number).
+  const picksOnlyBasis: "standard" | "real" | null = customDoc?.mode === "picksOnly"
+    ? (leagueType === "dynasty" && settings.salaryFormat === "real" ? "real" : "standard")
+    : null;
+
   // pickKey ("year:overallPick") -> this AssetRow's own key — pickKey alone
   // isn't a valid lookup into `assets`/`customMap` (a real pick's AssetRow key
   // also carries the owning team id), so the ledger-rank override below needs
@@ -452,6 +498,13 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       if (standardVal != null) standardMap.set(key, standardVal);
       if (realVal != null) realMap.set(key, realVal);
       if (customVal != null) customMap.set(key, customVal);
+      // A picksOnly ledger's own pick number IS the real, driving one for
+      // whichever basis it was generated against — overwrite that map's
+      // just-set standardVal/realVal the same way customVal already does
+      // for "custom" above, so the tab carrying the ● "active basis"
+      // indicator shows the identical number Trade Edge's cards read.
+      if (ledgerVal != null && picksOnlyBasis === "standard") standardMap.set(key, ledgerVal);
+      if (ledgerVal != null && picksOnlyBasis === "real") realMap.set(key, ledgerVal);
     }
   }
 
@@ -521,21 +574,29 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // either way, so this never touches the number this page displays as
   // "Asset Value," only the RANK column and MINUS1/9CAT/8CAT/FPTS's ranking.
   const customRanked = toRanked(customMap);
-  for (const [fantraxId, rank] of ledgerRankByFantraxId) {
-    const entry = customRanked[fantraxId];
-    if (entry) customRanked[fantraxId] = { ...entry, rank };
-  }
-  for (const [pickKey, rank] of ledgerRankByPickKey) {
-    const assetKey = pickKeyToAssetKey.get(pickKey);
-    const entry = assetKey ? customRanked[assetKey] : undefined;
-    if (assetKey && entry) customRanked[assetKey] = { ...entry, rank };
+  applyLedgerRankOverride(customRanked, ledgerRankByFantraxId, ledgerRankByPickKey, pickKeyToAssetKey);
+
+  // Same override, applied to whichever of standard/real a picksOnly
+  // ledger's picks were generated against (picksOnlyBasis) — see that
+  // constant's own doc. Only ever one of the two, and only for a picksOnly
+  // doc; a full-mode ledger never touches standard/real (those stay the
+  // league's genuine, un-overlaid consensus/real-salary numbers, exactly as
+  // before). ledgerRankByFantraxId is deliberately not passed here — a
+  // picksOnly doc carries no player rows, so it's always empty for one, and
+  // this basis's PLAYER ranks must stay the plain toRanked() computation.
+  const standardRanked = toRanked(standardMap);
+  const realRanked = toRanked(realMap);
+  if (picksOnlyBasis === "standard") {
+    applyLedgerRankOverride(standardRanked, new Map(), ledgerRankByPickKey, pickKeyToAssetKey);
+  } else if (picksOnlyBasis === "real") {
+    applyLedgerRankOverride(realRanked, new Map(), ledgerRankByPickKey, pickKeyToAssetKey);
   }
 
   return {
     assets,
     values: {
-      standard: toRanked(standardMap),
-      real: toRanked(realMap),
+      standard: standardRanked,
+      real: realRanked,
       redraft: toRanked(redraftMap),
       custom: customRanked,
     },
