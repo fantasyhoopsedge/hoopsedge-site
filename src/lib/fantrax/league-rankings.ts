@@ -231,7 +231,18 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   const espnIdByFantraxId = new Map<string, string>();
   const fheIdByFantraxId = new Map<string, string>();
   for (const fa of rawFAs) {
-    const r = idx.resolve({ name: fa.name });
+    // Fantrax id, not name — resolve.ts's own resolveOne() uses the same
+    // id-based join for exactly this reason (see its file header: "there is
+    // deliberately NO name fallback"). The registry blocks a Fantrax id from
+    // linking to an identity whenever another Fantrax player shares its name
+    // and can't be safely told apart (blockedFantraxNames() in
+    // build-player-identity.ts); a raw name resolve bypasses that guard and
+    // matches the SAME identity for every same-named Fantrax entry, which is
+    // exactly how a league's ghost/duplicate free-agent entry for a rostered
+    // player (e.g. two "Jaylin Williams" rows, one rostered, one a teamless
+    // free agent) ended up duplicated on the League Rankings page with
+    // identical stats under both rows.
+    const r = idx.resolve({ fantraxId: fa.fantraxId });
     if (r.kind === "matched" && r.identity.espnId) {
       espnIdByFantraxId.set(fa.fantraxId, r.identity.espnId);
       fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
