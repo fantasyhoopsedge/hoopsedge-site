@@ -66,6 +66,21 @@ export interface RosterExtra {
   contract_status: string | null;
   is_incoming_rookie: boolean;
   is_sophomore: boolean;
+  /** The real, audited full contract — Pocaro's cap-sheet team-by-team
+   *  rebuild (see the salary-roster-pipeline skill), NOT derived from
+   *  summing salary_yr1..yr4. Those year-by-year columns can include a
+   *  Qualifying Offer / RFA cap-hold estimate for a season AFTER the
+   *  player's real deal already ends (salary_qo_years flags which), which
+   *  silently inflated both the year count and the dollar total when
+   *  getContractByFheId() used to derive "years/total remaining" by summing
+   *  them instead of reading these two fields directly (Ash, 2026-08-27:
+   *  Kyshawn George's rookie-scale deal read "3yr/$17.0M" on League
+   *  Rankings/Trade Edge — 2 real years plus his 2028-29 QO estimate folded
+   *  in as if it were a third contract year — against the audited "4yr/
+   *  $14.3M" team-rosters itself already shows). Null for a player/team
+   *  nba_roster hasn't been through that audit for yet. */
+  contract_years: number | null;
+  contract_total: number | null;
 }
 
 /**
@@ -93,7 +108,7 @@ export const getRosterExtras = unstable_cache(
     for (let from = 0; ; from += PAGE) {
       const { data, error } = await supabase
         .from("nba_roster")
-        .select("player_id,fhe_id,full_name,dob,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore")
+        .select("player_id,fhe_id,full_name,dob,salary_yr2,salary_yr3,salary_yr4,contract_status,is_incoming_rookie,is_sophomore,contract_years,contract_total")
         .eq("season", ROSTER_SEASON)
         .range(from, from + PAGE - 1);
       if (error || !data?.length) break;
