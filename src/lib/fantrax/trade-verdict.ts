@@ -180,11 +180,11 @@ function tradeRatioOf(value: number, allValuesInTrade: readonly number[]): numbe
  *  Re-swept against the real 85-trade backtest (Ash, 2026-08-29 — the
  *  Angle Dynasty League is itself a 30T/16-roster-spot league, poolSize 480
  *  ideal -> clamped to 450 by resolvePoolSize(), i.e. it sits at
- *  DEPTH_BLEND_END, DEPTH_BLEND_MAX applied): 44/85 (52%) at the shipped
- *  18% threshold, up from Pink's 42/85. Full threshold sweep (2%-60%) finds
- *  a plateau at 44-45/85 (52-53%) spanning roughly 3%-20%, with 18% sitting
- *  on it (45/85 at the single-point peaks, 3%/14%/17%) — fairnessThresholdPct
- *  does NOT need re-tuning for this change. */
+ *  DEPTH_BLEND_END, DEPTH_BLEND_MAX applied): overall accuracy flat at
+ *  44-45/85 (52-53%) across a wide 8%-20% plateau (up from Pink's 42/85 at
+ *  its own 18%), meaning this specific re-sweep didn't force a threshold
+ *  move — see computeTradeVerdict()'s own doc below for the SEPARATE
+ *  precision-driven move to 12% that followed the same day. */
 const DEPTH_BLEND_START = 300;
 const DEPTH_BLEND_END = 450;
 const DEPTH_BLEND_MAX = 0.85;
@@ -472,19 +472,31 @@ interface VerdictAssetInput {
  *  43/85, confirming the old threshold was calibrated to a curve shape that
  *  no longer ships. Re-tune again if the base-value scale changes further.
  *
- *  NOT yet re-swept (2026-08-25) after switching the 3rd term from a
- *  rank-percentile to a literal Value/MaxTrade ratio (see "The formula"
- *  above) — that's exactly this kind of curve-shape change (the top asset
- *  in a trade now scores materially higher on this term than before), but
- *  scripts/backtest-trade-verdict.ts needs live Supabase credentials this
- *  sandbox doesn't have. Re-run the sweep before trusting 18% here. */
+ *  Re-swept 2026-08-29 after the curve revert + depthBlend() change (see
+ *  that function's own doc) — 18% still sat on the accuracy plateau (44/85,
+ *  52%, same as the 44-45/85 plateau spanning ~3%-20%), so no forced move at
+ *  that point.
+ *
+ *  Moved 18% -> 12% the same day for a different reason: overall accuracy is
+ *  flat across the whole 8%-20% band on this sample, so it doesn't
+ *  discriminate — but PRECISION of the "Fair" call itself (of every trade
+ *  the model calls Fair, how many really were) rises meaningfully as the
+ *  threshold drops: 57% at 18%, 58% at 15%, 65% at 12% and at 10% (identical
+ *  — no trade in the 85-trade sample has variance in the (10%,12%] gap, so
+ *  10% buys nothing over 12% here). Ash wants the "Fair" label to read as
+ *  more trustworthy for users, which is exactly what precision measures;
+ *  12% gets the full gain 10% would without cutting any deeper than the
+ *  data supports. Recall of genuinely-fair trades drops correspondingly
+ *  (57%->49%) — a real, accepted trade-off: fewer trades get called Fair,
+ *  but the ones that do are more likely to actually be Fair. Re-tune again
+ *  if the base-value scale changes further. */
 export function computeTradeVerdict(
   sideAAssets: readonly VerdictAssetInput[],
   sideBAssets: readonly VerdictAssetInput[],
   leaguePlayers: readonly ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number>,
   family: "categories" | "points",
-  fairnessThresholdPct = 0.18,
+  fairnessThresholdPct = 0.12,
 ): TradeVerdict {
   const poolRanks = poolRanksFor(leaguePlayers, baseValueByFantraxId);
   const poolSize = leaguePlayers.length;
