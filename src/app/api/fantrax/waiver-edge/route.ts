@@ -11,7 +11,7 @@ import type { LeagueType, SalaryFormat } from "@/lib/fantrax/league-tags";
  * why this is a standalone module rather than a League Rankings variant.
  *
  *   GET ?leagueId=…&teamId=…&dataset=2027:projection&leagueType=dynasty
- *       &salaryFormat=real
+ *       &salaryFormat=real&useCustomValuations=1&useGeneratedPickValues=1
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,11 +35,13 @@ export async function GET(request: Request) {
   const leagueType: LeagueType = leagueTypeParam === "keeper" || leagueTypeParam === "dynasty" ? leagueTypeParam : "redraft";
   const salaryFormatParam = searchParams.get("salaryFormat");
   const salaryFormat: SalaryFormat = salaryFormatParam === "real" || salaryFormatParam === "custom" ? salaryFormatParam : "none";
+  const useCustomValuations = searchParams.get("useCustomValuations") === "1";
+  const useGeneratedPickValues = searchParams.get("useGeneratedPickValues") === "1";
 
   try {
     const result = await computeWaiverEdge({
       leagueId, owner: auth.access.owner, teamId, dataset, leagueType,
-      settings: { salaryFormat },
+      settings: { salaryFormat, useCustomValuations, useGeneratedPickValues },
     });
     return NextResponse.json(result);
   } catch (err) {

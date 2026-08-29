@@ -33,10 +33,14 @@ import { createAdminClient } from "../../utils/supabase/admin";
  * per league by the commissioner/GM, so a league that hasn't run "Generate
  * custom valuations" from Trade Edge yet has no ledger at all — every row's
  * leagueRank comes back null and leagueValuesGenerated is false, so the page
- * can say so instead of silently showing an empty column. A "picksOnly"
- * ledger (the standard/real-salary "generate draft pick values" flow) never
- * carries player rows either — see CustomValuationsDoc.mode's own doc — so
- * it counts as "not generated" here too.
+ * can say so instead of silently showing an empty column. "Generated" means a
+ * real FULL ledger specifically — same valuationMode precedence Home's own
+ * "Assets not valued" banner uses (doc.mode, falling back to the settings
+ * flags when mode is absent), not just doc-existence: a "picksOnly" ledger
+ * (the standard/real-salary "generate draft pick values" flow) never
+ * carries player rows either (see CustomValuationsDoc.mode's own doc), and
+ * a doc can be a stale leftover from before a Reset cleared the settings
+ * flag but not the row — either way this reads it as "not generated".
  *
  * Salary/Salary Rank reuse the same real-world fallback League Rankings'
  * AssetRow already uses for a free agent: a free agent's own IN-LEAGUE
@@ -56,6 +60,13 @@ const REAL_SALARY_SEASON = 2027; // matches league-rankings.ts / roster-edge.ts'
 
 export interface WaiverEdgeSettings {
   salaryFormat: SalaryFormat;
+  /** Same two flags Home's own "Assets not valued" banner reads
+   *  (deep-edge/home/page.tsx's valuationMode) — needed because a doc can
+   *  exist in storage as a stale leftover (e.g. a Reset that cleared the
+   *  settings flag but not the row) with no `mode` field of its own to
+   *  disambiguate; the settings flag is the tie-breaker there, same as Home. */
+  useCustomValuations: boolean;
+  useGeneratedPickValues: boolean;
 }
 
 export interface WaiverEdgeInput {
@@ -160,10 +171,17 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
   const rookieByFheId = getRookieByFheId();
   const salaryRankByFheId = salaryRank.rankByFheId;
 
-  const leagueValuesGenerated = customDoc != null && customDoc.mode !== "picksOnly";
+  // Same precedence Home's own "Assets not valued" banner uses
+  // (deep-edge/home/page.tsx's valuationMode): the doc's own `mode` wins
+  // when present, but a doc with no mode (predates that field) or a stale
+  // leftover row falls back to the settings flags — never doc-existence
+  // alone, which would read a stale/reset-but-undeleted row as "generated".
+  const valuationMode: "full" | "picksOnly" | null =
+    customDoc?.mode ?? (settings.useCustomValuations ? "full" : settings.useGeneratedPickValues ? "picksOnly" : null);
+  const leagueValuesGenerated = valuationMode === "full";
   const leagueRankByFantraxId = new Map<string, number>();
-  if (leagueValuesGenerated) {
-    for (const row of customDoc!.rows) {
+  if (leagueValuesGenerated && customDoc) {
+    for (const row of customDoc.rows) {
       if (row.fantraxId && row.tradeRank != null) leagueRankByFantraxId.set(row.fantraxId, row.tradeRank);
     }
   }

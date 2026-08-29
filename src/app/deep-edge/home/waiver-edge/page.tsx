@@ -192,9 +192,8 @@ function WaiverEdgeContent() {
       salaryFormat: saved.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat,
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
-    if (saved.settings.keeperPolicy) params.set("keeperPolicy", saved.settings.keeperPolicy);
-    if (saved.settings.realSalaryEfficiencyWeight != null) params.set("realSalaryEfficiencyWeight", String(saved.settings.realSalaryEfficiencyWeight));
-    if (saved.settings.contractRules?.length) params.set("contractRules", JSON.stringify(saved.settings.contractRules));
+    if (saved.settings.useCustomValuations) params.set("useCustomValuations", "1");
+    if (saved.settings.useGeneratedPickValues) params.set("useGeneratedPickValues", "1");
     fetch(`/api/fantrax/waiver-edge?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
