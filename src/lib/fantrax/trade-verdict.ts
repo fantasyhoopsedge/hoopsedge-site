@@ -177,12 +177,14 @@ function tradeRatioOf(value: number, allValuesInTrade: readonly number[]): numbe
  *  at 350 -> 13.3% at 400 -> 8.2% at 450 (comfortably under
  *  fairnessThresholdPct, i.e. reads "Fair" — matches Ash's vote).
  *
- *  NOT yet re-swept against the real 85-trade backtest (needs live Supabase
- *  credentials this sandbox doesn't have) — re-run
- *  scripts/backtest-trade-verdict.ts before trusting fairnessThresholdPct=18%
- *  still sits on the accuracy plateau now that the multiplier itself varies
- *  by poolSize; the calibration above only confirms the ONE illustrated
- *  trade behaves as intended, not the full 85-trade sample. */
+ *  Re-swept against the real 85-trade backtest (Ash, 2026-08-29 — the
+ *  Angle Dynasty League is itself a 30T/16-roster-spot league, poolSize 480
+ *  ideal -> clamped to 450 by resolvePoolSize(), i.e. it sits at
+ *  DEPTH_BLEND_END, DEPTH_BLEND_MAX applied): 44/85 (52%) at the shipped
+ *  18% threshold, up from Pink's 42/85. Full threshold sweep (2%-60%) finds
+ *  a plateau at 44-45/85 (52-53%) spanning roughly 3%-20%, with 18% sitting
+ *  on it (45/85 at the single-point peaks, 3%/14%/17%) — fairnessThresholdPct
+ *  does NOT need re-tuning for this change. */
 const DEPTH_BLEND_START = 300;
 const DEPTH_BLEND_END = 450;
 const DEPTH_BLEND_MAX = 0.85;
