@@ -3,7 +3,7 @@ import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
 import { computeWaiverEdge } from "@/lib/fantrax/waiver-edge";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
-import type { LeagueType } from "@/lib/fantrax/league-tags";
+import type { ContractRule, LeagueType, SalaryFormat } from "@/lib/fantrax/league-tags";
 
 /**
  * Waiver Edge (Deep Edge) — every free agent in a connected league, ranked
@@ -11,6 +11,7 @@ import type { LeagueType } from "@/lib/fantrax/league-tags";
  * why this is a standalone module rather than a League Rankings variant.
  *
  *   GET ?leagueId=…&teamId=…&dataset=2027:projection&leagueType=dynasty
+ *       &salaryFormat=real&keeperPolicy=…&realSalaryEfficiencyWeight=…
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,9 +33,22 @@ export async function GET(request: Request) {
   }
   const leagueTypeParam = searchParams.get("leagueType");
   const leagueType: LeagueType = leagueTypeParam === "keeper" || leagueTypeParam === "dynasty" ? leagueTypeParam : "redraft";
+  const salaryFormatParam = searchParams.get("salaryFormat");
+  const salaryFormat: SalaryFormat = salaryFormatParam === "real" || salaryFormatParam === "custom" ? salaryFormatParam : "none";
+  const keeperPolicy = searchParams.get("keeperPolicy") ?? undefined;
+  const weightParam = searchParams.get("realSalaryEfficiencyWeight");
+  const realSalaryEfficiencyWeight = weightParam != null && weightParam !== "" ? Number(weightParam) : undefined;
+  const contractRulesParam = searchParams.get("contractRules");
+  let contractRules: ContractRule[] | undefined;
+  if (contractRulesParam) {
+    try { contractRules = JSON.parse(contractRulesParam) as ContractRule[]; } catch { contractRules = undefined; }
+  }
 
   try {
-    const result = await computeWaiverEdge({ leagueId, teamId, dataset, leagueType });
+    const result = await computeWaiverEdge({
+      leagueId, teamId, dataset, leagueType,
+      settings: { salaryFormat, keeperPolicy, realSalaryEfficiencyWeight, contractRules },
+    });
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof FantraxError) {

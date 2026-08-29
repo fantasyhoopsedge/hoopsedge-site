@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type CSSProperties } from "reac
 import { HubShell } from "../../_components/hub-shell";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
-import { TeamLogo, formatRank, statBg, valueBg } from "../../_components/roster-table";
+import { TeamLogo, formatCustomSalary, formatRank, formatSalary, statBg, valueBg } from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { Modal } from "../../_components/modal";
 import { CategoryRadarChart, DashboardCard, type RadarPoint } from "../../_components/category-dashboard";
@@ -21,22 +21,31 @@ import type { SavedLeague } from "@/lib/fantrax/store";
 import type { WaiverAssetRow, WaiverEdgeResult } from "@/lib/fantrax/waiver-edge";
 
 /**
- * Waiver Edge (Ash, 2026-08-29, revised 2026-08-29) — every free agent in a
+ * Waiver Edge (Ash, 2026-08-29, revised 2026-08-30) — every free agent in a
  * connected league, ranked for that league's own format. Same table shell
  * League Rankings uses (DEEP_EDGE_TABLE_CSS, roster-table.tsx's TeamLogo/
- * formatRank/statBg/valueBg, PlayerHeadshot) but scoped to free agents only.
+ * formatRank/formatSalary/formatCustomSalary/statBg/valueBg, PlayerHeadshot)
+ * but scoped to free agents only.
  *
  * Every column is sortable (SortTh/useSortableTable, the same pattern
  * Category Edge/Power Rankings/Roster Edge already use) — clicking a header
- * toggles ascending/descending, same as everywhere else in Deep Edge. A
- * category header carries TWO independent controls stacked vertically: the
- * label itself sorts by that category's raw stat, and a small "Punt"/
- * "Punted" pill button underneath (a real, always-visible button — not an
- * overloaded click on the label, which read as inert/unwired before this
- * revision) toggles that category out of the VALUE total. With no punts
- * active, a 9-cat league reads Minus1V (each player's own best-8-of-9) and
- * an 8/N-cat league reads the mean over whatever it actually scores
- * (mechanically identical to 8CatV when the missing category is TO).
+ * toggles ascending/descending, same as everywhere else in Deep Edge.
+ *
+ * CATV is the one category-value column, driven by a Minus1V/8CatV/9CatV
+ * selector (not per-category punting, which read as unwired/confusing —
+ * these three are the only value flavors FHE's engine actually names).
+ * Picking 8CatV automatically greys out TO (that IS the definition of
+ * 8CatV — see analyze.ts's eightCatVOf), no separate toggle needed. CATV
+ * follows the Per-game/Totals toggle: Minus1V/9CatV read the precomputed
+ * totals-mode columns, 8CatV re-derives the mean-of-8 from whichever catsZ
+ * set (per-game or totals) the toggle currently selects.
+ *
+ * TRADE VALUE, and the salary-format-gated columns (Salary+Salary Rank for
+ * a real-salary league, Salary+Contract for a custom-salary league — never
+ * both, never for a points or standard-consensus league) reuse the exact
+ * fields League Rankings already computes for a free agent (waiver-edge.ts's
+ * own header explains why calling that engine with just the free-agent pool
+ * is safe).
  *
  * The Add/Drop Simulator (bottom of this file) answers "if I made this move,
  * what happens to my team?" — pick free agents here (the ADD column), pick
@@ -53,7 +62,15 @@ type ClassFilterKey = "rookie" | "soph" | "vet";
 const POSITION_OPTIONS = ["G", "F", "C"] as const;
 type PositionFilterKey = (typeof POSITION_OPTIONS)[number];
 type StatMode = "perGame" | "totals";
-type SortKey = "name" | "team" | "age" | "dynRank" | "gp" | "min" | "usg" | "value" | FheCategory;
+type CatvMode = "minus1" | "eightCat" | "nineCat";
+const CATV_OPTIONS: { value: CatvMode; label: string }[] = [
+  { value: "minus1", label: "Minus1V" },
+  { value: "eightCat", label: "8CatV" },
+  { value: "nineCat", label: "9CatV" },
+];
+type SortKey =
+  | "name" | "team" | "age" | "dynRank" | "gp" | "min" | "usg" | "value" | "tradeValue" | "salary" | "salaryRank"
+  | FheCategory;
 interface CartEntry { fantraxId: string; name: string }
 
 const STAT_CATS: readonly FheCategory[] = ["PTS", "FG3", "REB", "AST", "STL", "BLK", "FG", "FT", "TO"];
@@ -79,15 +96,15 @@ function pill(active: boolean, activeBg = "var(--rt-canvas)"): CSSProperties {
   };
 }
 
-/** Mean of the z-scores for whatever categories AREN'T in `punts` — the
- *  generalized form of 8CatV (see waiver-edge.ts's own header): punting TO
- *  alone reproduces that exact formula, punting nothing reproduces 9CatV.
- *  Null when every scored category has been punted, or the player has no
- *  z-score for anything left. */
-function customTotal(catsZ: Partial<Record<FheCategory, number>>, punts: ReadonlySet<FheCategory>): number | null {
+/** Mean of the 8 non-TO category z-scores — the fixed, universal definition
+ *  of 8CatV (see analyze.ts's eightCatVOf), re-derived here (rather than a
+ *  stored column) so it can run against EITHER the per-game or totals catsZ
+ *  set depending on the Per-game/Totals toggle. Null when the player has no
+ *  z-score for anything but TO. */
+function eightCatTotal(catsZ: Partial<Record<FheCategory, number>>): number | null {
   let sum = 0, n = 0;
   for (const cat of FHE_CATEGORIES) {
-    if (punts.has(cat)) continue;
+    if (cat === "TO") continue;
     const z = catsZ[cat];
     if (z == null) continue;
     sum += z; n++;
@@ -95,15 +112,17 @@ function customTotal(catsZ: Partial<Record<FheCategory, number>>, punts: Readonl
   return n > 0 ? sum / n : null;
 }
 
-/** The metric actually driving VALUE right now. Minus1V only applies with
- *  ZERO punts active — the moment a viewer punts anything, Minus1V's own
- *  per-player "drop your own worst" logic would double up with (or fight)
- *  the fixed punt the viewer just asked for, so this switches to the fixed
- *  customTotal the instant punts.size > 0, family === "categories" only. */
-function waiverValueOf(a: WaiverAssetRow, family: "categories" | "points", punts: ReadonlySet<FheCategory>): number | null {
-  if (family === "points") return a.fpts;
-  if (punts.size === 0) return a.minus1V;
-  return customTotal(a.catsZ, punts);
+/** CATV — whichever of Minus1V/8CatV/9CatV the viewer picked, following the
+ *  Per-game/Totals toggle. Points leagues never call this (FPTS drives VALUE
+ *  there instead — see waiverValueOf). */
+function catvOf(a: WaiverAssetRow, mode: CatvMode, statMode: StatMode): number | null {
+  if (mode === "minus1") return statMode === "totals" ? a.minus1VTotals : a.minus1V;
+  if (mode === "nineCat") return statMode === "totals" ? a.nineCatVTotals : a.nineCatV;
+  return eightCatTotal(statMode === "totals" ? a.catsZTotals : a.catsZ);
+}
+
+function waiverValueOf(a: WaiverAssetRow, family: "categories" | "points", catvMode: CatvMode, statMode: StatMode): number | null {
+  return family === "points" ? a.fpts : catvOf(a, catvMode, statMode);
 }
 
 function sortValueOf(row: { asset: WaiverAssetRow; value: number | null }, key: SortKey): number | string | null {
@@ -117,6 +136,9 @@ function sortValueOf(row: { asset: WaiverAssetRow; value: number | null }, key: 
     case "min": return a.minutesPerGame;
     case "usg": return a.usgPct;
     case "value": return row.value;
+    case "tradeValue": return a.tradeValue;
+    case "salary": return a.salary;
+    case "salaryRank": return a.salaryRank;
     default: return a.catsRaw[key] ?? null;
   }
 }
@@ -134,8 +156,8 @@ function WaiverEdgeContent() {
   const [loadingData, setLoadingData] = useState(true);
   const [error, setError] = useState("");
 
-  const [punts, setPunts] = useState<Set<FheCategory>>(new Set());
-  const [puntsInitialized, setPuntsInitialized] = useState(false);
+  const [catvMode, setCatvMode] = useState<CatvMode>("minus1");
+  const [catvModeInitialized, setCatvModeInitialized] = useState(false);
   const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
   const [statMode, setStatMode] = useState<StatMode>("perGame");
@@ -154,8 +176,12 @@ function WaiverEdgeContent() {
       leagueId: saved.leagueId,
       dataset: saved.settings.defaultDataset ?? DEFAULT_LEAGUE_TAGS.defaultDataset,
       leagueType: saved.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType,
+      salaryFormat: saved.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat,
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
+    if (saved.settings.keeperPolicy) params.set("keeperPolicy", saved.settings.keeperPolicy);
+    if (saved.settings.realSalaryEfficiencyWeight != null) params.set("realSalaryEfficiencyWeight", String(saved.settings.realSalaryEfficiencyWeight));
+    if (saved.settings.contractRules?.length) params.set("contractRules", JSON.stringify(saved.settings.contractRules));
     fetch(`/api/fantrax/waiver-edge?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
@@ -166,26 +192,31 @@ function WaiverEdgeContent() {
       .finally(() => setLoadingData(false));
   }, [saved?.leagueId, saved?.teamId]); // eslint-disable-line react-hooks/exhaustive-deps -- settings fields read fresh each fetch, same convention league-rankings/page.tsx's own fetch effect uses
 
-  // Default punt set follows THIS league's own scored categories — whatever
-  // it doesn't score starts punted (Ash: "default for an 8cat league is
-  // 8cat value"), reproducing that without hardcoding TO. Only ever runs
-  // once per league load, so a viewer's own manual punts are never
-  // overwritten mid-session.
+  // Default CATV flavor follows THIS league's own scored categories: a
+  // 9-cat league opens on Minus1V, an 8-cat (punt-TO) league opens on 8CatV
+  // — reproducing "default ranking for a 9cat league is Minus1, for an 8cat
+  // league is 8cat" without hardcoding either. Only ever runs once per
+  // league load, so a viewer's own manual pick is never overwritten
+  // mid-session.
   useEffect(() => {
-    if (!data || puntsInitialized) return;
-    const missing = FHE_CATEGORIES.filter((c) => !data.scoredCategories.includes(c));
+    if (!data || catvModeInitialized) return;
+    const nineCat = data.scoredCategories.length === 9;
+    const eightCatPuntTO = data.scoredCategories.length === 8 && !data.scoredCategories.includes("TO");
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time default derived from the just-loaded league's own scored categories, not a plain render-time computation
-    setPunts(new Set(missing));
-    setPuntsInitialized(true);
-  }, [data, puntsInitialized]);
+    setCatvMode(nineCat ? "minus1" : eightCatPuntTO ? "eightCat" : "nineCat");
+    setCatvModeInitialized(true);
+  }, [data, catvModeInitialized]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- a NEW league load must re-run the default-punt effect above rather than keep the previous league's punts
-    setPuntsInitialized(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a NEW league load must re-run the default-CATV effect above rather than keep the previous league's pick
+    setCatvModeInitialized(false);
   }, [saved?.leagueId]);
 
   const isPoints = data?.family === "points";
-  const defaultMetricLabel = isPoints ? "FPTS" : punts.size === 0 ? "MINUS1" : "VALUE";
+  const salaryFormat = data?.salaryFormat ?? "none";
+  const showRealSalaryCols = !isPoints && salaryFormat === "real";
+  const showCustomSalaryCols = !isPoints && salaryFormat === "custom";
+  const fmtSalary = (n: number | null) => (salaryFormat === "custom" ? formatCustomSalary(n) : formatSalary(n));
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
@@ -196,8 +227,8 @@ function WaiverEdgeContent() {
   }, [data, classFilter, positionFilter]);
 
   const rowsWithValue = useMemo(
-    () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", punts) })),
-    [filteredRows, punts, data?.family],
+    () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", catvMode, statMode) })),
+    [filteredRows, catvMode, statMode, data?.family],
   );
 
   const { sort, onSort, sorted } = useSortableTable<{ asset: WaiverAssetRow; value: number | null }, SortKey>(
@@ -205,19 +236,6 @@ function WaiverEdgeContent() {
     { key: "value", dir: "desc" },
     sortValueOf,
   );
-
-  function togglePunt(cat: FheCategory) {
-    setPunts((prev) => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
-  }
-
-  function resetPunts() {
-    if (!data) return;
-    setPunts(new Set(FHE_CATEGORIES.filter((c) => !data.scoredCategories.includes(c))));
-  }
 
   function toggleCart(a: WaiverAssetRow) {
     setCart((prev) => {
@@ -242,13 +260,6 @@ function WaiverEdgeContent() {
       <style>{`
         .we-table th, .we-table td { font-family: var(--rt-font-sans); }
         .we-table td.l, .we-table th.l { text-align: left; }
-        .we-cat-th { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-        .we-punt-btn {
-          font-family: var(--rt-font-sans); text-transform: none; letter-spacing: 0; font-size: 9.5px; font-weight: 700;
-          padding: 2px 8px; border-radius: 999px; border: 1px solid var(--rt-hairline); background: var(--rt-canvas);
-          color: var(--rt-muted); cursor: pointer;
-        }
-        .we-punt-btn-active { background: var(--rt-down); border-color: var(--rt-down); color: #fff; }
         .we-add-btn {
           width: 24px; height: 24px; border-radius: 999px; border: 1px solid var(--rt-hairline); background: var(--rt-canvas);
           color: var(--rt-ink); font-weight: 700; cursor: pointer; line-height: 1;
@@ -264,8 +275,7 @@ function WaiverEdgeContent() {
       <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Waiver Edge</h1>
       <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 20px", maxWidth: 680 }}>
         Every free agent in {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts —
-        click a header. Click a category&apos;s Punt button to exclude it from the total. Only free agents show here;
-        nothing to filter by fantasy team.
+        click a header. Only free agents show here; nothing to filter by fantasy team.
       </p>
 
       {loadingSaved ? (
@@ -277,16 +287,17 @@ function WaiverEdgeContent() {
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
             {!isPoints && (
               <>
-                <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>
-                  {punts.size === 0 ? "No categories punted — VALUE shows Minus1V" : `${punts.size} punted — VALUE excludes them`}
-                </span>
-                <button
-                  type="button"
-                  onClick={resetPunts}
-                  style={{ background: "none", border: "none", color: "var(--rt-primary)", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0 }}
-                >
-                  Reset punts
-                </button>
+                <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>CATV</span>
+                <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+                  {CATV_OPTIONS.map(({ value, label }) => (
+                    <button key={value} type="button" onClick={() => setCatvMode(value)} style={pill(catvMode === value)}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {catvMode === "eightCat" && (
+                  <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>TO excluded</span>
+                )}
               </>
             )}
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, marginLeft: "auto" }}>
@@ -375,36 +386,25 @@ function WaiverEdgeContent() {
                     <SortTh<SortKey> label="TEAM" sortKey="team" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="DYN RANK" sortKey="dynRank" sort={sort} onSort={onSort} />
+                    {(showRealSalaryCols || showCustomSalaryCols) && <SortTh<SortKey> label="SALARY" sortKey="salary" sort={sort} onSort={onSort} />}
+                    {showRealSalaryCols && <SortTh<SortKey> label="SAL RANK" sortKey="salaryRank" sort={sort} onSort={onSort} />}
+                    {showCustomSalaryCols && <th>CONTRACT</th>}
                     <SortTh<SortKey> label="GP" sortKey="gp" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="MIN" sortKey="min" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="USG" sortKey="usg" sort={sort} onSort={onSort} />
-                    <SortTh<SortKey> label={defaultMetricLabel} sortKey="value" sort={sort} onSort={onSort} />
+                    <SortTh<SortKey> label={isPoints ? "FPTS" : "CATV"} sortKey="value" sort={sort} onSort={onSort} />
+                    <SortTh<SortKey> label="TRADE VALUE" sortKey="tradeValue" sort={sort} onSort={onSort} />
                     {STAT_CATS.map((cat) => {
-                      const punted = !isPoints && punts.has(cat);
-                      const active = sort.key === cat;
+                      const punted = !isPoints && catvMode === "eightCat" && cat === "TO";
                       return (
-                        <th key={cat} style={punted ? { background: "var(--rt-surface-strong)" } : undefined}>
-                          <div className="we-cat-th">
-                            <span
-                              className={`de-th-sortable${active ? " de-th-active" : ""}`}
-                              onClick={() => onSort(cat)}
-                              style={{ color: punted ? "var(--rt-muted)" : undefined }}
-                            >
-                              {CATEGORY_LABEL[cat]}
-                              <span className="de-sort-arrow">{active ? (sort.dir === "asc" ? " ↑" : " ↓") : ""}</span>
-                            </span>
-                            {!isPoints && (
-                              <button
-                                type="button"
-                                className={`we-punt-btn${punted ? " we-punt-btn-active" : ""}`}
-                                onClick={(e) => { e.stopPropagation(); togglePunt(cat); }}
-                                title={punted ? "Click to include this category in VALUE" : "Click to exclude this category from VALUE"}
-                              >
-                                {punted ? "Punted" : "Punt"}
-                              </button>
-                            )}
-                          </div>
-                        </th>
+                        <SortTh<SortKey>
+                          key={cat}
+                          label={CATEGORY_LABEL[cat]}
+                          sortKey={cat}
+                          sort={sort}
+                          onSort={onSort}
+                          title={punted ? "Excluded from 8CatV" : undefined}
+                        />
                       );
                     })}
                   </tr>
@@ -438,14 +438,19 @@ function WaiverEdgeContent() {
                         <td>{a.nbaTeam ? <TeamLogo team={a.nbaTeam} size={34} /> : <span style={{ color: "var(--rt-muted)" }}>—</span>}</td>
                         <td>{a.age != null ? a.age.toFixed(1) : "—"}</td>
                         <td>{formatRank(a.dynRank)}</td>
+                        {(showRealSalaryCols || showCustomSalaryCols) && <td>{fmtSalary(a.salary)}</td>}
+                        {showRealSalaryCols && <td>{formatRank(a.salaryRank)}</td>}
+                        {showCustomSalaryCols && <td>{a.contract ?? "—"}</td>}
                         <td>{a.gamesPlayed ?? "—"}</td>
                         <td>{a.minutesPerGame != null ? (statMode === "totals" ? Math.round(a.minutesPerGame * (a.gamesPlayed ?? 0)).toLocaleString("en-US") : a.minutesPerGame.toFixed(1)) : "—"}</td>
                         <td>{a.usgPct != null ? `${a.usgPct.toFixed(1)}%` : "—"}</td>
                         <td style={{ fontWeight: 700, background: valueBg(value) }}>{value != null ? value.toFixed(2) : "—"}</td>
+                        <td style={{ fontWeight: 700 }}>{a.tradeValue != null ? Math.round(a.tradeValue) : "—"}</td>
                         {STAT_CATS.map((cat) => {
-                          const punted = !isPoints && punts.has(cat);
+                          const punted = !isPoints && catvMode === "eightCat" && cat === "TO";
+                          const z = statMode === "totals" ? a.catsZTotals[cat] : a.catsZ[cat];
                           return (
-                            <td key={cat} style={punted ? { background: "var(--rt-surface-strong)", color: "var(--rt-muted)" } : { background: statBg(a.catsZ[cat]) }}>
+                            <td key={cat} style={punted ? { background: "var(--rt-surface-strong)", color: "var(--rt-muted)" } : { background: statBg(z) }}>
                               {statCell(a.catsRaw[cat], cat, a.gamesPlayed, statMode)}
                             </td>
                           );
