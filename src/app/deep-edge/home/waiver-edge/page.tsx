@@ -10,10 +10,13 @@ import { Modal } from "../../_components/modal";
 import { CategoryRadarChart, DashboardCard, type RadarPoint } from "../../_components/category-dashboard";
 import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/league";
 import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type TeamCategoryProfile } from "@/lib/fantrax/analyze";
-import { formatTotal } from "@/lib/fantrax/power-rankings";
 import {
-  deriveRankingsFormat, depthWeight, rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings,
+  deriveRankingsFormat, depthWeight, formatPerGame, formatTotal, rotoStandingsByRawStat,
+  simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
 } from "@/lib/fantrax/power-rankings";
+import { tierBg, tierFill } from "../../_components/tier-colors";
+import { StrengthBar } from "../../_components/strength-bar";
+import { YouVsTeamCells } from "../../_components/you-vs-team-cells";
 import { resolveEffectiveScoring, type LineupValueMode } from "@/lib/fantrax/lineup";
 import { addDropProfiles, categoryDeltas, type CategoryDelta } from "@/lib/fantrax/waiver-sim";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
@@ -598,41 +601,118 @@ function sumSalary(players: { fantraxId: string; salary: number | null }[], over
   return total;
 }
 
-/** One standings row this modal's "full standings" popup needs — rank +
- *  the metric this league's own format actually reads (roto points, or
- *  win% for either H2H flavor), independent of `format` from then on. */
-interface StandingsRow { teamId: string; teamName: string; rank: number; metric: string }
-
-function standingsRows(format: SimFormat, profiles: TeamCategoryProfile[], scored: readonly FheCategory[], statMode: StatMode): StandingsRow[] {
-  if (format === "roto") {
-    return rotoStandingsByRawStat(profiles, scored, statMode)
-      .map((r) => ({ teamId: r.teamId, teamName: r.teamName, rank: r.projectedRank, metric: r.totalPoints.toFixed(1) }))
-      .sort((a, b) => a.rank - b.rank);
-  }
-  const rows = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles);
-  return rows
-    .map((r) => ({ teamId: r.teamId, teamName: r.teamName, rank: r.rank, metric: `${(r.winPct * 100).toFixed(1)}%` }))
-    .sort((a, b) => a.rank - b.rank);
+/** Roto standings, laid out exactly as /deep-edge/home/rankings (Power
+ *  Rankings) itself renders them — same table classes/colgroup/tier-colored
+ *  category cells (tierBg) — so this popup reads as the same feature, not a
+ *  simplified stand-in (Ash, 2026-08-30: "matching exact formatting from the
+ *  power rankings feature"). */
+function RotoFullTable({
+  profiles, scored, statMode, myTeamId,
+}: {
+  profiles: TeamCategoryProfile[];
+  scored: readonly FheCategory[];
+  statMode: StatMode;
+  myTeamId: string;
+}) {
+  const rows = [...rotoStandingsByRawStat(profiles, scored, statMode)].sort((a, b) => a.projectedRank - b.projectedRank);
+  const teamCount = rows.length;
+  return (
+    <div className="de-table-wrap">
+      <table className="de-table de-table-compact de-table-roster">
+        <colgroup>
+          <col style={{ width: 36 }} />
+          <col style={{ width: 150 }} />
+          <col style={{ width: 56 }} />
+          {scored.map((cat) => <col key={cat} style={{ width: 44 }} />)}
+        </colgroup>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th className="l">TEAM</th>
+            <th>ROTO</th>
+            {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => {
+            const profile = profiles.find((p) => p.teamId === row.teamId)!;
+            return (
+              <tr key={row.teamId} className={row.teamId === myTeamId ? "mine" : undefined}>
+                <td>{i + 1}</td>
+                <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === myTeamId ? " · YOU" : ""}</span></td>
+                <td style={{ fontWeight: 700 }}>{Math.round(row.totalPoints)}</td>
+                {scored.map((cat) => (
+                  <td key={cat} style={{ background: tierBg(row.ranks[cat] ?? teamCount, teamCount) }}>
+                    {statMode === "perGame"
+                      ? formatPerGame(cat, weightedPerGame(profile.statTotals, cat))
+                      : formatTotal(cat, totalsValue(profile.statTotals, cat))}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-function StandingsTable({ title, rows, myTeamId }: { title: string; rows: StandingsRow[]; myTeamId: string }) {
+/** H2H (categories or points) standings, same table shell/columns Power
+ *  Rankings itself uses — CATEGORY W-D-L + the per-category YOU VS TEAM glyph
+ *  row for h2hcat, RECORD + FPTS/GM for points, STRENGTH bar either way. */
+function H2HFullTable({
+  format, profiles, scored, myTeamId,
+}: {
+  format: "h2hcat" | "points";
+  profiles: TeamCategoryProfile[];
+  scored: readonly FheCategory[];
+  myTeamId: string;
+}) {
+  const rows = [...(format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles))]
+    .sort((a, b) => a.rank - b.rank);
+  const myRecord = rows.find((r) => r.teamId === myTeamId);
   return (
-    <div>
-      <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 8px" }}>{title}</h4>
-      <div style={{ maxHeight: 420, overflowY: "auto" }}>
-        <table className="de-table">
-          <thead><tr><th>RANK</th><th className="l">TEAM</th><th>PTS/WIN%</th></tr></thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.teamId} className={r.teamId === myTeamId ? "mine" : undefined}>
-                <td>{r.rank}</td>
-                <td className="l">{r.teamName}</td>
-                <td>{r.metric}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="de-table-wrap">
+      <table className="de-table de-table-roster" style={{ minWidth: format === "h2hcat" ? 860 : 720 }}>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th className="l">TEAM</th>
+            <th>WIN %</th>
+            {format === "h2hcat" ? <th>CATEGORY W-D-L</th> : <th>RECORD</th>}
+            {format === "h2hcat" ? <th className="l">YOU VS TEAM</th> : <th>FPTS/GM</th>}
+            <th style={{ minWidth: 120 }}>STRENGTH</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={row.teamId} className={row.teamId === myTeamId ? "mine" : undefined}>
+              <td>{i + 1}</td>
+              <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === myTeamId ? " · YOU" : ""}</span></td>
+              <td>{(row.winPct * 100).toFixed(1)}%</td>
+              {format === "h2hcat" ? (
+                <>
+                  <td>{row.categoryWins}-{row.categoryDraws}-{row.categoryLosses}</td>
+                  <td className="l">
+                    <YouVsTeamCells myRecord={myRecord} opponentTeamId={row.teamId} scored={scored} />
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td>{row.totalWins}-{row.totalDraws}-{row.totalLosses}</td>
+                  <td>
+                    {(() => {
+                      const p = profiles.find((pr) => pr.teamId === row.teamId)!;
+                      return ((p.pointsTotal ?? 0) / Math.max(1, p.statTotals.gamesPlayed)).toFixed(1);
+                    })()}
+                  </td>
+                </>
+              )}
+              <td><StrengthBar ratio={row.winPct} color={tierFill(i + 1, rows.length)} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -649,14 +729,24 @@ function FullStandingsModal({
   onClose: () => void;
 }) {
   return (
-    <Modal onClose={onClose} width={640}>
+    <Modal onClose={onClose} width={2000}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Full Power Rankings</h2>
         <button type="button" onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, lineHeight: 1, cursor: "pointer", color: "var(--rt-muted)" }} aria-label="Close">×</button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <StandingsTable title="BEFORE" rows={standingsRows(format, before, scored, statMode)} myTeamId={myTeamId} />
-        <StandingsTable title="AFTER" rows={standingsRows(format, after, scored, statMode)} myTeamId={myTeamId} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+        <div>
+          <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 10px" }}>BEFORE</h4>
+          {format === "roto"
+            ? <RotoFullTable profiles={before} scored={scored} statMode={statMode} myTeamId={myTeamId} />
+            : <H2HFullTable format={format} profiles={before} scored={scored} myTeamId={myTeamId} />}
+        </div>
+        <div>
+          <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 10px" }}>AFTER</h4>
+          {format === "roto"
+            ? <RotoFullTable profiles={after} scored={scored} statMode={statMode} myTeamId={myTeamId} />
+            : <H2HFullTable format={format} profiles={after} scored={scored} myTeamId={myTeamId} />}
+        </div>
       </div>
     </Modal>
   );
