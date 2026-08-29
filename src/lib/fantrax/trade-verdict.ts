@@ -99,6 +99,14 @@
  * only that every asset already has one on a comparable scale. `family`
  * replaces `mode` for the one thing pick valuation still needs to know: which
  * reference tier table (categories vs. points) applies.
+ *
+ * ── Depth-aware adjustment (2026-08-29) ──────────────────────────────────
+ * The formula above was tuned on/for a 12-14T league and over-penalizes
+ * depth in deeper formats — see adjustmentMultiplier()'s own doc (below,
+ * next to depthBlend()) for the full derivation and a concrete before/after
+ * on a real trade. `poolSize` (leaguePlayers.length, already computed here)
+ * now blends the multiplier toward flat 1.0 as the pool deepens past 300,
+ * capped short of fully flat so a real star premium always survives.
  */
 import type { ResolvedPlayer } from "./analyze";
 import type { TeamDraftPick } from "./league";
@@ -143,13 +151,58 @@ function tradeRatioOf(value: number, allValuesInTrade: readonly number[]): numbe
   return Math.min(1, value / maxInTrade);
 }
 
+/** Depth-aware dampening (Ash, 2026-08-29): the reference formula's severity
+ *  — a stud reading near 100% while role players read 10-20% — was
+ *  calibrated on/for a 12-14T league (poolSize ~250-300) and over-penalizes
+ *  depth in deeper formats. Real illustration that drove this: Anthony
+ *  Edwards (rank 7, raw 880) for Franz Wagner + Isaiah Hartenstein + Ausar
+ *  Thompson (ranks ~30/79/~100, raw 460/170/195) scores 58.7% variance
+ *  (clearly Edwards' side wins) under the unmodified formula — a fair read
+ *  for a 12T/300-pool league, where Ash confirmed that read is correct.
+ *  But in a 30T/450-pool league Ash votes this trade "very fair" — deep
+ *  formats reward roster DEPTH ("you're likely to compete with 3 top-100
+ *  assets vs. 1 top-10 asset"), which the flat, pool-size-blind formula
+ *  can't express.
+ *
+ *  depthBlend(poolSize) linearly ramps 0 (pool <= DEPTH_BLEND_START, i.e.
+ *  every 12-14T league — formula unchanged) to DEPTH_BLEND_MAX (pool >=
+ *  DEPTH_BLEND_END) and blends the raw multiplier toward flat 1.0 (pure
+ *  raw-value comparison) by that fraction. DEPTH_BLEND_MAX is 0.85, not
+ *  1.0, so a real star-concentration premium always survives, even at the
+ *  deepest leagues — full-flatten was considered and rejected (Ash,
+ *  2026-08-29: wants a residual premium at 450+, not zero). Calibrated
+ *  directly against the Edwards illustration above (raw ratios, not the
+ *  percentile/tradeRatio substitutions below, since that's the form Ash's
+ *  own reference calculator uses): 58.7% at pool 300 (unchanged) -> 23.8%
+ *  at 350 -> 13.3% at 400 -> 8.2% at 450 (comfortably under
+ *  fairnessThresholdPct, i.e. reads "Fair" — matches Ash's vote).
+ *
+ *  NOT yet re-swept against the real 85-trade backtest (needs live Supabase
+ *  credentials this sandbox doesn't have) — re-run
+ *  scripts/backtest-trade-verdict.ts before trusting fairnessThresholdPct=18%
+ *  still sits on the accuracy plateau now that the multiplier itself varies
+ *  by poolSize; the calibration above only confirms the ONE illustrated
+ *  trade behaves as intended, not the full 85-trade sample. */
+const DEPTH_BLEND_START = 300;
+const DEPTH_BLEND_END = 450;
+const DEPTH_BLEND_MAX = 0.85;
+
+function depthBlend(poolSize: number): number {
+  const t = (poolSize - DEPTH_BLEND_START) / (DEPTH_BLEND_END - DEPTH_BLEND_START);
+  return Math.min(1, Math.max(0, t)) * DEPTH_BLEND_MAX;
+}
+
 /** The reference's tuned adjustment multiplier. `poolPct` (bounded [0,1]
  *  percentile, see module doc) feeds both the 1st and 4th terms (the
  *  reference's own "+2000"-dampened 4th term has no percentile analog and
  *  isn't needed for stability here — dropped). `tradeRatio` is the literal
- *  `Value/MaxTrade` ratio (see tradeRatioOf), matching the reference exactly. */
-function adjustmentMultiplier(poolPct: number, tradeRatio: number): number {
-  return 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradeRatio ** 1.3 + 0.22 * poolPct ** 1.28;
+ *  `Value/MaxTrade` ratio (see tradeRatioOf), matching the reference exactly.
+ *  `poolSize` blends the result toward flat 1.0 as the league gets deeper —
+ *  see depthBlend() above. */
+function adjustmentMultiplier(poolPct: number, tradeRatio: number, poolSize: number): number {
+  const raw = 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradeRatio ** 1.3 + 0.22 * poolPct ** 1.28;
+  const blend = depthBlend(poolSize);
+  return (1 - blend) * raw + blend * 1.0;
 }
 
 // ── pool ranking ─────────────────────────────────────────────────────────
@@ -485,7 +538,7 @@ export function computeTradeVerdict(
       const poolPct = poolPercentileOf(a, trueRaw);
       const raw = Math.max(trueRaw, assetFloor);
       const tradeRatio = tradeRatioOf(raw, allFlooredInTrade);
-      const adjusted = raw * adjustmentMultiplier(poolPct, tradeRatio);
+      const adjusted = raw * adjustmentMultiplier(poolPct, tradeRatio, poolSize);
       built.push({ label: a.label, rawValue: raw, adjustedValue: adjusted });
     }
     return {
