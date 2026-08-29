@@ -38,13 +38,31 @@ import type { WaiverAssetRow, WaiverEdgeResult } from "@/lib/fantrax/waiver-edge
  * raw stat (see sortValueOf's own doc for why that matters for FG%/FT%).
  *
  * CATV is the one category-value column, driven by a Minus1V/8CatV/9CatV
- * selector (not per-category punting, which read as unwired/confusing —
- * these three are the only value flavors FHE's engine actually names).
+ * selector — these three are the value flavors FHE's engine actually names.
  * Picking 8CatV automatically greys out TO (that IS the definition of
  * 8CatV — see analyze.ts's eightCatVOf), no separate toggle needed. CATV
  * follows the Per-game/Totals toggle: Minus1V/9CatV read the precomputed
  * totals-mode columns, 8CatV re-derives the mean-of-8 from whichever catsZ
  * set (per-game or totals) the toggle currently selects.
+ *
+ * Punting (Ash, 2026-08-31: "wire that back in... I never asked for it to
+ * be removed" — correct, it wasn't part of the CATV-selector ask, that was
+ * this file's own call and it was wrong to drop it) is a SEPARATE control
+ * from CATV, scoped to 9CatV only (Minus1V/8CatV keep their own fixed,
+ * named exclusion rule — a punted 8CatV or Minus1V would no longer mean
+ * what its label says). Toggling a category punted excludes it from the
+ * mean-of-N z-score sum 9CatV would otherwise use (meanZExcluding — the same
+ * general form eightCatTotal is now built on, generalized to an arbitrary
+ * excluded set rather than a fixed TO), for every free agent, live — the
+ * same punt semantics the original ask described ("that category z-score
+ * value is excluded from the total z-score value"), just re-homed onto the
+ * 9CatV pill specifically now that CATV names the other two flavors.
+ *
+ * Minus1V, unlike a manual punt, drops each player's OWN worst category
+ * (compute-values.ts: minus1v = (sum − min(9 z-scores))/8) — a DIFFERENT
+ * category per player, not one the viewer picks. worstCatFor() finds that
+ * category per row so the table can grey it out live under Minus1V, the same
+ * visual treatment 8CatV's fixed TO-exclusion and a 9CatV punt already get.
  *
  * LEAGUE RANK is this free agent's rank EXACTLY as League Rankings itself
  * shows it — same computeLeagueRankings() call, read off its own
@@ -114,15 +132,14 @@ function pill(active: boolean, activeBg = "var(--rt-canvas)"): CSSProperties {
   };
 }
 
-/** Mean of the 8 non-TO category z-scores — the fixed, universal definition
- *  of 8CatV (see analyze.ts's eightCatVOf), re-derived here (rather than a
- *  stored column) so it can run against EITHER the per-game or totals catsZ
- *  set depending on the Per-game/Totals toggle. Null when the player has no
- *  z-score for anything but TO. */
-function eightCatTotal(catsZ: Partial<Record<FheCategory, number>>): number | null {
+/** Mean of the category z-scores NOT in `excluded` — the general form both
+ *  8CatV (excluded = {TO}, always) and a manually-punted 9CatV (excluded =
+ *  whatever the viewer punted) are. Null when the player has no z-score for
+ *  anything outside `excluded`. */
+function meanZExcluding(catsZ: Partial<Record<FheCategory, number>>, excluded: ReadonlySet<FheCategory>): number | null {
   let sum = 0, n = 0;
   for (const cat of FHE_CATEGORIES) {
-    if (cat === "TO") continue;
+    if (excluded.has(cat)) continue;
     const z = catsZ[cat];
     if (z == null) continue;
     sum += z; n++;
@@ -130,17 +147,48 @@ function eightCatTotal(catsZ: Partial<Record<FheCategory, number>>): number | nu
   return n > 0 ? sum / n : null;
 }
 
-/** CATV — whichever of Minus1V/8CatV/9CatV the viewer picked, following the
- *  Per-game/Totals toggle. Points leagues never call this (FPTS drives VALUE
- *  there instead — see waiverValueOf). */
-function catvOf(a: WaiverAssetRow, mode: CatvMode, statMode: StatMode): number | null {
-  if (mode === "minus1") return statMode === "totals" ? a.minus1VTotals : a.minus1V;
-  if (mode === "nineCat") return statMode === "totals" ? a.nineCatVTotals : a.nineCatV;
-  return eightCatTotal(statMode === "totals" ? a.catsZTotals : a.catsZ);
+const TO_ONLY: ReadonlySet<FheCategory> = new Set(["TO"]);
+
+/** Mean of the 8 non-TO category z-scores — the fixed, universal definition
+ *  of 8CatV (see analyze.ts's eightCatVOf), re-derived here (rather than a
+ *  stored column) so it can run against EITHER the per-game or totals catsZ
+ *  set depending on the Per-game/Totals toggle. */
+function eightCatTotal(catsZ: Partial<Record<FheCategory, number>>): number | null {
+  return meanZExcluding(catsZ, TO_ONLY);
 }
 
-function waiverValueOf(a: WaiverAssetRow, family: "categories" | "points", catvMode: CatvMode, statMode: StatMode): number | null {
-  return family === "points" ? a.fpts : catvOf(a, catvMode, statMode);
+/** The category with the LOWEST z-score among the 9 — same rule
+ *  compute-values.ts's minus1v uses (sum − min(9 z-scores))/8 — so this is
+ *  exactly the one category Minus1V is dropping for THIS player. Different
+ *  per player (unlike 8CatV's fixed TO or a manual punt), so it's computed
+ *  per row rather than stored as a column. Null when the player has no
+ *  z-score at all. */
+function worstCatFor(catsZ: Partial<Record<FheCategory, number>>): FheCategory | null {
+  let worst: FheCategory | null = null;
+  let worstZ = Infinity;
+  for (const cat of FHE_CATEGORIES) {
+    const z = catsZ[cat];
+    if (z == null || z >= worstZ) continue;
+    worstZ = z; worst = cat;
+  }
+  return worst;
+}
+
+/** CATV — whichever of Minus1V/8CatV/9CatV the viewer picked, following the
+ *  Per-game/Totals toggle. `puntedCats` only ever affects 9CatV (see this
+ *  file's header on why Minus1V/8CatV keep their own fixed rule) — empty,
+ *  9CatV reads the precomputed column exactly; non-empty, it's re-derived
+ *  from catsZ excluding the punted set. Points leagues never call this
+ *  (FPTS drives VALUE there instead — see waiverValueOf). */
+function catvOf(a: WaiverAssetRow, mode: CatvMode, statMode: StatMode, puntedCats: ReadonlySet<FheCategory>): number | null {
+  if (mode === "minus1") return statMode === "totals" ? a.minus1VTotals : a.minus1V;
+  if (mode === "eightCat") return eightCatTotal(statMode === "totals" ? a.catsZTotals : a.catsZ);
+  if (puntedCats.size === 0) return statMode === "totals" ? a.nineCatVTotals : a.nineCatV;
+  return meanZExcluding(statMode === "totals" ? a.catsZTotals : a.catsZ, puntedCats);
+}
+
+function waiverValueOf(a: WaiverAssetRow, family: "categories" | "points", catvMode: CatvMode, statMode: StatMode, puntedCats: ReadonlySet<FheCategory>): number | null {
+  return family === "points" ? a.fpts : catvOf(a, catvMode, statMode, puntedCats);
 }
 
 /** Category columns sort by Z-SCORE, never the raw stat — FG%/FT% in
@@ -182,6 +230,10 @@ function WaiverEdgeContent() {
 
   const [catvMode, setCatvMode] = useState<CatvMode>("minus1");
   const [catvModeInitialized, setCatvModeInitialized] = useState(false);
+  /** Manually-punted categories — 9CatV only, see this file's header. Reset
+   *  on a league change same as catvModeInitialized below (a punt chosen
+   *  against one league's category set has no meaning against another's). */
+  const [puntedCats, setPuntedCats] = useState<Set<FheCategory>>(new Set());
   const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
   const [statMode, setStatMode] = useState<StatMode>("perGame");
@@ -240,7 +292,17 @@ function WaiverEdgeContent() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- a NEW league load must re-run the default-CATV effect above rather than keep the previous league's pick
     setCatvModeInitialized(false);
+    // a punt chosen against the previous league's category set carries no meaning here
+    setPuntedCats(new Set());
   }, [saved?.leagueId]);
+
+  function togglePunt(cat: FheCategory) {
+    setPuntedCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  }
 
   const isPoints = data?.family === "points";
   const salaryFormat = data?.salaryFormat ?? "none";
@@ -260,8 +322,8 @@ function WaiverEdgeContent() {
   }, [data, classFilter, positionFilter]);
 
   const rowsWithValue = useMemo(
-    () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", catvMode, statMode) })),
-    [filteredRows, catvMode, statMode, data?.family],
+    () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", catvMode, statMode, puntedCats) })),
+    [filteredRows, catvMode, statMode, data?.family, puntedCats],
   );
 
   const { sort, onSort, sorted } = useSortableTable<{ asset: WaiverAssetRow; value: number | null }, SortKey>(
@@ -350,6 +412,42 @@ function WaiverEdgeContent() {
               ))}
             </div>
           </div>
+
+          {!isPoints && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Punt</span>
+              <div style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+                {STAT_CATS.map((cat) => {
+                  const active = puntedCats.has(cat);
+                  const enabled = catvMode === "nineCat";
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      disabled={!enabled}
+                      onClick={() => togglePunt(cat)}
+                      aria-pressed={active}
+                      title={enabled ? (active ? `Un-punt ${CATEGORY_LABEL[cat]}` : `Exclude ${CATEGORY_LABEL[cat]} from 9CatV`) : "Punting only applies to 9CatV"}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        width: 46, height: 38, padding: "4px 2px", borderRadius: 8, border: "1px solid var(--rt-hairline)",
+                        cursor: enabled ? "pointer" : "not-allowed",
+                        background: active ? "var(--rt-surface-strong)" : "var(--rt-canvas)",
+                        color: active ? "var(--rt-muted)" : "var(--rt-ink)",
+                        opacity: enabled ? 1 : 0.4, fontSize: 11.5, fontWeight: 700, lineHeight: 1.2,
+                      }}
+                    >
+                      <span>{CATEGORY_LABEL[cat]}</span>
+                      <span style={{ fontSize: 8.5, fontWeight: 700, marginTop: 2, letterSpacing: 0.4, visibility: active ? "visible" : "hidden" }}>PUNT</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {catvMode !== "nineCat" && (
+                <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Switch to 9CatV to apply punts</span>
+              )}
+            </div>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
             <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Position</span>
@@ -441,7 +539,14 @@ function WaiverEdgeContent() {
                     <SortTh<SortKey> label="USG" sortKey="usg" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label={isPoints ? "FPTS" : "CATV"} sortKey="value" sort={sort} onSort={onSort} />
                     {STAT_CATS.map((cat) => {
-                      const punted = !isPoints && catvMode === "eightCat" && cat === "TO";
+                      // Column-wide exclusion only — 8CatV's fixed TO drop, or
+                      // a manual 9CatV punt. Minus1V's exclusion varies PER
+                      // ROW (each player's own worst category), so it can't
+                      // be shown on the header — see the body cell below.
+                      const punted = !isPoints && (
+                        (catvMode === "eightCat" && cat === "TO")
+                        || (catvMode === "nineCat" && puntedCats.has(cat))
+                      );
                       return (
                         <SortTh<SortKey>
                           key={cat}
@@ -449,7 +554,7 @@ function WaiverEdgeContent() {
                           sortKey={cat}
                           sort={sort}
                           onSort={onSort}
-                          title={punted ? "Excluded from 8CatV" : undefined}
+                          title={punted ? `Excluded from ${catvMode === "eightCat" ? "8CatV" : "9CatV"}` : undefined}
                         />
                       );
                     })}
@@ -490,15 +595,30 @@ function WaiverEdgeContent() {
                         <td>{a.minutesPerGame != null ? (statMode === "totals" ? Math.round(a.minutesPerGame * (a.gamesPlayed ?? 0)).toLocaleString("en-US") : a.minutesPerGame.toFixed(1)) : "—"}</td>
                         <td>{a.usgPct != null ? `${a.usgPct.toFixed(1)}%` : "—"}</td>
                         <td style={{ fontWeight: 700, background: valueBg(value) }}>{value != null ? value.toFixed(2) : "—"}</td>
-                        {STAT_CATS.map((cat) => {
-                          const punted = !isPoints && catvMode === "eightCat" && cat === "TO";
-                          const z = statMode === "totals" ? a.catsZTotals[cat] : a.catsZ[cat];
-                          return (
-                            <td key={cat} style={punted ? { background: "var(--rt-surface-strong)", color: "var(--rt-muted)" } : { background: statBg(z) }}>
-                              {statCell(a.catsRaw[cat], cat, a.gamesPlayed, statMode)}
-                            </td>
-                          );
-                        })}
+                        {(() => {
+                          const catsZ = statMode === "totals" ? a.catsZTotals : a.catsZ;
+                          // Minus1V drops THIS player's own worst category (see
+                          // worstCatFor's header) — a different cell per row,
+                          // unlike 8CatV's fixed TO or a manual 9CatV punt.
+                          const minus1WorstCat = catvMode === "minus1" ? worstCatFor(catsZ) : null;
+                          return STAT_CATS.map((cat) => {
+                            const punted = !isPoints && (
+                              (catvMode === "eightCat" && cat === "TO")
+                              || (catvMode === "nineCat" && puntedCats.has(cat))
+                              || (catvMode === "minus1" && cat === minus1WorstCat)
+                            );
+                            const z = catsZ[cat];
+                            return (
+                              <td
+                                key={cat}
+                                title={catvMode === "minus1" && cat === minus1WorstCat ? "This player's own worst category — excluded from Minus1V" : undefined}
+                                style={punted ? { background: "var(--rt-surface-strong)", color: "var(--rt-muted)" } : { background: statBg(z) }}
+                              >
+                                {statCell(a.catsRaw[cat], cat, a.gamesPlayed, statMode)}
+                              </td>
+                            );
+                          });
+                        })()}
                       </tr>
                     );
                   })}
@@ -510,7 +630,7 @@ function WaiverEdgeContent() {
       )}
 
       {simOpen && saved && (
-        <AddDropSimulatorModal saved={saved} cart={cart} catvMode={catvMode} data={data} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
+        <AddDropSimulatorModal saved={saved} cart={cart} catvMode={catvMode} puntedCats={puntedCats} data={data} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
       )}
     </HubShell>
   );
@@ -528,12 +648,15 @@ const DEPTH_LABELS = ["Starters", "+1", "+2", "+3", "+4", "+5"];
 /** A roster player's value under whichever CATV flavor (or FPTS) the main
  *  Waiver Edge table currently has selected — the ResolvedPlayer-shaped
  *  counterpart to the page's own catvOf(), used to order the "Dropping"
- *  checklist worst-to-best by that same metric. */
-function rosterValueOf(p: ResolvedPlayer, isPoints: boolean, catvMode: CatvMode, statMode: StatMode): number | null {
+ *  checklist worst-to-best by that same metric. `puntedCats` mirrors catvOf's
+ *  own rule: only affects 9CatV. */
+function rosterValueOf(p: ResolvedPlayer, isPoints: boolean, catvMode: CatvMode, statMode: StatMode, puntedCats: ReadonlySet<FheCategory>): number | null {
   if (isPoints) return p.pointsValue;
   if (catvMode === "minus1") return statMode === "totals" ? p.catV?.totals.minus1V ?? null : p.catV?.perGame.minus1V ?? null;
-  if (catvMode === "nineCat") return statMode === "totals" ? p.catV?.totals.nineCatV ?? null : p.catV?.perGame.nineCatV ?? null;
-  return eightCatTotal(statMode === "totals" ? p.catsTotals : p.cats);
+  if (catvMode === "eightCat") return eightCatTotal(statMode === "totals" ? p.catsTotals : p.cats);
+  const catsZ = statMode === "totals" ? p.catsTotals : p.cats;
+  if (puntedCats.size === 0) return statMode === "totals" ? p.catV?.totals.nineCatV ?? null : p.catV?.perGame.nineCatV ?? null;
+  return meanZExcluding(catsZ, puntedCats);
 }
 
 function StatCompare({
@@ -753,7 +876,7 @@ function FullStandingsModal({
 }
 
 function AddDropSimulatorModal({
-  saved, cart, catvMode, data, onRemoveFromCart, onClose,
+  saved, cart, catvMode, puntedCats, data, onRemoveFromCart, onClose,
 }: {
   saved: SavedLeague;
   cart: Map<string, CartEntry>;
@@ -762,6 +885,9 @@ function AddDropSimulatorModal({
    *  whatever value is selected"). Read-only here; changing it happens on
    *  the main table, not inside the simulator. */
   catvMode: CatvMode;
+  /** The main table's punted categories (9CatV only — see rosterValueOf).
+   *  Same read-only/"dynamically linked" treatment as catvMode above. */
+  puntedCats: ReadonlySet<FheCategory>;
   /** The main table's own fetched result — reused here for two things a
    *  ResolvedPlayer alone can't give: a free agent's real-world salary
    *  fallback (data.assets[].salary) and this league's ledger-wide
@@ -814,9 +940,9 @@ function AddDropSimulatorModal({
   const dropCandidates = useMemo(() => {
     if (!myRoster) return [];
     return [...myRoster.players]
-      .map((p) => ({ player: p, value: rosterValueOf(p, isPointsLeague, catvMode, statMode) }))
+      .map((p) => ({ player: p, value: rosterValueOf(p, isPointsLeague, catvMode, statMode, puntedCats) }))
       .sort((a, b) => (a.value ?? -Infinity) - (b.value ?? -Infinity));
-  }, [myRoster, isPointsLeague, catvMode, statMode]);
+  }, [myRoster, isPointsLeague, catvMode, statMode, puntedCats]);
   const waiverByFantraxId = useMemo(() => new Map((analysis?.waiverBoard ?? []).map((p) => [p.fantraxId, p] as const)), [analysis]);
   const resolvedAdds = useMemo(
     () => [...cart.values()].map((c) => ({ ...c, player: waiverByFantraxId.get(c.fantraxId) ?? null })),
