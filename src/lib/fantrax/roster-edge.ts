@@ -90,21 +90,25 @@ export function getConsensusPoolSize(): number {
   return (rankings as BoardPlayer[]).length;
 }
 
-/** fhe_id -> true when the dynasty board tags this player a 2026 draft-class
- *  rookie — same board field resolve.ts's own dynastyBioIndex() reads for a
- *  rostered/waiver-board player, but resolved through player_identity like
- *  getDynastyRankByFheId() rather than that function's name-only lookup, so
- *  it works for Waiver Edge's free agents too (those never pass through
- *  resolve.ts's normal per-player resolution — see waiver-edge.ts). Omits
- *  anyone the board doesn't carry (never a false positive). */
+/** fhe_id -> true for this season's incoming NBA draft class (draftYear ===
+ *  REAL_SALARY_SEASON - 1, e.g. 2026 for the 2026-27 season — matches
+ *  resolve.ts's own CURRENT_ROOKIE_DRAFT_YEAR, which this mirrors for Waiver
+ *  Edge's free agents, those never passing through resolve.ts's normal
+ *  per-player resolution — see waiver-edge.ts).
+ *
+ *  Read off player_identity's own draftYear, NOT the dynasty board's isRookie
+ *  flag (rankings/BoardPlayer.isRookie, above) — that flag is stale for a real
+ *  70 of the 120 real 2026 draft-class players (Ash, 2026-08-31: Emanuel
+ *  Sharp/Tyler Bilodeau/Izaiyah Nelson all show isRookie:false on the board
+ *  despite player_identity correctly knowing draft_year:2026 for all three).
+ *  A name-resolved read of that flag (the previous version of this function)
+ *  can only ever be as fresh as the board's own flag, which the board hasn't
+ *  kept in sync with its own draft-class merges — draftYear off the registry
+ *  needs no join AND no name resolution at all. */
 export function getRookieByFheId(): Record<string, boolean> {
   const out: Record<string, boolean> = {};
-  for (const p of rankings as BoardPlayer[]) {
-    if (!p.isRookie) continue;
-    const res = playerIdentity().resolve({ name: p.player });
-    if (res.kind === "matched" && out[res.identity.fheId] == null) {
-      out[res.identity.fheId] = true;
-    }
+  for (const identity of playerIdentity().all()) {
+    if (identity.draftYear === REAL_SALARY_SEASON - 1) out[identity.fheId] = true;
   }
   return out;
 }
