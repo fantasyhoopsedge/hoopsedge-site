@@ -492,7 +492,7 @@ function WaiverEdgeContent() {
       )}
 
       {simOpen && saved && (
-        <AddDropSimulatorModal saved={saved} cart={cart} catvMode={catvMode} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
+        <AddDropSimulatorModal saved={saved} cart={cart} catvMode={catvMode} data={data} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
       )}
     </HubShell>
   );
@@ -569,8 +569,86 @@ function CategoryDeltaList({ title, color, deltas }: { title: string; color: str
   );
 }
 
+/** Σ salary across a roster/add slate, reading a per-fantraxId override
+ *  first — a free agent's own ResolvedPlayer.salary is always null (never
+ *  rostered), so ADD candidates need the real-world fallback the main
+ *  Waiver Edge table already computed (data.assets[].salary), while DROP
+ *  candidates (already rostered) use their own real in-league salary as-is. */
+function sumSalary(players: { fantraxId: string; salary: number | null }[], overrideByFantraxId?: ReadonlyMap<string, number | null>): number {
+  let total = 0;
+  for (const p of players) {
+    const s = overrideByFantraxId?.get(p.fantraxId) ?? p.salary;
+    if (s != null) total += s;
+  }
+  return total;
+}
+
+/** One standings row this modal's "full standings" popup needs — rank +
+ *  the metric this league's own format actually reads (roto points, or
+ *  win% for either H2H flavor), independent of `format` from then on. */
+interface StandingsRow { teamId: string; teamName: string; rank: number; metric: string }
+
+function standingsRows(format: SimFormat, profiles: TeamCategoryProfile[], scored: readonly FheCategory[], statMode: StatMode): StandingsRow[] {
+  if (format === "roto") {
+    return rotoStandingsByRawStat(profiles, scored, statMode)
+      .map((r) => ({ teamId: r.teamId, teamName: r.teamName, rank: r.projectedRank, metric: r.totalPoints.toFixed(1) }))
+      .sort((a, b) => a.rank - b.rank);
+  }
+  const rows = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles);
+  return rows
+    .map((r) => ({ teamId: r.teamId, teamName: r.teamName, rank: r.rank, metric: `${(r.winPct * 100).toFixed(1)}%` }))
+    .sort((a, b) => a.rank - b.rank);
+}
+
+function StandingsTable({ title, rows, myTeamId }: { title: string; rows: StandingsRow[]; myTeamId: string }) {
+  return (
+    <div>
+      <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 8px" }}>{title}</h4>
+      <div style={{ maxHeight: 420, overflowY: "auto" }}>
+        <table className="de-table">
+          <thead><tr><th>RANK</th><th className="l">TEAM</th><th>PTS/WIN%</th></tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.teamId} className={r.teamId === myTeamId ? "mine" : undefined}>
+                <td>{r.rank}</td>
+                <td className="l">{r.teamName}</td>
+                <td>{r.metric}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function FullStandingsModal({
+  format, before, after, scored, statMode, myTeamId, onClose,
+}: {
+  format: SimFormat;
+  before: TeamCategoryProfile[];
+  after: TeamCategoryProfile[];
+  scored: readonly FheCategory[];
+  statMode: StatMode;
+  myTeamId: string;
+  onClose: () => void;
+}) {
+  return (
+    <Modal onClose={onClose} width={640}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Full Power Rankings</h2>
+        <button type="button" onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, lineHeight: 1, cursor: "pointer", color: "var(--rt-muted)" }} aria-label="Close">×</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+        <StandingsTable title="BEFORE" rows={standingsRows(format, before, scored, statMode)} myTeamId={myTeamId} />
+        <StandingsTable title="AFTER" rows={standingsRows(format, after, scored, statMode)} myTeamId={myTeamId} />
+      </div>
+    </Modal>
+  );
+}
+
 function AddDropSimulatorModal({
-  saved, cart, catvMode, onRemoveFromCart, onClose,
+  saved, cart, catvMode, data, onRemoveFromCart, onClose,
 }: {
   saved: SavedLeague;
   cart: Map<string, CartEntry>;
@@ -579,6 +657,14 @@ function AddDropSimulatorModal({
    *  whatever value is selected"). Read-only here; changing it happens on
    *  the main table, not inside the simulator. */
   catvMode: CatvMode;
+  /** The main table's own fetched result — reused here for two things a
+   *  ResolvedPlayer alone can't give: a free agent's real-world salary
+   *  fallback (data.assets[].salary) and this league's ledger-wide
+   *  leagueRankByFantraxId (rostered players included, unlike `assets`,
+   *  which is free agents only). Null before the main table's own fetch
+   *  resolves — the simulator degrades gracefully (no salary/league-rank
+   *  annotations) rather than blocking on it. */
+  data: WaiverEdgeResult | null;
   onRemoveFromCart: (fantraxId: string) => void;
   onClose: () => void;
 }) {
@@ -589,6 +675,7 @@ function AddDropSimulatorModal({
   const [depth, setDepth] = useState(0);
   const [statMode, setStatMode] = useState<StatMode>("perGame");
   const [result, setResult] = useState<{ before: TeamCategoryProfile[]; after: TeamCategoryProfile[] } | null>(null);
+  const [showStandings, setShowStandings] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting loading/error state at the start of a new fetch triggered by this effect's own deps changing, not a plain render-time computation
@@ -635,6 +722,24 @@ function AddDropSimulatorModal({
     [resolvedAdds],
   );
   const unresolvedAdds = resolvedAdds.filter((r) => r.player === null);
+
+  // Real-world salary fallback for a free agent (see this modal's own prop
+  // doc) and this league's full ledger rank (rostered players included) —
+  // both sourced from the main table's already-fetched `data`, never
+  // refetched here.
+  const freeAgentSalaryByFantraxId = useMemo(() => new Map((data?.assets ?? []).map((a) => [a.fantraxId, a.salary] as const)), [data]);
+  const leagueRankByFantraxId = data?.leagueRankByFantraxId ?? {};
+  const salaryFormat = saved.settings.salaryFormat ?? "none";
+  const showSalary = salaryFormat !== "none";
+  const fmtSalary = (n: number | null) => (n == null ? "—" : salaryFormat === "custom" ? formatCustomSalary(n) : formatSalary(n));
+  const salaryBefore = useMemo(() => (myRoster ? sumSalary(myRoster.players) : null), [myRoster]);
+  const salaryAfter = useMemo(() => {
+    if (salaryBefore == null || !myRoster) return null;
+    const dropped = myRoster.players.filter((p) => dropIds.has(p.fantraxId));
+    return salaryBefore - sumSalary(dropped) + sumSalary(addPlayers, freeAgentSalaryByFantraxId);
+  }, [salaryBefore, myRoster, dropIds, addPlayers, freeAgentSalaryByFantraxId]);
+  const salaryCapTotal = saved.settings.salaryCapTotal ?? 0;
+  const capDelta = salaryAfter != null && salaryCapTotal > 0 ? salaryAfter - salaryCapTotal : null;
 
   const format: SimFormat | null = useMemo(() => {
     if (!analysis) return null;
@@ -709,6 +814,7 @@ function AddDropSimulatorModal({
   const canRun = addPlayers.length > 0 || dropIds.size > 0;
 
   return (
+    <>
     <Modal onClose={onClose} width={880}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>Add/Drop Simulator</h2>
@@ -729,7 +835,12 @@ function AddDropSimulatorModal({
               {cart.size === 0 && <p style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>No free agents selected — pick some from the table (the + column), or run a drop-only move below.</p>}
               {resolvedAdds.filter((r) => r.player).map((r) => (
                 <div key={r.fantraxId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--rt-hairline)" }}>
-                  <span style={{ fontSize: 13 }}>{r.name}</span>
+                  <span style={{ fontSize: 13 }}>
+                    {r.name}
+                    {leagueRankByFantraxId[r.fantraxId] != null && (
+                      <span style={{ color: "var(--rt-muted)", marginLeft: 6 }}>(#{leagueRankByFantraxId[r.fantraxId]})</span>
+                    )}
+                  </span>
                   <button type="button" onClick={() => onRemoveFromCart(r.fantraxId)} style={{ background: "none", border: "none", color: "var(--rt-muted)", fontSize: 12, cursor: "pointer" }}>Remove</button>
                 </div>
               ))}
@@ -750,6 +861,9 @@ function AddDropSimulatorModal({
                   <label key={p.fantraxId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, cursor: "pointer" }}>
                     <input type="checkbox" checked={dropIds.has(p.fantraxId)} onChange={() => toggleDrop(p.fantraxId)} />
                     {p.name}
+                    {leagueRankByFantraxId[p.fantraxId] != null && (
+                      <span style={{ color: "var(--rt-muted)" }}>(#{leagueRankByFantraxId[p.fantraxId]})</span>
+                    )}
                     <span style={{ color: "var(--rt-muted)", fontSize: 11.5 }}>{p.nbaTeam}</span>
                     <span style={{ color: "var(--rt-muted)", fontSize: 11.5, fontFamily: "var(--rt-font-mono)", marginLeft: "auto" }}>
                       {value != null ? value.toFixed(2) : "—"}
@@ -788,16 +902,42 @@ function AddDropSimulatorModal({
           {result && (
             <div>
               <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-                <StatCompare label="Power Rank" before={powerRankOf(result.before)} after={powerRankOf(result.after)} format="rank" higherBetter={false} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <StatCompare label="Power Rank" before={powerRankOf(result.before)} after={powerRankOf(result.after)} format="rank" higherBetter={false} />
+                  {format && (
+                    <button
+                      type="button"
+                      onClick={() => setShowStandings(true)}
+                      style={{ fontSize: 11, color: "var(--rt-primary)", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}
+                    >
+                      View full standings →
+                    </button>
+                  )}
+                </div>
                 {format === "roto" && <StatCompare label="Roto Points" before={rotoPointsOf(result.before)} after={rotoPointsOf(result.after)} format="num" />}
                 {(format === "h2hcat" || format === "points") && <StatCompare label="Win%" before={winPctOf(result.before)} after={winPctOf(result.after)} format="pct" />}
                 {format === "points" && <StatCompare label={statMode === "totals" ? "FPTS (season)" : "FPTS/GM"} before={fptsOf(result.before)} after={fptsOf(result.after)} format="num" />}
+                {showSalary && (
+                  <div style={{ padding: 14, borderRadius: 12, border: "1px solid var(--rt-hairline)", minWidth: 170 }}>
+                    <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>TEAM SALARY</div>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>
+                      <span style={{ color: "var(--rt-muted)" }}>{fmtSalary(salaryBefore)}</span>
+                      {" → "}
+                      <span>{fmtSalary(salaryAfter)}</span>
+                    </div>
+                    {capDelta != null && (
+                      <div style={{ fontSize: 11.5, marginTop: 6, fontWeight: 600, color: capDelta > 0 ? "var(--rt-down)" : "var(--rt-up)" }}>
+                        {fmtSalary(Math.abs(capDelta))} {capDelta > 0 ? "over cap" : "under cap"}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {format !== "points" && radarBefore && radarAfter && (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                  <DashboardCard title="BEFORE"><CategoryRadarChart points={radarBefore} size={220} /></DashboardCard>
-                  <DashboardCard title="AFTER"><CategoryRadarChart points={radarAfter} size={220} /></DashboardCard>
+                  <DashboardCard title="BEFORE"><CategoryRadarChart points={radarBefore} size={220} showRank /></DashboardCard>
+                  <DashboardCard title="AFTER"><CategoryRadarChart points={radarAfter} size={220} showRank /></DashboardCard>
                 </div>
               )}
 
@@ -812,6 +952,18 @@ function AddDropSimulatorModal({
         </>
       )}
     </Modal>
+    {showStandings && result && format && myTeamId && (
+      <FullStandingsModal
+        format={format}
+        before={result.before}
+        after={result.after}
+        scored={scored}
+        statMode={statMode}
+        myTeamId={myTeamId}
+        onClose={() => setShowStandings(false)}
+      />
+    )}
+    </>
   );
 }
 

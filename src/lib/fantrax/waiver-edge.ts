@@ -136,6 +136,12 @@ export interface WaiverEdgeResult {
    *  that case, and the page shows an alert rather than a silently empty
    *  column. */
   leagueValuesGenerated: boolean;
+  /** Every fantraxId the ledger prices, rostered players and picks included
+   *  — not just the free agents `assets` covers. Empty when
+   *  leagueValuesGenerated is false. Lets the Add/Drop Simulator show a
+   *  rostered drop-candidate's league rank too, which `assets` (free agents
+   *  only) can't. */
+  leagueRankByFantraxId: Record<string, number>;
 }
 
 /** Canonicalizes Fantrax position eligibility down to G/F/C/G-F/F-C/etc —
@@ -299,5 +305,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     positionSlots: analysis.league.positionSlots ?? {},
     salaryFormat: settings.salaryFormat,
     leagueValuesGenerated,
+    leagueRankByFantraxId: Object.fromEntries(leagueRankByFantraxId),
   };
 }
