@@ -303,8 +303,8 @@ function WaiverEdgeContent() {
             <p style={{ fontSize: 12.5, color: "var(--rt-muted)", background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
               This league hasn&apos;t generated custom asset values yet, so LEAGUE RANK is blank for every free agent.
               Generate them from{" "}
-              <a href={`/deep-edge/home/trade-edge/asset-values${saved.leagueId ? `?league=${encodeURIComponent(saved.leagueId)}` : ""}`} style={{ color: "var(--rt-primary)", fontWeight: 600 }}>
-                Trade Edge
+              <a href={`/deep-edge/home${saved.leagueId ? `?league=${encodeURIComponent(saved.leagueId)}` : ""}`} style={{ color: "var(--rt-primary)", fontWeight: 600 }}>
+                Home
               </a>.
             </p>
           )}
