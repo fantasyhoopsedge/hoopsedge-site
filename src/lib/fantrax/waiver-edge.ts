@@ -1,15 +1,13 @@
 import "server-only";
 import { getCachedLeagueAnalysis } from "./league-cache";
 import type { FantraxDatasetKey } from "./resolve";
-import { pointsValueOf, scoredOrDefault, type ResolvedPlayer, type StatLine } from "./analyze";
+import { pointsValueOf, scoredOrDefault, type StatLine } from "./analyze";
 import type { FheCategory } from "./league";
-import type { ContractRule, LeagueType, SalaryFormat } from "./league-tags";
+import type { LeagueType, SalaryFormat } from "./league-tags";
 import {
-  getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId,
-  getRookieByFheId, getSalaryRankByFheId, getSophomoreByFheId,
+  getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getRookieByFheId, getSalaryRankByFheId, getSophomoreByFheId,
 } from "./roster-edge";
-import { computeBaseTradeValues, computeKeeperWeight } from "./trade-value";
-import { getRealSalaryRankByFheId } from "./custom-valuations";
+import { getCustomValuations } from "./custom-valuations-store";
 import { playerIdentity } from "../player-identity/bundled";
 import { createAdminClient } from "../../utils/supabase/admin";
 
@@ -20,47 +18,51 @@ import { createAdminClient } from "../../utils/supabase/admin";
  * draft picks, no fantasy-team column).
  *
  * CATV is the one category-value column the client renders — the viewer
- * picks Minus1V/8CatV/9CatV (see the page's own doc for why that replaced
- * per-category punting), and every flavor is derivable client-side from what
- * this returns: Minus1V and 9CatV come straight off season_player_values
+ * picks Minus1V/8CatV/9CatV, and every flavor is derivable client-side from
+ * what this returns: Minus1V and 9CatV come straight off season_player_values
  * (minus1v/value, per-game AND totals — CATV must follow the Totals/Per-game
  * toggle, so both are fetched), and 8CatV is just the mean of catsZ/
  * catsZTotals excluding TO (see analyze.ts's eightCatVOf — this reproduces
  * that exact formula without a stored column for it).
  *
- * Trade Value/Salary/Salary Rank/Contract reuse the SAME base-value cascade
- * and real-world salary/contract fallback League Rankings' AssetRow already
- * uses for a free agent (a free agent's own in-league salary/contract is
- * always null — never rostered — so both real- and custom-salary leagues
- * fall back to real-world NBA salary data, same as league-rankings.ts).
- * computeBaseTradeValues is safe to call with ONLY the free-agent pool
- * (never the full rostered+FA+picks pool League Rankings uses) because its
- * "standard"/"real" branches (consensusOnlyValues/realSalaryValues) key off
- * each player's own precomputed, POOL-SIZE-INDEPENDENT rank (dynasty
- * consensus / site-wide real salary) rather than re-ranking within whatever
- * players[] array is passed in — see trade-value.ts.
+ * League Rank is this free agent's rank within the LEAGUE'S OWN generated
+ * custom-valuations ledger (custom-valuations-store.ts's LedgerRow.tradeRank,
+ * keyed by the raw Fantrax id — no identity resolution needed there, unlike
+ * everything else in this file). Deliberately NOT a re-derived number the
+ * way League Rankings' four basis tabs are: a ledger is generated (or not)
+ * per league by the commissioner/GM, so a league that hasn't run "Generate
+ * custom valuations" from Trade Edge yet has no ledger at all — every row's
+ * leagueRank comes back null and leagueValuesGenerated is false, so the page
+ * can say so instead of silently showing an empty column. A "picksOnly"
+ * ledger (the standard/real-salary "generate draft pick values" flow) never
+ * carries player rows either — see CustomValuationsDoc.mode's own doc — so
+ * it counts as "not generated" here too.
+ *
+ * Salary/Salary Rank reuse the same real-world fallback League Rankings'
+ * AssetRow already uses for a free agent: a free agent's own IN-LEAGUE
+ * salary/contract is always null (never rostered), so both real- and
+ * custom-salary leagues read the player's real NBA contract instead.
  *
  * Free-agent resolution mirrors league-rankings.ts's own free-agent block
  * (same identity-registry + season_player_values join, same "Fantrax id,
  * never name" rule — see that file's header for why a name fallback would
  * reintroduce the duplicate-Jaylin-Williams bug), but is NOT a call into
  * that module: League Rankings' free-agent path hardcodes isRookie/eightCatV/
- * fpts/usgPct/trade-value fields as unavailable because it's grafted onto a
- * pipeline built for rostered players first. This is free-agent-first, so it
- * fills all of them in.
+ * fpts/usgPct as unavailable because it's grafted onto a pipeline built for
+ * rostered players first. This is free-agent-first, so it fills them in.
  */
 
 const REAL_SALARY_SEASON = 2027; // matches league-rankings.ts / roster-edge.ts's own constant
 
 export interface WaiverEdgeSettings {
   salaryFormat: SalaryFormat;
-  keeperPolicy: string | undefined;
-  realSalaryEfficiencyWeight: number | undefined;
-  contractRules: ContractRule[] | undefined;
 }
 
 export interface WaiverEdgeInput {
   leagueId: string;
+  /** Row owner for the custom-valuations ledger lookup — same `owner` every
+   *  other Fantrax route reads off authorizeFantrax(). */
+  owner: string;
   teamId: string | null;
   dataset: FantraxDatasetKey;
   leagueType: LeagueType;
@@ -94,11 +96,10 @@ export interface WaiverAssetRow {
   catsRaw: Partial<Record<FheCategory, number>>;
   catsZ: Partial<Record<FheCategory, number>>;
   catsZTotals: Partial<Record<FheCategory, number>>;
-  /** Whichever basis is actually driving Trade Edge for this league right
-   *  now (standard consensus dynasty / real salary / redraft) — see this
-   *  file's header. Null when the pool has nothing to rank this player
-   *  against (e.g. no dynasty-board match at all). */
-  tradeValue: number | null;
+  /** Rank within this league's own generated custom-valuations ledger — see
+   *  this file's header. Null whenever leagueValuesGenerated is false, OR
+   *  the ledger exists but never priced this specific player. */
+  leagueRank: number | null;
   /** Real-world NBA current salary — a free agent's in-league salary is
    *  always null, so this is the fallback both real- and custom-salary
    *  leagues read (see this file's header). Null outside those two formats
@@ -106,10 +107,6 @@ export interface WaiverAssetRow {
   salary: number | null;
   /** Site-wide Real Salary Rankings rank — real-salary leagues only. */
   salaryRank: number | null;
-  /** Real years/dollars-remaining contract, formatted "Nyr/$X.XM" — real or
-   *  custom salary leagues (see salary's own doc for why this always reads
-   *  real-world data for a free agent, never an in-league label). */
-  contract: string | null;
 }
 
 export interface WaiverEdgeResult {
@@ -123,6 +120,11 @@ export interface WaiverEdgeResult {
   scoredCategories: FheCategory[];
   positionSlots: Record<string, number>;
   salaryFormat: SalaryFormat;
+  /** False when this league has no FULL custom-valuations ledger yet (never
+   *  generated, or only a picksOnly one) — every row's leagueRank is null in
+   *  that case, and the page shows an alert rather than a silently empty
+   *  column. */
+  leagueValuesGenerated: boolean;
 }
 
 /** Canonicalizes Fantrax position eligibility down to G/F/C/G-F/F-C/etc —
@@ -143,29 +145,32 @@ function positionGroup(eligible: string[] | undefined): string | null {
 }
 
 export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverEdgeResult> {
-  const { leagueId, teamId, dataset, leagueType, settings } = input;
+  const { leagueId, owner, teamId, dataset, leagueType, settings } = input;
   const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
   const admin = createAdminClient();
 
-  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, realSalaryRank] = await Promise.all([
+  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, customDoc] = await Promise.all([
     getAgeByFheId(),
     getSophomoreByFheId(),
     getContractByFheId(),
     getSalaryRankByFheId(),
-    getRealSalaryRankByFheId(admin, settings.realSalaryEfficiencyWeight),
+    getCustomValuations(owner, leagueId),
   ]);
   const dynastyRankByFheId = getDynastyRankByFheId();
   const rookieByFheId = getRookieByFheId();
-  const consensusPoolSize = getConsensusPoolSize();
   const salaryRankByFheId = salaryRank.rankByFheId;
+
+  const leagueValuesGenerated = customDoc != null && customDoc.mode !== "picksOnly";
+  const leagueRankByFantraxId = new Map<string, number>();
+  if (leagueValuesGenerated) {
+    for (const row of customDoc!.rows) {
+      if (row.fantraxId && row.tradeRank != null) leagueRankByFantraxId.set(row.fantraxId, row.tradeRank);
+    }
+  }
 
   const family: "categories" | "points" = analysis.league.scoringMode === "points" ? "points" : "categories";
   const scored = scoredOrDefault(analysis.league.categories.scored);
   const pointsFormula = analysis.league.pointsFormula;
-  const categoryFallbackMode: "eightCatV" | "nineCatV" = scored.length === 8 ? "eightCatV" : "nineCatV";
-  const currentSeason = Number(dataset.split(":")[0]) || REAL_SALARY_SEASON;
-  const leaguePoolSize = analysis.league.poolSize;
-  const totalRosterSlots = Object.values(analysis.league.positionSlots ?? {}).reduce((a, b) => a + b, 0);
 
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
@@ -182,7 +187,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
   const espnIds = [...new Set(espnIdByFantraxId.values())];
 
   const assets: WaiverAssetRow[] = [];
-  const faPlayers: ResolvedPlayer[] = [];
 
   if (espnIds.length > 0) {
     const [{ data: svRows, error }, { data: statRows, error: statError }] = await Promise.all([
@@ -249,63 +253,26 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         tov: stat.tov, fga: stat.fga, fg_pct: stat.fg_pct, fta: stat.fta, ft_pct: stat.ft_pct,
       } : null;
       const fpts = family === "points" && statLine && pointsFormula ? pointsValueOf(statLine, pointsFormula) : null;
-      const isRookie = fheId ? rookieByFheId[fheId] ?? false : false;
-      const consensusRank = fheId ? dynastyRankByFheId[fheId] ?? null : null;
       const contractInfo = fheId ? contractByFheId[fheId] : undefined;
 
       assets.push({
         key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name,
         pos: positionGroup(fa.eligible), nbaTeam: fa.nbaTeam && fa.nbaTeam !== "(N/A)" ? fa.nbaTeam : null,
-        isRookie, isSophomore: fheId ? sophomoreByFheId[fheId] ?? false : false,
+        isRookie: fheId ? rookieByFheId[fheId] ?? false : false,
+        isSophomore: fheId ? sophomoreByFheId[fheId] ?? false : false,
         age: fheId ? ageByFheId[fheId] ?? null : null,
-        dynRank: consensusRank,
+        dynRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
         gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: stat?.usg_pct ?? null,
         nineCatV: v.nineCatV, minus1V: v.minus1V,
         nineCatVTotals: v.nineCatVTotals, minus1VTotals: v.minus1VTotals,
         fpts,
         catsRaw, catsZ: v.catsZ, catsZTotals: v.catsZTotals,
-        tradeValue: null, // filled in below, once the free-agent pool is complete
+        leagueRank: leagueRankByFantraxId.get(fa.fantraxId) ?? null,
         salary: contractInfo?.currentSalary ?? null,
         salaryRank: fheId ? salaryRankByFheId[fheId] ?? null : null,
-        contract: contractInfo ? `${contractInfo.yearsRemaining}yr/$${(contractInfo.totalRemaining / 1_000_000).toFixed(1)}M` : null,
       });
-
-      // Minimal ResolvedPlayer-shaped object — only the fields
-      // computeBaseTradeValues' dynastyValues/redraftValues/valueOf actually
-      // read (fantraxId, fheId, consensusRank, contract, salary, catV.perGame).
-      faPlayers.push({
-        fantraxId: fa.fantraxId, name: fa.name, slot: "FA", eligible: fa.eligible ?? [],
-        nbaTeam: fa.nbaTeam ?? "", status: "FA", salary: null, contract: null,
-        playerId: espnId, fheId: fheId ?? null, source: "projection",
-        cats: v.catsZ, catsTotals: v.catsZTotals,
-        leagueV: null, pointsValue: fpts, nineCatV: v.nineCatV, consensusRank,
-        gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: stat?.usg_pct ?? null, statLine,
-        catV: { perGame: { nineCatV: v.nineCatV, minus1V: v.minus1V, eightCatV: null }, totals: { nineCatV: v.nineCatVTotals, minus1V: v.minus1VTotals, eightCatV: null } },
-        catVRank: { perGame: { nineCatV: null, minus1V: null, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
-        trendTags: null, ambiguousName: false, smallSample: false, isRookie,
-      } as unknown as ResolvedPlayer);
     }
   }
-
-  // Trade value — the ONE number this league's Trade Edge would actually
-  // price a free agent at, same activeBasis derivation league-rankings.ts's
-  // own AssetRow build uses (see LeagueRankingsResult.activeBasis's doc
-  // there for the full rationale), collapsed to a single column since a free
-  // agent has no rostered/pick pool to show 4 basis tabs against.
-  const activeBasis: "standard" | "real" | "redraft" = (() => {
-    if (leagueType === "redraft") return "redraft";
-    if (leagueType === "dynasty") return settings.salaryFormat === "real" ? "real" : "standard";
-    const weight = computeKeeperWeight(settings.keeperPolicy, totalRosterSlots);
-    if (weight >= 0.5) return settings.salaryFormat === "real" ? "real" : "standard";
-    return "redraft";
-  })();
-  const tradeValueMap = computeBaseTradeValues({
-    players: faPlayers, leagueType, valueBasis: activeBasis === "real" ? "real" : "standard",
-    categoryFallbackMode, redraftBaseMode: "native", leaguePoolSize, consensusPoolSize,
-    realSalaryRankByFheId: realSalaryRank.rankByFheId, realSalaryPoolSize: realSalaryRank.poolSize,
-    keeperPolicy: settings.keeperPolicy, totalRosterSlots, contractRules: settings.contractRules, currentSeason,
-  });
-  for (const a of assets) a.tradeValue = tradeValueMap.get(a.fantraxId) ?? null;
 
   return {
     assets,
@@ -313,5 +280,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     scoredCategories: [...scored],
     positionSlots: analysis.league.positionSlots ?? {},
     salaryFormat: settings.salaryFormat,
+    leagueValuesGenerated,
   };
 }
