@@ -3,15 +3,19 @@ import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
 import { computeWaiverEdge } from "@/lib/fantrax/waiver-edge";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
-import type { LeagueType, SalaryFormat } from "@/lib/fantrax/league-tags";
+import type { ContractRule, LeagueType, RookieSalaryTier, SalaryFormat } from "@/lib/fantrax/league-tags";
 
 /**
  * Waiver Edge (Deep Edge) — every free agent in a connected league, ranked
  * for that league's own scoring format. See waiver-edge.ts's own header for
- * why this is a standalone module rather than a League Rankings variant.
+ * why this is a standalone module rather than a League Rankings variant —
+ * and why the param set below mirrors /api/fantrax/league-rankings' own:
+ * LEAGUE RANK is computed by calling that same module internally.
  *
  *   GET ?leagueId=…&teamId=…&dataset=2027:projection&leagueType=dynasty
- *       &salaryFormat=real&useCustomValuations=1&useGeneratedPickValues=1
+ *       &salaryFormat=real&keeperPolicy=…&realSalaryEfficiencyWeight=…
+ *       &contractRules=…&rookieSalaryScale=…&useCustomValuations=1
+ *       &useGeneratedPickValues=1
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,13 +39,26 @@ export async function GET(request: Request) {
   const leagueType: LeagueType = leagueTypeParam === "keeper" || leagueTypeParam === "dynasty" ? leagueTypeParam : "redraft";
   const salaryFormatParam = searchParams.get("salaryFormat");
   const salaryFormat: SalaryFormat = salaryFormatParam === "real" || salaryFormatParam === "custom" ? salaryFormatParam : "none";
+  const keeperPolicy = searchParams.get("keeperPolicy") ?? undefined;
+  const weightParam = searchParams.get("realSalaryEfficiencyWeight");
+  const realSalaryEfficiencyWeight = weightParam != null && weightParam !== "" ? Number(weightParam) : undefined;
+  function parseJsonParam<T>(name: string): T | undefined {
+    const raw = searchParams.get(name);
+    if (!raw) return undefined;
+    try { return JSON.parse(raw) as T; } catch { return undefined; }
+  }
+  const contractRules = parseJsonParam<ContractRule[]>("contractRules");
+  const rookieSalaryScale = parseJsonParam<RookieSalaryTier[]>("rookieSalaryScale");
   const useCustomValuations = searchParams.get("useCustomValuations") === "1";
   const useGeneratedPickValues = searchParams.get("useGeneratedPickValues") === "1";
 
   try {
     const result = await computeWaiverEdge({
       leagueId, owner: auth.access.owner, teamId, dataset, leagueType,
-      settings: { salaryFormat, useCustomValuations, useGeneratedPickValues },
+      settings: {
+        salaryFormat, keeperPolicy, realSalaryEfficiencyWeight, contractRules, rookieSalaryScale,
+        useCustomValuations, useGeneratedPickValues,
+      },
     });
     return NextResponse.json(result);
   } catch (err) {

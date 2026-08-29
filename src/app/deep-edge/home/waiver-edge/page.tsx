@@ -43,23 +43,24 @@ import type { WaiverAssetRow, WaiverEdgeResult } from "@/lib/fantrax/waiver-edge
  * totals-mode columns, 8CatV re-derives the mean-of-8 from whichever catsZ
  * set (per-game or totals) the toggle currently selects.
  *
- * LEAGUE RANK is this free agent's rank within the LEAGUE'S OWN generated
- * custom-valuations ledger (not a re-derived number) — and it ONLY EXISTS
- * for a custom-salary league (canHaveLeagueRank): the "generate asset
- * values" flow (deep-edge/home/page.tsx) produces a FULL, player-priced
- * ledger exclusively for salaryFormat "custom"; every other format only
- * ever gets a picksOnly ledger with zero player/FA rows, no matter how many
- * times the generator runs. The column (and its "hasn't generated yet"
- * banner) is hidden entirely for any other format — showing either would
- * point the user at a fix that can never actually populate it. Within a
- * custom-salary league, it's blank with the banner until that league's own
- * ledger has been generated (see waiver-edge.ts's own header for what
- * "generated" means there). DYN RANK/SAL RANK share one column slot: a
- * real-salary league shows the site-wide Real Salary rank there instead of
- * dynasty consensus, since that's the number actually driving value for
- * that league. SALARY (a free agent's real-world NBA salary, since their
- * in-league salary is always null) shows for both real- and custom-salary
- * leagues; none of LEAGUE RANK/DYN RANK/SALARY apply to a points league.
+ * LEAGUE RANK is this free agent's rank EXACTLY as League Rankings itself
+ * shows it — same computeLeagueRankings() call, read off its own
+ * activeBasis (whichever of standard consensus/real salary/redraft/custom
+ * is actually driving trade value for this league, the same basis Home's
+ * "Driving trade value: X" line names), not a raw read of the generated
+ * ledger's own tradeRank (see waiver-edge.ts's header for why League
+ * Rankings itself stopped trusting that field). This works for every league
+ * that shows "Asset values active" on Home — including a plain standard
+ * dynasty league with no custom ledger at all, ranked by consensus — not
+ * just custom-salary leagues with a full player-priced ledger. Blank with a
+ * banner above the table until this league has generated ANY ledger (full
+ * or picksOnly — mirrors Home's own hasGeneratedValues exactly). DYN RANK/
+ * SAL RANK share one column slot: a real-salary league shows the site-wide
+ * Real Salary rank there instead of dynasty consensus, since that's the
+ * number actually driving value for that league. SALARY (a free agent's
+ * real-world NBA salary, since their in-league salary is always null) shows
+ * for both real- and custom-salary leagues; neither DYN RANK/SAL RANK nor
+ * SALARY applies to a points league (LEAGUE RANK still does).
  *
  * The Add/Drop Simulator (bottom of this file) answers "if I made this move,
  * what happens to my team?" — pick free agents here (the ADD column), pick
@@ -199,8 +200,15 @@ function WaiverEdgeContent() {
       salaryFormat: saved.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat,
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
+    if (saved.settings.keeperPolicy) params.set("keeperPolicy", saved.settings.keeperPolicy);
+    if (saved.settings.realSalaryEfficiencyWeight != null) params.set("realSalaryEfficiencyWeight", String(saved.settings.realSalaryEfficiencyWeight));
+    if (saved.settings.contractRules?.length) params.set("contractRules", JSON.stringify(saved.settings.contractRules));
+    if (saved.settings.rookieSalaryScale?.length) params.set("rookieSalaryScale", JSON.stringify(saved.settings.rookieSalaryScale));
     if (saved.settings.useCustomValuations) params.set("useCustomValuations", "1");
     if (saved.settings.useGeneratedPickValues) params.set("useGeneratedPickValues", "1");
+    // LEAGUE RANK is computed by calling computeLeagueRankings() internally
+    // (waiver-edge.ts's own header) — same param set /api/fantrax/
+    // league-rankings itself reads, so its activeBasis/values match exactly.
     fetch(`/api/fantrax/waiver-edge?${params}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
@@ -239,18 +247,6 @@ function WaiverEdgeContent() {
   const useSalaryRank = !isPoints && salaryFormat === "real";
   const showSalary = !isPoints && (salaryFormat === "real" || salaryFormat === "custom");
   const fmtSalary = (n: number | null) => (salaryFormat === "custom" ? formatCustomSalary(n) : formatSalary(n));
-  // LEAGUE RANK only ever exists for a custom-salary league: the "generate
-  // asset values" flow produces a FULL (player-priced) ledger exclusively
-  // for salaryFormat "custom" — every other format (none/real) only ever
-  // gets a picksOnly ledger with zero player/FA rows, no matter how many
-  // times the generator runs (deep-edge/home/page.tsx's own
-  // isCustomSalaryLeague gate — the ONLY place "full" mode is dispatched).
-  // Showing this column (or a "go generate it" banner) for any other format
-  // would be pointing the user at a fix that can never actually populate it
-  // — reported live on a real, non-custom-salary league that HAD already
-  // run the generator (its picks were priced) yet still showed the
-  // "hasn't generated" alert here.
-  const canHaveLeagueRank = salaryFormat === "custom";
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
@@ -318,7 +314,7 @@ function WaiverEdgeContent() {
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>No league connected yet — add one from Home.</p>
       ) : (
         <>
-          {data && canHaveLeagueRank && !data.leagueValuesGenerated && (
+          {data && !data.leagueValuesGenerated && (
             <p style={{ fontSize: 12.5, color: "var(--rt-muted)", background: "var(--rt-surface-soft)", border: "1px solid var(--rt-hairline)", borderRadius: 10, padding: "10px 14px", marginBottom: 14 }}>
               This league hasn&apos;t generated custom asset values yet, so LEAGUE RANK is blank for every free agent.
               Generate them from{" "}
@@ -428,15 +424,13 @@ function WaiverEdgeContent() {
                     <SortTh<SortKey> label="FREE AGENT" sortKey="name" sort={sort} onSort={onSort} align="left" />
                     <SortTh<SortKey> label="TEAM" sortKey="team" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="AGE" sortKey="age" sort={sort} onSort={onSort} />
-                    {canHaveLeagueRank && (
-                      <SortTh<SortKey>
-                        label="LEAGUE RANK"
-                        sortKey="leagueRank"
-                        sort={sort}
-                        onSort={onSort}
-                        title={data.leagueValuesGenerated ? undefined : "This league hasn't generated custom asset values yet"}
-                      />
-                    )}
+                    <SortTh<SortKey>
+                      label="LEAGUE RANK"
+                      sortKey="leagueRank"
+                      sort={sort}
+                      onSort={onSort}
+                      title={data.leagueValuesGenerated ? undefined : "This league hasn't generated custom asset values yet"}
+                    />
                     <SortTh<SortKey> label={useSalaryRank ? "SAL RANK" : "DYN RANK"} sortKey={useSalaryRank ? "salaryRank" : "dynRank"} sort={sort} onSort={onSort} />
                     {showSalary && <SortTh<SortKey> label="SALARY" sortKey="salary" sort={sort} onSort={onSort} />}
                     <SortTh<SortKey> label="GP" sortKey="gp" sort={sort} onSort={onSort} />
@@ -486,7 +480,7 @@ function WaiverEdgeContent() {
                         </td>
                         <td>{a.nbaTeam ? <TeamLogo team={a.nbaTeam} size={34} /> : <span style={{ color: "var(--rt-muted)" }}>—</span>}</td>
                         <td>{a.age != null ? a.age.toFixed(1) : "—"}</td>
-                        {canHaveLeagueRank && <td>{data.leagueValuesGenerated ? formatRank(a.leagueRank) : "—"}</td>}
+                        <td>{data.leagueValuesGenerated ? formatRank(a.leagueRank) : "—"}</td>
                         <td>{formatRank(useSalaryRank ? a.salaryRank : a.dynRank)}</td>
                         {showSalary && <td>{fmtSalary(a.salary)}</td>}
                         <td>{a.gamesPlayed ?? "—"}</td>

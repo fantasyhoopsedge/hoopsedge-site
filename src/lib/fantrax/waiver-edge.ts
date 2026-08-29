@@ -7,7 +7,8 @@ import type { LeagueType, SalaryFormat } from "./league-tags";
 import {
   getAgeByFheId, getContractByFheId, getDynastyRankByFheId, getRookieByFheId, getSalaryRankByFheId, getSophomoreByFheId,
 } from "./roster-edge";
-import { getCustomValuations } from "./custom-valuations-store";
+import { computeLeagueRankings } from "./league-rankings";
+import type { SavedLeagueSettings } from "./store";
 import { playerIdentity } from "../player-identity/bundled";
 import { createAdminClient } from "../../utils/supabase/admin";
 
@@ -25,48 +26,54 @@ import { createAdminClient } from "../../utils/supabase/admin";
  * catsZTotals excluding TO (see analyze.ts's eightCatVOf — this reproduces
  * that exact formula without a stored column for it).
  *
- * League Rank is this free agent's rank within the LEAGUE'S OWN generated
- * custom-valuations ledger (custom-valuations-store.ts's LedgerRow.tradeRank,
- * keyed by the raw Fantrax id — no identity resolution needed there, unlike
- * everything else in this file). Deliberately NOT a re-derived number the
- * way League Rankings' four basis tabs are: a ledger is generated (or not)
- * per league by the commissioner/GM, so a league that hasn't run "Generate
- * custom valuations" from Trade Edge yet has no ledger at all — every row's
- * leagueRank comes back null and leagueValuesGenerated is false, so the page
- * can say so instead of silently showing an empty column. "Generated" means a
- * real FULL ledger specifically — same valuationMode precedence Home's own
- * "Assets not valued" banner uses (doc.mode, falling back to the settings
- * flags when mode is absent), not just doc-existence: a "picksOnly" ledger
- * (the standard/real-salary "generate draft pick values" flow) never
- * carries player rows either (see CustomValuationsDoc.mode's own doc), and
- * a doc can be a stale leftover from before a Reset cleared the settings
- * flag but not the row — either way this reads it as "not generated".
+ * LEAGUE RANK is this free agent's rank EXACTLY as League Rankings itself
+ * would show it — same computeLeagueRankings() call, read off
+ * values[activeBasis] (Ash, 2026-08-30: "pull the exact asset ranking
+ * matching the league rankings"), not a separate re-derivation and NOT the
+ * generated ledger's own raw tradeRank (league-rankings.ts deliberately
+ * stopped trusting that field for the exact reason documented there — a
+ * ledger-internal rank isn't consistent with the full combined pool every
+ * other rank number on the site means). activeBasis is whichever of
+ * standard consensus dynasty / real salary / redraft / custom is ACTUALLY
+ * driving trade value for this league right now — the same basis Home's own
+ * "Driving trade value: X" line names — so this works for every league that
+ * shows "Asset values active" on Home, not just ones running a full custom
+ * ledger: a standard dynasty league with no ledger at all still has an
+ * activeBasis (standard), and computeLeagueRankings ranks every free agent
+ * within it regardless. leagueValuesGenerated mirrors Home's own
+ * hasGeneratedValues exactly (any ledger, full OR picksOnly, via
+ * rankings.ledgerMode falling back to the settings flags — see Home's own
+ * valuationMode) — gating DISPLAY (blank + banner) even though the rank
+ * itself is technically computable without one, per Ash's original ask.
  *
  * Salary/Salary Rank reuse the same real-world fallback League Rankings'
  * AssetRow already uses for a free agent: a free agent's own IN-LEAGUE
  * salary/contract is always null (never rostered), so both real- and
  * custom-salary leagues read the player's real NBA contract instead.
  *
- * Free-agent resolution mirrors league-rankings.ts's own free-agent block
- * (same identity-registry + season_player_values join, same "Fantrax id,
- * never name" rule — see that file's header for why a name fallback would
- * reintroduce the duplicate-Jaylin-Williams bug), but is NOT a call into
- * that module: League Rankings' free-agent path hardcodes isRookie/eightCatV/
- * fpts/usgPct as unavailable because it's grafted onto a pipeline built for
- * rostered players first. This is free-agent-first, so it fills them in.
+ * Free-agent CATV/raw-stat resolution mirrors league-rankings.ts's own
+ * free-agent block (same identity-registry + season_player_values join,
+ * same "Fantrax id, never name" rule — see that file's header for why a
+ * name fallback would reintroduce the duplicate-Jaylin-Williams bug), but
+ * is NOT a call into that module for those fields: League Rankings' own
+ * free-agent path hardcodes isRookie/eightCatV/fpts/usgPct as unavailable
+ * because it's grafted onto a pipeline built for rostered players first.
+ * This file is free-agent-first, so it fills them in — computeLeagueRankings
+ * is called ONLY for LEAGUE RANK's activeBasis/values, not for those fields.
  */
 
 const REAL_SALARY_SEASON = 2027; // matches league-rankings.ts / roster-edge.ts's own constant
 
 export interface WaiverEdgeSettings {
   salaryFormat: SalaryFormat;
-  /** Same two flags Home's own "Assets not valued" banner reads
-   *  (deep-edge/home/page.tsx's valuationMode) — needed because a doc can
-   *  exist in storage as a stale leftover (e.g. a Reset that cleared the
-   *  settings flag but not the row) with no `mode` field of its own to
-   *  disambiguate; the settings flag is the tie-breaker there, same as Home. */
-  useCustomValuations: boolean;
-  useGeneratedPickValues: boolean;
+  keeperPolicy: string | undefined;
+  realSalaryEfficiencyWeight: number | undefined;
+  contractRules: SavedLeagueSettings["contractRules"];
+  rookieSalaryScale: SavedLeagueSettings["rookieSalaryScale"];
+  /** Same flags Home's own "Assets not valued" banner reads — see this
+   *  file's header on why leagueValuesGenerated needs them as a fallback. */
+  useCustomValuations: boolean | undefined;
+  useGeneratedPickValues: boolean | undefined;
 }
 
 export interface WaiverEdgeInput {
@@ -107,9 +114,9 @@ export interface WaiverAssetRow {
   catsRaw: Partial<Record<FheCategory, number>>;
   catsZ: Partial<Record<FheCategory, number>>;
   catsZTotals: Partial<Record<FheCategory, number>>;
-  /** Rank within this league's own generated custom-valuations ledger — see
-   *  this file's header. Null whenever leagueValuesGenerated is false, OR
-   *  the ledger exists but never priced this specific player. */
+  /** Same rank League Rankings shows for this player under its own
+   *  activeBasis — see this file's header. Null whenever
+   *  leagueValuesGenerated is false. */
   leagueRank: number | null;
   /** Real-world NBA current salary — a free agent's in-league salary is
    *  always null, so this is the fallback both real- and custom-salary
@@ -131,16 +138,15 @@ export interface WaiverEdgeResult {
   scoredCategories: FheCategory[];
   positionSlots: Record<string, number>;
   salaryFormat: SalaryFormat;
-  /** False when this league has no FULL custom-valuations ledger yet (never
-   *  generated, or only a picksOnly one) — every row's leagueRank is null in
-   *  that case, and the page shows an alert rather than a silently empty
-   *  column. */
+  /** Mirrors Home's own hasGeneratedValues exactly ("Asset values active"
+   *  vs. "Assets not valued") — true whenever ANY ledger has been generated
+   *  for this league, full or picksOnly. See this file's header. */
   leagueValuesGenerated: boolean;
-  /** Every fantraxId the ledger prices, rostered players and picks included
-   *  — not just the free agents `assets` covers. Empty when
-   *  leagueValuesGenerated is false. Lets the Add/Drop Simulator show a
-   *  rostered drop-candidate's league rank too, which `assets` (free agents
-   *  only) can't. */
+  /** Every fantraxId League Rankings ranks under its own activeBasis —
+   *  rostered players and free agents alike, not just the free agents
+   *  `assets` covers. Empty when leagueValuesGenerated is false. Lets the
+   *  Add/Drop Simulator show a rostered drop-candidate's league rank too,
+   *  which `assets` (free agents only) can't. */
   leagueRankByFantraxId: Record<string, number>;
 }
 
@@ -166,30 +172,32 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
   const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
   const admin = createAdminClient();
 
-  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, customDoc] = await Promise.all([
+  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, rankings] = await Promise.all([
     getAgeByFheId(),
     getSophomoreByFheId(),
     getContractByFheId(),
     getSalaryRankByFheId(),
-    getCustomValuations(owner, leagueId),
+    // Only for activeBasis/values — see this file's header for why LEAGUE
+    // RANK reads League Rankings' own computation rather than the raw
+    // generated-ledger tradeRank.
+    computeLeagueRankings({ leagueId, owner, teamId, dataset, leagueType, settings }),
   ]);
   const dynastyRankByFheId = getDynastyRankByFheId();
   const rookieByFheId = getRookieByFheId();
   const salaryRankByFheId = salaryRank.rankByFheId;
 
   // Same precedence Home's own "Assets not valued" banner uses
-  // (deep-edge/home/page.tsx's valuationMode): the doc's own `mode` wins
+  // (deep-edge/home/page.tsx's valuationMode): the ledger's own `mode` wins
   // when present, but a doc with no mode (predates that field) or a stale
   // leftover row falls back to the settings flags — never doc-existence
   // alone, which would read a stale/reset-but-undeleted row as "generated".
   const valuationMode: "full" | "picksOnly" | null =
-    customDoc?.mode ?? (settings.useCustomValuations ? "full" : settings.useGeneratedPickValues ? "picksOnly" : null);
-  const leagueValuesGenerated = valuationMode === "full";
-  const leagueRankByFantraxId = new Map<string, number>();
-  if (leagueValuesGenerated && customDoc) {
-    for (const row of customDoc.rows) {
-      if (row.fantraxId && row.tradeRank != null) leagueRankByFantraxId.set(row.fantraxId, row.tradeRank);
-    }
+    rankings.ledgerMode ?? (settings.useCustomValuations ? "full" : settings.useGeneratedPickValues ? "picksOnly" : null);
+  const leagueValuesGenerated = valuationMode != null;
+  const activeValues = rankings.values[rankings.activeBasis];
+  const leagueRankByFantraxId: Record<string, number> = {};
+  if (leagueValuesGenerated) {
+    for (const [key, rv] of Object.entries(activeValues)) leagueRankByFantraxId[key] = rv.rank;
   }
 
   const family: "categories" | "points" = analysis.league.scoringMode === "points" ? "points" : "categories";
@@ -291,7 +299,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         nineCatVTotals: v.nineCatVTotals, minus1VTotals: v.minus1VTotals,
         fpts,
         catsRaw, catsZ: v.catsZ, catsZTotals: v.catsZTotals,
-        leagueRank: leagueRankByFantraxId.get(fa.fantraxId) ?? null,
+        leagueRank: leagueRankByFantraxId[fa.fantraxId] ?? null,
         salary: contractInfo?.currentSalary ?? null,
         salaryRank: fheId ? salaryRankByFheId[fheId] ?? null : null,
       });
@@ -305,6 +313,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     positionSlots: analysis.league.positionSlots ?? {},
     salaryFormat: settings.salaryFormat,
     leagueValuesGenerated,
-    leagueRankByFantraxId: Object.fromEntries(leagueRankByFantraxId),
+    leagueRankByFantraxId,
   };
 }
