@@ -4,7 +4,7 @@ import { playerIdentity } from "@/lib/player-identity/bundled";
 import { getRealSalaryValues, getRosterExtras } from "@/lib/value/real-salary-data";
 import { contractClassOf, rankBy, type ContractClass } from "@/lib/value/real-salary-model";
 
-type BoardPlayer = { player: string; consensusRank: number };
+type BoardPlayer = { player: string; consensusRank: number; isRookie: boolean };
 
 /**
  * Salary-rank/contract enrichment for the Roster Edge tool — deliberately
@@ -88,6 +88,25 @@ export function getDynastyRankByFheId(): Record<string, number> {
  *  cascade (src/lib/fantrax/trade-value.ts). */
 export function getConsensusPoolSize(): number {
   return (rankings as BoardPlayer[]).length;
+}
+
+/** fhe_id -> true when the dynasty board tags this player a 2026 draft-class
+ *  rookie — same board field resolve.ts's own dynastyBioIndex() reads for a
+ *  rostered/waiver-board player, but resolved through player_identity like
+ *  getDynastyRankByFheId() rather than that function's name-only lookup, so
+ *  it works for Waiver Edge's free agents too (those never pass through
+ *  resolve.ts's normal per-player resolution — see waiver-edge.ts). Omits
+ *  anyone the board doesn't carry (never a false positive). */
+export function getRookieByFheId(): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const p of rankings as BoardPlayer[]) {
+    if (!p.isRookie) continue;
+    const res = playerIdentity().resolve({ name: p.player });
+    if (res.kind === "matched" && out[res.identity.fheId] == null) {
+      out[res.identity.fheId] = true;
+    }
+  }
+  return out;
 }
 
 export interface ContractInfo {

@@ -218,7 +218,17 @@ export interface RadarPoint {
  * is plotting raw stat magnitude instead of rank, which would put a
  * turnover-prone team's axis facing the WRONG way.
  */
-export function CategoryRadarChart({ points, size = 260 }: { points: RadarPoint[]; size?: number }) {
+export function CategoryRadarChart({
+  points, size = 260, showRank = false,
+}: {
+  points: RadarPoint[];
+  size?: number;
+  /** Prints the numeric rank (e.g. "4", not "4/20") just under each axis
+   *  label — opt-in and off by default so Category Edge's own dashboard is
+   *  unaffected; the Waiver Edge Add/Drop Simulator turns this on (Ash,
+   *  2026-08-30: "add the cat rank in the boxes provided"). */
+  showRank?: boolean;
+}) {
   const n = points.length;
   if (n === 0) return null;
   const center = size / 2;
@@ -260,6 +270,18 @@ export function CategoryRadarChart({ points, size = 260 }: { points: RadarPoint[
             fill={p.greyed ? "var(--rt-muted)" : "var(--rt-body)"}
           >
             {CATEGORY_LABEL[p.category]}
+          </text>
+        );
+      })}
+      {showRank && points.map((p, i) => {
+        const [x, y] = pointAt(i, maxR + 16);
+        const color = p.greyed ? "var(--rt-muted)" : p.rank != null ? statusColor(p.rank, p.of) : "var(--rt-muted)";
+        return (
+          <text
+            key={i} x={x} y={y} dy={13} textAnchor="middle" dominantBaseline="middle"
+            fontSize={11} fontWeight={800} fontFamily="var(--rt-font-mono)" fill={color}
+          >
+            {p.rank ?? "—"}
           </text>
         );
       })}

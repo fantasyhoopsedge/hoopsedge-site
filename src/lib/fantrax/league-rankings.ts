@@ -228,7 +228,6 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // needs the full resolved-roster pipeline this path doesn't run). ──
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
-  const espnIdByFantraxId = new Map<string, string>();
   const fheIdByFantraxId = new Map<string, string>();
   for (const fa of rawFAs) {
     // Fantrax id, not name — resolve.ts's own resolveOne() uses the same
@@ -243,33 +242,43 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     // free agent) ended up duplicated on the League Rankings page with
     // identical stats under both rows.
     const r = idx.resolve({ fantraxId: fa.fantraxId });
-    if (r.kind === "matched" && r.identity.espnId) {
-      espnIdByFantraxId.set(fa.fantraxId, r.identity.espnId);
+    if (r.kind === "matched" && r.identity.fheId) {
       fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
     }
   }
-  const espnIds = [...new Set(espnIdByFantraxId.values())];
+  const fheIds = [...new Set(fheIdByFantraxId.values())];
   const faPlayers: ResolvedPlayer[] = [];
   const faZByFantraxId = new Map<string, Partial<Record<FheCategory, number>>>();
-  if (espnIds.length > 0) {
-    const [{ data: svRows, error }, { data: statRows, error: statError }] = await Promise.all([
-      admin
+  if (fheIds.length > 0) {
+    // Resolve fhe_id -> season_player_stats FIRST, then join season_player_values
+    // on THAT row's own player_id — never assume player_id === espnId. A 2026
+    // draft-class free agent has no pre-existing hoopR history, so
+    // build-projection-values.ts keys their row by the Summer League 2026
+    // fallback id (sl-<nbaComId>) instead — an espnId-keyed query silently drops
+    // every such player (see waiver-edge.ts's header, fixed there 2026-08-29 for
+    // the same reason; resolve.ts's rostered-player path never had this bug
+    // because it already resolves fhe_id -> stats row -> stats.player_id ->
+    // values row).
+    const { data: statRows, error: statError } = await admin
+      .from("season_player_stats")
+      .select("player_id,fhe_id,g,mpg,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
+      .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
+      .in("fhe_id", fheIds);
+    if (statError) throw new Error(statError.message);
+
+    const playerIds = [...new Set((statRows ?? []).map((r) => r.player_id as string))];
+    const { data: svRows, error } = playerIds.length > 0
+      ? await admin
         .from("season_player_values")
         // v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to — spelled out
         // (not built from CATEGORY_VALUE_COLUMN) so Supabase's typed client
         // can parse this as a literal select string.
         .select("player_id,value,minus1v,v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection").eq("league_size", 450)
-        .in("player_id", espnIds),
-      admin
-        .from("season_player_stats")
-        .select("player_id,g,mpg,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
-        .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
-        .in("player_id", espnIds),
-    ]);
+        .in("player_id", playerIds)
+      : { data: [], error: null };
     if (error) throw new Error(error.message);
-    if (statError) throw new Error(statError.message);
-    const valueByEspnId = new Map((svRows ?? []).map((row) => {
+    const valueByPlayerId = new Map((svRows ?? []).map((row) => {
       const catsZ: Partial<Record<FheCategory, number>> = {};
       if (row.v_pts != null) catsZ.PTS = row.v_pts;
       if (row.v_fg3 != null) catsZ.FG3 = row.v_fg3;
@@ -282,32 +291,32 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
       if (row.v_to != null) catsZ.TO = row.v_to;
       return [row.player_id, { nineCatV: row.value, minus1V: row.minus1v, catsZ }] as const;
     }));
-    const statByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, r]));
+    const statByFheId = new Map((statRows ?? []).map((r) => [r.fhe_id as string, r]));
     for (const fa of rawFAs) {
-      const espnId = espnIdByFantraxId.get(fa.fantraxId);
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
-      if (!espnId) continue;
-      const v = valueByEspnId.get(espnId);
+      if (!fheId) continue;
+      const stat = statByFheId.get(fheId);
+      if (!stat) continue;
+      const v = valueByPlayerId.get(stat.player_id as string);
       if (!v || v.nineCatV == null) continue;
-      const stat = statByEspnId.get(espnId);
-      const cats: Partial<Record<FheCategory, number>> = stat ? {
+      const cats: Partial<Record<FheCategory, number>> = {
         PTS: stat.pts ?? undefined, FG3: stat.fg3m ?? undefined, REB: stat.reb ?? undefined,
         AST: stat.ast ?? undefined, STL: stat.stl ?? undefined, BLK: stat.blk ?? undefined,
         FG: stat.fg_pct ?? undefined, FT: stat.ft_pct ?? undefined, TO: stat.tov ?? undefined,
-      } : {};
+      };
       // Full raw line (incl. attempts) so AssetRow.catsRaw/fgAttempts/
       // ftAttempts can read a free agent the same way as a rostered player
       // — off .statLine — rather than a second, FA-only code path.
-      const faStatLine: StatLine | null = stat ? {
+      const faStatLine: StatLine = {
         pts: stat.pts, fg3m: stat.fg3m, reb: stat.reb, ast: stat.ast, stl: stat.stl, blk: stat.blk,
         tov: stat.tov, fga: stat.fga, fg_pct: stat.fg_pct, fta: stat.fta, ft_pct: stat.ft_pct,
-      } : null;
+      };
       faPlayers.push({
         fantraxId: fa.fantraxId, name: fa.name, slot: "FA", eligible: fa.eligible ?? [],
         nbaTeam: fa.nbaTeam ?? "", status: "FA", salary: null, contract: null,
-        playerId: espnId, fheId: fheId ?? null, source: "projection", cats, catsTotals: {},
-        leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
-        gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: null, statLine: faStatLine,
+        playerId: stat.player_id as string, fheId, source: "projection", cats, catsTotals: {},
+        leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: dynastyRankByFheId[fheId] ?? null,
+        gamesPlayed: stat.g as number | null, minutesPerGame: stat.mpg as number | null, usgPct: null, statLine: faStatLine,
         catV: { perGame: { nineCatV: v.nineCatV, minus1V: v.minus1V, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         catVRank: { perGame: { nineCatV: null, minus1V: null, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         trendTags: null, ambiguousName: false, smallSample: false, isRookie: false,
