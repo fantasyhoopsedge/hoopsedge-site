@@ -492,7 +492,7 @@ function WaiverEdgeContent() {
       )}
 
       {simOpen && saved && (
-        <AddDropSimulatorModal saved={saved} cart={cart} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
+        <AddDropSimulatorModal saved={saved} cart={cart} catvMode={catvMode} onRemoveFromCart={removeFromCart} onClose={() => setSimOpen(false)} />
       )}
     </HubShell>
   );
@@ -501,7 +501,22 @@ function WaiverEdgeContent() {
 // ── Add/Drop Simulator ───────────────────────────────────────────────────
 
 type SimFormat = "roto" | "h2hcat" | "points";
-type DepthMode = "starters" | "starters+";
+/** Same depth ladder Power Rankings' own "Starters/+1/../+5" control uses
+ *  (rankings/page.tsx) — index into this array IS the depth value
+ *  buildDepthWeightedProfiles expects, so the two controls stay identical
+ *  in both label and meaning. */
+const DEPTH_LABELS = ["Starters", "+1", "+2", "+3", "+4", "+5"];
+
+/** A roster player's value under whichever CATV flavor (or FPTS) the main
+ *  Waiver Edge table currently has selected — the ResolvedPlayer-shaped
+ *  counterpart to the page's own catvOf(), used to order the "Dropping"
+ *  checklist worst-to-best by that same metric. */
+function rosterValueOf(p: ResolvedPlayer, isPoints: boolean, catvMode: CatvMode, statMode: StatMode): number | null {
+  if (isPoints) return p.pointsValue;
+  if (catvMode === "minus1") return statMode === "totals" ? p.catV?.totals.minus1V ?? null : p.catV?.perGame.minus1V ?? null;
+  if (catvMode === "nineCat") return statMode === "totals" ? p.catV?.totals.nineCatV ?? null : p.catV?.perGame.nineCatV ?? null;
+  return eightCatTotal(statMode === "totals" ? p.catsTotals : p.cats);
+}
 
 function StatCompare({
   label, before, after, format, higherBetter = true,
@@ -555,10 +570,15 @@ function CategoryDeltaList({ title, color, deltas }: { title: string; color: str
 }
 
 function AddDropSimulatorModal({
-  saved, cart, onRemoveFromCart, onClose,
+  saved, cart, catvMode, onRemoveFromCart, onClose,
 }: {
   saved: SavedLeague;
   cart: Map<string, CartEntry>;
+  /** The main table's CATV selection — the "Dropping" checklist orders your
+   *  roster worst-to-best by this same flavor (Ash: "dynamically linked to
+   *  whatever value is selected"). Read-only here; changing it happens on
+   *  the main table, not inside the simulator. */
+  catvMode: CatvMode;
   onRemoveFromCart: (fantraxId: string) => void;
   onClose: () => void;
 }) {
@@ -566,7 +586,7 @@ function AddDropSimulatorModal({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [dropIds, setDropIds] = useState<Set<string>>(new Set());
-  const [depthMode, setDepthMode] = useState<DepthMode>("starters");
+  const [depth, setDepth] = useState(0);
   const [statMode, setStatMode] = useState<StatMode>("perGame");
   const [result, setResult] = useState<{ before: TeamCategoryProfile[]; after: TeamCategoryProfile[] } | null>(null);
 
@@ -596,6 +616,15 @@ function AddDropSimulatorModal({
 
   const myTeamId = analysis?.myTeamId ?? null;
   const myRoster = useMemo(() => analysis?.rosters.find((r) => r.teamId === myTeamId) ?? null, [analysis, myTeamId]);
+  const isPointsLeague = analysis?.league.scoringMode === "points";
+  // Worst-to-best by the SAME CATV/FPTS flavor the main table is showing —
+  // the drop candidates most worth cutting sort to the top of the checklist.
+  const dropCandidates = useMemo(() => {
+    if (!myRoster) return [];
+    return [...myRoster.players]
+      .map((p) => ({ player: p, value: rosterValueOf(p, isPointsLeague, catvMode, statMode) }))
+      .sort((a, b) => (a.value ?? -Infinity) - (b.value ?? -Infinity));
+  }, [myRoster, isPointsLeague, catvMode, statMode]);
   const waiverByFantraxId = useMemo(() => new Map((analysis?.waiverBoard ?? []).map((p) => [p.fantraxId, p] as const)), [analysis]);
   const resolvedAdds = useMemo(
     () => [...cart.values()].map((c) => ({ ...c, player: waiverByFantraxId.get(c.fantraxId) ?? null })),
@@ -634,7 +663,6 @@ function AddDropSimulatorModal({
 
   function runSimulation() {
     if (!analysis || !myTeamId || !effective || !format) return;
-    const depth = depthMode === "starters" ? 0 : 1;
     const weight = depthWeight(DEFAULT_GAMES_CAP_SETTINGS.lineupCadence, format, DEFAULT_GAMES_CAP_SETTINGS.capPos, DEFAULT_GAMES_CAP_SETTINGS.capMatch);
     const valueMode: LineupValueMode = analysis.league.scoringMode === "points" ? "fpts" : scored.length === 8 ? "eightCatV" : "nineCatV";
     setResult(addDropProfiles(analysis, myTeamId, dropIds, addPlayers, depth, weight, valueMode, effective));
@@ -714,12 +742,18 @@ function AddDropSimulatorModal({
             </div>
             <div>
               <h3 style={{ fontSize: 13, margin: "0 0 10px" }}>Dropping (optional)</h3>
+              <p style={{ fontSize: 11, color: "var(--rt-muted)", margin: "0 0 6px" }}>
+                Sorted worst → best by {isPointsLeague ? "FPTS" : CATV_OPTIONS.find((o) => o.value === catvMode)?.label}
+              </p>
               <div style={{ maxHeight: 220, overflowY: "auto" }}>
-                {myRoster.players.map((p) => (
+                {dropCandidates.map(({ player: p, value }) => (
                   <label key={p.fantraxId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", fontSize: 13, cursor: "pointer" }}>
                     <input type="checkbox" checked={dropIds.has(p.fantraxId)} onChange={() => toggleDrop(p.fantraxId)} />
                     {p.name}
                     <span style={{ color: "var(--rt-muted)", fontSize: 11.5 }}>{p.nbaTeam}</span>
+                    <span style={{ color: "var(--rt-muted)", fontSize: 11.5, fontFamily: "var(--rt-font-mono)", marginLeft: "auto" }}>
+                      {value != null ? value.toFixed(2) : "—"}
+                    </span>
                   </label>
                 ))}
               </div>
@@ -728,9 +762,9 @@ function AddDropSimulatorModal({
 
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, flexWrap: "wrap" }}>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {(["starters", "starters+"] as DepthMode[]).map((v) => (
-                <button key={v} type="button" onClick={() => setDepthMode(v)} style={pill(depthMode === v)}>
-                  {v === "starters" ? "Starters" : "Starters+"}
+              {DEPTH_LABELS.map((label, i) => (
+                <button key={label} type="button" onClick={() => setDepth(i)} style={pill(depth === i)}>
+                  {label}
                 </button>
               ))}
             </div>
