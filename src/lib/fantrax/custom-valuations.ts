@@ -253,7 +253,6 @@ async function resolveFreeAgentPlayers(
 ): Promise<ResolvedPlayer[]> {
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
-  const espnIdByFantraxId = new Map<string, string>();
   const fheIdByFantraxId = new Map<string, string>();
   for (const fa of rawFAs) {
     // Fantrax id, not name — resolve.ts's own resolveOne() uses the same
@@ -268,47 +267,54 @@ async function resolveFreeAgentPlayers(
     // one a teamless free agent) ended up duplicated in the generated ledger
     // with identical values under both rows.
     const r = idx.resolve({ fantraxId: fa.fantraxId });
-    if (r.kind === "matched" && r.identity.espnId) {
-      espnIdByFantraxId.set(fa.fantraxId, r.identity.espnId);
+    if (r.kind === "matched" && r.identity.fheId) {
       fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
     }
   }
-  const espnIds = [...new Set(espnIdByFantraxId.values())];
+  const fheIds = [...new Set(fheIdByFantraxId.values())];
   const faPlayers: ResolvedPlayer[] = [];
-  if (espnIds.length > 0) {
-    const [{ data: svRows, error }, { data: statRows, error: statError }] = await Promise.all([
-      admin
+  if (fheIds.length > 0) {
+    // Resolve fhe_id -> season_player_stats FIRST, then join season_player_values
+    // on THAT row's own player_id — never assume player_id === espnId. A 2026
+    // draft-class free agent has no pre-existing hoopR history, so
+    // build-projection-values.ts keys their row by the Summer League 2026
+    // fallback id (sl-<nbaComId>) instead — an espnId-keyed query silently drops
+    // every such player (see waiver-edge.ts's header, fixed there 2026-08-29 for
+    // the same reason; resolve.ts's rostered-player path never had this bug
+    // because it already resolves fhe_id -> stats row -> stats.player_id ->
+    // values row).
+    const { data: statRows, error: statError } = await admin
+      .from("season_player_stats")
+      .select("player_id,fhe_id,g")
+      .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
+      .in("fhe_id", fheIds);
+    if (statError) throw new Error(statError.message);
+
+    const playerIds = [...new Set((statRows ?? []).map((r) => r.player_id as string))];
+    const { data: svRows, error } = playerIds.length > 0
+      ? await admin
         .from("season_player_values")
         .select("player_id,value,minus1v")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection").eq("league_size", 450)
-        .in("player_id", espnIds),
-      // Real projected games — the durability discount's other input (see
-      // durabilityMultiplier). Rostered players already carry this on
-      // ResolvedPlayer.gamesPlayed; a free agent otherwise had it hardcoded
-      // null here, silently exempting exactly the players (unrostered,
-      // often aging/oft-injured) that signal matters most for.
-      admin
-        .from("season_player_stats")
-        .select("player_id,g")
-        .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
-        .in("player_id", espnIds),
-    ]);
+        .in("player_id", playerIds)
+      : { data: [], error: null };
     if (error) throw new Error(error.message);
-    if (statError) throw new Error(statError.message);
-    const valueByEspnId = new Map((svRows ?? []).map((r) => [r.player_id as string, { nineCatV: r.value as number | null, minus1V: r.minus1v as number | null }]));
-    const gamesByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, r.g as number | null]));
+
+    const valueByPlayerId = new Map((svRows ?? []).map((r) => [r.player_id as string, { nineCatV: r.value as number | null, minus1V: r.minus1v as number | null }]));
+    const statByFheId = new Map((statRows ?? []).map((r) => [r.fhe_id as string, r]));
     for (const fa of rawFAs) {
-      const espnId = espnIdByFantraxId.get(fa.fantraxId);
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
-      if (!espnId) continue;
-      const v = valueByEspnId.get(espnId);
+      if (!fheId) continue;
+      const stat = statByFheId.get(fheId);
+      if (!stat) continue;
+      const v = valueByPlayerId.get(stat.player_id as string);
       if (!v || v.nineCatV == null) continue;
       faPlayers.push({
         fantraxId: fa.fantraxId, name: fa.name, slot: "FA", eligible: fa.eligible ?? [],
         nbaTeam: fa.nbaTeam ?? "", status: "FA", salary: null, contract: null,
-        playerId: espnId, fheId: fheId ?? null, source: "projection", cats: {}, catsTotals: {},
-        leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
-        gamesPlayed: gamesByEspnId.get(espnId) ?? null, minutesPerGame: null, usgPct: null, statLine: null,
+        playerId: stat.player_id as string, fheId, source: "projection", cats: {}, catsTotals: {},
+        leagueV: null, pointsValue: null, nineCatV: v.nineCatV, consensusRank: dynastyRankByFheId[fheId] ?? null,
+        gamesPlayed: stat.g as number | null, minutesPerGame: null, usgPct: null, statLine: null,
         catV: { perGame: { nineCatV: v.nineCatV, minus1V: v.minus1V, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         catVRank: { perGame: { nineCatV: null, minus1V: null, eightCatV: null }, totals: { nineCatV: null, minus1V: null, eightCatV: null } },
         trendTags: null, ambiguousName: false, smallSample: false, isRookie: false,

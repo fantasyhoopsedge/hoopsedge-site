@@ -206,40 +206,52 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
 
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
-  const espnIdByFantraxId = new Map<string, string>();
   const fheIdByFantraxId = new Map<string, string>();
   for (const fa of rawFAs) {
     // Fantrax id, never name — see this file's header.
     const r = idx.resolve({ fantraxId: fa.fantraxId });
-    if (r.kind === "matched" && r.identity.espnId) {
-      espnIdByFantraxId.set(fa.fantraxId, r.identity.espnId);
+    if (r.kind === "matched" && r.identity.fheId) {
       fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
     }
   }
-  const espnIds = [...new Set(espnIdByFantraxId.values())];
+  const fheIds = [...new Set(fheIdByFantraxId.values())];
 
   const assets: WaiverAssetRow[] = [];
 
-  if (espnIds.length > 0) {
-    const [{ data: svRows, error }, { data: statRows, error: statError }] = await Promise.all([
-      admin
+  if (fheIds.length > 0) {
+    // Resolve fhe_id -> season_player_stats FIRST, then join season_player_values
+    // on THAT row's own player_id — never assume player_id === espnId. A 2026
+    // draft-class free agent has no pre-existing hoopR history, so
+    // build-projection-values.ts's own resolvePlayers() (see that file's header)
+    // keys their row by the Summer League 2026 fallback id (sl-<nbaComId>), not
+    // their ESPN id. The old espnId-keyed query below silently dropped every
+    // such player — resolve.ts's rostered-player path never had this bug because
+    // it already resolves fhe_id -> stats row -> stats.player_id -> values row
+    // (this file's header now documents the same pattern). Confirmed via direct
+    // DB check 2026-08-29: Cameron Boozer/Darryn Peterson/AJ Dybantsa all have a
+    // 2027/projection row, keyed sl-1643409/sl-1643408/sl-1643407 respectively —
+    // not their espn_id (5041935/5041955/5142718).
+    const { data: statRows, error: statError } = await admin
+      .from("season_player_stats")
+      .select("player_id,fhe_id,g,mpg,usg_pct,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
+      .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
+      .in("fhe_id", fheIds);
+    if (statError) throw new Error(statError.message);
+
+    const playerIds = [...new Set((statRows ?? []).map((r) => r.player_id))];
+    const { data: svRows, error } = playerIds.length > 0
+      ? await admin
         .from("season_player_values")
         // Spelled out (not built from CATEGORY_VALUE_COLUMN) so Supabase's
         // typed client can parse this as a literal select string. The _tot
         // columns are the Totals-mode counterparts CATV's Totals toggle needs.
         .select("player_id,value,minus1v,v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to,value_tot,minus1v_tot,v_pts_tot,v_fg3_tot,v_reb_tot,v_ast_tot,v_stl_tot,v_blk_tot,v_fg_tot,v_ft_tot,v_to_tot")
         .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection").eq("league_size", 450)
-        .in("player_id", espnIds),
-      admin
-        .from("season_player_stats")
-        .select("player_id,g,mpg,usg_pct,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
-        .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
-        .in("player_id", espnIds),
-    ]);
+        .in("player_id", playerIds)
+      : { data: [], error: null };
     if (error) throw new Error(error.message);
-    if (statError) throw new Error(statError.message);
 
-    const valueByEspnId = new Map((svRows ?? []).map((row) => {
+    const valueByPlayerId = new Map((svRows ?? []).map((row) => {
       const catsZ: Partial<Record<FheCategory, number>> = {};
       const catsZTotals: Partial<Record<FheCategory, number>> = {};
       if (row.v_pts != null) catsZ.PTS = row.v_pts;
@@ -265,43 +277,43 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         nineCatVTotals: row.value_tot, minus1VTotals: row.minus1v_tot, catsZTotals,
       }] as const;
     }));
-    const statByEspnId = new Map((statRows ?? []).map((r) => [r.player_id as string, r]));
+    const statByFheId = new Map((statRows ?? []).map((r) => [r.fhe_id as string, r]));
 
     for (const fa of rawFAs) {
-      const espnId = espnIdByFantraxId.get(fa.fantraxId);
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
-      if (!espnId) continue;
-      const v = valueByEspnId.get(espnId);
+      if (!fheId) continue;
+      const stat = statByFheId.get(fheId);
+      if (!stat) continue;
+      const v = valueByPlayerId.get(stat.player_id);
       if (!v || v.nineCatV == null) continue;
-      const stat = statByEspnId.get(espnId);
 
-      const catsRaw: Partial<Record<FheCategory, number>> = stat ? {
+      const catsRaw: Partial<Record<FheCategory, number>> = {
         PTS: stat.pts ?? undefined, FG3: stat.fg3m ?? undefined, REB: stat.reb ?? undefined,
         AST: stat.ast ?? undefined, STL: stat.stl ?? undefined, BLK: stat.blk ?? undefined,
         FG: stat.fg_pct ?? undefined, FT: stat.ft_pct ?? undefined, TO: stat.tov ?? undefined,
-      } : {};
-      const statLine: StatLine | null = stat ? {
+      };
+      const statLine: StatLine = {
         pts: stat.pts, fg3m: stat.fg3m, reb: stat.reb, ast: stat.ast, stl: stat.stl, blk: stat.blk,
         tov: stat.tov, fga: stat.fga, fg_pct: stat.fg_pct, fta: stat.fta, ft_pct: stat.ft_pct,
-      } : null;
-      const fpts = family === "points" && statLine && pointsFormula ? pointsValueOf(statLine, pointsFormula) : null;
-      const contractInfo = fheId ? contractByFheId[fheId] : undefined;
+      };
+      const fpts = family === "points" && pointsFormula ? pointsValueOf(statLine, pointsFormula) : null;
+      const contractInfo = contractByFheId[fheId];
 
       assets.push({
         key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name,
         pos: positionGroup(fa.eligible), nbaTeam: fa.nbaTeam && fa.nbaTeam !== "(N/A)" ? fa.nbaTeam : null,
-        isRookie: fheId ? rookieByFheId[fheId] ?? false : false,
-        isSophomore: fheId ? sophomoreByFheId[fheId] ?? false : false,
-        age: fheId ? ageByFheId[fheId] ?? null : null,
-        dynRank: fheId ? dynastyRankByFheId[fheId] ?? null : null,
-        gamesPlayed: stat?.g ?? null, minutesPerGame: stat?.mpg ?? null, usgPct: stat?.usg_pct ?? null,
+        isRookie: rookieByFheId[fheId] ?? false,
+        isSophomore: sophomoreByFheId[fheId] ?? false,
+        age: ageByFheId[fheId] ?? null,
+        dynRank: dynastyRankByFheId[fheId] ?? null,
+        gamesPlayed: stat.g, minutesPerGame: stat.mpg, usgPct: stat.usg_pct,
         nineCatV: v.nineCatV, minus1V: v.minus1V,
         nineCatVTotals: v.nineCatVTotals, minus1VTotals: v.minus1VTotals,
         fpts,
         catsRaw, catsZ: v.catsZ, catsZTotals: v.catsZTotals,
         leagueRank: leagueRankByFantraxId[fa.fantraxId] ?? null,
         salary: contractInfo?.currentSalary ?? null,
-        salaryRank: fheId ? salaryRankByFheId[fheId] ?? null : null,
+        salaryRank: salaryRankByFheId[fheId] ?? null,
       });
     }
   }
