@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { FantraxError, isLeagueId } from "@/lib/fantrax/api";
 import { authorizeFantrax } from "@/lib/fantrax/guard";
-import { computeWaiverEdge } from "@/lib/fantrax/waiver-edge";
+import { computeWaiverEdge, type WaiverSeasonMode } from "@/lib/fantrax/waiver-edge";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/resolve";
 import type { ContractRule, LeagueType, RookieSalaryTier, SalaryFormat } from "@/lib/fantrax/league-tags";
 
@@ -15,7 +15,11 @@ import type { ContractRule, LeagueType, RookieSalaryTier, SalaryFormat } from "@
  *   GET ?leagueId=…&teamId=…&dataset=2027:projection&leagueType=dynasty
  *       &salaryFormat=real&keeperPolicy=…&realSalaryEfficiencyWeight=…
  *       &contractRules=…&rookieSalaryScale=…&useCustomValuations=1
- *       &useGeneratedPickValues=1
+ *       &useGeneratedPickValues=1&seasonMode=projection
+ *
+ * seasonMode is INDEPENDENT of `dataset` — see waiver-edge.ts's
+ * WaiverSeasonMode doc. Defaults to "projection" (unknown/missing value also
+ * falls back to it, so an old cached client URL keeps working).
  */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -51,10 +55,12 @@ export async function GET(request: Request) {
   const rookieSalaryScale = parseJsonParam<RookieSalaryTier[]>("rookieSalaryScale");
   const useCustomValuations = searchParams.get("useCustomValuations") === "1";
   const useGeneratedPickValues = searchParams.get("useGeneratedPickValues") === "1";
+  const seasonModeParam = searchParams.get("seasonMode");
+  const seasonMode: WaiverSeasonMode = seasonModeParam === "current" ? "current" : "projection";
 
   try {
     const result = await computeWaiverEdge({
-      leagueId, owner: auth.access.owner, teamId, dataset, leagueType,
+      leagueId, owner: auth.access.owner, teamId, dataset, leagueType, seasonMode,
       settings: {
         salaryFormat, keeperPolicy, realSalaryEfficiencyWeight, contractRules, rookieSalaryScale,
         useCustomValuations, useGeneratedPickValues,

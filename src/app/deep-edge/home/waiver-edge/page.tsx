@@ -21,7 +21,7 @@ import { resolveEffectiveScoring, type LineupValueMode } from "@/lib/fantrax/lin
 import { addDropProfiles, categoryDeltas, type CategoryDelta } from "@/lib/fantrax/waiver-sim";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import type { SavedLeague } from "@/lib/fantrax/store";
-import type { WaiverAssetRow, WaiverEdgeResult } from "@/lib/fantrax/waiver-edge";
+import type { WaiverAssetRow, WaiverEdgeResult, WaiverSeasonMode } from "@/lib/fantrax/waiver-edge";
 
 /**
  * Waiver Edge (Ash, 2026-08-29, revised 2026-08-30) — every free agent in a
@@ -237,6 +237,13 @@ function WaiverEdgeContent() {
   const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
   const [statMode, setStatMode] = useState<StatMode>("perGame");
+  /** Which season's raw stats/CATV drives the table — "projection" (2026-27
+   *  Projections, the default) or "current" (dynamically 2025-26 or 2026-27
+   *  — see waiver-edge.ts's WaiverSeasonMode doc). Unlike catvMode/statMode
+   *  this genuinely needs a re-fetch (a different season's data entirely),
+   *  so it's a fetch-effect dependency below rather than a client-side-only
+   *  display toggle. */
+  const [seasonMode, setSeasonMode] = useState<WaiverSeasonMode>("projection");
   const [cart, setCart] = useState<Map<string, CartEntry>>(new Map());
   const [simOpen, setSimOpen] = useState(false);
 
@@ -253,6 +260,7 @@ function WaiverEdgeContent() {
       dataset: saved.settings.defaultDataset ?? DEFAULT_LEAGUE_TAGS.defaultDataset,
       leagueType: saved.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType,
       salaryFormat: saved.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat,
+      seasonMode,
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
     if (saved.settings.keeperPolicy) params.set("keeperPolicy", saved.settings.keeperPolicy);
@@ -272,7 +280,7 @@ function WaiverEdgeContent() {
       })
       .catch((err) => setError(String(err)))
       .finally(() => setLoadingData(false));
-  }, [saved?.leagueId, saved?.teamId]); // eslint-disable-line react-hooks/exhaustive-deps -- settings fields read fresh each fetch, same convention league-rankings/page.tsx's own fetch effect uses
+  }, [saved?.leagueId, saved?.teamId, seasonMode]); // eslint-disable-line react-hooks/exhaustive-deps -- settings fields read fresh each fetch, same convention league-rankings/page.tsx's own fetch effect uses
 
   // Default CATV flavor follows THIS league's own scored categories: a
   // 9-cat league opens on Minus1V, an 8-cat (punt-TO) league opens on 8CatV
@@ -388,6 +396,18 @@ function WaiverEdgeContent() {
               </a>.
             </p>
           )}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SEASON</span>
+            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              <button type="button" onClick={() => setSeasonMode("projection")} style={pill(seasonMode === "projection")}>
+                2026-27 Projections
+              </button>
+              <button type="button" onClick={() => setSeasonMode("current")} style={pill(seasonMode === "current")}>
+                Current Season{data ? ` (${data.currentSeasonLabel})` : ""}
+              </button>
+            </div>
+          </div>
+
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
             {!isPoints && (
               <>
