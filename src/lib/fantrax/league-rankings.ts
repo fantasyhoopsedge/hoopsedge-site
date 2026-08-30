@@ -226,6 +226,19 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   // FPTS stay null for a free agent (same known limitation as the custom
   // ledger: neither is a stored per-season column, and computing either
   // needs the full resolved-roster pipeline this path doesn't run). ──
+  //
+  // EXCLUDES an undrafted current-rookie-class free agent (Ash, 2026-08-31):
+  // before a league runs its own Fantrax rookie draft, every 2026 draftee
+  // sits as a Fantrax free agent — League Rankings is "the full suite of
+  // trade assets in the league," and while undrafted, that value is already
+  // represented by the team's OWN 2026 draft-pick asset (priced via
+  // pickEquivalentValue below), not by the named prospect. Once a league
+  // actually drafts him, Fantrax moves him onto a roster and he flows
+  // through the ROSTERED path instead (untouched) — so this only ever
+  // suppresses the still-undrafted case, exactly where the pick already
+  // covers his value. Waiver Edge deliberately does NOT apply this
+  // exclusion (waiver-edge.ts's whole point is showing free agents,
+  // undrafted rookies very much included).
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
   const fheIdByFantraxId = new Map<string, string>();
@@ -242,7 +255,7 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
     // free agent) ended up duplicated on the League Rankings page with
     // identical stats under both rows.
     const r = idx.resolve({ fantraxId: fa.fantraxId });
-    if (r.kind === "matched" && r.identity.fheId) {
+    if (r.kind === "matched" && r.identity.fheId && r.identity.draftYear !== REAL_SALARY_SEASON - 1) {
       fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
     }
   }
