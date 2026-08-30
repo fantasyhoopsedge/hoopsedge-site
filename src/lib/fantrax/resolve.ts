@@ -257,7 +257,25 @@ function resolveOne(
   };
   if (!identity) return blank;
 
-  for (const ds of order) {
+  // A current NBA free agent (player_identity.currentTeam === "FA" — not on
+  // any team's roster right now) with no row in the PRIMARY dataset has no
+  // business being backfilled with a stale REAL-production row from the
+  // fallback dataset (Ash, 2026-08-31: Cameron Payne — waived by PHI mid-
+  // season, current_team "FA" — was showing 22 GP / 7.4 PTS on a 2026-27
+  // outlook table purely because his 22 real games from BEFORE the waiver
+  // still sit in season_player_stats(2026, regular), the fallback dataset
+  // when he (correctly) has no 2027/projection row at all). The layered-
+  // coverage fallback below (order = [primary, fallback], "whichever the
+  // caller picks leads; the other backfills") stays exactly as designed for
+  // everyone still actually on a roster — a rostered player simply missing a
+  // projection row still legitimately backfills with his real games. This
+  // only closes the one case the design never intended: patching a missing
+  // PROJECTION with a free agent's OLD real production, which reads as "he's
+  // active" when player_identity is quite sure he isn't.
+  const isCurrentFreeAgent = playerIdentity().byFheId(identity.fheId)?.currentTeam === "FA";
+
+  for (const [i, ds] of order.entries()) {
+    if (isCurrentFreeAgent && i > 0 && ds.type !== "projection") continue;
     const stats = ds.byFheId.get(identity.fheId);
     if (!stats) continue;
     const values = ds.valuesById.get(stats.player_id);
