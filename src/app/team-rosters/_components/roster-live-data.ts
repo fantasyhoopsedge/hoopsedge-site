@@ -448,6 +448,26 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   const pidByRow = roster.map(espnIdOf);
   const ids = pidByRow.filter((v): v is string => v != null);
 
+  /**
+   * The Summer League 2026 / Projections fallback id (`sl-<nbaComId>`) for a
+   * row with no real hoopR history yet — a SECOND, incompatible id scheme
+   * from the one above. build-projection-values.ts resolves a brand-new
+   * draftee's projection under this id (see its IDENTITY FALLBACK doc
+   * comment) whenever the Python model's own athlete_id is null, which is
+   * every incoming rookie who hasn't logged a real NBA game. `espnIdOf`
+   * above has no way to know that scheme exists, so for 69 rookies
+   * league-wide (2026-08-30 audit) it resolves a real ESPN id that the
+   * projection was never stored under — a real projection existing in
+   * Supabase, silently missed. Only consulted for the projection fetch
+   * below; real season stats/values/trends never use this scheme.
+   */
+  const slIdOf = (r: { fhe_id: string | null }): string | null => {
+    const nbaStatsId = r.fhe_id ? playerIdentity().byFheId(r.fhe_id)?.nbaStatsId ?? null : null;
+    return nbaStatsId ? `sl-${nbaStatsId}` : null;
+  };
+  const slIdByRow = roster.map(slIdOf);
+  const projIds = [...new Set([...ids, ...slIdByRow.filter((v): v is string => v != null)])];
+
   const [statsRes, valuesRes, priorStatsRes, priorValuesRes, priorPriorStatsRes, trendsRes, projStatsRes, projValuesRes, poolRanks, priorPoolRanks, priorPriorPoolRanks, projPoolRanks] = await Promise.all([
     ids.length
       ? supabase
@@ -499,22 +519,22 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
           .eq("season_type", TRENDS_SEASON_TYPE)
           .in("player_id", ids)
       : Promise.resolve({ data: [] as never[] }),
-    ids.length
+    projIds.length
       ? supabase
           .from("season_player_stats")
           .select("player_id,g,mpg,pts,reb,ast,stl,blk,tov,fg3m,fg_pct,ft_pct")
           .eq("season", PROJ_SEASON)
           .eq("season_type", PROJ_SEASON_TYPE)
-          .in("player_id", ids)
+          .in("player_id", projIds)
       : Promise.resolve({ data: [] as never[] }),
-    ids.length
+    projIds.length
       ? supabase
           .from("season_player_values")
           .select("player_id,value,minus1v,v_pts,v_reb,v_ast,v_stl,v_blk,v_fg3,v_fg,v_ft,v_to")
           .eq("season", PROJ_SEASON)
           .eq("season_type", PROJ_SEASON_TYPE)
           .eq("league_size", VALUE_LEAGUE_SIZE)
-          .in("player_id", ids)
+          .in("player_id", projIds)
       : Promise.resolve({ data: [] as never[] }),
     getPoolRanks(),
     getPriorPoolRanks(),
@@ -552,9 +572,14 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     const priorRank = pid ? priorPoolRanks[pid] : undefined;
     const priorPriorRank = pid ? priorPriorPoolRanks[pid] : undefined;
     const priorPriorSt = pid ? priorPriorStatsById.get(pid) : undefined;
-    const projSt = pid ? projStatsById.get(pid) : undefined;
-    const projVal = pid ? projValuesById.get(pid) : undefined;
-    const projRank = pid ? projPoolRanks[pid] : undefined;
+    // Try the real id first, then the sl-<nbaComId> fallback (see slIdOf's doc
+    // comment) — a brand-new rookie's projection is stored under whichever one
+    // build-projection-values.ts actually resolved him to.
+    const slId = slIdByRow[i];
+    const projId = pid && (projStatsById.has(pid) || projValuesById.has(pid)) ? pid : slId;
+    const projSt = projId ? projStatsById.get(projId) : undefined;
+    const projVal = projId ? projValuesById.get(projId) : undefined;
+    const projRank = projId ? projPoolRanks[projId] : undefined;
     const dyn = dynByRow[i];
     const trendTags = tags[i];
     // Identity first, board name as the fallback — see ROOKIE_BY_FHE_ID on why

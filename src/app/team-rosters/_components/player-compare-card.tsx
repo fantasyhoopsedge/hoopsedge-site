@@ -63,7 +63,8 @@ export function PlayerCompareCard({
   // projLocked), so the compare tool doesn't leak real projection numbers to
   // non-Pro/non-admin viewers.
   const projLocked = mode === "proj" && !(PRO_UNLOCKED || isAdmin);
-  const displayMpg = mode === "recent" ? (trend.data?.recent?.mpg ?? null) : isPrior ? player.priorMpg : player.mpg;
+  const isProj = mode === "proj";
+  const displayMpg = mode === "recent" ? (trend.data?.recent?.mpg ?? null) : isPrior ? player.priorMpg : isProj ? player.projMpg : player.mpg;
   // No MPG whenever the profile itself has nothing to show (Recent under its
   // 10-GP gate, or literally zero games that season, e.g. Prior for a player who
   // wasn't in the league yet) — a minutes number next to a "no data" message for

@@ -480,7 +480,7 @@ export function RosterApp({
   // single-player panel here and every card in the compare modal share one
   // implementation.
   const profile = isRecent ? buildRecentProfile(spTrend, catOrderFor(sp), sp.gp, sp.mpg) : buildRankedProfile(sp, modeNow);
-  const spDisplayMpg = isRecent ? (spTrend.data?.recent?.mpg ?? null) : isPrior ? sp.priorMpg : sp.mpg;
+  const spDisplayMpg = isRecent ? (spTrend.data?.recent?.mpg ?? null) : isPrior ? sp.priorMpg : isProj ? sp.projMpg : sp.mpg;
   // No MPG whenever the profile itself has nothing to show (Recent under its
   // 10-GP gate, or literally zero games that season, e.g. Prior for a player who
   // wasn't in the league yet) — a minutes number next to a "no data" message for
