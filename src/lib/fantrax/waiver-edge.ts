@@ -10,14 +10,23 @@ import {
 import { computeLeagueRankings } from "./league-rankings";
 import type { SavedLeagueSettings } from "./store";
 import { playerIdentity } from "../player-identity/bundled";
-import { createAdminClient } from "../../utils/supabase/admin";
+import { getStats, getValuesForSize } from "../value/seasonal-data";
+import type { SeasonPlayerStats } from "@/types/database";
 
 /**
- * Waiver Edge (Ash, 2026-08-29, revised 2026-08-30) — every free agent in a
+ * Waiver Edge (Ash, 2026-08-29, revised 2026-08-31) — every free agent in a
  * connected league, ranked for that league's own scoring format. Unlike
  * League Rankings, this ONLY ever shows free agents (no rostered players, no
  * draft picks, no fantasy-team column).
  *
+ * WaiverSeasonMode (its own doc, above) picks which season's raw stats drive
+ * the whole table — 2026-27 Projections (default) or "Current Season",
+ * which dynamically resolves between 2025-26 and 2026-27 actuals depending
+ * on whether the latter has real games yet. This is a SEPARATE axis from
+ * `dataset` (the connected league's own roster-resolution dataset) — this
+ * file's free-agent stats have always been computed independently of it.
+ *
+
  * CATV is the one category-value column the client renders — the viewer
  * picks Minus1V/8CatV/9CatV, and every flavor is derivable client-side from
  * what this returns: Minus1V and 9CatV come straight off season_player_values
@@ -64,6 +73,22 @@ import { createAdminClient } from "../../utils/supabase/admin";
 
 const REAL_SALARY_SEASON = 2027; // matches league-rankings.ts / roster-edge.ts's own constant
 
+/**
+ * Which season's raw stats/CATV drives the free-agent table — INDEPENDENT of
+ * `dataset` (that's the connected league's own roster-resolution dataset;
+ * this file's free-agent stats have always been computed separately, see
+ * this file's header). Two viewer-facing options (Ash, 2026-08-31):
+ *
+ *   "projection" — 2026-27 Projections (REAL_SALARY_SEASON/"projection"),
+ *     the default. Fixed — always this one dataset.
+ *   "current"    — "Current Season", which dynamically resolves to whichever
+ *     season actually has real games: REAL_SALARY_SEASON/"regular" (2026-27)
+ *     once the season has real games in season_player_stats, else
+ *     REAL_SALARY_SEASON-1/"regular" (2025-26, the last completed season)
+ *     during the off-season. See loadSeasonStats() for the resolution.
+ */
+export type WaiverSeasonMode = "projection" | "current";
+
 export interface WaiverEdgeSettings {
   salaryFormat: SalaryFormat;
   keeperPolicy: string | undefined;
@@ -85,6 +110,7 @@ export interface WaiverEdgeInput {
   dataset: FantraxDatasetKey;
   leagueType: LeagueType;
   settings: WaiverEdgeSettings;
+  seasonMode: WaiverSeasonMode;
 }
 
 export interface WaiverAssetRow {
@@ -148,6 +174,11 @@ export interface WaiverEdgeResult {
    *  Add/Drop Simulator show a rostered drop-candidate's league rank too,
    *  which `assets` (free agents only) can't. */
   leagueRankByFantraxId: Record<string, number>;
+  /** Which season "current" actually resolved to this call ("2025-26" or
+   *  "2026-27") — see WaiverSeasonMode's own doc. Always "2026-27" when
+   *  seasonMode was "projection". Lets the client label the toggle
+   *  correctly without re-deriving the same resolution client-side. */
+  currentSeasonLabel: string;
 }
 
 /** Canonicalizes Fantrax position eligibility down to G/F/C/G-F/F-C/etc —
@@ -167,12 +198,50 @@ function positionGroup(eligible: string[] | undefined): string | null {
   return parts.length > 0 ? parts.join("/") : null;
 }
 
-export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverEdgeResult> {
-  const { leagueId, owner, teamId, dataset, leagueType, settings } = input;
-  const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
-  const admin = createAdminClient();
+/** hoopR-style season number -> display label, e.g. 2027 -> "2026-27" (see
+ *  CLAUDE.md's numbering convention: season N is the (N-1)-N NBA season). */
+function seasonLabel(season: number): string {
+  return `${season - 1}-${String(season).slice(-2)}`;
+}
 
-  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, rankings] = await Promise.all([
+/**
+ * Resolves WaiverSeasonMode to an actual (season, seasonType) pair + its
+ * stat rows, reusing seasonal-data.ts's cached getStats() (same 15-min
+ * cache/public client resolve.ts's own loadDataset() already reads through,
+ * so this costs no extra DB load beyond what's already warm for every other
+ * consumer of that season).
+ *
+ * "current" tries REAL_SALARY_SEASON/"regular" (2026-27) FIRST — once the
+ * season has real games, season_player_stats has rows there and this is the
+ * whole point ("once the 2026-27 season starts, the current season will
+ * shift to display 2026-27 actual stats," Ash 2026-08-31). Empty during the
+ * off-season (today: 2026-08-31, no 2026-27 games played yet), so it falls
+ * back to REAL_SALARY_SEASON-1/"regular" (2025-26, the last completed
+ * season) — no separate "has the season started" flag to maintain; the data
+ * itself is the signal, the same way every other in-season data refresh on
+ * this site works.
+ */
+async function loadSeasonStats(
+  mode: WaiverSeasonMode,
+): Promise<{ season: number; seasonType: string; label: string; statRows: SeasonPlayerStats[] }> {
+  if (mode === "projection") {
+    const statRows = await getStats(REAL_SALARY_SEASON, "projection");
+    return { season: REAL_SALARY_SEASON, seasonType: "projection", label: seasonLabel(REAL_SALARY_SEASON), statRows };
+  }
+  const nextSeasonRows = await getStats(REAL_SALARY_SEASON, "regular");
+  if (nextSeasonRows.length > 0) {
+    return { season: REAL_SALARY_SEASON, seasonType: "regular", label: seasonLabel(REAL_SALARY_SEASON), statRows: nextSeasonRows };
+  }
+  const priorSeason = REAL_SALARY_SEASON - 1;
+  const priorSeasonRows = await getStats(priorSeason, "regular");
+  return { season: priorSeason, seasonType: "regular", label: seasonLabel(priorSeason), statRows: priorSeasonRows };
+}
+
+export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverEdgeResult> {
+  const { leagueId, owner, teamId, dataset, leagueType, settings, seasonMode } = input;
+  const analysis = await getCachedLeagueAnalysis(leagueId, teamId, dataset, leagueType === "redraft" ? "redraft" : leagueType);
+
+  const [ageByFheId, sophomoreByFheId, contractByFheId, salaryRank, rankings, seasonStats] = await Promise.all([
     getAgeByFheId(),
     getSophomoreByFheId(),
     getContractByFheId(),
@@ -181,7 +250,9 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     // RANK reads League Rankings' own computation rather than the raw
     // generated-ledger tradeRank.
     computeLeagueRankings({ leagueId, owner, teamId, dataset, leagueType, settings }),
+    loadSeasonStats(seasonMode),
   ]);
+  const { season, seasonType, label: currentSeasonLabel, statRows: allStatRows } = seasonStats;
   const dynastyRankByFheId = getDynastyRankByFheId();
   const rookieByFheId = getRookieByFheId();
   const salaryRankByFheId = salaryRank.rankByFheId;
@@ -224,34 +295,23 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     // draft-class free agent has no pre-existing hoopR history, so
     // build-projection-values.ts's own resolvePlayers() (see that file's header)
     // keys their row by the Summer League 2026 fallback id (sl-<nbaComId>), not
-    // their ESPN id. The old espnId-keyed query below silently dropped every
-    // such player — resolve.ts's rostered-player path never had this bug because
-    // it already resolves fhe_id -> stats row -> stats.player_id -> values row
-    // (this file's header now documents the same pattern). Confirmed via direct
-    // DB check 2026-08-29: Cameron Boozer/Darryn Peterson/AJ Dybantsa all have a
-    // 2027/projection row, keyed sl-1643409/sl-1643408/sl-1643407 respectively —
-    // not their espn_id (5041935/5041955/5142718).
-    const { data: statRows, error: statError } = await admin
-      .from("season_player_stats")
-      .select("player_id,fhe_id,g,mpg,usg_pct,pts,fg3m,reb,ast,stl,blk,tov,fga,fg_pct,fta,ft_pct")
-      .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection")
-      .in("fhe_id", fheIds);
-    if (statError) throw new Error(statError.message);
+    // their ESPN id. Confirmed via direct DB check 2026-08-29: Cameron Boozer/
+    // Darryn Peterson/AJ Dybantsa all have a 2027/projection row, keyed
+    // sl-1643409/sl-1643408/sl-1643407 respectively — not their espn_id
+    // (5041935/5041955/5142718).
+    //
+    // Both fetches are the SAME cached, public-client helpers resolve.ts's own
+    // loadDataset() reads through (seasonal-data.ts, 15-min cache) — reused
+    // rather than a fresh per-request admin-client query, now that `season`/
+    // `seasonType` vary with seasonMode (see loadSeasonStats). allStatRows is
+    // the WHOLE season's rows (not filtered by fheIds up front — cheaper to
+    // index the ~600-row cached dataset locally than to build a fresh
+    // `.in("fhe_id", …)` query for every distinct seasonMode/free-agent-set
+    // combination).
+    const svRows = await getValuesForSize(season, seasonType, 450);
+    const statByFheId = new Map(allStatRows.filter((r) => r.fhe_id).map((r) => [r.fhe_id as string, r]));
 
-    const playerIds = [...new Set((statRows ?? []).map((r) => r.player_id))];
-    const { data: svRows, error } = playerIds.length > 0
-      ? await admin
-        .from("season_player_values")
-        // Spelled out (not built from CATEGORY_VALUE_COLUMN) so Supabase's
-        // typed client can parse this as a literal select string. The _tot
-        // columns are the Totals-mode counterparts CATV's Totals toggle needs.
-        .select("player_id,value,minus1v,v_pts,v_fg3,v_reb,v_ast,v_stl,v_blk,v_fg,v_ft,v_to,value_tot,minus1v_tot,v_pts_tot,v_fg3_tot,v_reb_tot,v_ast_tot,v_stl_tot,v_blk_tot,v_fg_tot,v_ft_tot,v_to_tot")
-        .eq("season", REAL_SALARY_SEASON).eq("season_type", "projection").eq("league_size", 450)
-        .in("player_id", playerIds)
-      : { data: [], error: null };
-    if (error) throw new Error(error.message);
-
-    const valueByPlayerId = new Map((svRows ?? []).map((row) => {
+    const valueByPlayerId = new Map(svRows.map((row) => {
       const catsZ: Partial<Record<FheCategory, number>> = {};
       const catsZTotals: Partial<Record<FheCategory, number>> = {};
       if (row.v_pts != null) catsZ.PTS = row.v_pts;
@@ -277,7 +337,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         nineCatVTotals: row.value_tot, minus1VTotals: row.minus1v_tot, catsZTotals,
       }] as const;
     }));
-    const statByFheId = new Map((statRows ?? []).map((r) => [r.fhe_id as string, r]));
 
     for (const fa of rawFAs) {
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
@@ -326,5 +385,6 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     salaryFormat: settings.salaryFormat,
     leagueValuesGenerated,
     leagueRankByFantraxId,
+    currentSeasonLabel,
   };
 }
