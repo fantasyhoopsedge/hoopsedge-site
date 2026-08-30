@@ -184,6 +184,7 @@ export function CompareModal({
   onRemove,
   onClose,
   isMobile,
+  isAdmin = false,
 }: {
   currentTeam: string;
   currentTeamPlayers: Player[];
@@ -192,7 +193,12 @@ export function CompareModal({
   onRemove: (id: string) => void;
   onClose: () => void;
   isMobile: boolean;
+  /** Site admin — unlocks Projection mode, same as roster-app.tsx's
+   * PRO_UNLOCKED || isAdmin. Optional/defaults false so callers with no
+   * admin concept of their own (e.g. dynasty-rankings) are unaffected. */
+  isAdmin?: boolean;
 }) {
+  const unlocked = PRO_UNLOCKED || isAdmin;
   const [mode, setMode] = useState<SeasonMode>("cur");
   const [metric, setMetric] = useState<TrendMetric>("minus1V");
   const excludeIds = new Set(players.map((p) => p.id));
@@ -266,7 +272,7 @@ export function CompareModal({
                     color: mode === m.id ? "var(--rt-canvas)" : "var(--rt-body)",
                   }}
                 >
-                  {m.id === "proj" && !PRO_UNLOCKED && (
+                  {m.id === "proj" && !unlocked && (
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
@@ -290,7 +296,7 @@ export function CompareModal({
 
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(4, minmax(220px, 1fr))", gap: 14, marginTop: 18, overflowX: isMobile ? "visible" : "auto" }}>
           {players.map((p) => (
-            <PlayerCompareCard key={p.id} player={p} mode={mode} metric={metric} catOrder={anchorOrder} onRemove={() => onRemove(p.id)} />
+            <PlayerCompareCard key={p.id} player={p} mode={mode} metric={metric} catOrder={anchorOrder} onRemove={() => onRemove(p.id)} isAdmin={isAdmin} />
           ))}
           {Array.from({ length: emptySlots }).map((_, i) => (
             // Keyed off players.length + i (not just i) so every slot remounts

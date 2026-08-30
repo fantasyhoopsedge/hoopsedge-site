@@ -1,9 +1,9 @@
 /**
  * Pure derived-value helpers ported from the Claude Design prototype
- * (Thunder Roster.dc.html). "Projection" stat lines are deterministic jitter
- * around the current per-game line (seeded off the player id) — placeholder
- * trend data until a real projection model is wired in. "Prior" (2024-25) is
- * real season_player_stats/season_player_values data — see roster-live-data.ts.
+ * (Thunder Roster.dc.html). "Projection" (2026-27) and "Prior" (2024-25) are
+ * both real season_player_stats/season_player_values rows — see
+ * roster-live-data.ts — sourced from p.projPg/projCatVals and
+ * p.priorPg/priorCatVals respectively.
  */
 import { CATS, STATSET_COLORS, TAG_THEME, type Cat, type FvMetric, type PerGameStats, type Player, type PlayerTag, type SeasonMode } from "./roster-data";
 import type { TrendMetric, TrendPlayer, TrendRecent } from "./trend-insight";
@@ -25,9 +25,19 @@ export function catValPrior(p: Player, cat: Cat): number {
   return p.priorCatVals?.[CAT_IDX[cat.key]] ?? zFor(cat, p.priorPg?.[cat.key] ?? 0);
 }
 
+/** Same as catValCur but for the real 2026-27 (Projection) model line. */
+export function catValProj(p: Player, cat: Cat): number {
+  return p.projCatVals?.[CAT_IDX[cat.key]] ?? zFor(cat, p.projPg?.[cat.key] ?? 0);
+}
+
 /** Fantasy value for a metric from the precomputed season_player_values. */
 export function fvOf(p: Player, metric: FvMetric): number {
   return metric === "ninecat" ? p.nineCat : metric === "eightcat" ? p.eightCat : p.minus1;
+}
+
+/** Same as fvOf but for the 2026-27 Projection season's precomputed values. */
+export function projFvOf(p: Player, metric: FvMetric): number {
+  return metric === "ninecat" ? p.projNineCat : metric === "eightcat" ? p.projEightCat : p.projMinus1;
 }
 
 export function clamp(v: number, a: number, b: number) {
@@ -42,25 +52,6 @@ export function zFor(cat: Cat, v: number) {
 
 function seedOf(p: Player, salt: number) {
   return [...p.id].reduce((a, c) => a + c.charCodeAt(0), 0) + salt;
-}
-
-export function projSeasonVal(p: Player, cat: Cat) {
-  const ageAdj = p.age <= 23 ? 0.08 : p.age <= 27 ? 0.03 : -0.05;
-  const dirAdj = p.dir === "up" ? 0.03 : p.dir === "down" ? -0.03 : 0;
-  const seed = seedOf(p, cat.label.length * 11);
-  const j = Math.sin(seed * 0.9) * 0.05;
-  return p.pg[cat.key] * (1 + ageAdj + dirAdj + j);
-}
-
-export function catZ(cats: Cat[], p: Player, useProj: boolean) {
-  return cats.map((c) => zFor(c, useProj ? projSeasonVal(p, c) : p.pg[c.key]));
-}
-
-export function fvValue(metric: FvMetric, zArr: number[]) {
-  const all9 = zArr.reduce((a, b) => a + b, 0);
-  if (metric === "eightcat") return zArr.slice(0, 8).reduce((a, b) => a + b, 0); // drop TO
-  if (metric === "minus1") return all9 - Math.min(...zArr); // drop worst cat
-  return all9; // 9-cat
 }
 
 export function pctFor(cat: Cat, v: number) {
@@ -283,13 +274,18 @@ export function buildRankedProfile(p: Player, mode: SeasonMode, catOrder: Cat[] 
   const isPrior = mode === "prior";
   const hasCurrentSample = p.gp > 0;
   const noProfileData =
-    (isPrior && p.priorGp === 0) || (isProj && !hasCurrentSample) || (mode === "cur" && p.catVals.length === 0 && !hasCurrentSample);
+    (isPrior && p.priorGp === 0) ||
+    (isProj && p.projCatVals.length === 0) ||
+    (mode === "cur" && p.catVals.length === 0 && !hasCurrentSample);
   if (noProfileData) {
-    return { noData: true, reason: isPrior ? "No 2024–25 games on record" : "No 2025–26 games logged yet" };
+    return {
+      noData: true,
+      reason: isPrior ? "No 2024–25 games on record" : isProj ? "No 2026–27 projection yet" : "No 2025–26 games logged yet",
+    };
   }
 
-  const valForStat = (c: Cat) => (isProj ? projSeasonVal(p, c) : isPrior ? (p.priorPg?.[c.key] ?? 0) : p.pg[c.key]);
-  const zOf = (c: Cat) => (mode === "cur" ? catValCur(p, c) : isPrior ? catValPrior(p, c) : zFor(c, valForStat(c)));
+  const valForStat = (c: Cat) => (isProj ? (p.projPg?.[c.key] ?? 0) : isPrior ? (p.priorPg?.[c.key] ?? 0) : p.pg[c.key]);
+  const zOf = (c: Cat) => (mode === "cur" ? catValCur(p, c) : isPrior ? catValPrior(p, c) : isProj ? catValProj(p, c) : zFor(c, valForStat(c)));
   return { noData: false, rows: rowsFromCategoryValues(catOrder, zOf, valForStat) };
 }
 
@@ -398,10 +394,21 @@ export function resolveModeStat(
   priorPrior: ModeStatInput,
   recent: ModeStatInput | null,
   tag?: "rookie" | "soph" | null,
+  proj?: ModeStatInput | null,
 ): ResolvedModeStat {
   const arrow = (thisRank: number | null, anchor: ModeStatInput): number | null =>
     thisRank != null && anchor.rank != null && passesGate(anchor) ? anchor.rank - thisRank : null;
 
+  if (mode === "proj") {
+    // No GP/MPG sample-size gate here — projGp/projMpg are full-season MODEL
+    // outputs, not an in-progress real sample, so there's no "too early to
+    // trust this" case the way there is for cur/prior/recent. There's also no
+    // arrow: a forward projection has no season before it to compare against.
+    if (!proj || proj.rank == null) {
+      return { gp: proj?.gp ?? 0, rank: null, arrowDelta: null, gateOk: false, gateMessage: "No 2026–27 projection yet", suffix: "2026-27 proj." };
+    }
+    return { gp: proj.gp, rank: proj.rank, arrowDelta: null, gateOk: true, gateMessage: null, suffix: "2026-27 proj." };
+  }
   if (mode === "recent") {
     if (!recent || !passesGate(recent)) {
       return { gp: recent?.gp ?? 0, rank: null, arrowDelta: null, gateOk: false, gateMessage: `Limited sample — only ${recent?.gp ?? 0} GP (trend needs 10+ games)`, suffix: "8wk" };
@@ -435,14 +442,19 @@ export function resolveModeStat(
 /** The current / prior / prior-prior season anchors for a Player at one value metric —
  * the season-level inputs resolveModeStat needs (Recent's anchor comes from the trends
  * payload, not here). Keeps the hero and compare callers building trios identically. */
-export function seasonTriosFor(p: Player, metric: TrendMetric): { cur: ModeStatInput; prior: ModeStatInput; priorPrior: ModeStatInput } {
+export function seasonTriosFor(
+  p: Player,
+  metric: TrendMetric,
+): { cur: ModeStatInput; prior: ModeStatInput; priorPrior: ModeStatInput; proj: ModeStatInput } {
   const curRank = metric === "nineCatV" ? p.rankNineCat : metric === "eightCatV" ? p.rankEightCat : p.rankMinus1;
   const priorRank = metric === "nineCatV" ? p.priorRankNineCat : metric === "eightCatV" ? p.priorRankEightCat : p.priorRankMinus1;
   const priorPriorRank = metric === "nineCatV" ? p.priorPriorRankNineCat : metric === "eightCatV" ? p.priorPriorRankEightCat : p.priorPriorRankMinus1;
+  const projRank = metric === "nineCatV" ? p.projRankNineCat : metric === "eightCatV" ? p.projRankEightCat : p.projRankMinus1;
   return {
     cur: { rank: curRank, gp: p.gp, mpg: p.mpg },
     prior: { rank: priorRank, gp: p.priorGp, mpg: p.priorMpg },
     priorPrior: { rank: priorPriorRank, gp: p.priorPriorGp, mpg: p.priorPriorMpg },
+    proj: { rank: projRank, gp: p.projGp, mpg: p.projMpg },
   };
 }
 
