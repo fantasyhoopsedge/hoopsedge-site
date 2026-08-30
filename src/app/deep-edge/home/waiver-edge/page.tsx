@@ -7,12 +7,12 @@ import { useActiveLeague } from "../../_lib/use-saved-leagues";
 import { TeamLogo, formatCustomSalary, formatRank, formatSalary, statBg, valueBg } from "../../_components/roster-table";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { Modal } from "../../_components/modal";
-import { CategoryRadarChart, DashboardCard, type RadarPoint } from "../../_components/category-dashboard";
+import { CategoryRadarChart, CategoryStrengthChart, DashboardCard, PercentileRing, type RadarPoint } from "../../_components/category-dashboard";
 import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/league";
 import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type TeamCategoryProfile } from "@/lib/fantrax/analyze";
 import {
-  deriveRankingsFormat, depthWeight, formatPerGame, formatTotal, rotoStandingsByRawStat,
-  simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
+  buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, formatPerGame, formatTotal, rotoStandingsByRawStat,
+  simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
 import { tierBg, tierFill } from "../../_components/tier-colors";
 import { StrengthBar } from "../../_components/strength-bar";
@@ -312,6 +312,117 @@ function WaiverEdgeContent() {
     });
   }
 
+  // ── Header charts (Ash, 2026-08-31: "add these charts... positioned in
+  // more or less the same spot") — the SAME POWER RANKING ring + CATEGORY
+  // STRENGTH bars Power Rankings itself shows at the top of its own page,
+  // reusing that page's exact computation (myPowerRank/categoryStrengthPoints
+  // below mirror rankings/page.tsx line for line) so the numbers agree
+  // everywhere on the site. Needs a full LeagueAnalysis (rosters, not just
+  // free agents), which the main table's own fetch doesn't carry — a second,
+  // independent eager fetch, same route/params the Add/Drop Simulator
+  // already uses lazily, just fired on page load instead of on open. Fixed
+  // at Starters depth / 9CatV lineup value (Power Rankings' own on-load
+  // defaults) — this is a read-only summary, not another set of controls to
+  // duplicate here; open the Simulator or Power Rankings itself to explore.
+  const [chartAnalysis, setChartAnalysis] = useState<LeagueAnalysis | null>(null);
+  useEffect(() => {
+    if (!saved) return;
+    const params = new URLSearchParams({
+      leagueId: saved.leagueId,
+      dataset: saved.settings.defaultDataset ?? DEFAULT_LEAGUE_TAGS.defaultDataset,
+      leagueType: saved.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType,
+    });
+    if (saved.teamId) params.set("teamId", saved.teamId);
+    fetch(`/api/fantrax/roster-edge?${params}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) return;
+        setChartAnalysis(d as LeagueAnalysis);
+      })
+      .catch(() => {});
+  }, [saved?.leagueId, saved?.teamId]); // eslint-disable-line react-hooks/exhaustive-deps -- settings fields read fresh each fetch, same convention every other Deep Edge fetch effect uses
+
+  const chartFormat = useMemo(() => {
+    if (!chartAnalysis || !saved) return null;
+    return deriveRankingsFormat(chartAnalysis, {
+      format: saved.settings.format ?? DEFAULT_LEAGUE_TAGS.format,
+      formatConfirmed: saved.settings.formatConfirmed,
+    });
+  }, [chartAnalysis, saved]);
+  const chartEffective = useMemo(
+    () => (chartAnalysis && saved ? resolveEffectiveScoring(chartAnalysis.league, saved.settings) : null),
+    [chartAnalysis, saved],
+  );
+  const chartScored = chartEffective?.scored ?? EMPTY_SCORED;
+  const chartTeamCount = chartAnalysis?.league.teamCount ?? 0;
+  const chartProfiles = useMemo(() => {
+    if (!chartAnalysis || !chartFormat || chartFormat === "unconfirmed" || !chartEffective) return null;
+    const lineupCadence = saved?.settings.lineupCadence ?? DEFAULT_GAMES_CAP_SETTINGS.lineupCadence;
+    const capPos = saved?.settings.capPos ?? DEFAULT_GAMES_CAP_SETTINGS.capPos;
+    const capMatch = saved?.settings.capMatch ?? DEFAULT_GAMES_CAP_SETTINGS.capMatch;
+    const weight = depthWeight(lineupCadence, chartFormat, capPos, capMatch);
+    return buildDepthWeightedProfiles(chartAnalysis, 0, weight, {
+      ...chartEffective, exactTeamId: chartAnalysis.myTeamId ?? undefined, valueMode: "nineCatV",
+    });
+  }, [chartAnalysis, chartFormat, chartEffective, saved?.settings.lineupCadence, saved?.settings.capPos, saved?.settings.capMatch]);
+  const chartRotoStandings = useMemo(
+    () => (chartProfiles && chartFormat === "roto" ? rotoStandingsByRawStat(chartProfiles, chartScored, "perGame") : null),
+    [chartProfiles, chartFormat, chartScored],
+  );
+  const chartH2hRecords: TeamH2HRecord[] | null = useMemo(() => {
+    if (!chartProfiles) return null;
+    if (chartFormat === "h2hcat") return simulateH2HCategoryStandings(chartProfiles, chartScored);
+    if (chartFormat === "points") return simulateH2HPointsStandings(chartProfiles);
+    return null;
+  }, [chartProfiles, chartFormat, chartScored]);
+  const chartMyTeamId = chartAnalysis?.myTeamId ?? null;
+  const myPowerRank = useMemo(() => {
+    if (!chartMyTeamId) return null;
+    if (chartFormat === "roto") {
+      const sorted = [...(chartRotoStandings ?? [])].sort((a, b) => b.totalPoints - a.totalPoints);
+      const idx = sorted.findIndex((r) => r.teamId === chartMyTeamId);
+      return idx < 0 ? null : { rank: idx + 1, of: sorted.length, winPct: null as number | null };
+    }
+    const sorted = [...(chartH2hRecords ?? [])].sort((a, b) => b.winPct - a.winPct);
+    const idx = sorted.findIndex((r) => r.teamId === chartMyTeamId);
+    return idx < 0 ? null : { rank: idx + 1, of: sorted.length, winPct: sorted[idx].winPct };
+  }, [chartMyTeamId, chartFormat, chartRotoStandings, chartH2hRecords]);
+  const categoryStrengthPoints: RadarPoint[] | null = useMemo(() => {
+    if (!chartProfiles || !chartMyTeamId || chartFormat === "points" || chartScored.length === 0) return null;
+    const zStandings = projectRotoStandings(chartProfiles, chartScored);
+    const edges = categoryEdges(chartMyTeamId, chartProfiles, zStandings, chartScored);
+    const byCat = new Map(edges.map((e) => [e.category, e]));
+    return chartScored.map((cat) => ({ category: cat, rank: byCat.get(cat)?.rank ?? null, of: chartTeamCount }));
+  }, [chartProfiles, chartMyTeamId, chartFormat, chartScored, chartTeamCount]);
+  const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
+    <div style={{ display: "flex", gap: 48, flexWrap: "wrap", alignItems: "flex-start" }}>
+      {myPowerRank && (
+        <DashboardCard title="POWER RANKING" bordered={false}>
+          <PercentileRing
+            rank={myPowerRank.rank} of={myPowerRank.of} size={110}
+            subLabel={
+              <>
+                OF {myPowerRank.of}
+                {myPowerRank.winPct != null && (
+                  <>
+                    <br />
+                    <span style={{ color: "var(--rt-ink)", fontWeight: 700 }}>{(myPowerRank.winPct * 100).toFixed(1)}% WIN</span>
+                  </>
+                )}
+              </>
+            }
+          />
+        </DashboardCard>
+      )}
+      {categoryStrengthPoints && (
+        <div>
+          <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 10 }}>CATEGORY STRENGTH · STRONGEST TO WEAKEST</div>
+          <CategoryStrengthChart points={categoryStrengthPoints} height={130} barWidth={24} gap={8} />
+        </div>
+      )}
+    </div>
+  ) : null;
+
   const isPoints = data?.family === "points";
   const salaryFormat = data?.salaryFormat ?? "none";
   // A real-salary league cares about the site-wide Real Salary rank more
@@ -375,11 +486,16 @@ function WaiverEdgeContent() {
         .we-chip button { background: none; border: none; color: var(--rt-muted); cursor: pointer; font-weight: 700; padding: 0; }
       `}</style>
 
-      <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Waiver Edge</h1>
-      <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 20px", maxWidth: 680 }}>
-        Every free agent in {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts —
-        click a header. Only free agents show here; nothing to filter by fantasy team.
-      </p>
+      <div style={{ display: "grid", gridTemplateColumns: chartsPanel ? "auto 1fr" : "auto", alignItems: "flex-start", gap: 24, marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Waiver Edge</h1>
+          <p style={{ color: "var(--rt-body)", fontSize: 14, margin: 0, maxWidth: 680 }}>
+            Every free agent in {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts —
+            click a header. Only free agents show here; nothing to filter by fantasy team.
+          </p>
+        </div>
+        {chartsPanel && <div style={{ display: "flex", justifyContent: "center" }}>{chartsPanel}</div>}
+      </div>
 
       {loadingSaved ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>Loading…</p>
