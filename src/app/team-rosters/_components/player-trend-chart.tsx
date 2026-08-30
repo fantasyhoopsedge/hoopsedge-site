@@ -114,6 +114,7 @@ export function TrendHero({
   cur,
   prior,
   priorPrior,
+  proj,
   consensusRank,
   consensusDir,
   consensusDelta,
@@ -136,6 +137,12 @@ export function TrendHero({
   prior: ModeStatInput;
   /** Season-before-prior (2023-24) anchor — the arrow reference for Prior mode. */
   priorPrior: ModeStatInput;
+  /** 2026-27 model-projection anchor (rank from season_player_values, GP/MPG
+   * from the model's projGames/projMpg) — the arrow reference for Projection
+   * mode, though Projection never shows one (no prior season to compare a
+   * forward projection against). Optional only for backward compatibility
+   * with any caller that hasn't been updated; omitting it just shows "—". */
+  proj?: ModeStatInput;
   consensusRank: number | null;
   /** Dynasty consensus movement vs the prior published version — see
    * dynasty-rankings.json's `trend` field, the same source roster-app.tsx's
@@ -192,7 +199,7 @@ export function TrendHero({
   const recentInput: ModeStatInput | null = data?.recent
     ? { rank: recentRankOf(data.recent, metric), gp: data.recent.gamesPlayed, mpg: data.recent.mpg }
     : null;
-  const modeStat = resolveModeStat(mode, cur, prior, priorPrior, recentInput, tag);
+  const modeStat = resolveModeStat(mode, cur, prior, priorPrior, recentInput, tag, proj);
   const arrow = modeStat.arrowDelta;
   const showArrow = arrow != null && arrow !== 0;
 
@@ -252,55 +259,49 @@ export function TrendHero({
               : { display: "flex", alignItems: "flex-end", gap: 26 }
           }
         >
-          {isProj ? (
-            <div>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink-soft)" }}>—</div>
-              <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
-                GP &amp; rank · projection coming soon
-              </div>
+          {/* Fixed width (not just font-size) so this number's box is the
+              same size whether GP is 1 or 2 digits — otherwise a 1-digit
+              GP left less trailing space before the rank block than a
+              2-digit GP, and the gap between blocks visibly shrank/grew
+              from card to card and row to row. GP tops out at 82 (an NBA
+              season), so 2 digits always covers it. */}
+          <div>
+            <div style={{ width: compact ? 24 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{modeStat.gp ?? "—"}</div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>
+              {compact ? "GP" : isProj ? "Proj. games" : "Games played"}
             </div>
-          ) : (
-            <>
-              <div>
-                {/* Fixed width (not just font-size) so this number's box is the
-                    same size whether GP is 1 or 2 digits — otherwise a 1-digit
-                    GP left less trailing space before the rank block than a
-                    2-digit GP, and the gap between blocks visibly shrank/grew
-                    from card to card and row to row. GP tops out at 82 (an NBA
-                    season), so 2 digits always covers it. */}
-                <div style={{ width: compact ? 24 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>{modeStat.gp ?? "—"}</div>
-                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? "GP" : "Games played"}</div>
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                  <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
-                    {modeStat.rank != null ? "#" + modeStat.rank : "—"}
-                  </span>
-                  {/* Always takes up the same slot (visibility, not
-                      conditional rendering) so a player with no rank change
-                      doesn't leave the Dynasty block's gap looking bigger than
-                      a player with a two-digit ▲/▼ delta — the arrow badge's
-                      own footprint is now constant whether it's shown or not. */}
-                  <span
-                    style={{
-                      width: compact ? 26 : undefined,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 3,
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: showArrow ? (arrow >= 0 ? "var(--rt-up)" : "var(--rt-down)") : "transparent",
-                      visibility: showArrow ? "visible" : "hidden",
-                    }}
-                  >
-                    <span style={{ fontSize: 9 }}>{arrow != null && arrow >= 0 ? "▲" : "▼"}</span>
-                    {arrow != null ? Math.abs(arrow) : 0}
-                  </span>
-                </div>
-                <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? metricLabel : `${metricLabel} rank`}</div>
-              </div>
-            </>
-          )}
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+              <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
+                {modeStat.rank != null ? "#" + modeStat.rank : "—"}
+              </span>
+              {/* Always takes up the same slot (visibility, not
+                  conditional rendering) so a player with no rank change
+                  doesn't leave the Dynasty block's gap looking bigger than
+                  a player with a two-digit ▲/▼ delta — the arrow badge's
+                  own footprint is now constant whether it's shown or not.
+                  Projection never has an arrow (no prior period to compare a
+                  forward projection against), so this slot always renders
+                  hidden for isProj — same as any other rank with no delta. */}
+              <span
+                style={{
+                  width: compact ? 26 : undefined,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 3,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: showArrow ? (arrow >= 0 ? "var(--rt-up)" : "var(--rt-down)") : "transparent",
+                  visibility: showArrow ? "visible" : "hidden",
+                }}
+              >
+                <span style={{ fontSize: 9 }}>{arrow != null && arrow >= 0 ? "▲" : "▼"}</span>
+                {arrow != null ? Math.abs(arrow) : 0}
+              </span>
+            </div>
+            <div style={{ fontSize: labelSize, color: "var(--rt-hero-ink-soft)", textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 2 }}>{compact ? metricLabel : `${metricLabel} rank`}</div>
+          </div>
           <div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ display: compact ? "inline-block" : undefined, width: compact ? 38 : undefined, fontFamily: "var(--rt-font-mono)", fontSize: numSize, fontWeight: 700, color: "var(--rt-hero-ink)" }}>
@@ -381,7 +382,7 @@ export function TrendHero({
           <div style={{ width: "100%", aspectRatio: `${W} / ${H}`, fontSize: compact ? 11 : 12, color: "var(--rt-hero-ink-soft)", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>Loading trend…</div>
         ) : (
           <>
-            {hoverPt && hoverRank != null && !isPrior && (
+            {hoverPt && hoverRank != null && !isPrior && !isProj && (
               <div
                 style={{
                   position: "absolute",
@@ -403,7 +404,7 @@ export function TrendHero({
                 #{hoverRank}
               </div>
             )}
-            {isPrior && (
+            {(isPrior || isProj) && (
               <div
                 style={{
                   position: "absolute",
@@ -420,7 +421,7 @@ export function TrendHero({
                   borderRadius: 8,
                 }}
               >
-                Prior season chart not available
+                {isProj ? "2026–27 projection chart not available" : "Prior season chart not available"}
               </div>
             )}
             {/* No preserveAspectRatio="none" — the box keeps the viewBox's own
@@ -430,6 +431,7 @@ export function TrendHero({
               {shade && <rect x={shade.x} y={0} width={shade.w} height={H} fill={color} opacity={0.13} rx={4} />}
               {line && <polyline points={line} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />}
               {!isPrior &&
+                !isProj &&
                 pts?.map(
                   (p, i) =>
                     p && (

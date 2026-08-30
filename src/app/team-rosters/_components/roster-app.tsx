@@ -23,16 +23,15 @@ import {
   caret,
   catOrderFor,
   catValCur,
-  catZ,
   changeColor,
   fvOf,
-  fvValue,
   heroName,
   initials,
   money,
   mpgBarFor,
   ordinal,
   posLabel,
+  projFvOf,
   seasonTriosFor,
   shortName,
   singularTier,
@@ -107,11 +106,15 @@ export function RosterApp({
   players,
   team,
   ageRank,
+  isAdmin,
 }: {
   theme: "light" | "dark";
   players: Player[];
   team: string;
   ageRank: { rank: number; total: number } | null;
+  /** Site admin (rb_admins) or local dev — gets Edge Pro / Projections access
+   * as if a paid customer, per PRO_UNLOCKED's doc comment in roster-data.ts. */
+  isAdmin: boolean;
 }) {
   const dark = theme === "dark";
   const router = useRouter();
@@ -286,15 +289,26 @@ export function RosterApp({
     if (isCompactViewport) setMobileDetailOpen(true);
   };
 
+  const unlocked = PRO_UNLOCKED || isAdmin;
   const modeNow: SeasonMode = mode ?? "cur";
-  const fvUseProj = sort === "proj" && PRO_UNLOCKED;
+  const fvUseProj = sort === "proj" && unlocked;
   const activeMetric: FvMetric = fvUseProj ? "minus1" : fvMetric;
-  // Real precomputed season_player_values for the current season; proj is
-  // Pro-locked jitter (unchanged).
-  const fvMetricOf = (p: Player, m: FvMetric) => (fvUseProj ? fvValue(m, catZ(CATS, p, true)) : fvOf(p, m));
+  // Real precomputed season_player_values for the current season, or (when
+  // sorted by Projections) the 2026-27 model's precomputed values.
+  const fvMetricOf = (p: Player, m: FvMetric) => (fvUseProj ? projFvOf(p, m) : fvOf(p, m));
   // Pool-wide rank (across ALL players at the league size), per FV metric.
   const poolRankOf = (p: Player, m: FvMetric): number | null =>
-    m === "ninecat" ? p.rankNineCat : m === "eightcat" ? p.rankEightCat : p.rankMinus1;
+    fvUseProj
+      ? m === "ninecat"
+        ? p.projRankNineCat
+        : m === "eightcat"
+          ? p.projRankEightCat
+          : p.projRankMinus1
+      : m === "ninecat"
+        ? p.rankNineCat
+        : m === "eightcat"
+          ? p.rankEightCat
+          : p.rankMinus1;
   // Sort key for a fantasy-value metric: null (unranked — no real season data,
   // e.g. an unseeded 2-way/undrafted rookie) rather than the metric's raw
   // z-score, whose "no data" default is 0 — which lands in the MIDDLE of a
@@ -385,7 +399,7 @@ export function RosterApp({
   const isTop = (p: Player) => p.consensus <= ACCENT_RANK;
   // Sort dropdown parked on "Projections (Pro)": show the lock in place of every
   // FV-derived cell instead of silently falling back to the real metric.
-  const sortProjLocked = sort === "proj" && !PRO_UNLOCKED;
+  const sortProjLocked = sort === "proj" && !unlocked;
 
   const cards = list.map((p) => {
     const sel = p.id === selectedId;
@@ -449,7 +463,7 @@ export function RosterApp({
   const isProj = modeNow === "proj";
   const isPrior = modeNow === "prior";
   const isRecent = modeNow === "recent";
-  const projLocked = isProj && !PRO_UNLOCKED;
+  const projLocked = isProj && !unlocked;
   // Prior is real 2024-25 season_player_stats/season_player_values (see
   // roster-live-data.ts) — priorGp === 0 means the player has no prior-season
   // row (rookies, or a player who missed that season entirely). Projection is
@@ -1403,6 +1417,7 @@ export function RosterApp({
               cur={spTrios.cur}
               prior={spTrios.prior}
               priorPrior={spTrios.priorPrior}
+              proj={spTrios.proj}
               consensusRank={sp.consensus}
               consensusDir={sp.dir}
               consensusDelta={sp.dirDelta}
@@ -1459,7 +1474,7 @@ export function RosterApp({
                 onClick={() => setMode("proj")}
                 style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "6px 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: "var(--rt-font-sans)", fontSize: 12, fontWeight: 600, background: modeNow === "proj" ? "var(--rt-ink)" : "transparent", color: modeNow === "proj" ? "var(--rt-canvas)" : "var(--rt-body)" }}
               >
-                {!PRO_UNLOCKED && (
+                {!unlocked && (
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
@@ -1597,6 +1612,7 @@ export function RosterApp({
         onRemove={removeFromCompare}
         onClose={() => setCompareOpen(false)}
         isMobile={isMobile}
+        isAdmin={isAdmin}
       />
     )}
     {depthChartOpen && (

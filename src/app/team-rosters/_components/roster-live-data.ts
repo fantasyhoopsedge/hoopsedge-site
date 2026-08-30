@@ -10,8 +10,10 @@ import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag 
 
 // Live per-team roster for /team-rosters, joining sources into the UI's Player shape:
 //   - nba_roster            → bio, position, contract, salary, draft, tags
-//   - season_player_stats   → 2025-26 (season 2026) per-game 9-cat line
-//   - season_player_values  → real 9-cat values (league_size 400, matches /seasonal-rankings)
+//   - season_player_stats   → 2025-26 (season 2026) per-game 9-cat line, and the
+//                             2026-27 model projection (season 2027, "projection")
+//   - season_player_values  → real 9-cat values (league_size 400, matches /seasonal-rankings),
+//                             same table/shape for the projection season
 //   - nba_player_trends     → block-level trend payloads → per-metric tones
 //   - dynasty-rankings.json → consensus rank/tier/trend + master-source position
 //   - rookie-board.json     → projected 9-cat star profile for incoming rookies
@@ -41,6 +43,8 @@ const ROSTER_SEASON = "2026-27";
 const STATS_SEASON = 2026; // hoopR: 2026 = the 2025-26 season (latest full)
 const PRIOR_STATS_SEASON = STATS_SEASON - 1; // 2025 = 2024-25, for the Prior tab
 const PRIOR_PRIOR_STATS_SEASON = STATS_SEASON - 2; // 2024 = 2023-24, the anchor the Prior-mode arrow compares against
+const PROJ_SEASON = 2027; // 2026-27 season-projections model — see scripts/build-projection-values.ts
+const PROJ_SEASON_TYPE = "projection";
 const VALUE_LEAGUE_SIZE = 400; // matches /seasonal-rankings default 1:1
 const CACHE_OPTS = { revalidate: 900, tags: [ROSTER_TAG] };
 const TRENDS_SEASON_TYPE = "regular";
@@ -273,6 +277,40 @@ const getPriorPriorPoolRanks = unstable_cache(
   CACHE_OPTS,
 );
 
+/** Same as getPoolRanks but for the 2026-27 Projections season — powers the
+ * Projection tab's ValueRank header. Cached, shared across teams. */
+const getProjPoolRanks = unstable_cache(
+  async (): Promise<Record<string, { nine: number; m1: number; eight: number }>> => {
+    const supabase = createReadClient();
+    const rows: { player_id: string; value: number | null; minus1v: number | null; v_to: number | null }[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data } = await supabase
+        .from("season_player_values")
+        .select("player_id,value,minus1v,v_to")
+        .eq("season", PROJ_SEASON)
+        .eq("season_type", PROJ_SEASON_TYPE)
+        .eq("league_size", VALUE_LEAGUE_SIZE)
+        .range(from, from + 999);
+      if (!data?.length) break;
+      rows.push(...(data as typeof rows));
+      if (data.length < 1000) break;
+    }
+    const rankBy = (score: (r: (typeof rows)[number]) => number): Record<string, number> => {
+      const m: Record<string, number> = {};
+      [...rows].sort((a, b) => score(b) - score(a)).forEach((r, i) => (m[r.player_id] = i + 1));
+      return m;
+    };
+    const nine = rankBy((r) => r.value ?? -999);
+    const m1 = rankBy((r) => r.minus1v ?? -999);
+    const eight = rankBy((r) => ((r.value ?? 0) * 9 - (r.v_to ?? 0)) / 8);
+    const out: Record<string, { nine: number; m1: number; eight: number }> = {};
+    for (const r of rows) out[r.player_id] = { nine: nine[r.player_id], m1: m1[r.player_id], eight: eight[r.player_id] };
+    return out;
+  },
+  ["team-roster-pool-ranks-proj"],
+  CACHE_OPTS,
+);
+
 /** Average age (salaried players only) per team, ranked youngest-first. Cached, shared across teams. */
 const getLeagueAgeRanks = unstable_cache(
   async (): Promise<Record<string, { rank: number; total: number }>> => {
@@ -410,7 +448,7 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   const pidByRow = roster.map(espnIdOf);
   const ids = pidByRow.filter((v): v is string => v != null);
 
-  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, priorPriorStatsRes, trendsRes, poolRanks, priorPoolRanks, priorPriorPoolRanks] = await Promise.all([
+  const [statsRes, valuesRes, priorStatsRes, priorValuesRes, priorPriorStatsRes, trendsRes, projStatsRes, projValuesRes, poolRanks, priorPoolRanks, priorPriorPoolRanks, projPoolRanks] = await Promise.all([
     ids.length
       ? supabase
           .from("season_player_stats")
@@ -461,9 +499,27 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
           .eq("season_type", TRENDS_SEASON_TYPE)
           .in("player_id", ids)
       : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("season_player_stats")
+          .select("player_id,g,mpg,pts,reb,ast,stl,blk,tov,fg3m,fg_pct,ft_pct")
+          .eq("season", PROJ_SEASON)
+          .eq("season_type", PROJ_SEASON_TYPE)
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
+    ids.length
+      ? supabase
+          .from("season_player_values")
+          .select("player_id,value,minus1v,v_pts,v_reb,v_ast,v_stl,v_blk,v_fg3,v_fg,v_ft,v_to")
+          .eq("season", PROJ_SEASON)
+          .eq("season_type", PROJ_SEASON_TYPE)
+          .eq("league_size", VALUE_LEAGUE_SIZE)
+          .in("player_id", ids)
+      : Promise.resolve({ data: [] as never[] }),
     getPoolRanks(),
     getPriorPoolRanks(),
     getPriorPriorPoolRanks(),
+    getProjPoolRanks(),
   ]);
 
   const statsById = new Map((statsRes.data ?? []).map((s) => [s.player_id, s]));
@@ -472,6 +528,8 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
   const priorValuesById = new Map((priorValuesRes.data ?? []).map((v) => [v.player_id, v]));
   const valuesById = new Map((valuesRes.data ?? []).map((v) => [v.player_id, v]));
   const trendsById = new Map((trendsRes.data ?? []).map((t) => [t.player_id, t.payload as unknown as TrendPayload]));
+  const projStatsById = new Map((projStatsRes.data ?? []).map((s) => [s.player_id, s]));
+  const projValuesById = new Map((projValuesRes.data ?? []).map((v) => [v.player_id, v]));
 
   // The board rows for this roster, resolved by identity. Name is not consulted:
   // every one of the 619 roster rows carries an fhe_id, and the id join was
@@ -494,6 +552,9 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
     const priorRank = pid ? priorPoolRanks[pid] : undefined;
     const priorPriorRank = pid ? priorPriorPoolRanks[pid] : undefined;
     const priorPriorSt = pid ? priorPriorStatsById.get(pid) : undefined;
+    const projSt = pid ? projStatsById.get(pid) : undefined;
+    const projVal = pid ? projValuesById.get(pid) : undefined;
+    const projRank = pid ? projPoolRanks[pid] : undefined;
     const dyn = dynByRow[i];
     const trendTags = tags[i];
     // Identity first, board name as the fallback — see ROOKIE_BY_FHE_ID on why
@@ -558,6 +619,28 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       : null;
     const priorCatVals: number[] = priorVal
       ? [priorVal.v_pts, priorVal.v_reb, priorVal.v_ast, priorVal.v_stl, priorVal.v_blk, priorVal.v_fg3, priorVal.v_fg, priorVal.v_ft, priorVal.v_to].map(
+          (v) => v ?? 0,
+        )
+      : [];
+
+    // 2026-27 model projection. null/empty when the model has no row for this
+    // player (see build-projection-values.ts's unresolved-player log) — left
+    // blank in the UI rather than jittered or estimated.
+    const projPg: Player["projPg"] = projSt
+      ? {
+          pts: projSt.pts ?? 0,
+          reb: projSt.reb ?? 0,
+          ast: projSt.ast ?? 0,
+          stl: projSt.stl ?? 0,
+          blk: projSt.blk ?? 0,
+          tpm: projSt.fg3m ?? 0,
+          fgp: projSt.fg_pct ?? 0,
+          ftp: projSt.ft_pct ?? 0,
+          to: projSt.tov ?? 0,
+        }
+      : null;
+    const projCatVals: number[] = projVal
+      ? [projVal.v_pts, projVal.v_reb, projVal.v_ast, projVal.v_stl, projVal.v_blk, projVal.v_fg3, projVal.v_fg, projVal.v_ft, projVal.v_to].map(
           (v) => v ?? 0,
         )
       : [];
@@ -628,6 +711,16 @@ async function fetchTeamRoster(team: string): Promise<Player[]> {
       tagMinus1: trendTags.m1,
       tagEightCat: trendTags.eight,
       projected,
+      projPg,
+      projCatVals,
+      projGp: projSt?.g ?? 0,
+      projMpg: projSt?.mpg ?? 0,
+      projNineCat: projVal?.value ?? 0,
+      projMinus1: projVal?.minus1v ?? 0,
+      projEightCat: projVal ? ((projVal.value ?? 0) * 9 - (projVal.v_to ?? 0)) / 8 : 0,
+      projRankNineCat: projRank?.nine ?? null,
+      projRankMinus1: projRank?.m1 ?? null,
+      projRankEightCat: projRank?.eight ?? null,
     };
   });
 }

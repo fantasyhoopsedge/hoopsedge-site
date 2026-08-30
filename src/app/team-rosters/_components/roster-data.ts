@@ -123,6 +123,22 @@ export type Player = {
   tagEightCat: TrendTag | null;
   /** True when catVals/pg are the rookie-board projection, not real 2025-26 stats. */
   projected: boolean;
+  /** Real 2026-27 per-game line from the season-projections model
+   * (season_player_stats, season=2027/season_type="projection"). null = the
+   * model has no projection for this player (leave blank in the UI, don't jitter). */
+  projPg: PerGameStats | null;
+  /** Real 2026-27 9-cat values (same CATS order as catVals/priorCatVals). Empty when projPg is null. */
+  projCatVals: number[];
+  /** Model-projected games/minutes for 2026-27. 0 = no projection row. */
+  projGp: number;
+  projMpg: number;
+  projNineCat: number; // season_player_values.value for the projection season
+  projMinus1: number; // season_player_values.minus1v for the projection season
+  projEightCat: number; // 8-cat, turnovers removed: (value*9 - v_to)/8
+  /** Pool-wide rank (1 = best) among ALL projected players at the league size, per metric. null = no projection. */
+  projRankNineCat: number | null;
+  projRankMinus1: number | null;
+  projRankEightCat: number | null;
 };
 
 export type Team = { abbr: string; name: string };
@@ -281,10 +297,16 @@ export const DYNASTY_TIER_META: Record<number, { name: string; color: string }> 
   8: { name: "Lottery Tickets", color: "#64748b" },
 };
 
-// Edge Pro (season comparison / projections) hasn't shipped yet — locked for
-// everyone. Shared by roster-app.tsx (single-player panel) and the compare
-// tool (compare-modal.tsx, player-compare-card.tsx) so Projection is gated
-// identically everywhere instead of drifting into two different flags.
+// Edge Pro (season comparison / projections) hasn't shipped its paywall yet,
+// so it stays locked for everyone by default. Shared by roster-app.tsx
+// (single-player panel) and the compare tool (compare-modal.tsx,
+// player-compare-card.tsx) so Projection is gated identically everywhere
+// instead of drifting into two different flags.
+//
+// Site admins (rb_admins / is_rb_admin(), same allowlist the Rookie Board
+// editor uses — see team-rosters-shell.tsx) get access as if they were paid
+// Pro customers: every call site below computes `PRO_UNLOCKED || isAdmin`
+// rather than reading this constant alone.
 export const PRO_UNLOCKED = false;
 
 // Shared with DepthChartModal, which renders its own copy of these same pills

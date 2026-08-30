@@ -31,6 +31,7 @@ export function PlayerCompareCard({
   thirdStat,
   show9CatProfile = true,
   headerNote,
+  isAdmin = false,
 }: {
   player: Player;
   mode: SeasonMode;
@@ -48,6 +49,9 @@ export function PlayerCompareCard({
    * the Salary/Contract mini-stats — e.g. /real-salary-rankings' "value
    * asset" verdict line (2026-07-31). Omit for no change from before. */
   headerNote?: ReactNode;
+  /** Site admin — unlocks Projection mode. Optional/defaults false so
+   * callers with no admin concept of their own are unaffected. */
+  isAdmin?: boolean;
 }) {
   const trend = usePlayerTrend(player.id, TRENDS_SEASON, TRENDS_SEASON_TYPE);
   const order = catOrder ?? catOrderFor(player);
@@ -55,11 +59,10 @@ export function PlayerCompareCard({
   const profile = mode === "recent" ? buildRecentProfile(trend, order, player.gp, player.mpg) : buildRankedProfile(player, mode, order);
   const contract = contractFor(player);
   const isPrior = mode === "prior";
-  // Projection has no real model behind it yet (placeholder jitter — see
-  // roster-helpers.ts) — same Edge Pro gate as the single-player panel
-  // (roster-app.tsx's projLocked), so the compare tool doesn't leak the
-  // placeholder numbers anywhere the sidebar already hides them.
-  const projLocked = mode === "proj" && !PRO_UNLOCKED;
+  // Same Edge Pro gate as the single-player panel (roster-app.tsx's
+  // projLocked), so the compare tool doesn't leak real projection numbers to
+  // non-Pro/non-admin viewers.
+  const projLocked = mode === "proj" && !(PRO_UNLOCKED || isAdmin);
   const displayMpg = mode === "recent" ? (trend.data?.recent?.mpg ?? null) : isPrior ? player.priorMpg : player.mpg;
   // No MPG whenever the profile itself has nothing to show (Recent under its
   // 10-GP gate, or literally zero games that season, e.g. Prior for a player who
@@ -153,6 +156,7 @@ export function PlayerCompareCard({
         cur={trios.cur}
         prior={trios.prior}
         priorPrior={trios.priorPrior}
+        proj={trios.proj}
         consensusRank={player.consensus}
         consensusDir={player.dir}
         consensusDelta={player.dirDelta}
