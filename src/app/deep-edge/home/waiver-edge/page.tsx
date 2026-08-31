@@ -365,9 +365,15 @@ function WaiverEdgeContent() {
       ...chartEffective, exactTeamId: chartAnalysis.myTeamId ?? undefined, valueMode: "nineCatV",
     });
   }, [chartAnalysis, chartFormat, chartEffective, saved?.settings.lineupCadence, saved?.settings.capPos, saved?.settings.capMatch]);
+  // Roto points are raw-stat-ranked (rotoStandingsByRawStat), so — unlike
+  // categoryStrengthPoints below, which is z-score-based and therefore
+  // Totals/Per-game-agnostic by design — this DOES need the main table's own
+  // statMode (Ash, 2026-08-31: "the power rankings... need to be dynamic
+  // when user switches from TOTALS vs PER GAME... tied to PER GAME only" —
+  // this was hardcoded "perGame" instead of reading statMode).
   const chartRotoStandings = useMemo(
-    () => (chartProfiles && chartFormat === "roto" ? rotoStandingsByRawStat(chartProfiles, chartScored, "perGame") : null),
-    [chartProfiles, chartFormat, chartScored],
+    () => (chartProfiles && chartFormat === "roto" ? rotoStandingsByRawStat(chartProfiles, chartScored, statMode) : null),
+    [chartProfiles, chartFormat, chartScored, statMode],
   );
   const chartH2hRecords: TeamH2HRecord[] | null = useMemo(() => {
     if (!chartProfiles) return null;
