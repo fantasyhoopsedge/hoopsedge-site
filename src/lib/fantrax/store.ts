@@ -193,6 +193,14 @@ export interface SavedLeague {
   teamName: string | null;
   settings: SavedLeagueSettings;
   savedAt: string;
+  /** Last time we successfully fetched LIVE data from Fantrax for this
+   *  league (fx_league_syncs, written by league-cache.ts's fetchAndAnalyze
+   *  after a real Fantrax fetch — never on a 60s-cache hit). Distinct from
+   *  `savedAt`, which only moves when the CONNECTION/settings row itself is
+   *  saved. Null when this league has never been synced yet, or Supabase
+   *  isn't configured (local-dev JSON fallback — sync tracking is a
+   *  Supabase-only feature, see recordLeagueSync/getLastSyncedAtByLeagueId). */
+  lastSyncedAt: string | null;
 }
 
 type LocalFile = Record<string, SavedLeague[]>;
@@ -218,21 +226,68 @@ export async function listLeagues(owner: string): Promise<SavedLeague[]> {
       .eq("owner", owner)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((r) => ({
+    const rows = data ?? [];
+    const syncedByLeagueId = await getLastSyncedAtByLeagueId(rows.map((r) => r.league_id as string));
+    return rows.map((r) => ({
       leagueId: r.league_id as string,
       leagueName: r.league_name as string,
       teamId: (r.team_id as string) ?? null,
       teamName: (r.team_name as string) ?? null,
       settings: r.settings as SavedLeagueSettings,
       savedAt: r.updated_at as string,
+      lastSyncedAt: syncedByLeagueId[r.league_id as string] ?? null,
     }));
   }
   const all = await readLocal();
-  return all[owner] ?? [];
+  return (all[owner] ?? []).map((l) => ({ ...l, lastSyncedAt: l.lastSyncedAt ?? null }));
 }
 
-export async function saveLeague(owner: string, league: Omit<SavedLeague, "savedAt">): Promise<SavedLeague> {
-  const saved: SavedLeague = { ...league, savedAt: new Date().toISOString() };
+/**
+ * fx_league_syncs — see that table's own migration doc for why this is
+ * keyed by league_id alone (a shared property of the Fantrax league's data,
+ * not any one owner's saved-connection row). Best-effort: returns {} when
+ * Supabase isn't configured (local dev) or the read itself fails, so a
+ * sync-tracking outage never breaks the leagues list.
+ */
+async function getLastSyncedAtByLeagueId(leagueIds: string[]): Promise<Record<string, string>> {
+  if (!FX_SUPABASE_ENABLED || leagueIds.length === 0) return {};
+  try {
+    const { data, error } = await serviceClient()
+      .from("fx_league_syncs")
+      .select("league_id, last_synced_at")
+      .in("league_id", leagueIds);
+    if (error) throw new Error(error.message);
+    const out: Record<string, string> = {};
+    for (const r of data ?? []) out[r.league_id as string] = r.last_synced_at as string;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Records that we just successfully fetched LIVE data from Fantrax for
+ *  `leagueId` — call this once per REAL fetch (league-cache.ts's
+ *  fetchAndAnalyze, guarded so a 60s cache hit never re-runs it), never per
+ *  (owner, league). Fire-and-forget by design: a sync-tracking failure must
+ *  never fail the league-analysis request it's riding along with — callers
+ *  should not await this inline before returning their own response. */
+export async function recordLeagueSync(leagueId: string): Promise<void> {
+  if (!FX_SUPABASE_ENABLED) return;
+  try {
+    await serviceClient()
+      .from("fx_league_syncs")
+      .upsert({ league_id: leagueId, last_synced_at: new Date().toISOString() }, { onConflict: "league_id" });
+  } catch {
+    // best-effort — see this function's own doc
+  }
+}
+
+export async function saveLeague(owner: string, league: Omit<SavedLeague, "savedAt" | "lastSyncedAt">): Promise<SavedLeague> {
+  // lastSyncedAt isn't meaningful at save time — it's fx_league_syncs' own
+  // property, refreshed on the next listLeagues() call (or immediately true
+  // once whatever triggered this save also loads a tool page, which syncs
+  // for real). Saving connection settings is not itself a Fantrax sync.
+  const saved: SavedLeague = { ...league, savedAt: new Date().toISOString(), lastSyncedAt: null };
 
   if (FX_SUPABASE_ENABLED) {
     const { error } = await serviceClient()
