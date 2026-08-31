@@ -6,6 +6,7 @@ import {
 import type { LeagueAnalysis } from "./analyze";
 import { buildLeague } from "./league";
 import { analyzeLeague, type FantraxDatasetKey } from "./resolve";
+import { recordLeagueSync } from "./store";
 
 /**
  * The shared "fetch a Fantrax league, then join it against FHE's category
@@ -61,6 +62,13 @@ async function fetchAndAnalyze(
   if (!info?.leagueName) {
     throw new FantraxError("Fantrax returned no settings for that league ID. Check the code and try again.", 404);
   }
+
+  // A REAL Fantrax fetch just happened (this function only runs on an
+  // unstable_cache miss — a cache hit never re-enters it), so this is
+  // exactly the "last synced" moment Home's own datestamp means. Not
+  // awaited: a sync-log failure must never fail the analysis this request
+  // actually came here for — see recordLeagueSync's own doc.
+  void recordLeagueSync(leagueId);
 
   const league = buildLeague(leagueId, info, rosters, standings, draft, playerIds, draftPicks);
   return analyzeLeague(league, teamId, dataset, leagueType);

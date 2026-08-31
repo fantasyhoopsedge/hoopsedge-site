@@ -297,6 +297,19 @@ function HomeHubContent() {
             >
               ● Settings imported
             </span>
+            {/* Live Fantrax data freshness — DISTINCT from "Settings imported"
+             *  above (that's this league's saved CONNECTION row; this is the
+             *  last time we actually fetched rosters/standings/free agents
+             *  from Fantrax itself — fx_league_syncs, written once per real
+             *  fetch by league-cache.ts, never on a 60s-cache hit). Null
+             *  until any Deep Edge tool page has loaded this league at least
+             *  once (Home itself never triggers a Fantrax fetch — see this
+             *  page's own header). */}
+            {league.lastSyncedAt && (
+              <span style={{ fontSize: 12, color: "var(--rt-muted)" }}>
+                Synced {relativeTime(league.lastSyncedAt)}
+              </span>
+            )}
           </div>
           <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 18px" }}>
             {league.settings.teamCount}-team · {(league.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "real salary" : "non-salary"}{" "}
