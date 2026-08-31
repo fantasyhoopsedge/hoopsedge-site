@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type RotoStandingRow } from "@/lib/fantrax/analyze";
+import type { LeagueAnalysis, ResolvedPlayer, RotoStandingRow } from "@/lib/fantrax/analyze";
 import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
@@ -213,20 +213,24 @@ function PowerRankingsContent() {
     return idx < 0 ? null : { rank: idx + 1, of: h2hSorted.length, winPct: h2hSorted[idx].winPct };
   }, [myTeamId, format, rotoSort.sorted, h2hSorted]);
 
-  // Chart 2 (category strength, strongest→weakest): z-score category ranks
-  // for my own team — the same categoryEdges() Category Edge's own dashboard
-  // reads, format-independent (roto and h2h-categories score the same
-  // categories), so it comes straight off `profiles` rather than re-deriving
-  // from whichever DISPLAY-only standings view (rotoStandingsByRawStat/
-  // h2hRecords) happens to be active. Points leagues have no category
-  // dimension at all (see analyze.ts).
+  // Chart 2 (category strength, strongest→weakest): raw-stat category ranks
+  // for my own team via rotoStandingsByRawStat, same basis (rotoBasis) as the
+  // ROTO table/roster panel below — format-independent (roto and h2h-
+  // categories score the same categories), so it comes straight off
+  // `profiles` rather than re-deriving from whichever DISPLAY-only standings
+  // view (h2hRecords) happens to be active. Points leagues have no category
+  // dimension at all (see analyze.ts). Previously read the z-score-based
+  // projectRotoStandings/categoryEdges path, which never moved when the
+  // user toggled PER GAME/TOTALS (Ash, 2026-08-31: "the cat strength slanted
+  // bar chart does not appear to change when toggling between totals and per
+  // game... fix this making it dynamic").
   const categoryStrengthPoints: RadarPoint[] | null = useMemo(() => {
     if (!profiles || !myTeamId || format === "points" || scored.length === 0) return null;
-    const zStandings = projectRotoStandings(profiles, scored);
-    const edges = categoryEdges(myTeamId, profiles, zStandings, scored);
-    const byCat = new Map(edges.map((e) => [e.category, e]));
-    return scored.map((cat) => ({ category: cat, rank: byCat.get(cat)?.rank ?? null, of: teamCount }));
-  }, [profiles, myTeamId, format, scored, teamCount]);
+    const rawStandings = rotoStandingsByRawStat(profiles, scored, rotoBasis);
+    const mine = rawStandings.find((r) => r.teamId === myTeamId);
+    if (!mine) return null;
+    return scored.map((cat) => ({ category: cat, rank: mine.ranks[cat] ?? null, of: teamCount }));
+  }, [profiles, myTeamId, format, scored, teamCount, rotoBasis]);
 
   // Which team's roster the panel below shows — the same selectedTeamId a
   // click on either standings table sets, defaulting to the user's own team

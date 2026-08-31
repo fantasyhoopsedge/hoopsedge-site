@@ -246,6 +246,13 @@ function WaiverEdgeContent() {
   const [seasonMode, setSeasonMode] = useState<WaiverSeasonMode>("projection");
   const [cart, setCart] = useState<Map<string, CartEntry>>(new Map());
   const [simOpen, setSimOpen] = useState(false);
+  /** Which +N depth tier the header charts (POWER RANKING / CATEGORY
+   *  STRENGTH) are weighted against — independent of the Simulator modal's
+   *  own local depth control below, same "Starters/+1../+5" scale
+   *  (DEPTH_LABELS). Ash, 2026-08-31: "make sure both are dynamically
+   *  linked to the chosen no. of starters" — this used to be hardcoded to
+   *  Starters (0) with no control to change it. */
+  const [chartDepth, setChartDepth] = useState(0);
 
   useEffect(() => {
     if (!saved) {
@@ -361,16 +368,17 @@ function WaiverEdgeContent() {
     const capPos = saved?.settings.capPos ?? DEFAULT_GAMES_CAP_SETTINGS.capPos;
     const capMatch = saved?.settings.capMatch ?? DEFAULT_GAMES_CAP_SETTINGS.capMatch;
     const weight = depthWeight(lineupCadence, chartFormat, capPos, capMatch);
-    return buildDepthWeightedProfiles(chartAnalysis, 0, weight, {
+    return buildDepthWeightedProfiles(chartAnalysis, chartDepth, weight, {
       ...chartEffective, exactTeamId: chartAnalysis.myTeamId ?? undefined, valueMode: "nineCatV",
     });
-  }, [chartAnalysis, chartFormat, chartEffective, saved?.settings.lineupCadence, saved?.settings.capPos, saved?.settings.capMatch]);
-  // Roto points are raw-stat-ranked (rotoStandingsByRawStat), so — unlike
-  // categoryStrengthPoints below, which is z-score-based and therefore
-  // Totals/Per-game-agnostic by design — this DOES need the main table's own
-  // statMode (Ash, 2026-08-31: "the power rankings... need to be dynamic
-  // when user switches from TOTALS vs PER GAME... tied to PER GAME only" —
-  // this was hardcoded "perGame" instead of reading statMode).
+  }, [chartAnalysis, chartFormat, chartEffective, chartDepth, saved?.settings.lineupCadence, saved?.settings.capPos, saved?.settings.capMatch]);
+  // Roto points and CATEGORY STRENGTH are both raw-stat-ranked
+  // (rotoStandingsByRawStat) so both need the main table's own statMode
+  // (Ash, 2026-08-31: "the power rankings... need to be dynamic when user
+  // switches from TOTALS vs PER GAME... tied to PER GAME only", then again
+  // for CATEGORY STRENGTH specifically: "does not appear to change when
+  // toggling between totals and per game" — the z-score path below
+  // (projectRotoStandings/categoryEdges) was statMode-blind by construction).
   const chartRotoStandings = useMemo(
     () => (chartProfiles && chartFormat === "roto" ? rotoStandingsByRawStat(chartProfiles, chartScored, statMode) : null),
     [chartProfiles, chartFormat, chartScored, statMode],
@@ -395,13 +403,21 @@ function WaiverEdgeContent() {
   }, [chartMyTeamId, chartFormat, chartRotoStandings, chartH2hRecords]);
   const categoryStrengthPoints: RadarPoint[] | null = useMemo(() => {
     if (!chartProfiles || !chartMyTeamId || chartFormat === "points" || chartScored.length === 0) return null;
-    const zStandings = projectRotoStandings(chartProfiles, chartScored);
-    const edges = categoryEdges(chartMyTeamId, chartProfiles, zStandings, chartScored);
-    const byCat = new Map(edges.map((e) => [e.category, e]));
-    return chartScored.map((cat) => ({ category: cat, rank: byCat.get(cat)?.rank ?? null, of: chartTeamCount }));
-  }, [chartProfiles, chartMyTeamId, chartFormat, chartScored, chartTeamCount]);
+    const rawStandings = rotoStandingsByRawStat(chartProfiles, chartScored, statMode);
+    const mine = rawStandings.find((r) => r.teamId === chartMyTeamId);
+    if (!mine) return null;
+    return chartScored.map((cat) => ({ category: cat, rank: mine.ranks[cat] ?? null, of: chartTeamCount }));
+  }, [chartProfiles, chartMyTeamId, chartFormat, chartScored, chartTeamCount, statMode]);
   const chartsPanel = (myPowerRank || categoryStrengthPoints) ? (
-    <div style={{ display: "flex", gap: 48, flexWrap: "wrap", alignItems: "flex-start" }}>
+    <div>
+      <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, marginBottom: 14 }}>
+        {DEPTH_LABELS.map((label, i) => (
+          <button key={label} type="button" onClick={() => setChartDepth(i)} style={pill(chartDepth === i)}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 48, flexWrap: "wrap", alignItems: "flex-start" }}>
       {myPowerRank && (
         <DashboardCard title="POWER RANKING" bordered={false}>
           <PercentileRing
@@ -426,6 +442,7 @@ function WaiverEdgeContent() {
           <CategoryStrengthChart points={categoryStrengthPoints} height={130} barWidth={24} gap={8} />
         </div>
       )}
+      </div>
     </div>
   ) : null;
 
