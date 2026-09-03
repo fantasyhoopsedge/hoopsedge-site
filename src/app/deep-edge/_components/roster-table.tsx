@@ -6,7 +6,11 @@ import {
   CATEGORY_LABEL, DRAFT_PICK_YEARS_IMPORTED, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
 } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
+import type { LineupValueMode } from "@/lib/fantrax/lineup";
+import { formatTotal } from "@/lib/fantrax/power-rankings";
 import type { ContractInfo } from "@/lib/fantrax/roster-edge";
+import { ASSET_TIER_COLOR, pickAssetTier } from "./asset-tiers";
+import { pickEquivalentValue } from "@/lib/fantrax/trade-verdict";
 import { normalizeTeamAbbr } from "@/lib/nba-teams";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
@@ -36,18 +40,22 @@ export type EnrichData = {
    *  optional because Roster Edge's own destructure predates this field and
    *  doesn't need it; Trade Edge's player cards are the first consumer. */
   ageByFheId?: Record<string, number>;
+  /** True for a 2nd-year NBA player (see getSophomoreByFheId) — optional for
+   *  the same reason as ageByFheId above; Trade Edge's asset-tier card color
+   *  (_components/asset-tiers.ts) is the first consumer. */
+  sophomoreByFheId?: Record<string, boolean>;
 };
 export type RosterTableFormat = "roto" | "h2hcat" | "points";
 /** Which "value" flavor the roster table's per-category cell decoration
- *  should read as — matches the tick-set selector's three modes exactly
- *  (Roster Edge's own TickValueMode). Minus1V dynamically excludes each
- *  player's own weakest scored category; 8-Cat always excludes TO for
- *  everyone; 9-Cat excludes nothing. */
-export type ValueDisplayMode = "minus1V" | "nineCatV" | "eightCatV";
+ *  should read as — matches the "Rank lineup by" selector's options (minus
+ *  "league", which none of these callers expose as a user choice). Minus1V
+ *  dynamically excludes each player's own weakest scored category; 8-Cat
+ *  always excludes TO for everyone; 9-Cat and FPTS decorate nothing. */
+export type ValueDisplayMode = Exclude<LineupValueMode, "league">;
 
 export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";
-  return `$${(n / 1_000_000).toFixed(2)}M`;
+  return `$${(n / 1_000_000).toFixed(1)}M`;
 }
 export function formatContract(info: ContractInfo | undefined): string {
   if (!info) return "—";
@@ -153,6 +161,24 @@ export function weightedAverage(players: ResolvedPlayer[], cat: FheCategory | Ex
   }
   return games > 0 ? total / games : null;
 }
+/** Σ each player's own season total (rate × his own GP) — the TOTALS-mode
+ *  counterpart to weightedAverage's blended per-game rate, for a summary row
+ *  like Power Rankings' embedded roster panel. FG%/FT% still read as a
+ *  blended attempts-weighted rate (weightedAverage) — a season shooting
+ *  percentage isn't meaningful summed across players. */
+export function summedTotal(players: ResolvedPlayer[], cat: FheCategory): number | null {
+  if (cat === "FG" || cat === "FT") return weightedAverage(players, cat);
+  let total = 0;
+  let any = false;
+  for (const p of players) {
+    const raw = statValue(p, cat);
+    const g = p.gamesPlayed ?? 0;
+    if (raw == null || g <= 0) continue;
+    total += raw * g;
+    any = true;
+  }
+  return any ? total : null;
+}
 
 // ── conditional formatting — byte-for-byte the /seasonal-rankings "Player Cat
 // Value" table's own scheme: a continuous green/red opacity gradient off the
@@ -238,6 +264,13 @@ export interface RosterTableRowProps {
    *  under "minus1V", grey-out on TO under "eightCatV", nothing under
    *  "nineCatV". Defaults to "minus1V" (today's only caller). */
   valueMode?: ValueDisplayMode;
+  /** "totals" shows each visible category as a season total (this player's
+   *  own per-game rate × his own GP, comma-formatted with no decimals via
+   *  formatTotal) instead of the per-game rate — FG%/FT% are exempt (always
+   *  a rate, never summed). Defaults to "perGame" (today's only behavior);
+   *  Power Rankings' embedded roster panel is the first "totals" caller,
+   *  mirroring the team-level PER GAME/TOTALS toggle above it. */
+  statsMode?: "perGame" | "totals";
   /** League's own roster slot config — see posDisplayFor(). */
   positionSlots: Record<string, number>;
   /** Whole-league player pool, for the USG z-score baseline and the
@@ -253,7 +286,7 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", positionSlots, leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", statsMode = "perGame", positionSlots, leaguePlayers, usgStats, leadingCell, className,
 }: RosterTableRowProps) {
   const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
@@ -274,8 +307,8 @@ export function RosterTableRow({
       {leadingCell}
       <td className="l">
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <PlayerHeadshot name={p.name} size={26} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} />
-          <span style={{ fontWeight: 600 }}>{p.name}</span>
+          <PlayerHeadshot name={p.name} size={26} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-ink)" fontSize={10} rookie={p.isRookie} />
+          <span className="de-player-name">{p.name}</span>
         </div>
       </td>
       <td><TeamLogo team={p.nbaTeam} /></td>
@@ -294,7 +327,7 @@ export function RosterTableRow({
       <td>{p.gamesPlayed ?? "—"}</td>
       <td>{p.minutesPerGame != null ? p.minutesPerGame.toFixed(1) : "—"}</td>
       <td style={{ background: statBg(usgZ) }}>{p.usgPct != null ? `${p.usgPct.toFixed(1)}%` : "—"}</td>
-      <td style={{ background: valueBg(value), fontWeight: 700 }} title={value != null ? `z-score ${value.toFixed(2)}` : undefined}>
+      <td style={{ background: valueBg(value) }} title={value != null ? `z-score ${value.toFixed(2)}` : undefined}>
         {formatRank(valueRank)}
       </td>
       {format !== "points" && (
@@ -314,6 +347,12 @@ export function RosterTableRow({
         const title = isWeak
           ? "Excluded from this player's Minus1V"
           : isEightCatDrop ? "Excluded from 8-Cat scoring" : undefined;
+        const rawStat = statValue(p, cat);
+        const cellText = rawStat == null
+          ? "—"
+          : statsMode === "totals" && cat !== "FG" && cat !== "FT"
+            ? formatTotal(cat, rawStat * (p.gamesPlayed ?? 0))
+            : formatStat(cat, rawStat);
         return (
           <td
             key={cat}
@@ -325,7 +364,7 @@ export function RosterTableRow({
               boxShadow: isWeak ? "inset 0 0 0 2px #f59e0b" : undefined,
             }}
           >
-            {formatStat(cat, statValue(p, cat))}
+            {cellText}
           </td>
         );
       })}
@@ -389,8 +428,19 @@ export function formatDraftPick(pick: TeamDraftPick): string {
 /** Flat picks list -> one row per year across the FULL imported window
  *  (seasonYear..seasonYear+3), even years with zero picks — an empty year is
  *  meaningful (see buildDraftPickAssets in league.ts), not a gap to hide by
- *  only rendering years that happen to have data. */
-function draftPickYearRows(picks: readonly TeamDraftPick[], seasonYear: number): { year: number; picks: TeamDraftPick[] }[] {
+ *  only rendering years that happen to have data — UNLESS `yearsWithLeagueData`
+ *  says nobody in the whole league owns a pick that year either, in which case
+ *  the year hasn't actually been introduced to the league yet (a team-level
+ *  empty year — this team traded theirs away, but the league tracks the year —
+ *  still renders; Ash, 2026-08-23: "if future years picks are not introduced
+ *  to the league, then don't show a trading card"). The current season always
+ *  renders regardless — its own empty state (draft pending/concluded) is
+ *  meaningful on its own, per emptyYearLabel. */
+function draftPickYearRows(
+  picks: readonly TeamDraftPick[],
+  seasonYear: number,
+  yearsWithLeagueData?: ReadonlySet<number>,
+): { year: number; picks: TeamDraftPick[] }[] {
   const byYear = new Map<number, TeamDraftPick[]>();
   for (const p of picks) {
     const list = byYear.get(p.year) ?? [];
@@ -400,7 +450,7 @@ function draftPickYearRows(picks: readonly TeamDraftPick[], seasonYear: number):
   return Array.from({ length: DRAFT_PICK_YEARS_IMPORTED }, (_, i) => {
     const year = seasonYear + i;
     return { year, picks: (byYear.get(year) ?? []).sort((a, b) => a.round - b.round) };
-  });
+  }).filter((row) => row.year === seasonYear || !yearsWithLeagueData || yearsWithLeagueData.has(row.year));
 }
 
 /** What an empty year's row/card says. Only the CURRENT season year reads as
@@ -462,56 +512,270 @@ export function DraftPicksPanel({
   );
 }
 
-/** Light, round-coded tint + border for a draft-pick card — round 1-4 each
- *  get a distinct hue at low opacity (the same "translucent wash over the
- *  dark surface" convention as statBg/valueBg elsewhere), round 5+ (rare)
- *  falls back to a neutral hairline tint rather than guessing a 5th hue. */
-const ROUND_ACCENT: Record<number, { bg: string; border: string }> = {
-  1: { bg: "rgba(59,130,246,0.16)", border: "#3b82f6" },
-  2: { bg: "rgba(34,197,94,0.16)", border: "#22c55e" },
-  3: { bg: "rgba(168,85,247,0.16)", border: "#a855f7" },
-  4: { bg: "rgba(245,158,11,0.16)", border: "#f59e0b" },
-};
-function roundAccent(round: number): { bg: string; border: string } {
-  return ROUND_ACCENT[round] ?? { bg: "var(--rt-surface-soft)", border: "var(--rt-hairline)" };
-}
-
 function ordinal(n: number): string {
   if (n % 100 >= 11 && n % 100 <= 13) return `${n}th`;
   const suffix = n % 10 === 1 ? "st" : n % 10 === 2 ? "nd" : n % 10 === 3 ? "rd" : "th";
   return `${n}${suffix}`;
 }
 
-/** PlayerMiniCard's own rendered height (44px headshot + name/pos/DYN/value
- *  lines + padding), measured live — matched here so a pick card sits at the
- *  same height as a player card in the same grid, not just the same width. */
-const PICK_CARD_MIN_HEIGHT = 152;
+/** Same sign-aware year-decay as custom-valuations.ts's own decayFromAnchor
+ *  (kept as a separate small copy here rather than imported — that module is
+ *  `server-only` and this one runs client-side): shrinks a positive baseline
+ *  toward zero, pushes a negative baseline further from zero — either way
+ *  strictly worse than the anchor, since a plain multiplicative decay gets a
+ *  negative baseline backwards (pulls it toward zero = numerically HIGHER =
+ *  reads as MORE valuable). */
+const YEAR_DECAY = 0.8;
+function decayFromAnchor(anchor: number, yearsOut: number): number {
+  const factor = YEAR_DECAY ** yearsOut;
+  return anchor >= 0 ? anchor * factor : anchor / factor;
+}
+
+/** 1-based rank of `target` within a COMBINED pool: real players (`players`,
+ *  filtered through `valueOf`) together with every OTHER valued asset's raw
+ *  number (`extraValues` — a league's real+bracket draft-pick values, e.g.
+ *  the generated ledger's own rows). One consistent counting method for
+ *  every card on Trade Edge — player or pick, ledger-covered or not — so
+ *  numbers from two differently-shaped pools never end up displayed
+ *  side by side as though they meant the same thing.
+ *
+ *  This replaced two separate, INCOMPATIBLE approaches that used to coexist
+ *  here:
+ *   - A player's card used to rank him against `leaguePlayers` ALONE
+ *     (plain `rankAmong`, no picks at all), so his rank silently omitted
+ *     every draft pick the league actually holds — undercounting his TRUE
+ *     rank by exactly however many picks out-valued him (Ash, 2026-08-27:
+ *     Kyrie Irving's card read #74 against League Rankings' own #85 for the
+ *     SAME player — the 11-pick gap was exactly Woolridge DMD30's 11
+ *     real+bracket picks valued above him).
+ *   - A pick's card used to trust the generated ledger's OWN precomputed
+ *     rank verbatim for a current-year slot, but fall back to ranking a
+ *     projected/future value against ONLY the ledger's pick rows
+ *     (`extraValues` here, with no real players at all) for a future pick,
+ *     and ranking a no-ledger pick against `leaguePlayers` ALONE for a
+ *     standard/real-salary league with no ledger — three different pools
+ *     used across three tiers of the same function, patched onto League
+ *     Rankings' own toRanked() rank via a post-hoc override for whichever
+ *     picks the ledger covered. Mixing a subset of ledger-pool ranks into a
+ *     page otherwise numbered from a DIFFERENT pool produced a real,
+ *     visible bug: a later, lower-value row displaying a BETTER (smaller)
+ *     rank number than the row directly above it (Ash, 2026-08-27, League
+ *     Rankings: a 2026 1st (#16) row ranked 170 sat directly above a 2029
+ *     #4-8 bracket row ranked 167 — impossible within one consistently
+ *     numbered pool). */
+export function rankAmongCombined(
+  players: readonly ResolvedPlayer[],
+  valueOf: (p: ResolvedPlayer) => number | null,
+  extraValues: readonly number[],
+  target: number | null,
+): number | null {
+  if (target == null) return null;
+  let rank = 1;
+  for (const p of players) {
+    const v = valueOf(p);
+    if (v != null && v > target) rank++;
+  }
+  for (const v of extraValues) if (v > target) rank++;
+  return rank;
+}
+
+export interface PickValueStatus {
+  /** "#47" once resolved, "—" while unresolved. */
+  label: string;
+  /** True for a FUTURE-year pick in a league that HAS custom-ledger data
+   *  (so a real, accurate number genuinely exists to compute) but hasn't
+   *  been computed yet — the compare panel hasn't been opened, so there's
+   *  no post-trade standing to project a slot from. The caller should offer
+   *  a "Value?" trigger instead of guessing (Ash, 2026-08-23: "currently
+   *  those cards display the wrong value.. not even close to ballpark
+   *  value... not display a rank value to those cards until the trade is
+   *  proposed"). False whenever a real value WAS found, and also false for
+   *  a league with no custom ledger at all — there, the generic ratio-model
+   *  estimate is the best available number and isn't withheld. */
+  needsCalc: boolean;
+}
+
+/** A pick's own trade value, in priority order — but ALWAYS ranked the same
+ *  way once found: rankAmongCombined() against real players (leaguePlayers)
+ *  plus every OTHER pick's value (pickLedgerValues), the one combined pool
+ *  every card on this page uses. Never the ledger's own precomputed
+ *  tradeRank verbatim — that number lives inside a differently-shaped pool
+ *  (custom-valuations.ts's own combined sort), and mixing it into a page
+ *  numbered from THIS pool is exactly what produced a real, visible bug: a
+ *  later, lower-value row displaying a smaller (better) rank than the row
+ *  above it (see rankAmongCombined's own doc for the live example).
+ *  1. The ledger's own real VALUE for a CURRENT-year pick with a known slot
+ *     (the precise number the asset-values page itself shows), ranked here.
+ *  2. For a FUTURE-year pick with a projected slot (see trade-edge/page.tsx's
+ *     withProjectedSlot — team-standing-based, only populated once the
+ *     Power Rankings/Category Edge compare panel has been opened), the SAME
+ *     real custom-computed value a current-year pick at that identical slot
+ *     would carry, sign-aware-decayed for the year gap — not the generic
+ *     ratio-model estimate, which was found to diverge wildly from the real
+ *     custom curve (Ash, 2026-08-23: caught a real pick #44 the ledger ranks
+ *     #357 showing as rank #177 — nearly twice as valuable — once carried
+ *     through the generic model instead of the real curve at that slot).
+ *  3. UNRESOLVED (needsCalc: true) — a future pick in a custom-ledger league
+ *     whose slot hasn't been projected yet. No number is guessed here at
+ *     all; the caller shows a "Value?" trigger instead once the pick is
+ *     part of a proposed trade.
+ *  4. The generic ratio-model estimate (pickEquivalentValue) — only reached
+ *     when there's no custom ledger to be more precise than (a standard/
+ *     real-salary league), where this really is the best number available,
+ *     not a wrong one being hidden.
+ *  Shared by DraftPickCardsGrid's own cards and Trade Edge's Trade Verdict
+ *  table so a pick reads the same number everywhere. */
+export function pickValueStatus(
+  pick: TeamDraftPick,
+  opts: {
+    leaguePlayers?: readonly ResolvedPlayer[];
+    baseValueByFantraxId?: ReadonlyMap<string, number>;
+    family?: "categories" | "points";
+    /** overallPick -> that CURRENT-year pick's real custom-computed trade
+     *  value — every ledger pick row that carries a pickKey, reindexed by
+     *  its bare slot number so a future pick projected to the same slot can
+     *  sample the real curve there. A non-empty map is also this function's
+     *  signal that "this league HAS custom-ledger data," gating tier 3
+     *  (needsCalc) vs. tier 4 (the generic fallback). */
+    currentYearPickValueByOverallPick?: ReadonlyMap<number, number>;
+    /** This league's current/imminent draft year — a pick beyond it is a
+     *  future pick eligible for tiers 2/3 above. */
+    seasonYear?: number;
+    /** Every OTHER pick's own value — the generated ledger's rows, PICK
+     *  rows only (a full-mode ledger's PLAYER rows must never end up here;
+     *  they're already counted once through `leaguePlayers` above, via
+     *  baseValueByFantraxId's own ledger-value overlay — see
+     *  trade-edge/page.tsx's own ledgerValues doc). Combined with
+     *  leaguePlayers via rankAmongCombined for every tier below. */
+    pickLedgerValues?: readonly number[];
+  },
+): PickValueStatus {
+  const { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues } = opts;
+  const rankOf = (value: number | null): number | null =>
+    leaguePlayers
+      ? rankAmongCombined(leaguePlayers, (p) => baseValueByFantraxId?.get(p.fantraxId) ?? null, pickLedgerValues ?? [], value)
+      : null;
+
+  const isFuture = seasonYear != null && pick.year > seasonYear;
+  // currentYearPickValueByOverallPick is keyed by bare overall-pick number,
+  // with no year attached — it only ever holds THIS league's current draft
+  // class. A future pick can carry a real overallPick too (withProjectedSlot
+  // in trade-edge/page.tsx assigns one from a team's projected standing), so
+  // this tier must explicitly exclude a future pick rather than let it match
+  // the current-year value at that same slot number undecayed — that's
+  // exactly what tier 2 below exists to compute correctly instead.
+  if (!isFuture && pick.overallPick != null && currentYearPickValueByOverallPick) {
+    const v = currentYearPickValueByOverallPick.get(pick.overallPick);
+    if (v != null) return { label: formatRank(rankOf(v)), needsCalc: false };
+  }
+  const hasLedgerData = Boolean(currentYearPickValueByOverallPick && currentYearPickValueByOverallPick.size > 0);
+  if (isFuture && hasLedgerData) {
+    if (pick.overallPick != null) {
+      const anchor = currentYearPickValueByOverallPick!.get(pick.overallPick);
+      if (anchor != null) {
+        const value = decayFromAnchor(anchor, pick.year - seasonYear!);
+        return { label: formatRank(rankOf(value)), needsCalc: false };
+      }
+    }
+    return { label: "—", needsCalc: true };
+  }
+  if (!leaguePlayers || !baseValueByFantraxId || !family) return { label: "—", needsCalc: false };
+  const v = pickEquivalentValue(pick, leaguePlayers, baseValueByFantraxId, family);
+  return { label: formatRank(rankOf(v)), needsCalc: false };
+}
 
 /** One draft-pick "card" — same footprint (grid cell width, padding, corner
- *  radius) as PlayerMiniCard so a row of picks reads as the same kind of
- *  object as a row of players, round-tinted per roundAccent() (Ash,
- *  2026-08-14: "cards that match the same size as a player card... shade
- *  them in diff colours, for 1st/2nd/3rd/4th round"). */
-function DraftPickCard({ pick }: { pick: TeamDraftPick }) {
-  const { bg, border } = roundAccent(pick.round);
+ *  radius) and now the same solid-fill/asset-tier treatment as
+ *  PlayerMiniCard (Ash, 2026-08-23: gold for this year's pick, darker FHE
+ *  orange for a future 1st, lighter FHE orange for a future 2nd — see
+ *  asset-tiers.ts's pickAssetTier). `checked`/`onToggle` are optional —
+ *  display-only callers (Roster Edge's own pick panel) pass neither and get
+ *  a plain non-interactive card; Trade Edge (the only selectable caller so
+ *  far) passes both, mirroring PlayerMiniCard's own checked/onToggle shape
+ *  so a pick and a player read as the same kind of selectable trade asset. */
+function DraftPickCard({
+  pick, seasonYear, checked, onToggle, valueRankLabel, needsCalc, onRequestValue,
+}: {
+  pick: TeamDraftPick; seasonYear: number; checked?: boolean; onToggle?: () => void;
+  /** "#N" — this pick's equivalent trade value, computed by the caller (see
+   *  DraftPickCardsGrid's own doc). "—" when that data wasn't supplied
+   *  (Roster Edge's own plain display usage) OR when `needsCalc` is true —
+   *  the ONLY number this card shows when it shows one at all — Ash,
+   *  2026-08-23: "the only value to display on the card is the trade value
+   *  rank," always plain white so it reads the same across every tier
+   *  color, matching PlayerMiniCard's own rank styling. No source/tier-name
+   *  text — the card's a small square with no room for it, and the color
+   *  alone already carries the tier. */
+  valueRankLabel: string;
+  /** True when this is a future pick whose real value hasn't been computed
+   *  yet (see pickValueStatus) — the card shows nothing (unchecked) or a
+   *  "Value?" trigger (checked) instead of the misleading generic-model
+   *  guess this session found reading "not even close to ballpark value"
+   *  (Ash, 2026-08-23). */
+  needsCalc?: boolean;
+  /** Launches the Power Rankings compare (the same computation that
+   *  resolves needsCalc) — only rendered once the pick is checked, i.e.
+   *  actually part of a proposed trade. */
+  onRequestValue?: () => void;
+}) {
+  const assetTier = pickAssetTier(pick, seasonYear);
+  const { bg } = ASSET_TIER_COLOR[assetTier];
+  const selectable = Boolean(onToggle);
+  const Tag = selectable ? "button" : "div";
+  const textShadow = "0 1px 3px rgba(0,0,0,0.45)";
+  const inkSoft = "rgba(255,255,255,0.85)";
+  const showCalcTrigger = needsCalc && checked && onRequestValue;
   return (
-    <div
+    <Tag
+      type={selectable ? "button" : undefined}
+      onClick={onToggle}
       title={pick.originalOwnerLabel ? `Acquired from ${pick.originalOwnerLabel}` : undefined}
       style={{
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
-        padding: "10px 6px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14, border: `1px solid ${border}`, background: bg,
-        textAlign: "center", color: "var(--rt-ink)",
+        position: "relative", display: "flex", flexDirection: "column", aspectRatio: "1 / 1",
+        padding: 10, borderRadius: 16, border: checked ? "2px solid var(--rt-ink)" : "2px solid transparent",
+        background: bg, textAlign: "center", color: "#fff", cursor: selectable ? "pointer" : "default",
+        font: "inherit", width: "100%", overflow: "hidden",
       }}
     >
-      <div style={{ fontSize: 20, fontWeight: 800 }}>{ordinal(pick.round)}</div>
-      <div style={{ fontSize: 11, color: "var(--rt-muted)" }}>
-        {pick.overallPick != null ? `Pick #${pick.overallPick}` : "round"}
-      </div>
-      <div style={{ fontSize: 13, fontWeight: 700, fontFamily: "var(--rt-font-mono)" }}>{pick.year}</div>
-      {pick.originalOwnerLabel && (
-        <div style={{ fontSize: 9.5, color: "var(--rt-muted)", lineHeight: 1.2 }}>via {pick.originalOwnerLabel}</div>
+      {checked && (
+        <span style={{ position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 999, background: "var(--rt-ink)", color: "var(--rt-canvas)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>
+          ✓
+        </span>
       )}
-    </div>
+      <div style={{ fontSize: 12, fontWeight: 700, fontFamily: "var(--rt-font-mono)", textShadow }}>{pick.year}</div>
+      <div style={{ fontSize: 16, fontWeight: 800, marginTop: 2, textShadow }}>
+        {ordinal(pick.round)}
+        {pick.overallPick != null && <span style={{ fontSize: 10, fontWeight: 700, color: inkSoft }}> · #{pick.overallPick}</span>}
+      </div>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {showCalcTrigger ? (
+          // A real <button> can't nest inside the card's own <button> (Tag
+          // above) — this is a keyboard-accessible span standing in for one,
+          // with its own click swallowed before it reaches the card's
+          // onToggle so tapping it never un-selects the pick.
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => { e.stopPropagation(); onRequestValue(); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); e.preventDefault(); onRequestValue(); } }}
+            style={{
+              fontSize: 12, fontWeight: 800, lineHeight: 1, fontFamily: "var(--rt-font-mono)", color: "#fff",
+              background: "rgba(0,0,0,0.28)", border: "1px solid rgba(255,255,255,0.6)", borderRadius: 999,
+              padding: "6px 12px", cursor: "pointer",
+            }}
+          >
+            Value?
+          </span>
+        ) : (
+          <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1, fontFamily: "var(--rt-font-mono)", color: "#fff", textShadow }}>
+            {valueRankLabel}
+          </div>
+        )}
+      </div>
+      {pick.originalOwnerLabel && (
+        <div style={{ fontSize: 9, color: inkSoft, textShadow, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>via {pick.originalOwnerLabel}</div>
+      )}
+    </Tag>
   );
 }
 
@@ -524,7 +788,7 @@ function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; s
     <div
       style={{
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
-        padding: "10px 10px", minHeight: PICK_CARD_MIN_HEIGHT, borderRadius: 14, border: "1px dashed var(--rt-hairline)",
+        aspectRatio: "1 / 1", padding: 10, borderRadius: 16, border: "1px dashed var(--rt-hairline)",
         textAlign: "center", color: "var(--rt-muted)",
       }}
     >
@@ -537,23 +801,89 @@ function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; s
 /**
  * A team's owned future draft-pick assets as a grid of pick "cards" —
  * Trade Edge's own placement (one grid per side, matching PlayerMiniCard's
- * grid immediately above it), round-tinted so 1st/2nd/3rd/4th read apart at
- * a glance. Same full-year-window behavior as DraftPicksPanel: an empty year
- * still renders (as DraftPickEmptyCard) rather than disappearing.
+ * grid immediately above it), asset-tier colored so this year's picks read
+ * gold and future 1sts/2nds split by shade of orange (see asset-tiers.ts).
+ * Same full-year-window behavior as DraftPicksPanel: an empty year still
+ * renders (as DraftPickEmptyCard) rather than disappearing.
  */
 export function DraftPickCardsGrid({
-  teamName, picks, seasonYear, draftStatus,
+  teamName, picks, seasonYear, draftStatus, selectedKeys, onTogglePick, leaguePlayers, baseValueByFantraxId, family,
+  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, yearsWithLeagueData,
 }: {
   teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
+  /** Every year for which ANY team in the league owns at least one pick —
+   *  when supplied, a future year (never the current season) absent from
+   *  this set is dropped entirely rather than rendered as an empty
+   *  placeholder card, since that means the league hasn't introduced pick
+   *  trading that far out yet, not that this one team simply has none this
+   *  year (Ash, 2026-08-23). Omit for Roster Edge's own display grid
+   *  (unaffected — falls back to the full-window behavior). */
+  yearsWithLeagueData?: ReadonlySet<number>;
+  /** Trade Edge only — omit all four for a plain display grid (Roster Edge's
+   *  own usage), which falls back to "—" for the hero value-rank instead of
+   *  computing one. `selectedKeys` holds the same `${year}-${round}-${i}`
+   *  string each card is already keyed by below, so the caller doesn't need
+   *  a separate id scheme for picks the way it does for players' fantraxId.
+   *  `onTogglePick` hands back the pick object alongside its key — the key
+   *  alone isn't enough for the caller to reconstruct WHICH pick was
+   *  toggled without duplicating this grid's own year/round grouping. */
+  selectedKeys?: ReadonlySet<string>;
+  onTogglePick?: (key: string, pick: TeamDraftPick) => void;
+  /** Last-resort fallback: feed pickEquivalentValue for each card's hero
+   *  stat — "this pick's equivalent trade value" — used only when
+   *  currentYearPickValueByOverallPick has no entry for a given pick (no
+   *  custom ledger at all, or the compare panel hasn't been opened yet to
+   *  project a future pick's slot). Always ranked the same combined-pool
+   *  way regardless of which tier supplied the value. */
+  leaguePlayers?: readonly ResolvedPlayer[];
+  baseValueByFantraxId?: ReadonlyMap<string, number>;
+  family?: "categories" | "points";
+  /** overallPick -> that CURRENT-year pick's real custom-computed trade
+   *  value — the precise number for a CURRENT-year pick with a known slot,
+   *  ranked (via pickValueStatus's rankOf) against leaguePlayers + every
+   *  other pick's value together, taking priority over the generic
+   *  ratio-model fallback below. Also what a FUTURE pick projected to the
+   *  same slot samples from instead of the generic model — see
+   *  pickTradeValueRank's own doc (a real bug: the generic model showed a
+   *  future pick nearly TWICE as valuable as the real curve says the same
+   *  slot is worth). */
+  currentYearPickValueByOverallPick?: ReadonlyMap<number, number>;
+  /** Every OTHER pick's own value (the generated ledger's PICK rows only) —
+   *  combined with leaguePlayers for every tier of pickValueStatus's rankOf,
+   *  so a pick's card and a player's card are always counted against the
+   *  SAME pool. See pickValueStatus's own pickLedgerValues doc for why this
+   *  must never include a full-mode ledger's PLAYER rows. */
+  ledgerValues?: readonly number[];
+  /** Launches the Power Rankings compare (see trade-edge/page.tsx) so an
+   *  unresolved future pick's real value gets computed — passed only once
+   *  a trade partner is picked; the "Value?" trigger only ever renders on a
+   *  CHECKED pick, so this being present is what makes that trigger appear. */
+  onRequestValue?: () => void;
 }) {
-  const rows = draftPickYearRows(picks, seasonYear);
+  const rows = draftPickYearRows(picks, seasonYear, yearsWithLeagueData);
+  const statusFor = (pick: TeamDraftPick) => pickValueStatus(pick, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues: ledgerValues });
   return (
     <div>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{teamName} — Draft Picks</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(108px, 1fr))", gap: 8 }}>
         {rows.map(({ year, picks: yearPicks }) =>
           yearPicks.length > 0
-            ? yearPicks.map((p, i) => <DraftPickCard key={`${year}-${p.round}-${i}`} pick={p} />)
+            ? yearPicks.map((p, i) => {
+                const key = `${year}-${p.round}-${i}`;
+                const status = statusFor(p);
+                return (
+                  <DraftPickCard
+                    key={key}
+                    pick={p}
+                    seasonYear={seasonYear}
+                    checked={selectedKeys?.has(key)}
+                    onToggle={onTogglePick ? () => onTogglePick(key, p) : undefined}
+                    valueRankLabel={status.label}
+                    needsCalc={status.needsCalc}
+                    onRequestValue={onRequestValue}
+                  />
+                );
+              })
             : <DraftPickEmptyCard key={year} year={year} seasonYear={seasonYear} draftStatus={draftStatus} />,
         )}
       </div>

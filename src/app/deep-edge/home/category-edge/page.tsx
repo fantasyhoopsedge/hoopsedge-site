@@ -4,21 +4,25 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { LeagueAnalysis, ResolvedPlayer } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import {
-  buildOptimalLineup, categoryTier, rankTierLabel, teamPerGameStat,
+  buildOptimalLineup, categoryTier, teamPerGameStat, UI_VALUE_MODE_OPTIONS,
   resolveEffectiveScoring, type LineupAssignment, type LineupValueMode,
 } from "@/lib/fantrax/lineup";
 import {
   buildDepthWeightedProfiles, buildDepthWeightedTeamProfile, depthCaption, depthWeight,
-  deriveRankingsFormat, simulateH2HCategoryStandings,
+  deriveRankingsFormat, rotoStandingsByRawStat, simulateH2HCategoryStandings,
 } from "@/lib/fantrax/power-rankings";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
+import {
+  CategoryRadarChart, DashboardCard, ordinal, PercentileRing, RankBarPanel, RankBarRow, statusColor, TierPill,
+  type RadarPoint,
+} from "../../_components/category-dashboard";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft, IconSliders } from "../../_components/icons";
-import { tierBg, tierFill } from "../../_components/tier-colors";
+import { SegmentedControl } from "../../_components/segmented-control";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const TIER_COLOR: Record<string, string> = {
@@ -45,25 +49,17 @@ const CHIP_TOOLTIP_CSS = `
  *  photo (hard to make out who's who at a glance) and shows the player's
  *  name on hover via CHIP_TOOLTIP_CSS above. Shared between the starters
  *  and bench chip lists so both get the same sizing/tooltip behavior. */
-function CategoryChip({ name, slot, ring, dimmed }: { name: string; slot: string; ring: string; dimmed?: boolean }) {
+function CategoryChip({ name, slot, ring, dimmed, isRookie }: { name: string; slot: string; ring: string; dimmed?: boolean; isRookie?: boolean }) {
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
   return (
     <div className="de-chip" style={{ textAlign: "center", opacity: dimmed ? 0.4 : 1 }}>
       <span className="de-chip-tooltip">{name}</span>
       <div style={{ width: 46, height: 46, borderRadius: "50%", padding: 2, border: `2px solid ${ring}` }}>
-        <PlayerHeadshot name={name} size={40} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={13} />
+        <PlayerHeadshot name={name} size={40} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={13} rookie={isRookie} />
       </div>
       <div style={{ fontSize: 9.5, color: "var(--rt-muted)", marginTop: 3, fontFamily: "var(--rt-font-mono)" }}>{slot}</div>
     </div>
   );
-}
-
-/** 11th/12th/13th are the well-known exception to the 1st/2nd/3rd rule —
- *  handled here since ranks run up to a league's full team count. */
-function ordinal(rank: number): string {
-  if (rank % 100 >= 11 && rank % 100 <= 13) return `${rank}th`;
-  const suffix = rank % 10 === 1 ? "st" : rank % 10 === 2 ? "nd" : rank % 10 === 3 ? "rd" : "th";
-  return `${rank}${suffix}`;
 }
 
 function formatPerGame(cat: FheCategory, raw: number): string {
@@ -79,10 +75,6 @@ function formatDelta(cat: FheCategory, raw: number): string {
 
 const STAT_KEY: Record<FheCategory, keyof { pts: 1; fg3m: 1; reb: 1; ast: 1; stl: 1; blk: 1; tov: 1 }> = {
   PTS: "pts", FG3: "fg3m", REB: "reb", AST: "ast", STL: "stl", BLK: "blk", TO: "tov", FG: "pts", FT: "pts",
-};
-
-const VALUE_MODE_LABEL: Record<LineupValueMode, string> = {
-  league: "League", nineCatV: "9-Cat", eightCatV: "8-Cat", minus1V: "Minus1V",
 };
 
 /**
@@ -118,7 +110,7 @@ function CategoryEdgeContent() {
   const [error, setError] = useState("");
   const [depth, setDepth] = useState(0);
   const [statMode, setStatMode] = useState<"perGame" | "totals">("perGame");
-  const [valueMode, setValueMode] = useState<LineupValueMode>("league");
+  const [valueMode, setValueMode] = useState<LineupValueMode>("minus1V");
   // Manual starter overrides — replaces a plain rule-out model. Forcing a
   // bench player IN makes them claim a slot before the normal best-value
   // pass runs; forcing a starter OUT excludes them entirely. A player can
@@ -126,6 +118,18 @@ function CategoryEdgeContent() {
   const [forcedIn, setForcedIn] = useState<Set<string>>(new Set());
   const [forcedOut, setForcedOut] = useState<Set<string>>(new Set());
   const [showAdjust, setShowAdjust] = useState(false);
+  // Which roster this whole page is built for — defaults to the connected
+  // league's own team (analysis.myTeamId), but any team can be viewed
+  // (Ash, 2026-08-24: "allow league team to be selected... defaults to my
+  // team always" — there was no way to look at anyone else's lineup here).
+  // Null means "use my team"; reset to null on a league switch so a team id
+  // from the PREVIOUS league never gets treated as this one's selection.
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting derived state when the league this effect depends on changes, not a plain render-time computation (same pattern as home/page.tsx's own league-switch resets)
+    setSelectedTeamId(null);
+  }, [saved?.leagueId]);
 
   useEffect(() => {
     if (!saved) return;
@@ -168,23 +172,38 @@ function CategoryEdgeContent() {
   );
 
   // The expensive part: builds a profile for EVERY team in the league.
-  // Deliberately excludes forcedIn/forcedOut/valueMode from its deps —
-  // those only ever change the viewer's OWN team's lineup (computed below
-  // builds that separately as `myProfile`, exactly, and splices it in over
-  // whatever's here), so recomputing all 30 other teams on every "Adjust
-  // starters" click was pure wasted work — one real cause of the "Page
-  // Unresponsive" freeze Ash hit (2026-08-11). No exactTeamId here on
-  // purpose: since myTeamId's own entry always gets overwritten by the
-  // separately-exact `myProfile` below, solving it exactly in THIS pass
-  // too would just be discarded work — every team here can be greedy.
+  // Deliberately excludes forcedIn/forcedOut from its deps — those only ever
+  // change the viewer's OWN team's lineup (computed below builds that
+  // separately as `myProfile`, exactly, and splices it in over whatever's
+  // here), so recomputing all 30 other teams on every "Adjust starters"
+  // click was pure wasted work — one real cause of the "Page Unresponsive"
+  // freeze Ash hit (2026-08-11). No exactTeamId here on purpose: since
+  // myTeamId's own entry always gets overwritten by the separately-exact
+  // `myProfile` below, solving it exactly in THIS pass too would just be
+  // discarded work — every team here can be greedy.
+  //
+  // valueMode DOES belong in this pass, unlike forcedIn/forcedOut — it's
+  // Power Rankings' own "Rank lineup by" toggle, applied uniformly to every
+  // team there. Leaving it out of this call meant every OTHER team here
+  // silently built its lineup off default LeagueV regardless of what the
+  // user selected, while only MY team (myProfile below) honored it — an
+  // apples-vs-oranges standings comparison that put this page's own "POWER
+  // RANKING" out of sync with Power Rankings' for the identical selection
+  // (Ash, 2026-08-20: e.g. Minus1V read 53.6%/8th on Power Rankings but
+  // 52.9%/9th here). Recomputing on a valueMode change is fine — unlike
+  // forcedIn/forcedOut, it isn't clicked per-player.
   const baseProfiles = useMemo(() => {
     if (!analysis || !effective || !format || format === "unconfirmed" || format === "points") return null;
-    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null });
-  }, [analysis, effective, depth, weight, format]);
+    return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: null, valueMode });
+  }, [analysis, effective, depth, weight, format, valueMode]);
+
+  const activeTeamId = selectedTeamId ?? analysis?.myTeamId ?? null;
+  const isMyTeam = Boolean(analysis?.myTeamId) && activeTeamId === analysis?.myTeamId;
 
   const computed = useMemo(() => {
-    if (!analysis || !analysis.myTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
-    const { league, myTeamId } = analysis;
+    if (!analysis || !activeTeamId || !saved || !format || format === "unconfirmed" || format === "points" || !effective || !baseProfiles) return null;
+    const { league } = analysis;
+    const myTeamId = activeTeamId;
     const { scored, positionSlots } = effective;
     const myRoster = analysis.rosters.find((r) => r.teamId === myTeamId);
     if (!myRoster) return null;
@@ -213,14 +232,54 @@ function CategoryEdgeContent() {
     );
     if (myProfileIdx >= 0) profiles[myProfileIdx] = myProfile;
 
+    // Overall roto standing must read off the SAME basis Power Rankings uses
+    // (raw-stat rotisserie points, see rotoStandingsByRawStat's own doc) —
+    // not z-score totals. Those two rankings are genuinely different math
+    // and disagreed here (Ash, 2026-08-20): this page was reporting a
+    // z-score-based "POWER RANKING" while Power Rankings reports a raw-stat
+    // one for the identical team/depth/value mode. `statMode` (Per game/
+    // Totals) is this page's own equivalent of Power Rankings' rotoBasis
+    // toggle, so it drives the same raw-stat basis here.
     const standings = projectRotoStandings(profiles, scored);
-    const edges = categoryEdges(myTeamId, profiles, standings, scored);
-    const totalPoints = standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0;
+    const rotoRawStandings = format === "roto" ? rotoStandingsByRawStat(profiles, scored, statMode) : null;
+    // Per-category ranks/tiers, radar chart, and quick-rank bars all read off
+    // `edges` — for a roto league that MUST be the same raw-stat, statMode-
+    // aware standings as the ring above, or every per-category rank on the
+    // page stays frozen while only the ring moves when Per Game/Totals is
+    // toggled (Ash, 2026-08-24: "I would expect all of the charts and cat
+    // ranks to move... does not appear to be dynamic" — confirmed live:
+    // toggling Totals moved the ring 9th→6th but left every category row,
+    // the radar chart, and both quick-rank panels unchanged). H2H has no
+    // raw-stat equivalent (no Per Game/Totals concept in its win-simulation
+    // model), so it keeps the z-score standings unchanged.
+    const edgeStandings = format === "roto" ? rotoRawStandings! : standings;
+    const edges = categoryEdges(myTeamId, profiles, edgeStandings, scored);
     const maxPoints = scored.length * league.teamCount;
     const top10 = edges.filter((e) => e.rank <= 10).length;
 
+    const totalPoints = format === "roto"
+      ? Math.round(rotoRawStandings!.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0)
+      : (standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0);
+
     const h2h = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : null;
     const myH2H = h2h?.find((r) => r.teamId === myTeamId) ?? null;
+    // The single "power ranking" the dashboard's ring shows — same finish
+    // Power Rankings itself would report for this team at this depth/value
+    // mode, just read off the profiles this page already built.
+    const myRank = format === "h2hcat"
+      ? (myH2H?.rank ?? 0)
+      : (rotoRawStandings?.find((s) => s.teamId === myTeamId)?.projectedRank ?? 0);
+
+    // MPG has no z-score model (it isn't an FHE-scored category), but the
+    // dashboard's quick-rank bars ask for it alongside the real ones — a
+    // plain average-starter-minutes rank across the same depth-weighted
+    // profiles every other rank on this page already uses.
+    const mpgByTeam = profiles.map((p) => ({
+      teamId: p.teamId,
+      avg: p.starters.length > 0 ? p.starters.reduce((sum, pl) => sum + (pl.minutesPerGame ?? 0), 0) / p.starters.length : 0,
+    }));
+    const mpgRank = [...mpgByTeam].sort((a, b) => b.avg - a.avg).findIndex((t) => t.teamId === myTeamId) + 1;
+    const mpgValue = mpgByTeam.find((t) => t.teamId === myTeamId)?.avg ?? 0;
 
     // League-average per category, both display modes — the "vs lg" delta.
     const leagueAvgPerGame: Partial<Record<FheCategory, number>> = {};
@@ -232,9 +291,31 @@ function CategoryEdgeContent() {
 
     return {
       myRoster, lineup, effectiveStarters, effectiveBench, scored, edges, totalPoints, maxPoints, top10,
-      teamCount: league.teamCount, myProfile, myH2H, leagueAvgPerGame, leagueAvgTotal,
+      teamCount: league.teamCount, myProfile, myH2H, myRank, mpgRank, mpgValue, leagueAvgPerGame, leagueAvgTotal,
     };
-  }, [analysis, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight]);
+  }, [analysis, activeTeamId, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight, statMode]);
+
+  // Derived purely for the dashboard summary — kept separate from `computed`
+  // so that block stays focused on the real analysis math. TO greys out
+  // under the 8-Cat lens (valueMode === "eightCatV"), same "shown but
+  // de-emphasized" convention RosterTableRow's isEightCatDrop already uses
+  // elsewhere in Deep Edge — never hidden, since a real punt-TO league
+  // simply won't have a TO entry in `scored`/`edges` at all.
+  const dashboard = useMemo(() => {
+    if (!computed) return null;
+    const isTOGreyed = valueMode === "eightCatV";
+    const edgeByCat = new Map(computed.edges.map((e) => [e.category, e]));
+    const barRank = (cat: FheCategory) => edgeByCat.get(cat)?.rank ?? null;
+    const radarPoints: RadarPoint[] = FHE_CATEGORIES
+      .filter((cat) => computed.scored.includes(cat))
+      .map((cat) => ({
+        category: cat,
+        rank: edgeByCat.get(cat)?.rank ?? null,
+        of: computed.teamCount,
+        greyed: cat === "TO" && isTOGreyed,
+      }));
+    return { isTOGreyed, barRank, radarPoints };
+  }, [computed, valueMode]);
 
   const hasLeague = Boolean(saved);
 
@@ -244,12 +325,34 @@ function CategoryEdgeContent() {
         <IconChevronLeft size={14} /> Back to {saved?.leagueName ?? "home"}
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0 }}>Category Edge</h1>
         <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>
           {computed ? `${computed.scored.length}-CAT ${format === "roto" ? "ROTO" : "H2H"}` : "9-CAT ROTO"}
         </span>
         <span style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, padding: "4px 9px", borderRadius: 100, background: "var(--rt-surface-strong)", color: "var(--rt-muted)" }}>Z-SCORE WEIGHTED</span>
+        {analysis && analysis.rosters.length > 0 && (
+          <select
+            value={activeTeamId ?? ""}
+            onChange={(e) => {
+              setSelectedTeamId(e.target.value || null);
+              setForcedIn(new Set());
+              setForcedOut(new Set());
+            }}
+            style={{
+              marginLeft: "auto", height: 34, padding: "0 12px", borderRadius: 10, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 12.5, fontWeight: 600,
+            }}
+          >
+            {[...analysis.rosters]
+              .sort((a, b) => a.teamName.localeCompare(b.teamName))
+              .map((r) => (
+                <option key={r.teamId} value={r.teamId}>
+                  {r.teamName}{r.teamId === analysis.myTeamId ? " (you)" : ""}
+                </option>
+              ))}
+          </select>
+        )}
       </div>
 
       {loadingSaved || (saved && !analysis && !error) ? (
@@ -279,19 +382,21 @@ function CategoryEdgeContent() {
         </p>
       ) : !computed ? (
         <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>
-          This league doesn&apos;t have your team selected — pick your team from Settings first.
+          {analysis && analysis.rosters.length > 0
+            ? "Pick a team above to get started."
+            : "This league doesn't have your team selected — pick your team from Settings first."}
         </p>
       ) : (
         <>
           <style>{CHIP_TOOLTIP_CSS}</style>
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 24px", maxWidth: 640 }}>
-            Your best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
+            {isMyTeam ? "Your" : `${computed.myRoster.teamName}'s`} best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
             driven by z-scores; the numbers shown are real {statMode === "perGame" ? "per-game averages" : "season totals"}.
           </p>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {["Best", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
+              {["Starters", "+1", "+2", "+3", "+4", "+5"].map((label, i) => (
                 <button
                   key={label}
                   type="button"
@@ -303,13 +408,13 @@ function CategoryEdgeContent() {
                     boxShadow: depth === i ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
                   }}
                 >
-                  {i === 0 ? `Best ${computed.lineup.starters.length}` : label}
+                  {label}
                 </button>
               ))}
             </div>
             <span style={{ fontSize: 12.5, color: "var(--rt-muted)", maxWidth: 420 }}>
               {depth === 0
-                ? <>&quot;Best {computed.lineup.starters.length}&quot; is the lineup started weekly across your league&apos;s slots.</>
+                ? <>&quot;Starters&quot; is the {computed.lineup.starters.length}-player lineup started weekly across your league&apos;s slots.</>
                 : depthCaption(lineupCadence, format!, capPos, capMatch, capPosN, capMatchN)}
             </span>
             <div style={{ marginLeft: "auto", display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
@@ -344,23 +449,12 @@ function CategoryEdgeContent() {
               <IconSliders size={16} /> Adjust starters{forcedIn.size + forcedOut.size > 0 ? ` (${forcedIn.size + forcedOut.size} changed)` : ""}
             </button>
             <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>Rank lineup by</span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              {(Object.keys(VALUE_MODE_LABEL) as LineupValueMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setValueMode(mode)}
-                  style={{
-                    padding: "7px 14px", border: "none", borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
-                    background: valueMode === mode ? "var(--rt-canvas)" : "transparent",
-                    color: valueMode === mode ? "var(--rt-ink)" : "var(--rt-muted)",
-                    boxShadow: valueMode === mode ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
-                  }}
-                >
-                  {VALUE_MODE_LABEL[mode]}
-                </button>
-              ))}
-            </div>
+            {/* FPTS is always disabled here — Category Edge never renders for a
+                points-scored league (see the format === "points" branch above),
+                so there's no real fantasy-points formula to rank by. Kept
+                visible-but-greyed rather than omitted, matching Roster Edge/
+                Trade Edge's own "same 4 options everywhere" convention. */}
+            <SegmentedControl<LineupValueMode> options={UI_VALUE_MODE_OPTIONS} value={valueMode} onChange={setValueMode} disabledOptions={["fpts"]} />
           </div>
 
           {computed.lineup.unplaceable.length > 0 && (
@@ -423,7 +517,7 @@ function CategoryEdgeContent() {
                         filter: !out && !cantFit && !inLineup ? "grayscale(0.6)" : "none",
                       }}
                     >
-                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} />
+                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: out ? "line-through" : "none" }}>
                           {p.name}
@@ -439,48 +533,46 @@ function CategoryEdgeContent() {
             </div>
           )}
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 14, marginBottom: 28 }}>
-            {format === "roto" ? (
-              <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>ROTO SCORE</div>
-                <div style={{ fontSize: 26, fontWeight: 700 }}>
-                  {computed.totalPoints} <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>/ {computed.maxPoints}</span>
-                </div>
-              </div>
-            ) : computed.myH2H ? (
-              <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-                <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>WIN % · PROJECTED RECORD</div>
-                <div style={{ fontSize: 26, fontWeight: 700 }}>
-                  {(computed.myH2H.winPct * 100).toFixed(1)}%{" "}
-                  <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>
-                    {computed.myH2H.totalWins}-{computed.myH2H.totalDraws}-{computed.myH2H.totalLosses}
-                  </span>
-                </div>
-              </div>
-            ) : null}
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>TOP-10 CATS</div>
-              <div style={{ fontSize: 26, fontWeight: 700 }}>
-                {computed.top10} <span style={{ fontSize: 15, fontWeight: 400, color: "var(--rt-muted)" }}>/ {computed.scored.length}</span>
-              </div>
+          {dashboard && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginBottom: 28, alignItems: "stretch" }}>
+              <DashboardCard title="POWER RANKING">
+                <PercentileRing
+                  rank={computed.myRank} of={computed.teamCount} size={140}
+                  subLabel={
+                    <>
+                      OF {computed.teamCount}
+                      <br />
+                      <span style={{ color: statusColor(computed.myRank, computed.teamCount), fontWeight: 700 }}>
+                        {format === "h2hcat" && computed.myH2H
+                          ? `${(computed.myH2H.winPct * 100).toFixed(1)}% WIN`
+                          : `${computed.totalPoints} / ${computed.maxPoints} PTS`}
+                      </span>
+                    </>
+                  }
+                />
+              </DashboardCard>
+
+              <DashboardCard title="CATEGORY SHAPE">
+                <CategoryRadarChart points={dashboard.radarPoints} size={220} />
+              </DashboardCard>
+
+              <RankBarPanel title="MPG · PTS · 3PM · REB · AST">
+                <RankBarRow label="MPG" rank={computed.mpgRank} of={computed.teamCount} />
+                <RankBarRow label="PTS" rank={dashboard.barRank("PTS")} of={computed.teamCount} />
+                <RankBarRow label="3PM" rank={dashboard.barRank("FG3")} of={computed.teamCount} />
+                <RankBarRow label="REB" rank={dashboard.barRank("REB")} of={computed.teamCount} />
+                <RankBarRow label="AST" rank={dashboard.barRank("AST")} of={computed.teamCount} />
+              </RankBarPanel>
+
+              <RankBarPanel title="STL · BLK · FG% · FT% · TO">
+                <RankBarRow label="STL" rank={dashboard.barRank("STL")} of={computed.teamCount} />
+                <RankBarRow label="BLK" rank={dashboard.barRank("BLK")} of={computed.teamCount} />
+                <RankBarRow label="FG%" rank={dashboard.barRank("FG")} of={computed.teamCount} />
+                <RankBarRow label="FT%" rank={dashboard.barRank("FT")} of={computed.teamCount} />
+                <RankBarRow label="TO" rank={dashboard.barRank("TO")} of={computed.teamCount} greyed={dashboard.isTOGreyed} />
+              </RankBarPanel>
             </div>
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>STRONGEST 2</div>
-              {computed.edges.slice(0, 2).map((e) => (
-                <div key={e.category} style={{ fontSize: 13, fontWeight: 600 }}>
-                  {CATEGORY_LABEL[e.category]} <span style={{ fontWeight: 400, color: tierFill(e.rank, computed.teamCount) }}>{ordinal(e.rank)} · {rankTierLabel(e.rank, computed.teamCount)}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ padding: 18, borderRadius: 16, border: "1px solid var(--rt-hairline)" }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 8 }}>WEAKEST 2</div>
-              {computed.edges.slice(-2).reverse().map((e) => (
-                <div key={e.category} style={{ fontSize: 13, fontWeight: 600 }}>
-                  {CATEGORY_LABEL[e.category]} <span style={{ fontWeight: 400, color: tierFill(e.rank, computed.teamCount) }}>{ordinal(e.rank)} · {rankTierLabel(e.rank, computed.teamCount)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 16, fontSize: 12, color: "var(--rt-muted)" }}>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.promoter, marginRight: 5 }} />Promoter</span>
@@ -511,20 +603,12 @@ function CategoryEdgeContent() {
                       </div>
                     )}
                   </div>
-                  <div style={{ width: 130, flexShrink: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>
-                      {ordinal(edge.rank)}{" "}
-                      <span style={{ fontWeight: 400, color: "var(--rt-muted)" }}>of {computed.teamCount}</span>
-                    </div>
-                    <span
-                      style={{
-                        display: "inline-block", marginTop: 3, fontSize: 10.5, fontFamily: "var(--rt-font-mono)", fontWeight: 700,
-                        padding: "2px 7px", borderRadius: 100,
-                        background: tierBg(edge.rank, computed.teamCount), color: tierFill(edge.rank, computed.teamCount),
-                      }}
-                    >
-                      {rankTierLabel(edge.rank, computed.teamCount).toUpperCase()}
-                    </span>
+                  <div style={{ width: 84, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <PercentileRing
+                      rank={edge.rank} of={computed.teamCount} size={64}
+                      greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)}
+                    />
+                    <TierPill rank={edge.rank} of={computed.teamCount} greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)} />
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 14, flex: 1 }}>
                     {[...computed.effectiveStarters]
@@ -532,13 +616,13 @@ function CategoryEdgeContent() {
                       .map((a) => {
                         const tier = categoryTier(a.player.cats[edge.category]);
                         const ring = tier ? TIER_COLOR[tier] : "var(--rt-hairline)";
-                        return <CategoryChip key={a.player.fantraxId} name={a.player.name} slot={a.slot} ring={ring} />;
+                        return <CategoryChip key={a.player.fantraxId} name={a.player.name} slot={a.slot} ring={ring} isRookie={a.player.isRookie} />;
                       })}
                     {[...computed.effectiveBench]
                       .sort((a, b) => (b.cats[edge.category] ?? -Infinity) - (a.cats[edge.category] ?? -Infinity))
                       .slice(0, 6)
                       .map((p) => (
-                        <CategoryChip key={p.fantraxId} name={p.name} slot={p.slot} ring="var(--rt-hairline)" dimmed />
+                        <CategoryChip key={p.fantraxId} name={p.name} slot={p.slot} ring="var(--rt-hairline)" dimmed isRookie={p.isRookie} />
                       ))}
                   </div>
                 </div>

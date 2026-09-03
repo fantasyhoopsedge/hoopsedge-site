@@ -17,6 +17,59 @@ export type LeagueType = "redraft" | "keeper" | "dynasty";
  *  us WHICH kind of number a salary field holds, only that one exists. */
 export type SalaryFormat = "real" | "custom" | "none";
 
+/**
+ * A custom-salary league's own contract-label prefix scheme — Fantrax gives
+ * commissioners a free-text contract-label field, and what a prefix means
+ * (if anything) is a house rule written into that league's own constitution,
+ * not a Fantrax-wide convention (confirmed against a real one, 2026-08-23:
+ * Old But Gold's own "Designated Code" section defines F/R/J/E/FA/WW, with
+ * "F24-25 -> contract will end on season 2024-2025" establishing that the
+ * label's trailing year range is always the contract's FINAL season, and a
+ * separate rule fixing E ("extended contract for the acquired FA and WW
+ * players") at exactly two years with "automatic drop after that two years"
+ * — no recontract path at all). Two houses can use the same letter for
+ * opposite meanings, so this is opt-in and per-league, not a global decoder.
+ */
+export type ContractRuleKind =
+  /** No special treatment — the default for any unmatched prefix (today's
+   *  behavior, unchanged). */
+  | "standard"
+  /** A team-controlled, league-fixed-price rookie deal — deserves the same
+   *  extra cheapness credit the site-wide Real Salary model gives a real
+   *  rookie-scale contract (see real-salary-model.ts's ContractClass /
+   *  WeightPreset.rookieScaleAdjustment), which this per-league blend
+   *  otherwise can't apply since Fantrax exposes no contract-status field. */
+  | "rookieScale"
+  /** A contract with a known, FIXED maximum length and NO renewal path —
+   *  once it expires the player is gone, full stop. A trade asset's dynasty
+   *  value assumes open-ended team control; capping that control should
+   *  discount the asset, most severely as the fixed expiry approaches. */
+  | "expiring";
+
+export interface ContractRule {
+  /** Matched case-insensitively against the leading letters of the roster
+   *  spot's own contract label (e.g. "E" matches "E26-27"). */
+  prefix: string;
+  kind: ContractRuleKind;
+  /** Required for "expiring" only — the contract type's own maximum total
+   *  length in years (Old But Gold's E-contract: 2), used to scale the
+   *  discount by how much of that fixed horizon remains. */
+  maxYears?: number;
+}
+
+/** A league's own rookie-scale salary-by-draft-position table (e.g. Old But
+ *  Gold's constitution: pick 1 -> $14 down to picks 31-60 -> $1) — like
+ *  ContractRule, a house rule with no Fantrax-wide convention, so this is
+ *  opt-in and per-league. `minPick`/`maxPick` are OVERALL pick numbers
+ *  (1-based, across every round), not per-round. Empty/absent = custom
+ *  valuations has no real salary figure to attach to a synthesized pick
+ *  player and falls back to leaving it unset. */
+export interface RookieSalaryTier {
+  minPick: number;
+  maxPick: number;
+  salary: number;
+}
+
 /** Fallback tags for leagues saved before format/leagueType/salaryFormat existed. */
 export const DEFAULT_LEAGUE_TAGS = {
   format: "roto" as LeagueFormat,
@@ -91,4 +144,12 @@ export const DEFAULT_ADVANCED_SETTINGS = {
   taxiSquad: false,
   waiverType: "faab" as "faab" | "rolling",
   faabBudget: 100,
+  contractRules: [] as ContractRule[],
+  rookieSalaryScale: [] as RookieSalaryTier[],
+  useCustomValuations: false,
+  customValuationsPromptedAt: null as string | null,
+  useGeneratedPickValues: false,
+  // Matches the site-wide Real Salary Rankings "Balanced" preset (30%
+  // efficiency / 70% consensus) — see SavedLeagueSettings.realSalaryEfficiencyWeight.
+  realSalaryEfficiencyWeight: 0.30,
 };

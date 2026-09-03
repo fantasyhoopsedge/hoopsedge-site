@@ -2,9 +2,12 @@ import { promises as fs } from "fs";
 import path from "path";
 import { createClient as createSb, type SupabaseClient } from "@supabase/supabase-js";
 import type { FantraxDatasetKey, FheCategory } from "./league";
-import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "./league-tags";
+import {
+  DEFAULT_LEAGUE_TAGS, type ContractRule, type LeagueFormat, type LeagueType,
+  type RookieSalaryTier, type SalaryFormat,
+} from "./league-tags";
 
-export { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat };
+export { DEFAULT_LEAGUE_TAGS, type ContractRule, type LeagueFormat, type LeagueType, type RookieSalaryTier, type SalaryFormat };
 
 /**
  * Storage for a user's linked Fantrax leagues.
@@ -124,6 +127,50 @@ export interface SavedLeagueSettings {
   keeperPolicy?: string; // "all" | "10" .. "1"
   rookieDraftRounds?: number;
   taxiSquad?: boolean;
+  /** This league's own contract-label prefix scheme (F/R/J/E or whatever
+   *  house convention it uses) — see ContractRule's own doc for why this is
+   *  per-league, not a global decoder. Empty/absent = today's behavior,
+   *  every contract treated identically regardless of label. */
+  contractRules?: ContractRule[];
+  /** This league's own rookie-scale salary-by-draft-position table — see
+   *  RookieSalaryTier's own doc. */
+  rookieSalaryScale?: RookieSalaryTier[];
+  /** Opt-in switch: when true, Trade Edge reads base value from the cached
+   *  custom-valuations ledger (fx_custom_valuations, via
+   *  custom-valuations-store.ts) instead of computing the default cascade
+   *  fresh (trade-value.ts's computeBaseTradeValues). Off by default — the
+   *  default cascade is already correct per league type, this is an
+   *  opt-in upgrade, not a replacement. */
+  useCustomValuations?: boolean;
+  /** ISO timestamp of the last time Home's "customize your league assets?"
+   *  prompt was shown (Yes or No) — null/absent means never asked. Set
+   *  either way so the prompt doesn't nag on every visit. */
+  customValuationsPromptedAt?: string | null;
+  /** Opt-in switch, parallel to useCustomValuations but for a STANDARD
+   *  (non-custom) dynasty/keeper league: when true, Trade Edge additionally
+   *  reads draft-pick values from the cached ledger's pick rows (a
+   *  `mode: "picksOnly"` doc — see CustomValuationsDoc.mode) instead of the
+   *  generic ratio-model estimate (pickEquivalentValue). Player/FA base
+   *  values are UNAFFECTED either way — a picksOnly doc carries no player
+   *  rows to merge in the first place. Mutually exclusive in practice with
+   *  useCustomValuations (a league doing full custom valuations already
+   *  prices its own picks, it doesn't need this too), but not enforced as
+   *  such — the doc's own `mode` is the real gate, this flag only decides
+   *  whether to fetch it at all. */
+  useGeneratedPickValues?: boolean;
+  /** Real-salary leagues only: how much the custom ledger's base value
+   *  should weigh cheap/productive players vs. pure dynasty consensus rank —
+   *  0 = consensus alone (salary irrelevant), 1 = efficiency alone (cheap
+   *  production maximally rewarded, expensive contracts maximally
+   *  penalized). Undefined = the site-wide Real Salary Rankings default
+   *  (0.30, "Balanced"). Every real-salary league gets that same fixed blend
+   *  today regardless of its own cap situation — some leagues (very deep
+   *  cap room, punitive roster limits) genuinely need a different tradeoff
+   *  (Ash, 2026-08-24: "this league may need to blend in more value to
+   *  cheap/productive players and even less value to expensive contracts... I
+   *  will shift the math slightly and then re-generate"). See
+   *  custom-valuations.ts's own doc on where this actually gets applied. */
+  realSalaryEfficiencyWeight?: number;
 
   // Waivers & trades — not Fantrax-detectable; default and let the user adjust.
   waiverType?: "faab" | "rolling";
@@ -146,6 +193,14 @@ export interface SavedLeague {
   teamName: string | null;
   settings: SavedLeagueSettings;
   savedAt: string;
+  /** Last time we successfully fetched LIVE data from Fantrax for this
+   *  league (fx_league_syncs, written by league-cache.ts's fetchAndAnalyze
+   *  after a real Fantrax fetch — never on a 60s-cache hit). Distinct from
+   *  `savedAt`, which only moves when the CONNECTION/settings row itself is
+   *  saved. Null when this league has never been synced yet, or Supabase
+   *  isn't configured (local-dev JSON fallback — sync tracking is a
+   *  Supabase-only feature, see recordLeagueSync/getLastSyncedAtByLeagueId). */
+  lastSyncedAt: string | null;
 }
 
 type LocalFile = Record<string, SavedLeague[]>;
@@ -171,21 +226,68 @@ export async function listLeagues(owner: string): Promise<SavedLeague[]> {
       .eq("owner", owner)
       .order("updated_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((r) => ({
+    const rows = data ?? [];
+    const syncedByLeagueId = await getLastSyncedAtByLeagueId(rows.map((r) => r.league_id as string));
+    return rows.map((r) => ({
       leagueId: r.league_id as string,
       leagueName: r.league_name as string,
       teamId: (r.team_id as string) ?? null,
       teamName: (r.team_name as string) ?? null,
       settings: r.settings as SavedLeagueSettings,
       savedAt: r.updated_at as string,
+      lastSyncedAt: syncedByLeagueId[r.league_id as string] ?? null,
     }));
   }
   const all = await readLocal();
-  return all[owner] ?? [];
+  return (all[owner] ?? []).map((l) => ({ ...l, lastSyncedAt: l.lastSyncedAt ?? null }));
 }
 
-export async function saveLeague(owner: string, league: Omit<SavedLeague, "savedAt">): Promise<SavedLeague> {
-  const saved: SavedLeague = { ...league, savedAt: new Date().toISOString() };
+/**
+ * fx_league_syncs — see that table's own migration doc for why this is
+ * keyed by league_id alone (a shared property of the Fantrax league's data,
+ * not any one owner's saved-connection row). Best-effort: returns {} when
+ * Supabase isn't configured (local dev) or the read itself fails, so a
+ * sync-tracking outage never breaks the leagues list.
+ */
+async function getLastSyncedAtByLeagueId(leagueIds: string[]): Promise<Record<string, string>> {
+  if (!FX_SUPABASE_ENABLED || leagueIds.length === 0) return {};
+  try {
+    const { data, error } = await serviceClient()
+      .from("fx_league_syncs")
+      .select("league_id, last_synced_at")
+      .in("league_id", leagueIds);
+    if (error) throw new Error(error.message);
+    const out: Record<string, string> = {};
+    for (const r of data ?? []) out[r.league_id as string] = r.last_synced_at as string;
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Records that we just successfully fetched LIVE data from Fantrax for
+ *  `leagueId` — call this once per REAL fetch (league-cache.ts's
+ *  fetchAndAnalyze, guarded so a 60s cache hit never re-runs it), never per
+ *  (owner, league). Fire-and-forget by design: a sync-tracking failure must
+ *  never fail the league-analysis request it's riding along with — callers
+ *  should not await this inline before returning their own response. */
+export async function recordLeagueSync(leagueId: string): Promise<void> {
+  if (!FX_SUPABASE_ENABLED) return;
+  try {
+    await serviceClient()
+      .from("fx_league_syncs")
+      .upsert({ league_id: leagueId, last_synced_at: new Date().toISOString() }, { onConflict: "league_id" });
+  } catch {
+    // best-effort — see this function's own doc
+  }
+}
+
+export async function saveLeague(owner: string, league: Omit<SavedLeague, "savedAt" | "lastSyncedAt">): Promise<SavedLeague> {
+  // lastSyncedAt isn't meaningful at save time — it's fx_league_syncs' own
+  // property, refreshed on the next listLeagues() call (or immediately true
+  // once whatever triggered this save also loads a tool page, which syncs
+  // for real). Saving connection settings is not itself a Fantrax sync.
+  const saved: SavedLeague = { ...league, savedAt: new Date().toISOString(), lastSyncedAt: null };
 
   if (FX_SUPABASE_ENABLED) {
     const { error } = await serviceClient()

@@ -7,7 +7,7 @@ import { categoryEdges, projectRotoStandings, teamStrengthsWeaknesses } from "@/
 import { CATEGORY_LABEL, currentSeasonDraftStatus, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
-import { buildOptimalLineup, resolveEffectiveScoring } from "@/lib/fantrax/lineup";
+import { buildOptimalLineup, resolveEffectiveScoring, UI_VALUE_MODE_OPTIONS } from "@/lib/fantrax/lineup";
 import { buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, simulateH2HCategoryStandings } from "@/lib/fantrax/power-rankings";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
@@ -19,24 +19,22 @@ import {
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
-/** Depth-ladder labels matching the rest of Deep Edge (Best N = 0, +1..+5) —
- *  used for both the tick-set depth pill and the Power Rank badge's caption,
- *  which now track the same user-chosen depth (Ash, 2026-08-13). */
-const DEPTH_LABELS = ["Best", "+1", "+2", "+3", "+4", "+5"];
+/** Depth-ladder labels matching the rest of Deep Edge (Starters = 0, +1..+5)
+ *  — used for both the tick-set depth pill and the Power Rank badge's
+ *  caption, which now track the same user-chosen depth (Ash, 2026-08-13). */
+const DEPTH_LABELS = ["Starters", "+1", "+2", "+3", "+4", "+5"];
 
-/** Same three-way flavor the roster table's cell decoration reads — see
- *  ValueDisplayMode in roster-table.tsx. */
+/** Same flavor the roster table's cell decoration reads — see
+ *  ValueDisplayMode in roster-table.tsx. Options/order/labels come from
+ *  lineup.ts's UI_VALUE_MODE_OPTIONS — the same "Rank lineup by" set
+ *  Category Edge and Trade Edge use (Ash's consistency sweep, 2026-08-18). */
 type TickValueMode = ValueDisplayMode;
-const TICK_VALUE_MODE_OPTIONS: { value: TickValueMode; label: string }[] = [
-  { value: "minus1V", label: "Minus1V" },
-  { value: "nineCatV", label: "9-Cat" },
-  { value: "eightCatV", label: "8-Cat" },
-];
 /** Maps a TickValueMode onto the roster table's own sort key — see the
  *  render-time sync below (Ash, 2026-08-14: "dynamically sort the roster
- *  based on those values from best to worst"). */
+ *  based on those values from best to worst"). FPTS sorts by the VALUE
+ *  column, which already reads pointsValue for a points-format league. */
 const SORT_KEY_FOR_TICK_MODE: Record<TickValueMode, SortKey> = {
-  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat",
+  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat", fpts: "value",
 };
 
 /** The Settings screen's "Add category" codes that Roster Edge can actually
@@ -375,7 +373,10 @@ function RosterEdgeContent() {
                   </button>
                 ))}
               </div>
-              <SegmentedControl<TickValueMode> options={TICK_VALUE_MODE_OPTIONS} value={tickValueMode} onChange={setTickValueMode} />
+              <SegmentedControl<TickValueMode>
+                options={UI_VALUE_MODE_OPTIONS} value={tickValueMode} onChange={setTickValueMode}
+                disabledOptions={format !== "points" ? ["fpts"] : []}
+              />
             </div>
           </div>
 
@@ -425,16 +426,27 @@ function RosterEdgeContent() {
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
             {([
               ["salary", "Salary"], ["contract", "Contract"], ["dynastyRank", "Dynasty rank"], ["salaryRank", "Salary rank"],
-            ] as [keyof OptionalCols, string][]).map(([key, label]) => (
-              <label key={key} style={{ display: "inline-flex", alignItems: "center", gap: 5, cursor: "pointer" }}>
-                <input
-                  type="checkbox"
-                  checked={cols[key]}
-                  onChange={() => setCols((c) => ({ ...c, [key]: !c[key] }))}
-                />
-                {label}
-              </label>
-            ))}
+            ] as [keyof OptionalCols, string][]).map(([key, label]) => {
+              // Same non-salary-league gate as showSalary/showContract below —
+              // disabled + explained instead of tickable-but-inert (see
+              // team-roster-panel.tsx's identical fix, Ash, 2026-08-24).
+              const disabled = (key === "salary" || key === "contract") && salaryFormat === "none";
+              return (
+                <label
+                  key={key}
+                  title={disabled ? "This league has no salary data (Settings → Salary mode → Non-salary)" : undefined}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 5, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.5 : 1 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!disabled && cols[key]}
+                    disabled={disabled}
+                    onChange={() => setCols((c) => ({ ...c, [key]: !c[key] }))}
+                  />
+                  {label}
+                </label>
+              );
+            })}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap", fontSize: 12 }}>
@@ -496,7 +508,7 @@ function RosterEdgeContent() {
           </div>
 
           <div className="de-table-wrap" style={{ marginBottom: 16 }}>
-            <table className="de-table">
+            <table className="de-table de-table-roster">
               <thead>
                 <tr>
                   <th>✓</th>

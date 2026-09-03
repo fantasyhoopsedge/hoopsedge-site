@@ -4,6 +4,7 @@ import { createClient as createPublicClient } from "@supabase/supabase-js";
 import { deriveFinalTake, type BlockOut, type SeasonHistoryEntry, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 import { DYNASTY_RANKINGS, normalizePlayerName } from "@/lib/dynasty-rankings";
 import { lookupWithNameAlias } from "@/lib/player-name-aliases";
+import { playerIdentity } from "@/lib/player-identity/bundled";
 import { getStats, getValuesForSize } from "@/lib/value/seasonal-data";
 import { createAdminClient } from "@/utils/supabase/admin";
 import type { Database, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
@@ -252,10 +253,29 @@ function resolveOne(
     trendTags: null,
     ambiguousName,
     smallSample: false,
+    isRookie: false, // corrected by applyTrendTags() once the bio index is available
   };
   if (!identity) return blank;
 
-  for (const ds of order) {
+  // A current NBA free agent (player_identity.currentTeam === "FA" — not on
+  // any team's roster right now) with no row in the PRIMARY dataset has no
+  // business being backfilled with a stale REAL-production row from the
+  // fallback dataset (Ash, 2026-08-31: Cameron Payne — waived by PHI mid-
+  // season, current_team "FA" — was showing 22 GP / 7.4 PTS on a 2026-27
+  // outlook table purely because his 22 real games from BEFORE the waiver
+  // still sit in season_player_stats(2026, regular), the fallback dataset
+  // when he (correctly) has no 2027/projection row at all). The layered-
+  // coverage fallback below (order = [primary, fallback], "whichever the
+  // caller picks leads; the other backfills") stays exactly as designed for
+  // everyone still actually on a roster — a rostered player simply missing a
+  // projection row still legitimately backfills with his real games. This
+  // only closes the one case the design never intended: patching a missing
+  // PROJECTION with a free agent's OLD real production, which reads as "he's
+  // active" when player_identity is quite sure he isn't.
+  const isCurrentFreeAgent = playerIdentity().byFheId(identity.fheId)?.currentTeam === "FA";
+
+  for (const [i, ds] of order.entries()) {
+    if (isCurrentFreeAgent && i > 0 && ds.type !== "projection") continue;
     const stats = ds.byFheId.get(identity.fheId);
     if (!stats) continue;
     const values = ds.valuesById.get(stats.player_id);
@@ -309,6 +329,7 @@ function resolveOne(
       trendTags: null, // filled in by applyTrendTags() — needs an async batch query
       ambiguousName: false,
       smallSample: !isProjection && (stats.g ?? 0) < MIN_SAMPLE_GAMES,
+      isRookie: false, // corrected by applyTrendTags() once the bio index is available
     };
   }
   return blank;
@@ -323,6 +344,16 @@ function resolveOne(
 const TRENDS_SEASON = 2026;
 const TRENDS_TYPE = "regular";
 
+/** This season's incoming NBA draft class (2026 = drafted June 2026, playing
+ *  their rookie season in 2026-27 — see roster-edge.ts's own REAL_SALARY_SEASON
+ *  for the season-numbering convention this mirrors). Read off player_identity's
+ *  own draftYear (Ash, 2026-08-31: the dynasty board's own isRookie flag is
+ *  stale for a real 70 of the 120 real 2026 draft-class players — e.g. Emanuel
+ *  Sharp/Tyler Bilodeau/Izaiyah Nelson all show isRookie:false on the board
+ *  despite player_identity correctly knowing draft_year:2026 for all three —
+ *  so isRookie below is derived from the registry, never the board's own flag). */
+const CURRENT_ROOKIE_DRAFT_YEAR = 2026;
+
 function createTrendsClient() {
   return createPublicClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -333,11 +364,13 @@ function createTrendsClient() {
 
 type TrendPayload = { blocks: BlockOut[]; seasonHistory: SeasonHistoryEntry[] };
 
-/** normalized name → {age, isRookie}, from the bundled dynasty board (read
- *  fresh, never persisted — same convention as consensusIndex() above). */
-function dynastyBioIndex(): Map<string, { age: number | null; isRookie: boolean }> {
-  const map = new Map<string, { age: number | null; isRookie: boolean }>();
-  for (const p of DYNASTY_RANKINGS) map.set(normalizePlayerName(p.player), { age: p.age, isRookie: p.isRookie });
+/** normalized name → age, from the bundled dynasty board (read fresh, never
+ *  persisted — same convention as consensusIndex() above). Board-sourced AGE
+ *  only — isRookie is NOT read from here (see CURRENT_ROOKIE_DRAFT_YEAR's own
+ *  doc for why applyTrendTags derives it from player_identity instead). */
+function dynastyBioIndex(): Map<string, { age: number | null }> {
+  const map = new Map<string, { age: number | null }>();
+  for (const p of DYNASTY_RANKINGS) map.set(normalizePlayerName(p.player), { age: p.age });
   return map;
 }
 
@@ -374,17 +407,25 @@ async function fetchTrendPayloads(ids: string[]): Promise<Map<string, TrendPaylo
 function applyTrendTags(
   players: ResolvedPlayer[],
   trendsById: Map<string, TrendPayload>,
-  bio: Map<string, { age: number | null; isRookie: boolean }>,
+  bio: Map<string, { age: number | null }>,
 ): ResolvedPlayer[] {
   return players.map((p) => {
-    if (!p.playerId) return p;
+    // AGE is a name-keyed dynasty-board lookup. isRookie is NOT — it's
+    // p.fheId's own draftYear off the identity registry (see
+    // CURRENT_ROOKIE_DRAFT_YEAR's doc for why), independent of both the
+    // board lookup and the playerId/trend-payload join below — set it
+    // regardless of whether this player has a trend read, so a rookie with
+    // no trend history yet (the normal case: no real production to trend)
+    // still gets the right headshot source order (see ResolvedPlayer.isRookie).
+    const age = (lookupWithNameAlias(bio, normalizePlayerName(p.name)) ?? { age: null }).age;
+    const isRookie = playerIdentity().byFheId(p.fheId)?.draftYear === CURRENT_ROOKIE_DRAFT_YEAR;
+    if (!p.playerId) return { ...p, isRookie };
     const trend = trendsById.get(p.playerId);
-    if (!trend) return p;
-    const b = lookupWithNameAlias(bio, normalizePlayerName(p.name)) ?? { age: null, isRookie: false };
+    if (!trend) return { ...p, isRookie };
     const tagOf = (metric: "nineCatV" | "minus1V" | "eightCatV"): TrendTag | null =>
-      deriveFinalTake(trend.blocks, trend.seasonHistory ?? [], b.age, metric, p.consensusRank, null, b.isRookie)?.tag ?? null;
+      deriveFinalTake(trend.blocks, trend.seasonHistory ?? [], age, metric, p.consensusRank, null, isRookie)?.tag ?? null;
     const trendTags: TrendTags = { nineCatV: tagOf("nineCatV"), minus1V: tagOf("minus1V"), eightCatV: tagOf("eightCatV") };
-    return { ...p, trendTags };
+    return { ...p, trendTags, isRookie };
   });
 }
 

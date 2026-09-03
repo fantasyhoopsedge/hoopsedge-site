@@ -71,12 +71,14 @@ export function TeamRostersShell({
     document.documentElement.setAttribute("data-theme", next);
   };
 
-  // Show the rookie-board editor link to admins (and always on localhost) —
-  // same check SiteNav's mobile menu uses, so this row shows/hides identically.
-  const [isBoardAdmin, setIsBoardAdmin] = useState(false);
+  // Site-admin check (rb_admins / is_rb_admin()) — same allowlist that gates
+  // the Rookie Board editor link, reused here to unlock the Projections tab
+  // for admins as if they were paid Edge Pro customers (see roster-data.ts's
+  // PRO_UNLOCKED). Always true on localhost, same as the board-editor link.
+  const [isAdmin, setIsAdmin] = useState(false);
   useEffect(() => {
     if (!user || !supabase) {
-      setIsBoardAdmin(false);
+      setIsAdmin(false);
       return;
     }
     let cancelled = false;
@@ -84,16 +86,17 @@ export function TeamRostersShell({
       try {
         const sb = supabase as unknown as { rpc(fn: string): Promise<{ data: boolean | null }> };
         const { data } = await sb.rpc("is_rb_admin");
-        if (!cancelled) setIsBoardAdmin(Boolean(data));
+        if (!cancelled) setIsAdmin(Boolean(data));
       } catch {
-        if (!cancelled) setIsBoardAdmin(false);
+        if (!cancelled) setIsAdmin(false);
       }
     })();
     return () => {
       cancelled = true;
     };
   }, [user, supabase]);
-  const showBoardEditor = process.env.NODE_ENV !== "production" || isBoardAdmin;
+  const devOrAdmin = process.env.NODE_ENV !== "production" || isAdmin;
+  const showBoardEditor = devOrAdmin;
 
   return (
     <div className={`rt-shell ${GeistSans.variable} ${GeistMono.variable}`} data-rt-theme={theme}>
@@ -169,7 +172,7 @@ export function TeamRostersShell({
             </button>
             {mobileRankingsOpen && (
               <div className="rt-mobile-panel-sub">
-                <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player Category Values</a>
+                <a href="/seasonal-rankings" onClick={closeMobileMenu}>Player value rankings</a>
                 <a href="/dynasty-rankings" onClick={closeMobileMenu}>Dynasty Consensus</a>
                 <a href="/draft-board" onClick={closeMobileMenu}>Rookie Board</a>
               </div>
@@ -240,7 +243,7 @@ export function TeamRostersShell({
         </div>
       )}
 
-      <RosterApp theme={theme} team={team} players={players} ageRank={ageRank} />
+      <RosterApp theme={theme} team={team} players={players} ageRank={ageRank} isAdmin={devOrAdmin} />
     </div>
   );
 }

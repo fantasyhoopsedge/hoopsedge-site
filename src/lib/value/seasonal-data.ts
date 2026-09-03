@@ -1,7 +1,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { createClient as createPublicClient } from "@supabase/supabase-js";
-import type { Database, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
+import type { Database, PointsLeagueValues, SeasonPlayerStats, SeasonPlayerValues } from "@/types/database";
 
 // Shared server-side data layer for /seasonal-rankings, used by both the page
 // (initial render) and the on-demand values API route (Player Pool switches).
@@ -96,6 +96,35 @@ export const getValuesForSize = unstable_cache(
 /** Index value rows by player_id for O(1) lookup in the table. */
 export function indexValuesById(rows: SeasonPlayerValues[]): Record<string, SeasonPlayerValues> {
   const map: Record<string, SeasonPlayerValues> = {};
+  for (const v of rows) map[v.player_id] = v;
+  return map;
+}
+
+/**
+ * Points-league values for a dataset (season + type) — built by
+ * scripts/build-points-league-values.ts. Unlike season_player_values there is
+ * no league_size fan-out (a flat weighted-sum score has no baseline pool to be
+ * relative to), so this is one small query per dataset, not per size. Summer
+ * League datasets have no rows here by design (excluded from that build) —
+ * callers get back an empty array, not an error.
+ */
+export const getPointsLeagueValues = unstable_cache(
+  async (season: number, seasonType: string) => {
+    const { data } = await createReadClient()
+      .from("points_league_values")
+      .select("*")
+      .eq("season", season)
+      .eq("season_type", seasonType)
+      .range(0, 1499);
+    return (data ?? []) as PointsLeagueValues[];
+  },
+  ["seasonal-points-league-values"],
+  CACHE_OPTS,
+);
+
+/** Index points-league rows by player_id for O(1) lookup in the table. */
+export function indexPointsById(rows: PointsLeagueValues[]): Record<string, PointsLeagueValues> {
+  const map: Record<string, PointsLeagueValues> = {};
   for (const v of rows) map[v.player_id] = v;
   return map;
 }

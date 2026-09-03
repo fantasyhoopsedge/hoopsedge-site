@@ -7,6 +7,7 @@ export function SegmentedControl<T extends string>({
   value,
   onChange,
   disabledOptions,
+  mutedInactive,
 }: {
   options: { value: T; label: string }[];
   value: T;
@@ -15,6 +16,13 @@ export function SegmentedControl<T extends string>({
    *  categories-mode, since Fantrax's points-vs-categories split is a real
    *  immutable fact, not a user choice. */
   disabledOptions?: T[];
+  /** Renders every non-selected option in muted grey instead of full body
+   *  color — still clickable (this stays a real in-page preview, e.g. Trade
+   *  Edge's own "Previewing X · league set to Y"), just visually de-emphasized
+   *  since the selected option is the league's REAL setting and the others
+   *  are only a what-if (Ash, 2026-08-23: League type / Value basis / Scoring
+   *  format specifically, not every control this component renders). */
+  mutedInactive?: boolean;
 }) {
   return (
     <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, flexWrap: "wrap" }}>
@@ -31,7 +39,7 @@ export function SegmentedControl<T extends string>({
               padding: "8px 16px", border: "none", borderRadius: 999, fontSize: 13, fontWeight: 700,
               cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
               background: active ? "var(--rt-ink)" : "transparent",
-              color: active ? "var(--rt-canvas)" : disabled ? "var(--rt-muted)" : "var(--rt-body)",
+              color: active ? "var(--rt-canvas)" : disabled || mutedInactive ? "var(--rt-muted)" : "var(--rt-body)",
               opacity: disabled ? 0.5 : 1,
             }}
           >

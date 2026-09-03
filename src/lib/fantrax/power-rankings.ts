@@ -131,22 +131,37 @@ export function buildDepthWeightedTeamProfile(
  *  its displayed lineup never becomes an approximation; Category Edge
  *  passes `null` because it recomputes its own team exactly in a separate
  *  call regardless and splices it in, so solving it exactly here too would
- *  just be discarded work. */
+ *  just be discarded work.
+ *
+ *  `valueMode` picks which value flavor ranks players into slots — same
+ *  "Rank lineup by" set (9-Cat/8-Cat/Minus1V/FPTS) Category Edge/Roster
+ *  Edge/Trade Edge already expose, now also a Power Rankings control (Ash,
+ *  2026-08-19): the position-order/value-rank slot-filling this function
+ *  already did via buildOptimalLineup was always silently pinned to "league"
+ *  (LeagueV) since nothing threaded a real choice through. Omit it and every
+ *  caller keeps today's behavior (defaults to "league" inside
+ *  buildOptimalLineup) unchanged. */
 export function buildDepthWeightedProfiles(
   analysis: LeagueAnalysis,
   depth: number,
   weight: number,
-  overrides?: { scored?: readonly FheCategory[]; positionSlots?: Record<string, number>; exactTeamId?: string | null },
+  overrides?: {
+    scored?: readonly FheCategory[]; positionSlots?: Record<string, number>; exactTeamId?: string | null;
+    valueMode?: LineupValueMode;
+  },
 ): TeamCategoryProfile[] {
   const { league } = analysis;
   const scored = overrides?.scored ?? league.categories.scored;
   const positionSlots = overrides?.positionSlots ?? league.positionSlots;
   const formula = league.scoringMode === "points" ? league.pointsFormula : null;
   const exactTeamId = overrides?.exactTeamId;
+  const valueMode = overrides?.valueMode;
   return analysis.rosters.map((r) =>
     buildDepthWeightedTeamProfile(
       r.players, r.teamId, r.teamName, positionSlots, scored, depth, weight, formula,
-      exactTeamId === undefined ? undefined : { exact: r.teamId === exactTeamId },
+      exactTeamId === undefined && valueMode === undefined
+        ? undefined
+        : { ...(exactTeamId !== undefined ? { exact: r.teamId === exactTeamId } : {}), ...(valueMode !== undefined ? { valueMode } : {}) },
     ),
   );
 }
@@ -211,6 +226,18 @@ export function rotoStandingsByRawStat(
   mode: "perGame" | "totals",
 ): RotoStandingRow[] {
   const valueOf = mode === "perGame" ? weightedPerGame : totalsValue;
+  // valueOf returns the raw, unsigned stat (a real turnover COUNT, since it
+  // also drives the displayed cell text via formatTotal/formatPerGame) — but
+  // ranking/sorting needs "higher is better" for every category, and for TO
+  // that's backwards (fewer turnovers wins). statValue() above already
+  // negates TO for exactly this reason on the z-score path; rankValue is the
+  // same fix for this raw-stat path, sort-only so the displayed number stays
+  // a real positive count. Missing this negated every roto/H2H raw-stat
+  // table's TO column league-wide — highest turnover count ranked #1,
+  // scored the most roto points for it, and painted green in the heatmap
+  // (Ash, 2026-08-24: "TOs are showing opposite value... high = good however
+  // it should be Low = Good").
+  const rankValue = (s: TeamCategoryProfile["statTotals"], cat: FheCategory) => (cat === "TO" ? -valueOf(s, cat) : valueOf(s, cat));
   const n = profiles.length;
   const rows: RotoStandingRow[] = profiles.map((p) => ({
     teamId: p.teamId, teamName: p.teamName, points: {}, ranks: {}, totalPoints: 0, projectedRank: 0,
@@ -218,11 +245,11 @@ export function rotoStandingsByRawStat(
   const byId = new Map(rows.map((r) => [r.teamId, r]));
 
   for (const cat of scored) {
-    const ordered = [...profiles].sort((a, b) => valueOf(b.statTotals, cat) - valueOf(a.statTotals, cat));
+    const ordered = [...profiles].sort((a, b) => rankValue(b.statTotals, cat) - rankValue(a.statTotals, cat));
     let i = 0;
     while (i < ordered.length) {
       let j = i;
-      while (j + 1 < ordered.length && valueOf(ordered[j + 1].statTotals, cat) === valueOf(ordered[i].statTotals, cat)) j += 1;
+      while (j + 1 < ordered.length && rankValue(ordered[j + 1].statTotals, cat) === rankValue(ordered[i].statTotals, cat)) j += 1;
       const sharedPoints = Array.from({ length: j - i + 1 }, (_, k) => n - (i + k)).reduce((a, b) => a + b, 0) / (j - i + 1);
       for (let k = i; k <= j; k += 1) {
         const row = byId.get(ordered[k].teamId);

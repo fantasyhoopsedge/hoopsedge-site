@@ -2,9 +2,9 @@ import "server-only";
 import rankings from "@/lib/dynasty-rankings.json";
 import { playerIdentity } from "@/lib/player-identity/bundled";
 import { getRealSalaryValues, getRosterExtras } from "@/lib/value/real-salary-data";
-import { rankBy } from "@/lib/value/real-salary-model";
+import { contractClassOf, rankBy, type ContractClass } from "@/lib/value/real-salary-model";
 
-type BoardPlayer = { player: string; consensusRank: number };
+type BoardPlayer = { player: string; consensusRank: number; isRookie: boolean };
 
 /**
  * Salary-rank/contract enrichment for the Roster Edge tool — deliberately
@@ -37,19 +37,25 @@ const REAL_SALARY_SEASON = 2027;
  * (Aggressive/Conservative/etc.), which re-ranks client-side and isn't
  * reproduced here.
  */
-export async function getSalaryRankByFheId(): Promise<Record<string, number>> {
+/** `poolSize` is the population the ranks were computed within — the total
+ *  row count of the site-wide Real Salary Rankings pool for this season, NOT
+ *  any one Fantrax league's own roster size. A caller converting one of
+ *  these ranks to a z-score (`rankToZ`) must use THIS number as the
+ *  denominator, never a connected league's own `poolSize` (see Trade Edge's
+ *  base-value cascade — src/lib/fantrax/trade-value.ts). */
+export async function getSalaryRankByFheId(): Promise<{ rankByFheId: Record<string, number>; poolSize: number }> {
   const values = await getRealSalaryValues(REAL_SALARY_SEASON);
   const ranked = rankBy(
     values.map((v) => ({ playerId: v.player_id, score: v.expected_cap_hit })),
     (r) => r.score,
   );
-  const out: Record<string, number> = {};
+  const rankByFheId: Record<string, number> = {};
   for (const v of values) {
-    if (!v.fhe_id || out[v.fhe_id] != null) continue;
+    if (!v.fhe_id || rankByFheId[v.fhe_id] != null) continue;
     const rank = ranked.get(v.player_id);
-    if (rank != null) out[v.fhe_id] = rank;
+    if (rank != null) rankByFheId[v.fhe_id] = rank;
   }
-  return out;
+  return { rankByFheId, poolSize: values.length };
 }
 
 /**
@@ -74,15 +80,65 @@ export function getDynastyRankByFheId(): Record<string, number> {
   return out;
 }
 
+/** Population size `getDynastyRankByFheId`'s ranks were drawn from — the
+ *  dynasty board's own player count, read live rather than hardcoded so it
+ *  tracks board growth automatically. Same "ranks need their SOURCE
+ *  population's size, not a connected league's own pool size" rule as
+ *  `getSalaryRankByFheId`'s `poolSize` — see Trade Edge's base-value
+ *  cascade (src/lib/fantrax/trade-value.ts). */
+export function getConsensusPoolSize(): number {
+  return (rankings as BoardPlayer[]).length;
+}
+
+/** fhe_id -> true for this season's incoming NBA draft class (draftYear ===
+ *  REAL_SALARY_SEASON - 1, e.g. 2026 for the 2026-27 season — matches
+ *  resolve.ts's own CURRENT_ROOKIE_DRAFT_YEAR, which this mirrors for Waiver
+ *  Edge's free agents, those never passing through resolve.ts's normal
+ *  per-player resolution — see waiver-edge.ts).
+ *
+ *  Read off player_identity's own draftYear, NOT the dynasty board's isRookie
+ *  flag (rankings/BoardPlayer.isRookie, above) — that flag is stale for a real
+ *  70 of the 120 real 2026 draft-class players (Ash, 2026-08-31: Emanuel
+ *  Sharp/Tyler Bilodeau/Izaiyah Nelson all show isRookie:false on the board
+ *  despite player_identity correctly knowing draft_year:2026 for all three).
+ *  A name-resolved read of that flag (the previous version of this function)
+ *  can only ever be as fresh as the board's own flag, which the board hasn't
+ *  kept in sync with its own draft-class merges — draftYear off the registry
+ *  needs no join AND no name resolution at all. */
+export function getRookieByFheId(): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const identity of playerIdentity().all()) {
+    if (identity.draftYear === REAL_SALARY_SEASON - 1) out[identity.fheId] = true;
+  }
+  return out;
+}
+
 export interface ContractInfo {
   currentSalary: number;
-  /** Years remaining FROM THE CURRENT SEASON, not the deal's original term —
-   *  nba_roster only carries forward salary_yr2..yr4, not how many years the
-   *  contract was originally signed for, so this is the closest honest
-   *  answer to "Xyr" the data actually supports. */
+  /** The real, audited full contract length — read straight off
+   *  nba_roster.contract_years (Pocaro's cap-sheet team-by-team rebuild, see
+   *  the salary-roster-pipeline skill), not derived by counting non-null
+   *  salary_yr columns. That derivation used to be the only source here, and
+   *  it silently counted a Qualifying Offer / RFA cap-hold estimate
+   *  (flagged by nba_roster.salary_qo_years) as if it were a normal
+   *  continuing contract year — inflating both this figure and
+   *  totalRemaining for any player with one (Ash, 2026-08-27: Kyshawn
+   *  George's rookie-scale deal read "3yr/$17.0M" here — 2 real years plus
+   *  his 2028-29 QO estimate folded in as a third — against the audited
+   *  "4yr/$14.3M" nba_roster.contract_years/contract_total already carried).
+   *  Falls back to the old salary_yr-sum count only for a player/team
+   *  nba_roster hasn't been through that audit for yet (contract_years
+   *  null) — a real, if less precise, number rather than a blank cell. */
   yearsRemaining: number;
-  /** Sum of currentSalary + whichever of yr2/yr3/yr4 nba_roster has. */
+  /** nba_roster.contract_total when audited; otherwise the same salary_yr-sum
+   *  fallback as yearsRemaining, for the same reason. */
   totalRemaining: number;
+  /** contractClassOf(nba_roster.contract_status) — drives Trade Edge's
+   *  asset-card "Rookie Scale" tier (see _components/asset-tiers.ts). Has the
+   *  same known Wembanyama-style data gap that model carries: a real
+   *  rookie-scale deal nba_roster hasn't tagged "Rookie Scale" reads as
+   *  "standard" here too. */
+  contractClass: ContractClass;
 }
 
 // ageFromDob mirrors real-salary-rankings/page.tsx's own helper: computed
@@ -110,9 +166,10 @@ export async function getAgeByFheId(): Promise<Record<string, number>> {
   return out;
 }
 
-/** fhe_id -> current-season salary + years/total remaining on the deal.
- *  Omits unsigned free agents (real_salary_values.salary null — no contract
- *  to show) and anyone nba_roster has no extras row for. */
+/** fhe_id -> current-season salary + the real, audited full contract
+ *  (nba_roster.contract_years/contract_total when present; see ContractInfo's
+ *  own doc). Omits unsigned free agents (real_salary_values.salary null — no
+ *  contract to show) and anyone nba_roster has no extras row for. */
 export async function getContractByFheId(): Promise<Record<string, ContractInfo>> {
   const [values, extras] = await Promise.all([
     getRealSalaryValues(REAL_SALARY_SEASON),
@@ -123,13 +180,32 @@ export async function getContractByFheId(): Promise<Record<string, ContractInfo>
   for (const v of values) {
     if (!v.fhe_id || v.salary == null || out[v.fhe_id] != null) continue;
     const extra = extrasByFheId.get(v.fhe_id);
-    const years = [v.salary, extra?.salary_yr2, extra?.salary_yr3, extra?.salary_yr4]
+    // Fallback only — a player/team nba_roster hasn't audited yet
+    // (contract_years null) still needs SOME "years/total" answer, so this
+    // reproduces the old behavior for exactly that case. Never used when
+    // contract_years/contract_total are present; see ContractInfo's own doc
+    // for why those two win whenever they exist.
+    const fallbackYears = [v.salary, extra?.salary_yr2, extra?.salary_yr3, extra?.salary_yr4]
       .filter((s): s is number => s != null);
     out[v.fhe_id] = {
       currentSalary: v.salary,
-      yearsRemaining: years.length,
-      totalRemaining: years.reduce((a, b) => a + b, 0),
+      yearsRemaining: extra?.contract_years ?? fallbackYears.length,
+      totalRemaining: extra?.contract_total ?? fallbackYears.reduce((a, b) => a + b, 0),
+      contractClass: contractClassOf(extra?.contract_status ?? null),
     };
+  }
+  return out;
+}
+
+/** fhe_id -> true for a player nba_roster tags as a 2nd-year NBA player
+ *  (`is_sophomore`) — drives Trade Edge's asset-card "Sophomore" tier (see
+ *  _components/asset-tiers.ts). Omits anyone nba_roster has no extras row
+ *  for (never a false positive from a missing row). */
+export async function getSophomoreByFheId(): Promise<Record<string, boolean>> {
+  const extras = await getRosterExtras();
+  const out: Record<string, boolean> = {};
+  for (const e of extras) {
+    if (e.fhe_id && e.is_sophomore) out[e.fhe_id] = true;
   }
   return out;
 }

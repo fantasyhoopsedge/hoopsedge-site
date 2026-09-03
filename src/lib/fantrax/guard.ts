@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { isRbAdmin } from "@/lib/rookie-board-store";
+import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
 import { LOCAL_OWNER } from "./store";
 
 /**
@@ -35,7 +35,7 @@ export async function authorizeFantrax(): Promise<
   if (!user) {
     return { ok: false, response: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
-  if (!(await isRbAdmin(user.email))) {
+  if (!(await isDeepEdgeAdmin(user.email))) {
     return {
       ok: false,
       response: NextResponse.json(

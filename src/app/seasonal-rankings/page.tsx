@@ -1,7 +1,9 @@
 import type { SeasonPlayerValues } from "@/types/database";
 import { LEAGUE_SIZES, CANONICAL_SIZE } from "@/lib/value/compute-values";
 import { SEASON_DATASETS, datasetFromKey, datasetKey } from "@/lib/value/seasons";
-import { getStats, getValuesForSize, indexValuesById } from "@/lib/value/seasonal-data";
+import {
+  getStats, getValuesForSize, getPointsLeagueValues, indexValuesById, indexPointsById,
+} from "@/lib/value/seasonal-data";
 import { getDraftYears } from "@/app/team-rosters/_components/roster-live-data";
 import rankings from "@/lib/dynasty-rankings.json";
 import { playerIdentity } from "@/lib/player-identity/bundled";
@@ -44,6 +46,14 @@ for (const p of rankings as Array<{ player: string; age?: number }>) {
 // dynamically per dataset, but the data is served from a 15-minute cache.
 export const dynamic = "force-dynamic";
 
+// The Value-mode dropdown's options — a real query param (?v=) rather than
+// pure client state, so a Points League or 9CatV view is a crawlable,
+// shareable URL instead of only reachable by a dropdown click. See
+// sitemap.ts, which links directly to `?v=points` and the projections
+// dataset now that both are real, indexable states.
+const VALUE_MODES = ["9cat", "8cat", "minus1v", "points"] as const;
+type ValueMode = (typeof VALUE_MODES)[number];
+
 export default async function SeasonalRankingsPage({
   searchParams,
 }: {
@@ -52,6 +62,10 @@ export default async function SeasonalRankingsPage({
   const sp = await searchParams;
   const dKey = typeof sp.d === "string" ? sp.d : undefined;
   const dataset = datasetFromKey(dKey);
+  const vParam = typeof sp.v === "string" ? sp.v : undefined;
+  const initialValueMode: ValueMode = (VALUE_MODES as readonly string[]).includes(vParam ?? "")
+    ? (vParam as ValueMode)
+    : "9cat";
 
   // Only the canonical league size is shipped on first render (~600 value rows
   // instead of ~6,000 across all 10 sizes). Other sizes load on demand via
@@ -59,10 +73,11 @@ export default async function SeasonalRankingsPage({
   // payload ~10× smaller, which dominated both render and transfer time.
   const canonicalSize = dataset.defaultSize ?? CANONICAL_SIZE;
 
-  const [stats, canonicalValues, draftYears] = await Promise.all([
+  const [stats, canonicalValues, draftYears, pointsRows] = await Promise.all([
     getStats(dataset.season, dataset.type),
     getValuesForSize(dataset.season, dataset.type, canonicalSize),
     getDraftYears(),
+    getPointsLeagueValues(dataset.season, dataset.type),
   ]);
 
   const valuesBySize: Record<number, Record<string, SeasonPlayerValues>> = {
@@ -73,10 +88,12 @@ export default async function SeasonalRankingsPage({
     <SeasonalRankingsTable
       players={stats}
       valuesBySize={valuesBySize}
+      pointsValues={indexPointsById(pointsRows)}
       leagueSizes={[...LEAGUE_SIZES]}
       canonicalSize={canonicalSize}
       seasons={SEASON_DATASETS.map((d) => ({ key: datasetKey(d.season, d.type), label: d.label }))}
       activeSeason={datasetKey(dataset.season, dataset.type)}
+      initialValueMode={initialValueMode}
       ageByFheId={AGE_BY_FHE_ID}
       draftYearByFheId={draftYears}
     />

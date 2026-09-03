@@ -8,8 +8,8 @@ const CARDS: { index: string; title: string; description: string; href: string |
   { index: "02", title: "Roster Edge", description: "Your full roster, real per-game stats, salary and dynasty context in one table.", href: "/deep-edge/home/roster-edge", icon: <IconUsers /> },
   { index: "03", title: "Category Edge", description: "Your best 7 vs every team's best 7, category by category.", href: "/deep-edge/home/category-edge", icon: <IconTarget /> },
   { index: "04", title: "Trade Edge", description: "Simulate a trade and see the real before/after — standing, category impact, asset value.", href: "/deep-edge/home/trade-edge", icon: <IconSliders /> },
-  { index: "05", title: "Waiver Edge", description: "The best available free agents, ranked for your league's format.", href: null, icon: <IconSliders /> },
-  { index: "06", title: "Real Salary Rankings", description: "Cap-aware value rankings for salary leagues.", href: null, icon: <IconDollar /> },
+  { index: "05", title: "Waiver Edge", description: "The best available free agents, ranked for your league's format.", href: "/deep-edge/home/waiver-edge", icon: <IconSliders /> },
+  { index: "06", title: "League Rankings", description: "Every player, free agent and pick — custom, dynasty, real-salary and redraft rankings side by side.", href: "/deep-edge/home/league-rankings", icon: <IconDollar /> },
   { index: "07", title: "Custom Projections", description: "Tune the projection model to your own assumptions.", href: null, icon: <IconLineChart /> },
   { index: "08", title: "AI Edge Assistant", description: "Ask questions about your league in plain English.", href: null, icon: <IconChat /> },
   { index: "09", title: "Custom Agent Alerts", description: "Get pinged when something in your league needs attention.", href: null, icon: <IconGear /> },
@@ -19,7 +19,8 @@ const CARDS: { index: string; title: string; description: string; href: string |
  *  connected; dimmed and non-interactive before one is. Settings isn't a
  *  card here — the "Review settings" button above already covers it, and a
  *  second entry point was redundant. Power Rankings, Roster Edge, Category
- *  Edge and Trade Edge are built out past the card this round.
+ *  Edge, Trade Edge, Waiver Edge and League Rankings are built out past the
+ *  card this round.
  *  `leagueId` carries the currently-selected league through to each tool
  *  page via `?league=`, so with more than one saved league this grid always
  *  opens the one the user is actually looking at on Home, not just
