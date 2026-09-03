@@ -118,6 +118,28 @@ function parseContract(v: string): { years: number | null; total: number | null;
   if (m) return { years: Number(m[1]), total: Math.round(parseFloat(m[2]) * 1_000_000), status: null };
   return { years: null, total: null, status: null };
 }
+/**
+ * Half the rounding step implied by contract_raw's own precision, e.g.
+ * "$17.3M" (1 decimal) -> $100K steps -> $50K tolerance; "$160M" (no
+ * decimal) -> $1M steps -> $500K tolerance. contract_total was $2-tolerance
+ * exact back when it was DERIVED by summing salary_yr columns (the
+ * naive-sum bug this rebuild fixed — see CLAUDE.md's roster/contract-rebuild
+ * section); since Pocaro's sheet became the source for contract_raw
+ * (2026-07-30) it's instead a rounded label from an independent source, so a
+ * fixed tolerance either misses real mismatches (too loose for a precise
+ * label) or flags nearly every correct row as inconsistent (too tight for a
+ * whole-million label) — confirmed on Zuby Ejiofor (ATL, hand-verified
+ * correct, $23,697 gap under a 1-decimal label) and on several whole-million
+ * veteran deals (Luka Dončić's "$160M" alone implies up to $500K of rounding
+ * with no error at all).
+ */
+function contractRoundingTolerance(raw: string | null): number {
+  const m = (raw ?? "").match(/\$([\d.]+)\s*M/i);
+  if (!m) return 2;
+  const decimals = m[1].includes(".") ? m[1].split(".")[1].length : 0;
+  const step = 1_000_000 / 10 ** decimals;
+  return Math.max(2, step / 2);
+}
 /** '2028 +2' -> {year:2028, options:2}; '2029' -> {year:2029, options:0} */
 function parseFaYear(v: string): { year: number | null; options: number } {
   const s = (v ?? "").trim();
@@ -885,7 +907,7 @@ async function main() {
     const slots = slots6.slice(start, start + N);
     if (slots.some((v) => v == null)) return false;
     const sum = slots.reduce((s: number, v) => s + (v as number), 0);
-    return Math.abs(sum - r.contract_total) > 2;
+    return Math.abs(sum - r.contract_total) > contractRoundingTolerance(r.contract_raw);
   });
   if (consistencyIssues.length) {
     console.log(`\nContract/salary consistency issue(s) — review before writing (${consistencyIssues.length}):`);

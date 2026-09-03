@@ -101,11 +101,15 @@ interface SheetRow {
 
 function cellText(v: unknown): string | null {
   if (v == null) return null;
-  if (typeof v === "object" && "text" in (v as Record<string, unknown>)) {
-    return String((v as { text: unknown }).text).trim() || null;
-  }
-  if (typeof v === "object" && "result" in (v as Record<string, unknown>)) {
-    return cellText((v as { result: unknown }).result);
+  if (typeof v === "object") {
+    const obj = v as Record<string, unknown>;
+    if ("text" in obj) return String(obj.text).trim() || null;
+    if ("result" in obj) return cellText(obj.result);
+    // A formula cell with NO cached result at all — real, seen on players
+    // traded/signed since the sheet's last recalculation (Bennedict Mathurin,
+    // DeMar DeRozan). Blank, same as any other missing field — never
+    // stringify the wrapper object into the CSV as "[object Object]".
+    return null;
   }
   const s = String(v).trim();
   return s || null;
