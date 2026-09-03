@@ -24,8 +24,8 @@ Derrick White,BOS,30348000,32596000,34844000,,,,Player Option 2028-29
 Mitchell Robinson,BOS,15044000,15796200,16548400,,,,Player Option 2028-29
 Sam Hauser,BOS,10848215,11651785,12455356,,,,
 Payton Pritchard,BOS,7767857,8303571,,,,,
-Mike Conley,BOS,3876529,,,,,,
-Ron Harper Jr,BOS,3308290,3465828,3779359,,,,Team Option 2028-29
+Mike Conley Jr.,BOS,3876529,,,,,,
+Ron Harper Jr.,BOS,3308290,3465828,3779359,,,,Team Option 2028-29
 Chris Cenac Jr.,BOS,2988120,3137640,3287400,5930470,,,Team Option 2028-29; Team Option 2029-30
 Hugo Gonzalez,BOS,2923560,3062640,5528065,7739291,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Luka Garza,BOS,2801346,,,,,,
@@ -34,6 +34,7 @@ Neemias Queta,BOS,2667944,12500000,13500000,14500000,,,
 Jordan Walsh,BOS,2406205,5000000,5250000,5500000,,,Team Option 2029-30
 Milos Uzan,BOS,1357763,,,,,,
 Tucker DeVries,BOS,1357763,,,,,,
+Dillon Mitchell,BOS,678882,,,,,,Two-Way Contract 2026-27
 Amari Williams,BOS,678882,,,,,,Two-Way Contract 2026-27
 Michael Porter Jr.,BKN,40806150,,,,,,
 Julius Randle,BKN,33333334,35802468,,,,,Player Option 2027-28
@@ -56,12 +57,12 @@ Coby White,CHA,26811593,24666667,22521740,,,,
 Naz Reid,CHA,23275862,25000000,26724138,28448276,,,Player Option 2029-30
 Grayson Allen,CHA,18125000,19375000,,,,,Player Option 2027-28
 Brandon Miller,CHA,15104121,21221290,,,,,Qualifying Offer 2027-28
+Dennis Schroder,CHA,14809200,15514400,,,,,
 Grant Williams,CHA,14265750,,,,,,
 Dorian Finney-Smith,CHA,14196974,13335000,13335000,,,,Player Option 2028-29
 Royce O'Neale,CHA,10875000,11625000,,,,,
 Kon Knueppel,CHA,10516560,11017560,13937214,19776907,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Tidjane Salaun,CHA,8237880,10445632,14979036,,,,Team Option 2027-28; Qualifying Offer 2028-29
-Tre Mann,CLE,8000000,8000000,,,,,Team Option 2027-28
 Hannes Steinbach,CHA,5227200,5488560,5750160,8515987,,,Team Option 2028-29; Team Option 2029-30
 Christian Anderson,CHA,4257480,4470000,4683120,7202639,,,Team Option 2028-29; Team Option 2029-30
 Pat Connaughton,CHA,3815861,,,,,,
@@ -69,11 +70,13 @@ Liam McNeeley,CHA,2902080,3040320,5487778,8780445,,,Team Option 2027-28; Team Op
 Moussa Diabate,CHA,2461462,,,,,,
 Sion James,CHA,2411090,2525901,2735698,,,,Team Option 2028-29
 Ryan Kalkbrenner,CHA,2411090,2525901,2735698,,,,Team Option 2028-29
+Kyle Mangas,CHA,1357763,,,,,,
+Kobe Stewart,CHA,1357763,,,,,,
 Michael Ajayi,CHA,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Kylan Boswell,CHA,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 PJ Hall,CHA,678882,,,,,,Two-Way Contract 2026-27
 Josh Giddey,CHI,25000000,25000000,25000000,,,,
-Nicolas Claxton,CHI,23320738,21099720,,,,,
+Nic Claxton,CHI,23320738,21099720,,,,,
 Norman Powell,CHI,21500000,22575000,,,,,Team Option 2027-28
 Patrick Williams,CHI,18000000,18000000,18000000,,,,Player Option 2028-29
 Isaac Okoro,CHI,11814814,,,,,,
@@ -83,16 +86,16 @@ Zach Collins,CHI,8500000,8500000,,,,,Team Option 2027-28
 Tre Jones,CHI,8000000,8000000,,,,,Team Option 2027-28
 Rob Dillingham,CHI,6889320,8763215,12689135,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Matas Buzelis,CHI,5715360,7584283,11141311,,,,Team Option 2027-28; Qualifying Offer 2028-29
-Noa Essengue,CHI,5701200,5972760,8230464,12148165,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
+Noa Essengue,CHI,5701200,5972760,8230464,12148165,,,Team Option 2028-29; Qualifying Offer 2029-30
 Dailyn Swain,CHI,4965480,5213760,5461920,8373123,,,Team Option 2028-29; Team Option 2029-30
 Leonard Miller,CHI,2406205,,,,,,
 Jaylin Sellers,CHI,678882,,,,,,Two-Way Contract 2026-27
 Tobe Awaka,CHI,678882,,,,,,Two-Way Contract 2026-27
 Donovan Mitchell,CLE,50105628,60900000,65772000,70644000,,,
 Evan Mobley,CLE,50105628,53817156,57528684,61240212,,,
+James Harden,CLE,29746667,32333333,34920000,,,,Player Option 2028-29
 Jarrett Allen,CLE,28000000,30240000,32480000,,,,
-Max Strus,CLE,16660836,,,,,,
-Dennis Schroder,CHA,14809200,15514400,,,,,
+Peyton Watson,CLE,20465116,21488372,22511628,23534884,,,Player Option 2029-30
 Sam Merrill,CLE,9160715,9839285,10517856,,,,
 Jaylon Tyson,CLE,3658560,5641500,8648419,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Thomas Bryant,CLE,3524115,,,,,,
@@ -100,13 +103,13 @@ Mario Hezonja,CLE,2845883,,,,,,
 Nae'Qwan Tomlin,CLE,2411090,,,,,,Team Option 2026-27
 Craig Porter Jr.,CLE,2406205,,,,,,
 Tyrese Proctor,CLE,2150917,2525901,2735698,,,,Team Option 2028-29
+Khalifa Diop,CLE,1357763,2294371,2694363,2918152,,,Team Option 2029-30
 Meleek Thomas,CLE,1357763,2294370,2694363,2918152,,,Team Option 2029-30
 Ernest Udeh Jr.,CLE,678882,,,,,,Two-Way Contract 2026-27
 Riley Minix,CLE,678882,,,,,,Two-Way Contract 2026-27
 Tristan Enaruna,CLE,678882,,,,,,Two-Way Contract 2026-27
 Kyrie Irving,DAL,39491282,42416562,,,,,Player Option 2027-28
 PJ Washington,DAL,19813044,21398088,22983132,24568176,,,
-Klay Thompson,DAL,17460317,,,,,,
 Daniel Gafford,DAL,17263584,18126763,18989942,,,,
 Santi Aldama,DAL,17007043,17007043,,,,,Team Option 2027-28
 Cooper Flagg,DAL,14517480,15208680,19178146,26849405,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
@@ -117,7 +120,8 @@ Max Christie,DAL,8285714,8857143,,,,,Player Option 2027-28
 Dereck Lively,DAL,7238897,10684611,,,,,Qualifying Offer 2027-28
 Morez Johnson Jr.,DAL,6754800,7093080,7430640,9466635,,,Team Option 2028-29; Team Option 2029-30
 Marcus Sasser,DAL,5198462,8156386,,,,,Team Option 2026-27; Qualifying Offer 2027-28
-Sergio De Larrea,DAL,3182280,3341280,3500880,6305085,,,Team Option 2028-29; Team Option 2029-30
+Sergio de Larrea,DAL,3182280,3341280,3500880,6305085,,,Team Option 2028-29; Team Option 2029-30
+Tarik Biberovic,DAL,3000000,3000000,,,,,Team Option 2027-28
 Moussa Cisse,DAL,2185116,2571895,,,,,
 Jett Howard,DAL,678882,,,,,,Two-Way Contract 2026-27
 Tobi Lawal,DAL,678882,,,,,,Two-Way Contract 2026-27
@@ -128,11 +132,16 @@ Aaron Gordon,DEN,31978037,34536280,37094523,,,,Player Option 2028-29
 Cameron Johnson,DEN,23062500,,,,,,
 Christian Braun,DEN,21551726,23275863,25000000,26724137,,,
 Zeke Nnaji,DEN,7466667,7466667,,,,,Player Option 2027-28
+Spencer Jones,DEN,6000000,5750000,,,,,
 Julian Strawther,DEN,4826838,7722940,,,,,Qualifying Offer 2027-28
+DeMar DeRozan,DEN,3876529,,,,,,
 Tyus Jones,DEN,3876529,,,,,,
-Marvin Bagley,DEN,3506659,,,,,,
-DaRon Holmes,DEN,3372120,5547137,8586968,,,,Team Option 2027-28; Qualifying Offer 2028-29
+Marvin Bagley III,DEN,3506659,,,,,,
+DaRon Holmes II,DEN,3372120,5547137,8586968,,,,Team Option 2027-28; Qualifying Offer 2028-29
+Lonnie Walker IV,DEN,3286399,,,,,,
 Trevon Brazile,DEN,1357763,2294370,2694363,2918152,,,Team Option 2029-30
+Alpha Diallo,DEN,1357763,,,,,,
+Bryce Hopkins,DEN,678882,,,,,,Two-Way Contract 2026-27
 KJ Simpson,DEN,678882,,,,,,Two-Way Contract 2026-27
 Cade Cunningham,DET,50105628,53817156,57528684,61240212,,,
 John Collins,DET,17000000,17000000,17000000,,,,
@@ -140,16 +149,16 @@ Duncan Robinson,DET,15992957,15151222,,,,,
 Isaiah Joe,DET,11323006,11323006,,,,,Team Option 2027-28
 Ausar Thompson,DET,11118130,15854453,,,,,Team Option 2026-27; Qualifying Offer 2027-28
 Kevin Huerter,DET,9507042,8746479,8746479,,,,Team Option 2028-29
-Ron Holland,DET,9069600,11491183,16386426,,,,Team Option 2026-27; Team Option 2027-28; Qualifying Offer 2028-29
+Ron Holland II,DET,9069600,11491183,16386426,,,,Team Option 2026-27; Team Option 2027-28; Qualifying Offer 2028-29
 Paul Reed,DET,5602689,,,,,,
 Ebuka Okorie,DET,4481280,4705440,4929360,7571497,,,Team Option 2028-29; Team Option 2029-30
 Daniss Jenkins,DET,4000000,,,,,,
 Javonte Green,DET,3943679,,,,,,
 Taurean Prince,DET,3881960,,,,,,
 Gary Harris,DET,3815861,,,,,,
-Tolu Smith,DET,2411090,,,,,,
+Tolu Smith III,DET,2411090,,,,,,
 Chaz Lanier,DET,2150917,2525901,2735698,,,,Team Option 2028-29
-EJ Harkless,DET,678882,,,,,,Two-Way Contract 2026-27
+Elijah Harkless,DET,678882,,,,,,Two-Way Contract 2026-27
 Ugonna Onyenso,DET,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Isaac Jones,DET,678882,,,,,,Two-Way Contract 2026-27
 Stephen Curry,GSW,62587158,,,,,,
@@ -159,13 +168,17 @@ Kristaps Porzingis,GSW,20000000,20000000,,,,,Player Option 2027-28
 Moses Moody,GSW,12500000,13425925,,,,,
 Al Horford,GSW,6822000,7163100,,,,,Player Option 2027-28
 Yaxel Lendeborg,GSW,6096240,6401280,6706200,8899127,,,Team Option 2028-29; Team Option 2029-30
-Brandin Podziemski,GSW,5679458,8666111,,,,,Qualifying Offer 2027-28
 De'Anthony Melton,GSW,6064000,6367200,,,,,Player Option 2027-28
+Brandin Podziemski,GSW,5679458,8666111,,,,,Qualifying Offer 2027-28
 Gui Santos,GSW,4629630,5000000,5370370,,,,Player Option 2028-29
+Georges Niang,GSW,3876529,,,,,,
+Gary Payton II,GSW,3876529,,,,,,
 Charles Bassey,GSW,2845883,,,,,,
+Dalen Terry,GSW,2625627,,,,,,
+Brandon Williams,GSW,2625627,,,,,,
 Will Richard,GSW,2150917,2525901,2735698,,,,Team Option 2028-29
 Malevy Leons,GSW,678882,,,,,,Two-Way Contract 2026-27
-L.J. Cryer,GSW,678882,,,,,,Two-Way Contract 2026-27
+LJ Cryer,GSW,678882,,,,,,Two-Way Contract 2026-27
 Kevin Durant,HOU,43902439,46097561,,,,,Player Option 2027-28
 Alperen Sengun,HOU,35642202,37339450,39036697,39036697,,,Player Option 2029-30
 Fred VanVleet,HOU,25000000,,,,,,
@@ -182,8 +195,9 @@ Oscar Tshiebwe,HOU,2537526,,,,,,
 Julian Phillips,HOU,2537526,,,,,,
 Isaiah Crawford,HOU,2449421,2664401,2888193,3272766,,,Team Option 2029-30
 Bruce Thornton,HOU,1357763,2294370,2694363,2918152,,,Team Option 2029-30
+Rafael Castro,HOU,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
+Sean Pedulla,HOU,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Quadir Copeland,HOU,678882,,,,,,Two-Way Contract 2026-27
-Tristen Newton,HOU,678882,,,,,,Two-Way Contract 2026-27
 Tyler Smith,HOU,85300,,,,,,
 Pascal Siakam,IND,48924624,52298736,,,,,
 Tyrese Haliburton,IND,48924624,52298736,55672848,,,,
@@ -199,22 +213,28 @@ Larry Nance Jr.,IND,3876529,,,,,,
 Jay Huff,IND,2667944,3005085,,,,,Team Option 2027-28
 Quenton Jackson,IND,2584539,2934742,,,,,Team Option 2027-28
 Johnny Furphy,IND,2296271,2486995,,,,,Team Option 2027-28
+Braden Smith,IND,678882,,,,,,Two-Way Contract 2026-27
 Jalen Slawson,IND,678882,,,,,,Two-Way Contract 2026-27
 Kobe Brown,IND,678882,,,,,,Two-Way Contract 2026-27
+Ethan Thompson,IND,75000,,,,,,
 Darius Garland,LAC,42166510,44886930,,,,,
 Brandon Ingram,LAC,40000000,41904762,,,,,Player Option 2027-28
+Max Strus,LAC,16660836,,,,,,
 Rui Hachimura,LAC,14000000,14000000,,,,,Team Option 2027-28
-Derrick Jones,LAC,10476190,,,,,,
+Derrick Jones Jr.,LAC,10476190,,,,,,
 Keaton Wagler,LAC,9674760,10158240,10641960,13483363,,,Team Option 2028-29; Team Option 2029-30
 Brook Lopez,LAC,9187500,,,,,,
 Gradey Dick,LAC,7131251,10575645,,,,,Qualifying Offer 2027-28
 Isaiah Jackson,LAC,7000000,6400000,,,,,
+Bradley Beal,LAC,6424800,6746040,,,,,Player Option 2027-28
 Kris Dunn,LAC,5684800,,,,,,Team Option 2026-27
 Jordan Miller,LAC,5300000,5000000,5000000,,,,Team Option 2028-29
 Yanic Konan Niederhauser,LAC,2880960,3018480,5448356,8717370,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Kobe Sanders,LAC,2622139,2753246,2884353,3019000,,,Team Option 2029-30
+Yuki Kawamura,LAC,2449421,,,,,,
 Cam Christie,LAC,2296271,2486995,,,,,Team Option 2026-27; Team Option 2027-28
 Baba Miller,LAC,1705630,2294370,2694363,2918152,,,Team Option 2029-30
+Jalen Pickett,LAC,678882,,,,,,Two-Way Contract 2026-27
 Jamarion Sharp,LAC,678882,,,,,,Two-Way Contract 2026-27
 Nick Martinelli,LAC,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Luka Doncic,LAL,51033600,55116288,59198976,,,,Player Option 2028-29
@@ -233,10 +253,11 @@ Matisse Thybulle,LAL,3286399,,,,,,
 Ziaire Williams,LAL,2845883,,,,,,
 Bronny James,LAL,2296271,2486995,,,,,Team Option 2027-28
 Adou Thiero,LAL,2150917,2525901,,,,,Team Option 2027-28
+Meechie Johnson,LAL,1357763,,,,,,
 Arthur Kaluma,LAL,678882,,,,,,Two-Way Contract 2026-27
+Chris Manon,LAL,678882,,,,,,Two-Way Contract 2026-27
 AK Okereke,LAL,678882,,,,,,Two-Way Contract 2026-27
 Jerami Grant,MEM,34206898,36413790,,,,,Player Option 2027-28
-Kentavious Caldwell-Pope,PHI,3876529,,,,,,
 Isaiah Stewart,MEM,15000000,15000000,,,,,Team Option 2027-28
 Brandon Clarke,MEM,12500000,,,,,,
 Cameron Boozer,MEM,11849760,12441840,13034880,16476088,,,Team Option 2028-29; Team Option 2029-30
@@ -247,15 +268,14 @@ Zach Edey,MEM,6332760,8067936,11738846,,,,Team Option 2027-28; Qualifying Offer 
 Cedric Coward,MEM,6001080,6286920,8342743,12255490,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 D'Angelo Russell,MEM,5969250,,,,,,
 Kris Murray,MEM,5315004,8265502,,,,,Qualifying Offer 2027-28
-Walter Clayton,MEM,4190520,4390320,6752312,10256762,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
+Walter Clayton Jr.,MEM,4190520,4390320,6752312,10256762,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Taj Gibson,MEM,3800000,,,,,,Team Option 2026-27
 Karim Lopez,MEM,3746760,3934320,4121760,6565964,,,Team Option 2028-29; Team Option 2029-30
-Cole Anthony,MEM,3700000,3700000,,,,,
 AJ Johnson,MEM,3237120,5493393,8542226,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Olivier-Maxence Prosper,MEM,2497812,,,,,,
-Scotty Pippen Jr,MEM,2461462,2789215,,,,,Team Option 2027-28
+Scotty Pippen Jr.,MEM,2461462,2789215,,,,,Team Option 2027-28
 Cam Spencer,MEM,2411090,2616754,2830685,,,,Team Option 2028-29
-GG Jackson,MEM,2406205,,,,,,
+Gregory Jackson,MEM,2406205,,,,,,
 Jaylen Wells,MEM,2296271,2486995,,,,,Team Option 2027-28
 Jahmai Mashack,MEM,679042,,,,,,
 Giannis Antetokounmpo,MIA,58456566,62786682,,,,,Player Option 2027-28
@@ -265,16 +285,21 @@ Nikola Jovic,MIA,16200000,14904000,15096000,16200000,,,
 Bobby Portis,MIA,14521414,15597074,,,,,Player Option 2027-28
 Davion Mitchell,MIA,12400000,,,,,,
 Tim Hardaway Jr.,MIA,6065000,,,,,,
+Klay Thompson,MIA,5600000,5880000,,,,,Player Option 2027-28
+Nick Richards,MIA,3066143,,,,,,
 Simone Fontecchio,MIA,2625627,,,,,,
 Dru Smith,MIA,2584539,2934742,,,,,
 Pelle Larsson,MIA,2296271,,,,,,
 Myron Gardner,MIA,2150917,2525901,,,,,Team Option 2027-28
+J'Vonne Hadley,MIA,1357763,,,,,,
 Ryan Conwell,MIA,1357763,2294370,2694363,2918152,,,Team Option 2029-30
+Keshad Johnson,MIA,678882,,,,,,Two-Way Contract 2026-27
+Tre Donaldson,MIA,678882,,,,,,Two-Way Contract 2026-27
 Vladislav Goldin,MIA,678882,,,,,,Two-Way Contract 2026-27
 Tyler Herro,MIL,33000000,,,,,,
 Myles Turner,MIL,26584164,27850077,29115990,,,,Player Option 2028-29
 Kyle Kuzma,MIL,20490152,,,,,,
-Gary Trent Jr,MIL,15200000,16400000,16400000,16000000,,,
+Gary Trent Jr.,MIL,15200000,16400000,16400000,16000000,,,
 Caris LeVert,MIL,14809200,,,,,,
 AJ Green,MIL,10044644,10848215,11651786,12455355,,,
 Brayden Burries,MIL,6417360,6738000,7058520,8999613,,,Team Option 2028-29; Team Option 2029-30
@@ -287,6 +312,7 @@ Ryan Rollins,MIL,4000000,4000000,,,,,Player Option 2027-28
 Kasparas Jakucionis,MIL,3841680,4024440,6205687,9513319,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Jericho Sims,MIL,2801346,,,,,,
 Pete Nance,MIL,2537526,2756912,,,,,Team Option 2027-28
+Bogoljub Markovic,MIL,1357763,2294370,2694363,2918152,,,Team Option 2029-30
 Kam Jones,MIL,678882,,,,,,Two-Way Contract 2026-27
 Cormac Ryan,MIL,678882,,,,,,Two-Way Contract 2026-27
 Anthony Edwards,MIN,48924624,52298736,55672848,,,,
@@ -294,8 +320,9 @@ LaMelo Ball,MIN,40770520,43582280,46394040,,,,
 Rudy Gobert,MIN,36500000,38000000,,,,,Player Option 2027-28
 Jaden McDaniels,MIN,25750001,28006898,29813790,,,,
 Ayo Dosunmu,MIN,19310345,20855173,22400001,23944829,,,
-Josh Green,MIN,14679012,,,,,,
 Donte DiVincenzo,MIN,12535000,,,,,,
+Jonathan Kuminga,MIN,6064000,6367200,,,,,Player Option 2027-28
+Cody Williams,MIN,6015600,7669890,11213379,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Joan Beringer,MIN,4411200,4621200,7098163,10732423,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Trey Lyles,MIN,3876529,,,,,,
 Jaylen Clark,MIN,3086420,3333334,3580246,,,,
@@ -310,17 +337,23 @@ Jordan Poole,NOR,34044642,,,,,,
 Dejounte Murray,NOR,32785071,30751504,,,,,Player Option 2027-28
 Trey Murphy III,NOR,27000000,29000000,31000000,,,,
 Herb Jones,NOR,14898786,20858300,22526964,24195628,,,Player Option 2029-30
+Bennedict Mathurin,NOR,8000000,8000000,,,,,
 Jeremiah Fears,NOR,7896240,8271960,10505389,15138266,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Jordan Hawkins,NOR,7021740,10469414,,,,,Qualifying Offer 2027-28
 Saddiq Bey,NOR,6557080,,,,,,
 Derik Queen,NOR,5416080,5673840,8107918,12024043,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 DeAndre Jordan,NOR,3876529,4070355,,,,,
 Yves Missi,NOR,3512760,5595827,8623169,,,,Team Option 2027-28; Qualifying Offer 2028-29
+Trendon Watford,NOR,2845883,,,,,,
+Caleb Houstan,NOR,2625627,,,,,,
+Christian Koloko,NOR,2625627,,,,,,
 Bryce McGowens,NOR,2584539,2934742,,,,,Team Option 2027-28
+Kobe Bufkin,NOR,2537526,,,,,,
 Karlo Matkovic,NOR,2296271,,,,,,
 Micah Peavy,NOR,2150917,2525901,2735698,,,,Team Option 2028-29
+Malik Dia,NOR,678882,,,,,,Two-Way Contract 2026-27
 Jaron Pierre Jr.,NOR,678882,,,,,,Two-Way Contract 2026-27
-Hunter Dickinson,NOR,678882,,,,,,Two-Way Contract 2026-27
+Hunter Dickinson,NOR,91000,,,,,,
 Karl-Anthony Towns,NYK,57078728,61015192,,,,,Player Option 2027-28
 OG Anunoby,NYK,42500000,45431034,48362068,,,,Player Option 2028-29
 Jalen Brunson,NYK,37739521,40535041,43330561,,,,Player Option 2028-29
@@ -341,7 +374,6 @@ Isaiah Hartenstein,OKC,23148148,25000000,26851852,,,,Team Option 2028-29
 Alex Caruso,OKC,19550160,20998320,22446480,,,,
 Jaylin Williams,OKC,7774648,7774648,,,,,Team Option 2027-28
 Cason Wallace,OKC,7421121,10849678,,,,,Qualifying Offer 2027-28
-Spencer Jones,DEN,6000000,5750000,,,,,
 Aday Mara,OKC,5791680,6081480,6371160,8779458,,,Team Option 2028-29; Team Option 2029-30
 Nikola Topic,OKC,5429760,7482209,11043740,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Kenrich Williams,OKC,5000000,,,,,,
@@ -356,14 +388,15 @@ Franz Wagner,ORL,41754636,44847572,47940508,51033444,,,
 Paolo Banchero,ORL,41240250,44539470,47838690,51137910,,,
 Desmond Bane,ORL,39446090,42166510,44886930,,,,
 Jalen Suggs,ORL,32400000,29600000,26800000,26700000,,,
-Wendell Carter,ORL,18102000,19550160,20998320,,,,Team Option 2028-29
-Jonathan Isaac,ORL,11524115,,,,,,
+Wendell Carter Jr.,ORL,18102000,19550160,20998320,,,,Team Option 2028-29
+Jonathan Isaac,ORL,3524115,,,,,,
 Anthony Black,ORL,10105996,14491998,,,,,Qualifying Offer 2027-28
 Goga Bitadze,ORL,7608696,,,,,,
 Tristan da Silva,ORL,3991200,6138466,9324329,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Nikola Vucevic,ORL,3876529,,,,,,
 Jevon Carter,ORL,3506659,,,,,,
 Jase Richardson,ORL,3132360,3282000,5910882,9274174,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
+Malaki Branham,ORL,2625627,,,,,,
 Jamal Cain,ORL,2584539,,,,,,
 Noah Penda,ORL,2150917,2525901,2735698,,,,Team Option 2028-29
 Izaiyah Nelson,ORL,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
@@ -375,16 +408,18 @@ Tyrese Maxey,PHI,40770520,43582280,46394040,,,,
 VJ Edgecombe,PHI,11663880,12219720,15445727,21809367,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Dean Wade,PHI,9000000,9450000,9900000,10350000,,,
 Anfernee Simons,PHI,6000000,6300000,,,,,Player Option 2027-28
+Kentavious Caldwell-Pope,PHI,3876529,,,,,,
 LeBron James,PHI,3876529,4070355,,,,,Player Option 2027-28
 Labaron Philon,PHI,3597120,3776760,3956760,6508870,,,Team Option 2028-29; Team Option 2029-30
 Dominick Barlow,PHI,3415000,,,,,,
 Ariel Hukporti,PHI,3400000,,,,,,
-Dalen Terry,PHI,2584539,,,,,,
 Jabari Walker,PHI,2584539,,,,,,Team Option 2026-27
+Tacko Fall,PHI,2537526,,,,,,
 Justin Edwards,PHI,2411090,2616754,,,,,Team Option 2027-28
 Adem Bona,PHI,2296271,2486995,,,,,Team Option 2027-28
-Johni Broome,PHI,2150917,2525901,2735698,,,,Team Option 2028-29
-Duke Miles,PHI,1357763,,,,,,Exhibit-10 Contract 2026-27
+J. Nelson,PHI,1357763,,,,,,
+Saint Thomas,PHI,1357763,,,,,,
+Duke Miles,PHI,1357763,,,,,,
 Rayan Rupert,PHI,678882,,,,,,Two-Way Contract 2026-27
 Caleb Love,PHI,678882,,,,,,Two-Way Contract 2026-27
 Devin Booker,PHO,57078728,61015192,72042305,77805689,,,Player Option 2029-30
@@ -396,6 +431,7 @@ Collin Gillespie,PHO,10714286,11571429,12428571,13285714,,,
 Khaman Maluach,PHO,6316680,6617160,8436880,12334719,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Luke Kennard,PHO,6064000,6367200,,,,,Player Option 2027-28
 Jordan Goodwin,PHO,5864198,6333333,6802469,,,,Player Option 2028-29
+Haywood Highsmith,PHO,3066143,,,,,,
 Koa Peat,PHO,2926800,3073080,3219840,5811811,,,Team Option 2028-29; Team Option 2029-30
 Ryan Dunn,PHO,2784240,5025553,7990629,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Jamaree Bouyea,PHO,2584539,,,,,,
@@ -403,6 +439,7 @@ Oso Ighodaro,PHO,2296271,2486995,,,,,Team Option 2027-28
 Rasheer Fleming,PHO,2150917,2525901,2735698,,,,Team Option 2028-29
 Koby Brea,PHO,678882,,,,,,Two-Way Contract 2026-27
 Pat Spencer,PHO,678882,,,,,,Two-Way Contract 2026-27
+CJ Huntley,PHO,678882,,,,,,Two-Way Contract 2026-27
 Ja Morant,POR,42166510,44886930,,,,,
 Jrue Holiday,POR,34800000,37200000,,,,,Player Option 2027-28
 Shaedon Sharpe,POR,20089287,21696429,23303571,24910713,,,
@@ -415,11 +452,13 @@ Donovan Clingan,POR,7519920,9550298,13761979,,,,Team Option 2027-28; Qualifying 
 Hansen Yang,POR,4643520,4864920,7462788,11231496,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Micah Potter,POR,2801346,,,,,,
 Vit Krejci,POR,2667944,3005085,,,,,Team Option 2027-28
+Jeremy Sochan,POR,2625627,,,,,,
 Sidy Cissoko,POR,2497812,,,,,,
 Branden Carlson,POR,2449421,,,,,,
 John Tonje,POR,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Chris Youngblood,POR,678882,,,,,,Two-Way Contract 2026-27
 Jayson Kent,POR,678882,,,,,,Two-Way Contract 2026-27
+Johni Broome,LAC,2150917,2525901,2735698,,,,Team Option 2028-29
 Zach LaVine,SAC,48967380,,,,,,
 Domantas Sabonis,SAC,45472000,48608000,,,,,
 De'Andre Hunter,SAC,24910714,,,,,,
@@ -435,7 +474,6 @@ Dylan Cardwell,SAC,2150917,2525901,2735698,,,,Team Option 2028-29
 Emanuel Sharp,SAC,1357763,2294370,2694363,2918152,,,Team Option 2029-30
 Adam Flagler,SAC,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Jonathan Mogbo,SAC,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
-Isaiah Stevens,SAC,678882,,,,,,Two-Way Contract 2026-27
 De'Aaron Fox,SAS,49488300,53447364,57406428,61365492,,,
 Devin Vassell,SAS,27500000,25108696,27500000,,,,
 Keldon Johnson,SAS,18000000,,,,,,
@@ -447,9 +485,11 @@ Luke Kornet,SAS,10450000,9900000,9350000,,,,Team Option 2028-29
 Stephon Castle,SAS,10015920,12670139,17978927,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Harrison Barnes,SAS,8000000,,,,,,
 Carter Bryant,SAS,5145360,5390640,7983539,11903457,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
+Jayden Quaintance,SAS,3902760,4097880,4292880,6619621,,,Team Option 2028-29; Team Option 2029-30
 Jordan McLaughlin,SAS,3286399,,,,,,
 Tarris Reed Jr.,SAS,3076920,3230520,3384480,6102217,,,Team Option 2028-29; Team Option 2029-30
-David Jones Garcia,SAS,678882,,,,,,Two-Way Contract 2026-27
+Taelon Peter,SAS,2185116,,,,,,
+D. Jones-Garcia,SAS,678882,,,,,,Two-Way Contract 2026-27
 Ja'Kobi Gillespie,SAS,678882,,,,,,Two-Way Contract 2026-27
 Maliq Brown,SAS,678882,,,,,,Two-Way Contract 2026-27
 Kawhi Leonard,TOR,50300000,,,,,,
@@ -461,20 +501,23 @@ Collin Murray-Boyles,TOR,6649560,6966000,8874684,12912666,,,Team Option 2027-28;
 Allen Graves,TOR,4065720,4268880,4472640,6887866,,,Team Option 2028-29; Team Option 2029-30
 Kyle Anderson,TOR,3876529,,,,,,
 Ja'Kobe Walter,TOR,3811800,5870172,8957882,,,,Team Option 2027-28; Qualifying Offer 2028-29
+Andre Jackson Jr.,TOR,2537526,,,,,,
 Trayce Jackson-Davis,TOR,2406205,,,,,,
 Jamison Battle,TOR,2296271,,,,,,
 Jamal Shead,TOR,2296271,,,,,,
+Malachi Smith,TOR,2185116,,,,,,
 Alijah Martin,TOR,2185116,2571895,,,,,
-Nate Bittle,TOR,1357763,,,,,,Exhibit-10 Contract 2026-27
+Nate Bittle,TOR,1357763,,,,,,
+Trey Jemison,TOR,678882,,,,,,Two-Way Contract 2026-27
+Jaden Bradley,TOR,678882,,,,,,Two-Way Contract 2026-27
 Chucky Hepburn,TOR,678882,,,,,,Two-Way Contract 2026-27
-Jaren Jackson Jr,UTA,49000000,50500000,52000000,53500000,,,Player Option 2029-30
+Jaren Jackson Jr.,UTA,49000000,50500000,52000000,53500000,,,Player Option 2029-30
 Lauri Markkanen,UTA,46113154,49824681,53536209,,,,
+Josh Green,UTA,14679012,,,,,,
 Darryn Peterson,UTA,13195320,13855320,14515320,18318334,,,Team Option 2028-29; Team Option 2029-30
 Jusuf Nurkic,UTA,11458333,10541667,,,,,
 Ace Bailey,UTA,9522960,9976560,12640302,18025071,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Keyonte George,UTA,6563608,9878230,,,,,Qualifying Offer 2027-28
-John Konchar,UTA,6165000,,,,,,
-Cody Williams,UTA,6015600,7669890,11213379,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Josh Okogie,UTA,6000000,6000000,,,,,Team Option 2027-28
 Jaxson Hayes,UTA,6000000,6000000,,,,,Team Option 2027-28
 Brice Sensabaugh,UTA,4861695,7730095,,,,,Qualifying Offer 2027-28
@@ -482,44 +525,25 @@ Svi Mykhailiuk,UTA,3850000,4025000,,,,,Team Option 2027-28
 Mo Bamba,UTA,3506659,3700320,,,,,Team Option 2027-28
 Kyle Filipowski,UTA,3000000,3000000,,,,,Team Option 2027-28
 Isaiah Collier,UTA,2763960,4988948,7982316,,,,Team Option 2027-28; Qualifying Offer 2028-29
-Harrison Ingram,UTA,2449421,,,,,,Exhibt-10 Contract 2026-27
+Harrison Ingram,UTA,2449421,,,,,,
+Terrell Brown Jr.,UTA,1357763,,,,,,
 Tamar Bates,UTA,678882,716081,,,,,Two-Way Contract 2026-27; Two-Way Contract 2027-28
 Trey Alexander,UTA,678882,,,,,,Two-Way Contract 2026-27
 Blake Hinson,UTA,678882,,,,,,Two-Way Contract 2026-27
 Anthony Davis,WAS,58456566,62786682,,,,,Player Option 2027-28
 Trae Young,WAS,49488300,50478066,54437130,58396194,,,Player Option 2029-30
-AJ Dybantsa,WAS,14748000,15485760,16223040,20457253,,,Team Option 2028-29; Team Option 2029-30
+AJ Dybantsa,WAS,14748000,15485760,16223040,20457253,,,Team Option 2027-28; Team Option 2028-29; Team Option 2029-30
 Alex Sarr,WAS,12370680,15611798,21934576,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Bilal Coulibaly,WAS,9240116,13315007,,,,,Qualifying Offer 2027-28
 Tre Johnson,WAS,8649600,9061680,11490211,16476963,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Deandre Ayton,WAS,8104000,,,,,,
+Tre Mann,WAS,8000000,8000000,,,,,Team Option 2027-28
 Khris Middleton,WAS,5591122,5870678,6150234,,,,
-Cam Whitmore,WAS,5458643,8368099,,,,,Team Option 2026-27; Qualifying Offer 2027-28
 Bub Carrington,WAS,4900560,7257729,10821273,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Will Riley,WAS,3688320,3864000,6155352,9485398,,,Team Option 2027-28; Team Option 2028-29; Qualifying Offer 2029-30
 Kyshawn George,WAS,3108000,5435892,8490863,,,,Team Option 2027-28; Qualifying Offer 2028-29
 Tristan Vukcevic,WAS,3000000,3000000,,,,,Team Option 2027-28
 Justin Champagnie,WAS,2667944,3005085,,,,,Team Option 2026-27; Team Option 2027-28
+Alondes Williams,WAS,2625627,,,,,,
 Felix Okpara,WAS,678882,,,,,,Two-Way Contract 2026-27
 Jamir Watkins,WAS,678882,,,,,,Two-Way Contract 2026-27
-Julian Reese,WAS,678882,,,,,,Two-Way Contract 2026-27
-Dillon Mitchell,BOS,678882,,,,,,Two-Way Contract 2026-27
-Kobe Stewart,CHA,1357763,,,,,,
-JaVale McGee,DAL,2208856,2208856,,,,,
-Lonnie Walker,DEN,3286399,,,,,,
-Gary Payton II,GSW,3876529,,,,,,
-Bradley Beal,LAC,6424800,6746040,,,,,Player Option 2027-28
-Yuki Kawamura,LAC,2449421,,,,,,
-Jalen Pickett,LAC,678882,,,,,,Two-Way Contract 2026-27
-Caleb Houstan,NOR,2625627,,,,,,
-Christian Koloko,NOR,2625627,,,,,,
-Kobe Bufkin,NOR,2537526,,,,,,
-Nassir Little,PHO,3107143,3107143,3107143,3107143,,,
-CJ Huntley,PHO,678882,,,,,,Two-Way Contract 2026-27
-Jeremy Sochan,POR,2625627,,,,,,
-Jayden Quaintance,SAS,3902760,4097880,4292880,6619621,,,Team Option 2028-29; Team Option 2029-30
-Taelon Peter,SAS,2185116,,,,,,Exhibit-10 Contract 2026-27
-Andre Jackson Jr,TOR,2537526,,,,,,
-Trey Jemison,TOR,678882,,,,,,Two-Way Contract 2026-27
-Jaden Bradley,TOR,678882,,,,,,Two-Way Contract 2026-27
-Alondes Williams,WAS,2625627,,,,,,Exhibt-10 Contract 2026-27

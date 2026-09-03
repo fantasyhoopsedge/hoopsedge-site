@@ -1090,7 +1090,7 @@
   {
     "team": "CHA",
     "player": "Kon Knueppel",
-    "pos": "G",
+    "pos": "F",
     "tier": "starter",
     "injury": "none",
     "overrideGames": 78.0,
@@ -1104,7 +1104,7 @@
     "usg": 23.7
   },
   {
-    "team": "CLE",
+    "team": "WAS",
     "player": "Tre Mann",
     "pos": "G",
     "tier": "fringe",
@@ -1117,7 +1117,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8000000.0,
     "statusNext": "team_option",
-    "usg": 22.1
+    "usg": 21.0
   },
   {
     "team": "CHA",
@@ -1442,7 +1442,7 @@
   {
     "team": "CHI",
     "player": "Isaac Okoro",
-    "pos": "F",
+    "pos": "G",
     "tier": "rotation",
     "injury": "none",
     "overrideGames": 62.0,
@@ -1581,7 +1581,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 30240000.0,
     "statusNext": "guaranteed",
-    "usg": 17.8
+    "usg": 17.5
   },
   {
     "team": "CLE",
@@ -1597,7 +1597,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.5
+    "usg": 17.3
   },
   {
     "team": "CLE",
@@ -1613,7 +1613,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.5
   },
   {
     "team": "CLE",
@@ -1629,7 +1629,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 24.5
+    "usg": 24.1
   },
   {
     "team": "CLE",
@@ -1645,7 +1645,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.5
   },
   {
     "team": "CLE",
@@ -1677,7 +1677,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9839285.0,
     "statusNext": "guaranteed",
-    "usg": 15.6
+    "usg": 15.4
   },
   {
     "team": "CLE",
@@ -1693,7 +1693,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.5
   },
   {
     "team": "CLE",
@@ -1709,7 +1709,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 60900000.0,
     "statusNext": "guaranteed",
-    "usg": 30.1
+    "usg": 29.6
   },
   {
     "team": "CLE",
@@ -1725,7 +1725,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 53817156.0,
     "statusNext": "guaranteed",
-    "usg": 22.1
+    "usg": 21.8
   },
   {
     "team": "CLE",
@@ -1741,7 +1741,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.1
+    "usg": 12.9
   },
   {
     "team": "CLE",
@@ -1757,7 +1757,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 21.3
+    "usg": 20.9
   },
   {
     "team": "CHA",
@@ -1776,7 +1776,7 @@
     "usg": 17.9
   },
   {
-    "team": "CLE",
+    "team": "LAC",
     "player": "Max Strus",
     "pos": "F",
     "tier": "starter",
@@ -1789,7 +1789,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.8
+    "usg": 16.4
   },
   {
     "team": "CLE",
@@ -1805,7 +1805,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 16.3
+    "usg": 16.0
   },
   {
     "team": "CLE",
@@ -1821,7 +1821,7 @@
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.5
+    "usg": 15.2
   },
   {
     "team": "CLE",
@@ -1837,7 +1837,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5641500.0,
     "statusNext": "team_option",
-    "usg": 19.1
+    "usg": 18.8
   },
   {
     "team": "CLE",
@@ -1853,7 +1853,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.7
+    "usg": 17.5
   },
   {
     "team": "DAL",
@@ -1869,7 +1869,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8857143.0,
     "statusNext": "player_option",
-    "usg": 16.0
+    "usg": 16.1
   },
   {
     "team": "DAL",
@@ -1997,7 +1997,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7093080.0,
     "statusNext": "guaranteed",
-    "usg": 15.9
+    "usg": 16.0
   },
   {
     "team": "DAL",
@@ -2112,9 +2112,9 @@
     "usg": null
   },
   {
-    "team": "DAL",
+    "team": "MIA",
     "player": "Klay Thompson",
-    "pos": "G",
+    "pos": "F",
     "tier": "rotation",
     "injury": "none",
     "overrideGames": 49.0,
@@ -2125,16 +2125,16 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 20.7
+    "usg": 20.6
   },
   {
     "team": "DAL",
-    "player": "PJ Washington",
+    "player": "P.J. Washington",
     "pos": "F",
     "tier": "starter",
     "injury": "none",
-    "overrideGames": 72.0,
-    "overrideMpg": 30.0,
+    "overrideGames": null,
+    "overrideMpg": null,
     "projMpg": 30.0,
     "projGames": 72.0,
     "salaryNow": 19813044.0,
@@ -2173,7 +2173,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.6
+    "usg": 18.5
   },
   {
     "team": "DEN",
@@ -2205,7 +2205,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "DEN",
@@ -2253,7 +2253,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5547137.0,
     "statusNext": "team_option",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "DEN",
@@ -2269,7 +2269,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "non_guaranteed",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "DEN",
@@ -2285,7 +2285,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.4
+    "usg": 17.3
   },
   {
     "team": "DEN",
@@ -2301,7 +2301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62841702.0,
     "statusNext": "player_option",
-    "usg": 29.2
+    "usg": 29.0
   },
   {
     "team": "DEN",
@@ -2333,7 +2333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.9
+    "usg": 12.8
   },
   {
     "team": "DEN",
@@ -2365,7 +2365,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 53817156.0,
     "statusNext": "guaranteed",
-    "usg": 26.1
+    "usg": 26.0
   },
   {
     "team": "DEN",
@@ -2397,7 +2397,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7466667.0,
     "statusNext": "player_option",
-    "usg": 13.4
+    "usg": 13.3
   },
   {
     "team": "DEN",
@@ -2413,7 +2413,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 20.2
+    "usg": 20.1
   },
   {
     "team": "DEN",
@@ -2429,10 +2429,10 @@
     "statusNow": "guaranteed",
     "salaryNext": 7722940.0,
     "statusNext": "restricted_fa",
-    "usg": 19.0
+    "usg": 18.9
   },
   {
-    "team": "DEN",
+    "team": "CLE",
     "player": "Peyton Watson",
     "pos": "F",
     "tier": "rotation",
@@ -2445,7 +2445,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 19.1
+    "usg": 18.4
   },
   {
     "team": "DET",
@@ -2733,7 +2733,7 @@
     "statusNow": "team_option",
     "salaryNext": 8156386.0,
     "statusNext": "restricted_fa",
-    "usg": 19.0
+    "usg": 19.1
   },
   {
     "team": "DET",
@@ -3677,7 +3677,7 @@
     "statusNow": "team_option",
     "salaryNext": 2486995.0,
     "statusNext": "team_option",
-    "usg": 17.2
+    "usg": 18.0
   },
   {
     "team": "LAC",
@@ -3693,7 +3693,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10575645.0,
     "statusNext": "restricted_fa",
-    "usg": 21.1
+    "usg": 22.1
   },
   {
     "team": "LAC",
@@ -3709,7 +3709,7 @@
     "statusNow": "team_option",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 12.8
+    "usg": 13.3
   },
   {
     "team": "LAC",
@@ -3725,7 +3725,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 44886930.0,
     "statusNext": "guaranteed",
-    "usg": 28.3
+    "usg": 29.5
   },
   {
     "team": "LAC",
@@ -3741,7 +3741,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 41904762.0,
     "statusNext": "player_option",
-    "usg": 26.0
+    "usg": 27.2
   },
   {
     "team": "LAC",
@@ -3757,7 +3757,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 14000000.0,
     "statusNext": "team_option",
-    "usg": 16.0
+    "usg": 16.7
   },
   {
     "team": "LAC",
@@ -3773,7 +3773,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6400000.0,
     "statusNext": "guaranteed",
-    "usg": 17.3
+    "usg": 18.0
   },
   {
     "team": "LAC",
@@ -3789,7 +3789,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 15.8
+    "usg": 16.5
   },
   {
     "team": "LAC",
@@ -3805,7 +3805,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3018480.0,
     "statusNext": "team_option",
-    "usg": 16.7
+    "usg": 17.4
   },
   {
     "team": "LAC",
@@ -3821,7 +3821,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.9
+    "usg": 17.7
   },
   {
     "team": "LAC",
@@ -3853,10 +3853,10 @@
     "statusNow": "non_guaranteed",
     "salaryNext": 716081.0,
     "statusNext": "non_guaranteed",
-    "usg": 19.2
+    "usg": 20.0
   },
   {
-    "team": "LAC",
+    "team": "NOR",
     "player": "Bennedict Mathurin",
     "pos": "F",
     "tier": "rotation",
@@ -3869,7 +3869,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 25.4
+    "usg": 22.6
   },
   {
     "team": "LAC",
@@ -3885,7 +3885,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 19.1
+    "usg": 20.0
   },
   {
     "team": "LAC",
@@ -3901,13 +3901,29 @@
     "statusNow": "guaranteed",
     "salaryNext": 5000000.0,
     "statusNext": "guaranteed",
-    "usg": 18.5
+    "usg": 19.3
   },
   {
     "team": "LAC",
     "player": "Narcisse Ngoy",
     "pos": "C",
     "tier": "cut",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "HOU",
+    "player": "Sean Pedulla",
+    "pos": "G",
+    "tier": "fringe",
     "injury": "none",
     "overrideGames": null,
     "overrideMpg": null,
@@ -3933,7 +3949,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2753246.0,
     "statusNext": "guaranteed",
-    "usg": 17.2
+    "usg": 18.0
   },
   {
     "team": "LAC",
@@ -3949,7 +3965,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10158240.0,
     "statusNext": "guaranteed",
-    "usg": 20.8
+    "usg": 21.7
   },
   {
     "team": "LAL",
@@ -4669,7 +4685,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 62786682.0,
     "statusNext": "player_option",
-    "usg": 32.4
+    "usg": 32.3
   },
   {
     "team": "MIA",
@@ -4717,7 +4733,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.0
+    "usg": 17.9
   },
   {
     "team": "MIA",
@@ -4798,6 +4814,22 @@
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
     "usg": 16.5
+  },
+  {
+    "team": "MIA",
+    "player": "Keshad Johnson",
+    "pos": "F",
+    "tier": "cut",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
   },
   {
     "team": "MIA",
@@ -4942,6 +4974,22 @@
     "salaryNext": 6738000.0,
     "statusNext": "guaranteed",
     "usg": 18.2
+  },
+  {
+    "team": "HOU",
+    "player": "Rafael Castro",
+    "pos": "C",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
   },
   {
     "team": "MIL",
@@ -5229,7 +5277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 43582280.0,
     "statusNext": "guaranteed",
-    "usg": 32.7
+    "usg": 32.3
   },
   {
     "team": "MIN",
@@ -5245,7 +5293,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4621200.0,
     "statusNext": "team_option",
-    "usg": 17.3
+    "usg": 17.1
   },
   {
     "team": "MIN",
@@ -5261,7 +5309,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3333334.0,
     "statusNext": "guaranteed",
-    "usg": 13.2
+    "usg": 13.1
   },
   {
     "team": "MIN",
@@ -5293,7 +5341,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20855173.0,
     "statusNext": "guaranteed",
-    "usg": 19.6
+    "usg": 19.4
   },
   {
     "team": "MIN",
@@ -5309,7 +5357,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 52298736.0,
     "statusNext": "guaranteed",
-    "usg": 31.5
+    "usg": 31.1
   },
   {
     "team": "MIN",
@@ -5325,7 +5373,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2294370.0,
     "statusNext": "guaranteed",
-    "usg": 17.3
+    "usg": 17.1
   },
   {
     "team": "MIN",
@@ -5341,7 +5389,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.8
+    "usg": 17.6
   },
   {
     "team": "MIN",
@@ -5357,10 +5405,10 @@
     "statusNow": "guaranteed",
     "salaryNext": 38000000.0,
     "statusNext": "player_option",
-    "usg": 12.1
+    "usg": 12.0
   },
   {
-    "team": "MIN",
+    "team": "UTA",
     "player": "Josh Green",
     "pos": "G",
     "tier": "rotation",
@@ -5373,7 +5421,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 10.0
+    "usg": 9.5
   },
   {
     "team": "MIN",
@@ -5389,7 +5437,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 20.7
+    "usg": 20.5
   },
   {
     "team": "MIN",
@@ -5421,7 +5469,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.4
+    "usg": 13.2
   },
   {
     "team": "MIN",
@@ -5437,7 +5485,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 28006898.0,
     "statusNext": "guaranteed",
-    "usg": 18.0
+    "usg": 17.8
   },
   {
     "team": "MIN",
@@ -5453,7 +5501,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.5
+    "usg": 18.3
   },
   {
     "team": "MIN",
@@ -5469,7 +5517,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5054159.0,
     "statusNext": "team_option",
-    "usg": 18.3
+    "usg": 18.1
   },
   {
     "team": "MIN",
@@ -5485,7 +5533,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 17.8
+    "usg": 17.6
   },
   {
     "team": "NOR",
@@ -5517,7 +5565,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 18.7
+    "usg": 18.5
   },
   {
     "team": "NOR",
@@ -5565,7 +5613,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 8271960.0,
     "statusNext": "team_option",
-    "usg": 26.0
+    "usg": 25.7
   },
   {
     "team": "NOR",
@@ -5581,7 +5629,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10469414.0,
     "statusNext": "restricted_fa",
-    "usg": 18.2
+    "usg": 18.0
   },
   {
     "team": "NOR",
@@ -5597,7 +5645,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 20858300.0,
     "statusNext": "guaranteed",
-    "usg": 13.9
+    "usg": 13.7
   },
   {
     "team": "NOR",
@@ -5613,7 +5661,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4070355.0,
     "statusNext": "guaranteed",
-    "usg": 9.8
+    "usg": 9.7
   },
   {
     "team": "NOR",
@@ -5629,7 +5677,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 13.1
+    "usg": 12.9
   },
   {
     "team": "NOR",
@@ -5645,7 +5693,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5595827.0,
     "statusNext": "team_option",
-    "usg": 12.5
+    "usg": 12.4
   },
   {
     "team": "NOR",
@@ -5661,7 +5709,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 29000000.0,
     "statusNext": "guaranteed",
-    "usg": 21.0
+    "usg": 20.7
   },
   {
     "team": "NOR",
@@ -5677,7 +5725,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 30751504.0,
     "statusNext": "player_option",
-    "usg": 24.0
+    "usg": 23.7
   },
   {
     "team": "NOR",
@@ -5693,7 +5741,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 13.5
+    "usg": 13.3
   },
   {
     "team": "NOR",
@@ -5725,7 +5773,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 21.9
+    "usg": 21.6
   },
   {
     "team": "NOR",
@@ -5741,7 +5789,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 5673840.0,
     "statusNext": "team_option",
-    "usg": 21.6
+    "usg": 21.3
   },
   {
     "team": "NOR",
@@ -5757,7 +5805,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 44886930.0,
     "statusNext": "guaranteed",
-    "usg": 25.6
+    "usg": 25.3
   },
   {
     "team": "NYK",
@@ -6653,7 +6701,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2525901.0,
     "statusNext": "guaranteed",
-    "usg": 19.9
+    "usg": 20.8
   },
   {
     "team": "PHI",
@@ -7038,6 +7086,22 @@
     "salaryNext": 36000000.0,
     "statusNext": "player_option",
     "usg": 29.1
+  },
+  {
+    "team": "PHO",
+    "player": "Haywood Highsmith",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": 0.0,
+    "overrideMpg": 0.0,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
   },
   {
     "team": "PHO",
@@ -7486,6 +7550,22 @@
     "salaryNext": 3418800.0,
     "statusNext": "team_option",
     "usg": 19.1
+  },
+  {
+    "team": "DEN",
+    "player": "DeMar DeRozan",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
   },
   {
     "team": "SAC",
@@ -8221,7 +8301,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9976560.0,
     "statusNext": "team_option",
-    "usg": 21.5
+    "usg": 21.7
   },
   {
     "team": "UTA",
@@ -8237,7 +8317,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": 716081.0,
     "statusNext": "non_guaranteed",
-    "usg": 16.1
+    "usg": 16.3
   },
   {
     "team": "UTA",
@@ -8253,7 +8333,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4988948.0,
     "statusNext": "team_option",
-    "usg": 18.2
+    "usg": 18.4
   },
   {
     "team": "UTA",
@@ -8269,7 +8349,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3000000.0,
     "statusNext": "team_option",
-    "usg": 19.2
+    "usg": 19.4
   },
   {
     "team": "UTA",
@@ -8285,7 +8365,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 9878230.0,
     "statusNext": "restricted_fa",
-    "usg": 26.0
+    "usg": 26.3
   },
   {
     "team": "BOS",
@@ -8333,7 +8413,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6000000.0,
     "statusNext": "team_option",
-    "usg": 9.8
+    "usg": 9.9
   },
   {
     "team": "UTA",
@@ -8349,7 +8429,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.1
+    "usg": 16.3
   },
   {
     "team": "UTA",
@@ -8365,7 +8445,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 50500000.0,
     "statusNext": "guaranteed",
-    "usg": 25.0
+    "usg": 25.2
   },
   {
     "team": "UTA",
@@ -8397,7 +8477,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 8.0
+    "usg": 8.1
   },
   {
     "team": "UTA",
@@ -8413,7 +8493,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 49824681.0,
     "statusNext": "guaranteed",
-    "usg": 24.6
+    "usg": 24.8
   },
   {
     "team": "UTA",
@@ -8429,7 +8509,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 4025000.0,
     "statusNext": "team_option",
-    "usg": 14.8
+    "usg": 14.9
   },
   {
     "team": "UTA",
@@ -8445,7 +8525,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 10541667.0,
     "statusNext": "guaranteed",
-    "usg": 17.0
+    "usg": 17.2
   },
   {
     "team": "UTA",
@@ -8461,7 +8541,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 13855320.0,
     "statusNext": "guaranteed",
-    "usg": 21.9
+    "usg": 22.1
   },
   {
     "team": "UTA",
@@ -8477,10 +8557,10 @@
     "statusNow": "guaranteed",
     "salaryNext": 7730095.0,
     "statusNext": "restricted_fa",
-    "usg": 21.1
+    "usg": 21.4
   },
   {
-    "team": "UTA",
+    "team": "MIN",
     "player": "Cody Williams",
     "pos": "G",
     "tier": "reserve",
@@ -8493,7 +8573,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 7669890.0,
     "statusNext": "team_option",
-    "usg": 14.4
+    "usg": 15.2
   },
   {
     "team": "UTA",
@@ -8509,7 +8589,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 6000000.0,
     "statusNext": "team_option",
-    "usg": 10.9
+    "usg": 11.0
   },
   {
     "team": "WAS",
@@ -8749,7 +8829,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 15611798.0,
     "statusNext": "team_option",
-    "usg": 22.7
+    "usg": 22.6
   },
   {
     "team": "WAS",
@@ -8781,7 +8861,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 14.1
+    "usg": 14.0
   },
   {
     "team": "WAS",
@@ -8864,6 +8944,22 @@
     "usg": 17.3
   },
   {
+    "team": "MIA",
+    "player": "Nick Richards",
+    "pos": "C",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
+  },
+  {
     "team": "POR",
     "player": "Jeremy Sochan",
     "pos": "F",
@@ -8894,6 +8990,38 @@
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
     "usg": 13.6
+  },
+  {
+    "team": "NOR",
+    "player": "Trendon Watford",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
+  },
+  {
+    "team": "GSW",
+    "player": "Brandon Williams",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
   },
   {
     "team": "ATL",
@@ -8989,7 +9117,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 19.1
+    "usg": 20.0
   },
   {
     "team": "LAL",
@@ -9069,7 +9197,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 2934742.0,
     "statusNext": "team_option",
-    "usg": 16.7
+    "usg": 16.5
   },
   {
     "team": "NYK",
@@ -9117,7 +9245,7 @@
     "statusNow": "guaranteed",
     "salaryNext": 3700320.0,
     "statusNext": "team_option",
-    "usg": 16.1
+    "usg": 16.3
   },
   {
     "team": "UTA",
@@ -9133,7 +9261,7 @@
     "statusNow": "non_guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
-    "usg": 16.2
+    "usg": 16.3
   },
   {
     "team": "DEN",
@@ -9149,7 +9277,7 @@
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "guaranteed",
-    "usg": 18.3
+    "usg": 18.2
   },
   {
     "team": "NOR",
@@ -9226,6 +9354,310 @@
     "projMpg": null,
     "projGames": null,
     "salaryNow": 1357763.0,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "BKN",
+    "player": "Nick Pringle",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "CHI",
+    "player": "Isaiah Stevens",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 678882,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "CHI",
+    "player": "Marquel Sutton",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "DET",
+    "player": "Basheer Jihad",
+    "pos": "C",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "GSW",
+    "player": "Georges Niang",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
+  },
+  {
+    "team": "GSW",
+    "player": "Dalen Terry",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 2584539.0,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "LAC",
+    "player": "Bradley Beal",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 6424800.0,
+    "statusNow": "guaranteed",
+    "salaryNext": 6746040.0,
+    "statusNext": "player_option",
+    "usg": null
+  },
+  {
+    "team": "LAC",
+    "player": "Jalen Pickett",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 678882,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "LAC",
+    "player": "Yuki Kawamura",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 2449421.0,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "MIA",
+    "player": "Ezra Ausar",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "MIA",
+    "player": "Ian Schieffelin",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "MIN",
+    "player": "Jonathan Kuminga",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "guaranteed",
+    "usg": null
+  },
+  {
+    "team": "NOR",
+    "player": "Malik Dia",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "NOR",
+    "player": "Caleb Houstan",
+    "pos": "F",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 2625627.0,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "ORL",
+    "player": "Malaki Branham",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "TOR",
+    "player": "Andre Jackson Jr.",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 2537526.0,
+    "statusNow": "guaranteed",
+    "salaryNext": null,
+    "statusNext": "unrestricted_fa",
+    "usg": null
+  },
+  {
+    "team": "TOR",
+    "player": "Malachi Smith",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "UTA",
+    "player": "Terrell Brown",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": null,
+    "statusNow": "non_guaranteed",
+    "salaryNext": null,
+    "statusNext": "non_guaranteed",
+    "usg": null
+  },
+  {
+    "team": "WAS",
+    "player": "Alondes Williams",
+    "pos": "G",
+    "tier": "fringe",
+    "injury": "none",
+    "overrideGames": null,
+    "overrideMpg": null,
+    "projMpg": null,
+    "projGames": null,
+    "salaryNow": 2625627.0,
     "statusNow": "guaranteed",
     "salaryNext": null,
     "statusNext": "unrestricted_fa",
