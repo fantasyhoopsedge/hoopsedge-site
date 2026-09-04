@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "season": "2026-27",
-  "generatedAt": "2026-09-03T16:06:53.825310+00:00",
+  "generatedAt": "2026-09-04T04:32:45.912304+00:00",
   "thresholds": {
     "vacMed": 22.0,
     "vacLarge": 38.0,
@@ -70,28 +70,28 @@
       ]
     },
     "DAL": {
-      "net": 32.8,
+      "net": 30.5,
       "freed": 138.5,
-      "reclaimed": 105.7,
+      "reclaimed": 108.0,
       "severity": "MED",
       "flags": [
         {
           "priority": 2,
-          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 33 usage-vol freed, 4 projected starter(s) untagged",
+          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 31 usage-vol freed, 4 projected starter(s) untagged",
           "detail": "consider expanded/won_job for: Cooper Flagg (proj 34mpg, hist usg 23.1), P.J. Washington (proj 32mpg, hist usg 17.3), Max Christie (proj 30mpg, hist usg 14.2)\n       backtest expectation: +0.2\u20130.4 FGA/36"
         }
       ]
     },
     "DEN": {
-      "net": 34.5,
+      "net": 38.1,
       "freed": 112.7,
-      "reclaimed": 78.3,
-      "severity": "MED",
+      "reclaimed": 74.6,
+      "severity": "LARGE",
       "flags": [
         {
-          "priority": 2,
-          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 34 usage-vol freed, 5 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Nikola Jokic (proj 35mpg, hist usg 25.2), Jamal Murray (proj 35mpg, hist usg 23.1), Christian Braun (proj 32mpg, hist usg 12.3)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 38 usage-vol freed, 6 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Nikola Jokic (proj 34mpg, hist usg 25.2), Jamal Murray (proj 34mpg, hist usg 23.1), Christian Braun (proj 31mpg, hist usg 12.3)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
         }
       ]
     },
@@ -124,15 +124,15 @@
       "flags": []
     },
     "LAC": {
-      "net": 56.7,
+      "net": 57.8,
       "freed": 179.6,
-      "reclaimed": 122.9,
+      "reclaimed": 121.8,
       "severity": "LARGE",
       "flags": [
         {
           "priority": 3,
-          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 57 usage-vol freed, 4 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Darius Garland (proj 33mpg, hist usg 23.0), Max Strus (proj 28mpg, hist usg 14.9), Kris Dunn (proj 26mpg, hist usg 10.1)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 58 usage-vol freed, 4 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Darius Garland (proj 33mpg, hist usg 23.0), Max Strus (proj 27mpg, hist usg 14.9), Kris Dunn (proj 26mpg, hist usg 10.1)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
         }
       ]
     },
@@ -248,14 +248,14 @@
       ]
     },
     "POR": {
-      "net": -54.5,
+      "net": -57.5,
       "freed": 81.6,
-      "reclaimed": 136.1,
+      "reclaimed": 139.1,
       "severity": "LARGE",
       "flags": [
         {
           "priority": 3,
-          "headline": "UNABSORBED INFLOW [LARGE] \u2014 54 usage-vol returning (Ja Morant (usg 28.9), Damian Lillard (usg 22.8))",
+          "headline": "UNABSORBED INFLOW [LARGE] \u2014 57 usage-vol returning (Ja Morant (usg 28.9), Damian Lillard (usg 22.8))",
           "detail": "consider reduced/clear_backup for: Scoot Henderson (hist usg 22.1)"
         }
       ]
@@ -268,8 +268,8 @@
       "flags": [
         {
           "priority": 3,
-          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 102 usage-vol freed, 3 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Keegan Murray (proj 34mpg, hist usg 15.8), Zach Lavine (proj 31mpg, hist usg 20.1), Precious Achiuwa (proj 24mpg, hist usg 14.9)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 102 usage-vol freed, 2 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Zach Lavine (proj 31mpg, hist usg 20.1), Precious Achiuwa (proj 24mpg, hist usg 14.9)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
         }
       ]
     },
@@ -305,26 +305,26 @@
       ]
     },
     "UTA": {
-      "net": 7.0,
-      "freed": 74.3,
+      "net": 12.9,
+      "freed": 80.1,
       "reclaimed": 67.2,
       "severity": "small",
       "flags": []
     },
     "WAS": {
-      "net": -54.5,
+      "net": -56.1,
       "freed": 71.1,
-      "reclaimed": 125.7,
+      "reclaimed": 127.2,
       "severity": "LARGE",
       "flags": [
         {
           "priority": 3,
-          "headline": "UNABSORBED INFLOW [LARGE] \u2014 55 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))",
+          "headline": "UNABSORBED INFLOW [LARGE] \u2014 56 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))",
           "detail": "consider reduced/clear_backup for: Kyshawn George (hist usg 19.7), Alex Sarr (hist usg 22.1), Tre Johnson (hist usg 19.5)"
         },
         {
           "priority": 1,
-          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -55 (usage returning, not freeing)",
+          "headline": "TAG w/o VACANCY [check] \u2014 holdover(s) up-tagged but team net usage is -56 (usage returning, not freeing)",
           "detail": "double-check up-tags hold given the inflow: Will Riley"
         }
       ]
@@ -394,67 +394,57 @@
     "DAL||Kyrie Irving": {
       "badge": "return",
       "label": "injury / health return",
-      "reason": "injury return (healthy 2025, proj 1914min) \u2014 re-enters at healthy usg 23.0 (~44 usage-vol)"
+      "reason": "injury return (healthy 2025, proj 2013min) \u2014 re-enters at healthy usg 23.0 (~46 usage-vol)"
     },
     "DAL||Cooper Flagg": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 33 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 31 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
     },
     "DAL||P.J. Washington": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 33 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 31 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
     },
     "DAL||Max Christie": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 33 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
-    },
-    "DEN||Lonnie Walker IV": {
-      "badge": "return",
-      "label": "injury / health return",
-      "reason": "injury return (healthy 2024, proj 180min) \u2014 re-enters at healthy usg 20.2 (~4 usage-vol)"
+      "reason": "team freed 31 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
     },
     "DEN||Nikola Jokic": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 38 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "DEN||Jamal Murray": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 38 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "DEN||Christian Braun": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 38 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "IND||Tyrese Haliburton": {
       "badge": "return",
       "label": "injury / health return",
       "reason": "injury return (healthy 2025, proj 2211min) \u2014 re-enters at healthy usg 18.0 (~40 usage-vol)"
     },
-    "LAC||Bradley Beal": {
-      "badge": "return",
-      "label": "injury / health return",
-      "reason": "returning to health (healthy 2025, proj 180min) \u2014 re-enters at healthy usg 18.1 (~1 usage-vol)"
-    },
     "LAC||Darius Garland": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+      "reason": "team freed 58 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "LAC||Max Strus": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+      "reason": "team freed 58 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "LAC||Kris Dunn": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 57 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
+      "reason": "team freed 58 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "MEM||Ty Jerome": {
       "badge": "return",
@@ -534,27 +524,22 @@
     "POR||Damian Lillard": {
       "badge": "return",
       "label": "injury / health return",
-      "reason": "injury return (healthy 2025, proj 1830min) \u2014 re-enters at healthy usg 22.8 (~42 usage-vol)"
+      "reason": "injury return (healthy 2025, proj 1891min) \u2014 re-enters at healthy usg 22.8 (~43 usage-vol)"
     },
     "POR||Ja Morant": {
       "badge": "return",
       "label": "injury / health return",
-      "reason": "injury return (healthy 2025, proj 1710min) \u2014 re-enters at healthy usg 28.9 (~49 usage-vol)"
+      "reason": "injury return (healthy 2025, proj 1767min) \u2014 re-enters at healthy usg 28.9 (~51 usage-vol)"
     },
     "POR||Scoot Henderson": {
       "badge": "down",
       "label": "consider reduced / clear_backup",
-      "reason": "54 usage-vol returning (Ja Morant (usg 28.9), Damian Lillard (usg 22.8))"
+      "reason": "57 usage-vol returning (Ja Morant (usg 28.9), Damian Lillard (usg 22.8))"
     },
     "SAC||Domantas Sabonis": {
       "badge": "return",
       "label": "injury / health return",
       "reason": "returning to health (healthy 2025, proj 1980min) \u2014 re-enters at healthy usg 18.1 (~25 usage-vol)"
-    },
-    "SAC||Keegan Murray": {
-      "badge": "up",
-      "label": "consider expanded / won_job",
-      "reason": "team freed 102 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "SAC||Zach Lavine": {
       "badge": "up",
@@ -609,27 +594,27 @@
     "WAS||Trae Young": {
       "badge": "return",
       "label": "injury / health return",
-      "reason": "returning to health (healthy 2025, proj 1888min) \u2014 re-enters at healthy usg 26.0 (~47 usage-vol)"
+      "reason": "returning to health (healthy 2025, proj 1947min) \u2014 re-enters at healthy usg 26.0 (~48 usage-vol)"
     },
     "WAS||Kyshawn George": {
       "badge": "down",
       "label": "consider reduced / clear_backup",
-      "reason": "55 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
+      "reason": "56 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
     },
     "WAS||Alex Sarr": {
       "badge": "down",
       "label": "consider reduced / clear_backup",
-      "reason": "55 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
+      "reason": "56 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
     },
     "WAS||Tre Johnson": {
       "badge": "down",
       "label": "consider reduced / clear_backup",
-      "reason": "55 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
+      "reason": "56 usage-vol returning (Trae Young (usg 26.0), Anthony Davis (usg 25.0))"
     },
     "WAS||Will Riley": {
       "badge": "check",
       "label": "up-tagged (expanded) but usage is returning",
-      "reason": "team net -55 usage-vol (inflow, not a vacancy)"
+      "reason": "team net -56 usage-vol (inflow, not a vacancy)"
     }
   }
 }
