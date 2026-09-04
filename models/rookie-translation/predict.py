@@ -68,7 +68,15 @@ def _env() -> dict:
 
 def _sb(path: str):
     env = _env()
-    url, key = env["NEXT_PUBLIC_SUPABASE_URL"], env["SUPABASE_SERVICE_ROLE_KEY"]
+    # .strip() guards against a trailing newline in the raw env var (CI secrets
+    # in particular) -- Python's http.client rejects any header value containing
+    # \r/\n as CRLF-injection protection, unlike Node's Supabase client
+    # elsewhere in this same pipeline, which tolerates it silently. Real
+    # failure 2026-09-04: ValueError: Invalid header value b'***' on the first
+    # real Phase B CI run, only here since this is the one script that builds
+    # raw HTTP headers by hand instead of going through a client library.
+    url = env["NEXT_PUBLIC_SUPABASE_URL"].strip()
+    key = env["SUPABASE_SERVICE_ROLE_KEY"].strip()
     req = urllib.request.Request(f"{url}/rest/v1/{path}",
                                  headers={"apikey": key, "Authorization": f"Bearer {key}"})
     with urllib.request.urlopen(req, timeout=60) as r:
