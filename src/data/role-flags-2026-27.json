@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "season": "2026-27",
-  "generatedAt": "2026-09-04T15:00:30.249902+00:00",
+  "generatedAt": "2026-09-04T15:25:03.731289+00:00",
   "thresholds": {
     "vacMed": 22.0,
     "vacLarge": 38.0,
@@ -57,15 +57,15 @@
       ]
     },
     "CLE": {
-      "net": 34.0,
+      "net": 55.2,
       "freed": 82.5,
-      "reclaimed": 48.4,
-      "severity": "MED",
+      "reclaimed": 27.3,
+      "severity": "LARGE",
       "flags": [
         {
-          "priority": 2,
-          "headline": "UNCLAIMED VACANCY [MED] \u2014 net 34 usage-vol freed, 6 projected starter(s) untagged",
-          "detail": "consider expanded/won_job for: Donovan Mitchell (proj 34mpg, hist usg 27.5), James Harden (proj 33mpg, hist usg 23.6), Evan Mobley (proj 33mpg, hist usg 19.2)\n       backtest expectation: +0.2\u20130.4 FGA/36"
+          "priority": 3,
+          "headline": "UNCLAIMED VACANCY [LARGE] \u2014 net 55 usage-vol freed, 6 projected starter(s) untagged",
+          "detail": "consider expanded/won_job for: Donovan Mitchell (proj 34mpg, hist usg 27.5), James Harden (proj 33mpg, hist usg 23.6), Evan Mobley (proj 33mpg, hist usg 19.2)\n       backtest expectation: +0.4\u20130.6 FGA/36 to surviving starters"
         }
       ]
     },
@@ -371,25 +371,20 @@
       "label": "consider expanded / won_job",
       "reason": "team freed 36 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
     },
-    "CLE||Mario Hezonja": {
-      "badge": "return",
-      "label": "injury / health return",
-      "reason": "injury return (healthy 2019, proj 1182min) \u2014 re-enters at healthy usg 17.9 (~21 usage-vol)"
-    },
     "CLE||Donovan Mitchell": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 55 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "CLE||James Harden": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 55 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "CLE||Evan Mobley": {
       "badge": "up",
       "label": "consider expanded / won_job",
-      "reason": "team freed 34 usage-vol (MED); backtest +0.2\u20130.4 FGA/36"
+      "reason": "team freed 55 usage-vol (LARGE); backtest +0.4\u20130.6 FGA/36 to surviving starters"
     },
     "DAL||Kyrie Irving": {
       "badge": "return",
