@@ -76,9 +76,14 @@ Check the console output at every stage for `!!` warnings (e.g. a non-rookie wit
 
 ```bash
 npm run projections:build
+npm run identity:backfill -- --apply
 ```
 
 Loads `output/season-projections-2026-27.json` into `season_player_stats`/`season_player_values` under `season=2027, season_type=projection`. Spot-check the top-15-by-value printout for sanity (stars near the top, no obviously broken lines) before considering the week done.
+
+**The `identity:backfill` call is not optional** — `projections:build` never writes `fhe_id` itself (it upserts on `player_id,season,season_type` and that column isn't in the payload), so a player whose projection row is newly created or re-created by an offseason move sits with `fhe_id=null` until backfill runs. Real incident 2026-09-04: DeMar DeRozan's fresh DEN row (plus Beal, Kuminga, and 7 others from that week's roster moves) had a null `fhe_id`, which silently blanked his age on `/seasonal-rankings` — that page's age lookup is keyed on `fhe_id` by design (see `seasonal-rankings/page.tsx`'s header comment for why there's deliberately no name fallback). `phase-b-projections.yml` now runs this automatically right after `projections:build`.
+
+**Then wait ~15 minutes (or hit `/api/revalidate`) before checking the site.** `/seasonal-rankings`, `/team-rosters`'s live roster panel, and `/real-salary-rankings` all read through a 15-minute `unstable_cache` layer that nothing in either weekly workflow busts yet — the underlying Supabase data is correct the moment this step finishes, but the site can keep serving pre-refresh numbers for up to 15 more minutes. `POST /api/revalidate?tag=seasonal-rankings` (with `Authorization: Bearer <CRON_SECRET>` in prod) clears it immediately; wiring that call into the workflows automatically is a known gap, not yet done.
 
 ## Salary — separate, slower cadence
 

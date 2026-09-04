@@ -105,6 +105,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
+      # projections:build never writes fhe_id itself (confirmed by reading the
+      # script -- no player-identity import at all), so any player whose
+      # 2027/projection row is newly created or re-created by an offseason
+      # move sits with fhe_id=null until this runs. Real gap found 2026-09-04:
+      # DeRozan's fresh DEN row (plus Beal, Kuminga, and 7 others from this
+      # week's roster moves) had a null fhe_id, which silently blanked his age
+      # on /seasonal-rankings (that page keys its age lookup on fhe_id, by
+      # design -- see seasonal-rankings/page.tsx's header comment for why a
+      # name-fallback isn't an option there). Safe to run unconditionally:
+      # read-only resolution against the existing registry, additive-only
+      # writes, and this is the exact script CLAUDE.md documents as the
+      # sanctioned fhe_id-backfill step after a roster refresh.
+      - name: Backfill fhe_id onto season_player_stats (age join, /seasonal-rankings)
+        run: npm run identity:backfill -- --apply
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
       - name: Commit the refreshed depth-chart CSV/JSON
         run: |
           git config user.name "fhe-weekly-refresh-bot"
