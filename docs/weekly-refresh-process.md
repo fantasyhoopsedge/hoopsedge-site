@@ -3,8 +3,10 @@
 **The recurring loop that keeps rosters, depth charts, and 2026-27 projections current** — what runs automatically, where a human checkpoint is required, and how salary fits in on its own slower cadence.
 
 - **Prepared:** 2026-09-04
+- **Updated:** 2026-09-04 — both weekly GitHub Actions workflows (`weekly-roster-refresh.yml` Phase A, `phase-b-projections.yml` Phase B) verified live end-to-end, several real CI bugs found/fixed along the way (see each workflow's own inline comments for specifics)
 - **Covers:** `scripts/nba-data/sync-pocaro-roster.ts`, `scripts/nba-data/sync-depth-chart-pipeline.ts`, `models/` (the 6-stage projection pipeline), `npm run projections:build`
 - **Cadence:** roster → depth-chart → projections runs **weekly**; salary (`current.csv`) refreshes **every 2–3 weeks**, independently
+- **Status:** LIVE. `weekly-roster-refresh.yml`'s cron (Monday 05:00 UTC) is gated to skip any scheduled run before 2026-09-14 — the automation shipped mid-week, so the first REAL scheduled run is Monday 2026-09-14, not this coming Monday (2026-09-07). A manual `workflow_dispatch` always runs regardless of that gate. `phase-b-projections.yml` has no schedule by design (Ash triggers it by hand once he's done tinkering in `/admin/depth-chart`/`/admin/role-context`) — see the "human checkpoint" note in Step 3 below.
 
 ## The weekly loop
 
