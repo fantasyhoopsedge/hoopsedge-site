@@ -17,7 +17,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Ash's call 2026-09-04: the automation went live mid-week, so the cron
+  # above would otherwise fire this coming Monday (2026-09-07) too -- the
+  # agreed first real scheduled run is 2026-09-14. This gate only holds back
+  # the SCHEDULED trigger; a manual workflow_dispatch (like the ones used to
+  # test this automation) always proceeds regardless of date. Safe to delete
+  # this job (and refresh's `needs`/`if` below) once past 2026-09-14 -- it
+  # always resolves to proceed=true from then on, so leaving it is harmless
+  # too if nobody gets around to the cleanup.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.check.outputs.proceed }}
+    steps:
+      - name: Hold scheduled runs before 2026-09-14
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          elif [ "$(date -u +%Y-%m-%d)" \< "2026-09-14" ]; then
+            echo "Scheduled run before the agreed first real run date (2026-09-14) -- skipping this Monday."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
   refresh:
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
