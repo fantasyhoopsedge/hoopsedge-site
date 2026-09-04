@@ -29,6 +29,17 @@ jobs:
 
       - run: npm ci
 
+      # depth-chart:pipeline shells out to Python (prep_depth_chart.py,
+      # flag_role_changes.py both import pandas) — missing this step failed
+      # the first real run 2026-09-04 with ModuleNotFoundError. prep_role_context.py
+      # is pure-stdlib and looked fine on its own, which is what made this easy
+      # to miss when only Phase B's workflow got a Python setup step.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - run: pip install -r models/requirements.txt
+
       - name: Pull Pocaro's roster sheet
         run: npm run pocaro:sync
         env:
