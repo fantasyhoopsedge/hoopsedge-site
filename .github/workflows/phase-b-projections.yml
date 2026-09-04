@@ -1,0 +1,124 @@
+name: "Phase B: rebuild 2026-27 projections"
+
+# Phase B of the weekly process (see docs/weekly-refresh-process.md).
+# Manual-only on purpose (workflow_dispatch, no schedule) — trigger this once
+# you're done tinkering in /admin/depth-chart and /admin/role-context after
+# Phase A's email. Two workflows instead of one because that tinkering step
+# needs a real person's basketball judgment (camp reports, coaching
+# comments) that nothing here should guess at or wait around for
+# automatically — see the "human checkpoint" section of the process doc for
+# why skipping this step just bakes placeholder minutes into the projection.
+#
+# Runs depth-chart:pipeline FIRST (not just once in Phase A) because your
+# tinkering may have happened on localhost (dev-mode CSV, never reaches
+# Supabase on its own — see sync-depth-chart-pipeline.ts's header comment for
+# the 2026-09-04 incident this guards against) or directly on the deployed
+# site (production runs Supabase mode, so those edits are already live) —
+# either way, this step is what brings Supabase's current published state
+# into this runner's checkout before the model reads it.
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: phase-b-projections
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - run: pip install -r models/requirements.txt
+
+      - name: Bring Supabase's current depth-chart/role-context state into this checkout
+        run: npm run depth-chart:pipeline
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Stage 0 (foundation) and Stage 4 (rookie translation) DO need to run
+      # here even though docs/weekly-refresh-process.md says to skip them on
+      # a routine LOCAL refresh — that guidance assumes their output/ files
+      # are already on disk from a previous run. This runner starts from a
+      # fresh checkout every time and output/ is gitignored (regenerable by
+      # design, never committed), so neither file exists yet. Both are
+      # cheap/idempotent to rebuild ("regenerate at will" per Stage 0's own
+      # docstring) — this is a real cost of running in stateless CI, not a
+      # sign the local-refresh guidance was wrong.
+      - name: "Stage 0: data foundation (historical panels)"
+        run: python models/data-foundation/build_foundation.py
+
+      - name: "Stage 4: rookie translation"
+        run: python models/rookie-translation/predict.py
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Stage 3 (usage anchors) is gitignored too, so it's missing on this
+      # fresh checkout exactly like Stage 0/4 above — confirmed via
+      # `git check-ignore`, not a maybe. It's still cheap to rebuild and its
+      # OWN inputs are the same completed-seasons history as Stage 0, so
+      # rerunning it here can't produce a different answer than the last real
+      # run — this step exists because CI has no disk to remember the old
+      # answer on, not because the answer actually changed.
+      - name: "Stage 3: usage anchors"
+        run: python models/usage-redistribution/project_anchors.py
+
+      - name: "Stage 1: minutes"
+        run: python models/projections-adjuster/project.py
+
+      - name: "Stage 2: per-36 rates"
+        run: python models/rate-model/project_roster.py
+
+      - name: "Stage 5: assemble the projection artifact"
+        run: python models/aggregation/assemble.py
+
+      - name: Refresh the bundled depth-chart JSON from the new artifact
+        run: python models/projections-adjuster/prep_depth_chart.py
+
+      - name: Refresh role-flags (advisory usage-change badges)
+        run: python models/usage-redistribution/flag_role_changes.py --emit-json
+
+      - name: Load projections into Supabase
+        run: npm run projections:build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Commit the refreshed depth-chart CSV/JSON
+        run: |
+          git config user.name "fhe-weekly-refresh-bot"
+          git config user.email "actions@github.com"
+          git add data/nba-rosters/depth-chart-2026-27.csv \
+                  data/nba-rosters/role-context-2026-27.csv \
+                  data/nba-rosters/team-category-2026-27.csv \
+                  src/data/depth-chart-2026-27.json \
+                  src/data/role-context-2026-27.json \
+                  src/data/role-flags-2026-27.json
+          if git diff --cached --quiet; then
+            echo "No file changes to commit."
+          else
+            git commit -m "chore(weekly-refresh): Phase B projections rebuild $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Upload the projection artifact for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: season-projections-2026-27
+          path: output/season-projections-2026-27.json
+          if-no-files-found: ignore
+          retention-days: 30

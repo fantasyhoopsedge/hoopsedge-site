@@ -1,0 +1,85 @@
+name: Weekly roster refresh (Phase A)
+
+# Phase A of the weekly process (see docs/weekly-refresh-process.md): pulls
+# Pocaro's roster sheet, reconciles depth-chart/role-context against it, and
+# emails a worklist. Deliberately stops here — it never runs the projection
+# stages. Do NOT add that here; Ash needs to review/tinker in
+# /admin/depth-chart and /admin/role-context first, then trigger
+# "Phase B: rebuild 2026-27 projections" manually once he's done. See that
+# workflow's own comment for why this is two workflows, not one.
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Monday 05:00 UTC (~09:00 Asia/Dubai)
+  workflow_dispatch: {}
+
+concurrency:
+  group: weekly-roster-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Pull Pocaro's roster sheet
+        run: npm run pocaro:sync
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GOOGLE_SHEETS_API_KEY: ${{ secrets.GOOGLE_SHEETS_API_KEY }}
+
+      - name: Reconcile depth-chart / role-context / team-category
+        run: npm run depth-chart:pipeline
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Commit the refreshed roster/depth-chart CSVs + bundled JSON
+        run: |
+          git config user.name "fhe-weekly-refresh-bot"
+          git config user.email "actions@github.com"
+          git add data/nba-rosters/2026-27.csv \
+                  data/nba-rosters/depth-chart-2026-27.csv \
+                  data/nba-rosters/role-context-2026-27.csv \
+                  data/nba-rosters/team-category-2026-27.csv \
+                  src/data/depth-chart-2026-27.json \
+                  src/data/role-context-2026-27.json \
+                  src/data/role-flags-2026-27.json
+          if git diff --cached --quiet; then
+            echo "No file changes to commit."
+          else
+            git commit -m "chore(weekly-refresh): Phase A roster + depth-chart sync $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      # Always try to notify, even if a step above failed — a broken refresh
+      # is exactly when Ash most needs to hear about it. The notifier itself
+      # never fails the job (see its own docstring).
+      - name: Email the worklist
+        if: always()
+        run: npm run weekly:notify
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          STALENESS_ALERT_TO: ${{ secrets.STALENESS_ALERT_TO }}
+
+      - name: Upload review artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-refresh-review
+          path: |
+            output/pocaro-roster-review.json
+            output/depth-chart-pipeline-review.md
+          if-no-files-found: ignore
+          retention-days: 14

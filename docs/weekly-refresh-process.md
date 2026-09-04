@@ -58,13 +58,15 @@ python models/projections-adjuster/prep_depth_chart.py           # refresh the b
 python models/usage-redistribution/flag_role_changes.py --emit-json   # refresh role-flags badges
 ```
 
-**Stages deliberately skipped in the routine weekly run** — rerun only when their own trigger condition is true, not every week:
+**Stages deliberately skipped on a LOCAL routine run** — rerun only when their own trigger condition is true, not every week:
 
 | Stage | Script | Rerun when |
 |---|---|---|
 | 0 — Data Foundation | `models/data-foundation/build_foundation.py` | A new NBA season's games have completed and need folding into history (not weekly — historical box scores don't change) |
 | 3 — Usage Anchors | `models/usage-redistribution/project_anchors.py` | Same — team-total anchors are built from **completed** seasons (2024-2026 as of 2026-09), unaffected by this week's roster moves. Rerun once real 2026-27 games start accumulating, or on a model change. |
 | 4 — Rookie Translation | `models/rookie-translation/predict.py` | The draft class or rookie-translation model itself changes (a bias-correction fix, a board update) — not a routine trigger. `project.py` (Stage 1) reads its existing output automatically. |
+
+**This table only applies on a machine that already has last run's `output/` files on disk.** The whole `output/` tree is gitignored on purpose ("regenerate at will" — Stage 0's own docstring) — it's never committed, so it carries no state between runs by design. That's fine on a local machine where the files just sit there between sessions, but a **CI runner starts from a fresh checkout every time and has nothing to skip** — Stages 0, 3, and 4's outputs won't exist yet, and Stage 1 will fail immediately without them. `.github/workflows/phase-b-projections.yml` runs all three unconditionally for exactly this reason; don't "optimize" that workflow by removing them without adding a cache step that actually persists `output/` between runs (not attempted yet — the always-rebuild cost is a few extra minutes per week, judged not worth the cache-invalidation complexity for now).
 
 Check the console output at every stage for `!!` warnings (e.g. a non-rookie with no 3-year history — usually a name-join miss; add the alias pair to `src/lib/player-name-aliases.ts` and rerun `identity:build`) before moving on.
 

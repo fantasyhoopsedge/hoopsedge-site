@@ -46,13 +46,23 @@ RNG = np.random.default_rng(20260716)
 
 
 def _env() -> dict:
-    env = {}
-    with open(os.path.join(REPO, ".env.local"), encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                env[k.strip()] = v.strip().strip('"').strip("'")
+    # Real environment variables win (e.g. GitHub Actions secrets, which are
+    # never written to a physical .env.local file); the file only fills in
+    # keys that aren't already set, and its absence is not an error — mirrors
+    # scripts/nba-data/client.ts's loadEnv(). Without this fallback the
+    # script hard-crashed in CI, where .env.local is gitignored and never
+    # checked out (found 2026-09-04 wiring up the weekly-refresh workflow).
+    env = dict(os.environ)
+    env_path = os.path.join(REPO, ".env.local")
+    if os.path.exists(env_path):
+        with open(env_path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    if k not in env:
+                        env[k] = v.strip().strip('"').strip("'")
     return env
 
 

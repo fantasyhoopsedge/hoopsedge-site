@@ -34,6 +34,7 @@
     "depth-chart:sync": "tsx scripts/sync-depth-chart.ts",
     "pocaro:sync": "tsx scripts/nba-data/sync-pocaro-roster.ts",
     "depth-chart:pipeline": "tsx scripts/nba-data/sync-depth-chart-pipeline.ts",
+    "weekly:notify": "tsx scripts/nba-data/weekly_refresh_notify.ts",
     "launch:snapshot": "node scripts/launch-snapshot.mjs",
     "test:grader": "tsc --module commonjs --target es2019 --outDir .tmp --skipLibCheck src/lib/draftNight/grader.ts src/lib/draftNight/config.ts scripts/draft-night-grader-dryrun.ts && node .tmp/scripts/draft-night-grader-dryrun.js"
   },
