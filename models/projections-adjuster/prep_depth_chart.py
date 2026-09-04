@@ -223,6 +223,21 @@ def main() -> None:
         for p in doc.get("players", []):
             proj_lookup[p["norm_name"]] = p
 
+    # Conservative fallback when PROJECTIONS_JSON is absent or missing a
+    # player: keep the LAST bundle's projMpg/projGames/usg rather than
+    # writing null over real data. Real incident 2026-09-04: the weekly
+    # roster-refresh workflow calls this script but never regenerates
+    # PROJECTIONS_JSON (that's the separate, human-gated projections
+    # workflow) -- with no fallback, that run silently wiped projMpg/
+    # projGames/usg to null for all 604 players, wrecking the exact numbers
+    # a projections rebuild had just committed hours earlier. This mirrors
+    # the "a null doesn't blank a value we already have" rule the sync
+    # scripts already use for the same reason.
+    prev_bundle: dict[tuple[str, str], dict] = {}
+    if os.path.exists(BUNDLE_JSON):
+        for p in json.load(open(BUNDLE_JSON, encoding="utf-8")):
+            prev_bundle[(p["team"], p["player"])] = p
+
     reconcile_tier_csv(roster, proj_lookup)
 
     existing_tiers: dict[str, str] = {}
@@ -256,8 +271,9 @@ def main() -> None:
             status_now = status_next = fallback_status(r.get("contract", ""))
             sal_now = sal_next = None
 
-        mpg = proj["projMpg"] if proj else None
-        games = proj["projGames"] if proj else None
+        fallback = prev_bundle.get((r["team"], r["player"])) if proj is None else None
+        mpg = proj["projMpg"] if proj else (fallback["projMpg"] if fallback else None)
+        games = proj["projGames"] if proj else (fallback["projGames"] if fallback else None)
         tier = existing_tiers.get((r["team"], r["player"])) or seed_tier(mpg)
         injury = existing_injuries.get((r["team"], r["player"])) or "none"
         override_games = existing_override_games.get((r["team"], r["player"]))
@@ -287,6 +303,7 @@ def main() -> None:
             "salaryNow": sal_now, "statusNow": status_now,
             "salaryNext": sal_next, "statusNext": status_next,
             "_mp": mp_season, "_fga": fga_s, "_fta": fta_s, "_tov": tov_s,
+            "_fallback_usg": fallback.get("usg") if fallback else None,
         })
 
     # Standard NBA usage rate, from each roster's own reconciled season totals:
@@ -302,14 +319,20 @@ def main() -> None:
     usg_df["usg"] = None
     for team, t in team_totals.iterrows():
         denom = t["_fga"] + 0.44 * t["_fta"] + t["_tov"]
+        # A team with zero fresh-projection players (every _fga/_fta/_tov None,
+        # which pandas' groupby().sum() reduces to 0.0 rather than NaN) sums to
+        # denom=0 -- would ZeroDivisionError. Their rows fall through to the
+        # per-player _fallback_usg below, same as the mpg/games fallback.
+        if denom == 0:
+            continue
         mask = usg_df["team"] == team
         num = usg_df.loc[mask, "_fga"] + 0.44 * usg_df.loc[mask, "_fta"] + usg_df.loc[mask, "_tov"]
         usg = 100 * num * (t["_mp"] / 5) / (usg_df.loc[mask, "_mp"] * denom)
         usg_df.loc[mask, "usg"] = usg.round(1)
 
     for r, usg in zip(rows, usg_df["usg"]):
-        r["usg"] = float(usg) if pd.notna(usg) else None
-        for k in ("_mp", "_fga", "_fta", "_tov"):
+        r["usg"] = float(usg) if pd.notna(usg) else r["_fallback_usg"]
+        for k in ("_mp", "_fga", "_fta", "_tov", "_fallback_usg"):
             del r[k]
 
     os.makedirs(os.path.dirname(BUNDLE_JSON), exist_ok=True)
