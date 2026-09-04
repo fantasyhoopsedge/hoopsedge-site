@@ -40,6 +40,17 @@ jobs:
 
       - run: pip install -r models/requirements.txt
 
+      # depth-chart:pipeline's last step (flag_role_changes.py) reads
+      # output/foundation/*.parquet directly, no existence check. output/ is
+      # entirely gitignored ("regenerate at will"), so it doesn't exist on a
+      # fresh checkout — same class of gap as phase-b-projections.yml's
+      # Stage 0/3/4 steps, just not noticed here until the second real run
+      # 2026-09-04 (prep_depth_chart.py's OWN read of the projections JSON is
+      # guarded with an existence check, which is what let it succeed without
+      # this and made the gap easy to miss).
+      - name: Build Stage 0 foundation data (flag_role_changes.py needs it)
+        run: python models/data-foundation/build_foundation.py
+
       - name: Pull Pocaro's roster sheet
         run: npm run pocaro:sync
         env:
