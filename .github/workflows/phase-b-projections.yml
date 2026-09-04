@@ -42,23 +42,31 @@ jobs:
 
       - run: pip install -r models/requirements.txt
 
+      # Stage 0 (foundation) and Stage 4 (rookie translation, below) DO need
+      # to run here even though docs/weekly-refresh-process.md says to skip
+      # them on a routine LOCAL refresh — that guidance assumes their
+      # output/ files are already on disk from a previous run. This runner
+      # starts from a fresh checkout every time and output/ is gitignored
+      # (regenerable by design, never committed), so neither file exists
+      # yet. Both are cheap/idempotent to rebuild ("regenerate at will" per
+      # Stage 0's own docstring) — this is a real cost of running in
+      # stateless CI, not a sign the local-refresh guidance was wrong.
+      #
+      # Must run BEFORE the depth-chart:pipeline step below: that step's
+      # last stage (flag_role_changes.py) hard-reads
+      # output/foundation/player_team_seasons.parquet with no existence
+      # check. First real Phase B run (2026-09-04) failed here with
+      # FileNotFoundError — the exact same gap weekly-roster-refresh.yml
+      # (Phase A) hit and fixed the same day, just not carried over to this
+      # workflow since Phase A doesn't run the projection stages at all.
+      - name: "Stage 0: data foundation (historical panels)"
+        run: python models/data-foundation/build_foundation.py
+
       - name: Bring Supabase's current depth-chart/role-context state into this checkout
         run: npm run depth-chart:pipeline
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
-      # Stage 0 (foundation) and Stage 4 (rookie translation) DO need to run
-      # here even though docs/weekly-refresh-process.md says to skip them on
-      # a routine LOCAL refresh — that guidance assumes their output/ files
-      # are already on disk from a previous run. This runner starts from a
-      # fresh checkout every time and output/ is gitignored (regenerable by
-      # design, never committed), so neither file exists yet. Both are
-      # cheap/idempotent to rebuild ("regenerate at will" per Stage 0's own
-      # docstring) — this is a real cost of running in stateless CI, not a
-      # sign the local-refresh guidance was wrong.
-      - name: "Stage 0: data foundation (historical panels)"
-        run: python models/data-foundation/build_foundation.py
 
       - name: "Stage 4: rookie translation"
         run: python models/rookie-translation/predict.py
