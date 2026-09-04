@@ -3235,7 +3235,7 @@
     "player": "LaMelo Ball",
     "class": "veteran",
     "dynRank": 28,
-    "tier": "no_change",
+    "tier": "reduced",
     "note": "REVIEW: moved CHA->MIN, 5 yr / $204M; was 28.0mpg/20.1pg over 72gp in 2025-26",
     "source": "roster-diff/transactions-2026-27.md"
   },
@@ -4594,7 +4594,7 @@
     "player": "Darius Acuff Jr.",
     "class": "rookie",
     "dynRank": 61,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -4603,7 +4603,7 @@
     "player": "Keegan Murray",
     "class": "veteran",
     "dynRank": 104,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
