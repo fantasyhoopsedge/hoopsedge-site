@@ -4972,7 +4972,7 @@
     "consensusRank": 259,
     "player": "Tyler Bilodeau",
     "team": "BKN",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 22.21,
     "expertRanks": {
@@ -5322,7 +5322,7 @@
     "consensusRank": 278,
     "player": "Bogoljub Markovic",
     "team": "MIL",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 20.2,
     "expertRanks": {
@@ -5766,7 +5766,7 @@
     "consensusRank": 302,
     "player": "Emanuel Sharp",
     "team": "SAC",
-    "isRookie": false,
+    "isRookie": true,
     "position": "G",
     "age": 22.33,
     "expertRanks": {
@@ -6099,7 +6099,7 @@
     "consensusRank": 320,
     "player": "Izaiyah Nelson",
     "team": "ORL",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 22.8,
     "expertRanks": {
@@ -6171,7 +6171,7 @@
     "consensusRank": 324,
     "player": "Tobi Lawal",
     "team": "DAL",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 23.18,
     "expertRanks": {
@@ -6206,7 +6206,7 @@
     "consensusRank": 326,
     "player": "Vsevolod Ishchenko",
     "team": "DAL",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 21.39,
     "expertRanks": {
@@ -6222,7 +6222,7 @@
     "consensusRank": 327,
     "player": "Michael Ajayi",
     "team": "CHA",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 23.03,
     "expertRanks": {
@@ -6566,7 +6566,7 @@
     "consensusRank": 346,
     "player": "Felix Okpara",
     "team": "WAS",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 22.21,
     "expertRanks": {
@@ -7080,7 +7080,7 @@
     "consensusRank": 375,
     "player": "Tarik Biberovic",
     "team": "DAL",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 25.5,
     "expertRanks": {
@@ -7410,7 +7410,7 @@
     "consensusRank": 394,
     "player": "Tyler Nickel",
     "team": "NYK",
-    "isRookie": false,
+    "isRookie": true,
     "position": "F",
     "age": 22.83,
     "expertRanks": {
@@ -7478,7 +7478,7 @@
     "consensusRank": 398,
     "player": "Aaron Nkrumah",
     "team": "DEN",
-    "isRookie": false,
+    "isRookie": true,
     "position": "G",
     "age": 24.61,
     "expertRanks": {
