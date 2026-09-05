@@ -28,8 +28,25 @@
  * live for 295 of 444 SL-2026 rows today). We reuse THAT resolution — join this
  * artifact's null-id players onto season_player_stats(season=2026,
  * season_type='summer') by normalized name — rather than inventing a second,
- * incompatible id scheme. A player who skipped Summer League (rare) still has no
- * id anywhere and stays excluded; that's a real, separate gap, not this one.
+ * incompatible id scheme.
+ *
+ * SECOND FALLBACK (2026-09-05) for the one shape the above doesn't cover: a
+ * player with a real NBA roster spot but zero played games EVER — not a 2026
+ * draftee (so no Summer League 2026 row to join), not yet in nba_players (so
+ * no athlete_id either). Thomas Sorber is the first real instance: a 2025
+ * 2nd-rounder who's been hurt since being drafted and has yet to debut. He
+ * still has a stable identity — `player_identity` resolved him from
+ * `nba_roster`/Fantrax even with no ESPN id — so this falls back to a
+ * synthetic `ns-<nbaStatsId>` (mirroring `sl-<nbaComId>`'s shape; distinct
+ * prefix so it's traceable which fallback fired). Only used when the registry
+ * has exactly one candidate for the name — an ambiguous match stays
+ * unresolved rather than guessing, same policy as everywhere else in the
+ * identity layer. Headshot-less like `sl-` ids (see that scheme's own note) —
+ * nothing downstream assumes this column is always an ESPN id.
+ *
+ * A player who skipped Summer League AND has no registry identity at all
+ * (rare) still has no id anywhere and stays excluded; that's a real, separate
+ * gap, not this one.
  *
  *   npm run projections:build              # compute + upsert to Supabase
  *   npm run projections:build -- --dry-run # compute + print, no writes
@@ -39,6 +56,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { getServiceClient, normalizeName, loadEnv } from "./nba-data/client";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
+import { playerIdentity } from "../src/lib/player-identity/bundled";
 import {
   computeAllLeagueSizes,
   type PlayerStats,
@@ -117,9 +135,22 @@ export interface ResolvedPlayer extends ArtifactPlayer {
   id: string;
 }
 
+/** A player with a real roster spot, zero played games ever, no Summer League
+ *  2026 row (not this year's draft class) — but a resolvable registry identity
+ *  with an NBA Stats id. See the module docstring's "SECOND FALLBACK" note.
+ *  Returns null rather than guess when the name is ambiguous in the registry. */
+function registryFallbackId(playerName: string): string | null {
+  const candidates = playerIdentity().candidatesByName(playerName);
+  if (candidates.length !== 1) return null;
+  const nbaStatsId = candidates[0].nbaStatsId;
+  return nbaStatsId ? `ns-${nbaStatsId}` : null;
+}
+
 /** Resolves every artifact player to a stable string id: the Python-assigned
  *  athlete_id when present, else the Summer League 2026 fallback by normalized
- *  name, else excluded (logged, not silently dropped). */
+ *  name, else the player-identity registry's NBA Stats id (for a real player
+ *  who's simply never played — see module docstring), else excluded (logged,
+ *  not silently dropped). */
 export function resolvePlayers(
   players: ArtifactPlayer[],
   fallbackIds: Map<string, string>,
@@ -127,7 +158,9 @@ export function resolvePlayers(
   const resolved: ResolvedPlayer[] = [];
   const unresolved: ArtifactPlayer[] = [];
   for (const p of players) {
-    const id = p.athlete_id != null ? String(p.athlete_id) : fallbackIds.get(normalizeName(p.player));
+    const id = p.athlete_id != null
+      ? String(p.athlete_id)
+      : fallbackIds.get(normalizeName(p.player)) ?? registryFallbackId(p.player);
     if (id != null) resolved.push({ ...p, id });
     else unresolved.push(p);
   }
@@ -297,15 +330,22 @@ async function main(): Promise<void> {
 
   console.log(`Building 2026-27 Projections (${players.length} players, `
     + `generated ${artifact.generatedAt})${DRY_RUN ? " [DRY RUN]" : ""}`);
-  const viaFallback = players.filter((p) => p.athlete_id == null).length;
-  if (viaFallback > 0) {
-    console.log(`  ${viaFallback} player(s) resolved via the Summer League `
+  const viaSummerLeague = players.filter((p) => p.athlete_id == null && p.id.startsWith("sl-")).length;
+  const viaRegistry = players.filter((p) => p.athlete_id == null && p.id.startsWith("ns-")).length;
+  if (viaSummerLeague > 0) {
+    console.log(`  ${viaSummerLeague} player(s) resolved via the Summer League `
       + `${FALLBACK_SEASON} fallback id (no regular-season hoopR history yet)`);
   }
+  if (viaRegistry > 0) {
+    console.log(`  ${viaRegistry} player(s) resolved via the player-identity registry's `
+      + `NBA Stats id (rostered, never played, not this year's draft class): `
+      + players.filter((p) => p.id.startsWith("ns-")).map((p) => p.player).join(", "));
+  }
   if (unresolved.length > 0) {
-    console.log(`  ${unresolved.length} player(s) skipped — no athlete_id AND no `
-      + `Summer League ${FALLBACK_SEASON} row to fall back to (didn't play SL, or a name-match miss), `
-      + `no stable id to key on: ${unresolved.slice(0, 8).map((p) => p.player).join(", ")}`
+    console.log(`  ${unresolved.length} player(s) skipped — no athlete_id, no `
+      + `Summer League ${FALLBACK_SEASON} row, and no resolvable registry identity `
+      + `(didn't play SL, or a name-match miss), no stable id to key on: `
+      + `${unresolved.slice(0, 8).map((p) => p.player).join(", ")}`
       + `${unresolved.length > 8 ? ", ..." : ""}`);
   }
 
