@@ -226,10 +226,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [supabase, user],
   );
 
-  const openSignUp = useCallback((next: string = "/prediction-arena", mode: "signup" | "login" = "signup") => {
+  /**
+   * `next` omitted means "bring me back to where I am", not "/prediction-arena".
+   *
+   * The old default sent every generic sign-in button to the Arena regardless
+   * of what the person was actually doing — signing in from the sidebar on
+   * /the-deep-edge to reach The Deep Edge dumped you on an unrelated feature's
+   * dashboard. Callers that genuinely want the Arena (the homepage hero,
+   * team-rosters' upsell) still pass it explicitly, so this only changes the
+   * three call sites that never named a destination at all.
+   *
+   * Only observable for Google OAuth and email-signup confirmation, which
+   * round-trip through /auth/callback?next=… — signInWithEmail ignores `next`
+   * entirely and just leaves you on the page you were already on.
+   */
+  const openSignUp = useCallback((next?: string, mode: "signup" | "login" = "signup") => {
     setAuthError(null);
     setAuthMessage(null);
-    const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/prediction-arena";
+    const here =
+      typeof window === "undefined" ? "/prediction-arena" : window.location.pathname + window.location.search;
+    const requested = next ?? here;
+    const safeNext = requested.startsWith("/") && !requested.startsWith("//") ? requested : "/prediction-arena";
     setSignUpNext(safeNext);
     setSignUpModalMode(mode);
     setSignUpModalOpen(true);
