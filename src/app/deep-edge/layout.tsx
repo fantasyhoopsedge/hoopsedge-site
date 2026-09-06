@@ -10,6 +10,7 @@ import {
   SEASON_PASS_USD,
   foundingOfferIsOpen,
 } from "@/lib/deep-edge/offer";
+import { findEligibleDiscount } from "@/lib/deep-edge/waitlist";
 import { LaunchingSoon } from "./_components/launching-soon";
 
 // Deep Edge is genuinely multi-route (Welcome/Home/Settings/Category
@@ -30,7 +31,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-function launchingSoon() {
+async function launchingSoon(userId: string | null, userEmail: string | null) {
+  // A registration failing to load must not present as "never registered" —
+  // that would show the form to someone already on the list and invite a
+  // duplicate submit. Falling back to null is still the safest of the two
+  // wrong answers (the capture is idempotent, so a re-submit is harmless),
+  // but it is worth knowing it happened.
+  let registeredEmail: string | null = null;
+  try {
+    registeredEmail = (await findEligibleDiscount(userId, userEmail))?.email ?? null;
+  } catch (err) {
+    console.error("[deep-edge] waitlist lookup failed:", err);
+  }
+
   return (
     <LaunchingSoon
       seasonPassUsd={SEASON_PASS_USD}
@@ -38,6 +51,7 @@ function launchingSoon() {
       foundingPriceUsd={FOUNDING_PRICE_USD}
       offerOpen={foundingOfferIsOpen()}
       offerEndLabel={FOUNDING_OFFER_END_LABEL}
+      registeredEmail={registeredEmail}
     />
   );
 }
@@ -48,7 +62,7 @@ export default async function DeepEdgeLayout({ children }: { children: ReactNode
     // unreachable in dev — set DEEP_EDGE_FORCE_SOON=1 in .env.local to see the
     // Launching soon screen without deploying or removing yourself from
     // rb_admins. Dev-only: production never reads this.
-    if (process.env.DEEP_EDGE_FORCE_SOON === "1") return launchingSoon();
+    if (process.env.DEEP_EDGE_FORCE_SOON === "1") return launchingSoon(null, null);
     return <>{children}</>;
   }
 
@@ -60,7 +74,7 @@ export default async function DeepEdgeLayout({ children }: { children: ReactNode
   // an unrelated feature's signed-out page.
   if (!user) redirect("/?signin=deep-edge");
 
-  if (!(await isDeepEdgeAdmin(user.email))) return launchingSoon();
+  if (!(await isDeepEdgeAdmin(user.email))) return launchingSoon(user.id, user.email ?? null);
 
   return <>{children}</>;
 }

@@ -23,6 +23,7 @@ export function LaunchingSoon({
   foundingPriceUsd,
   offerOpen,
   offerEndLabel,
+  registeredEmail,
 }: {
   seasonPassUsd: number;
   discountPct: number;
@@ -33,11 +34,21 @@ export function LaunchingSoon({
    *  real gate regardless — this only decides what is shown. */
   offerOpen: boolean;
   offerEndLabel: string;
+  /** The address this visitor already has a claimable discount against, or
+   *  null if they have never registered. Resolved on the server from the
+   *  waitlist row, so a returning registrant sees the acknowledgement
+   *  immediately rather than the form flashing first and correcting itself. */
+  registeredEmail: string | null;
 }) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
   const [status, setStatus] = useState<"idle" | "saving" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // Registering in THIS session and arriving already registered are the same
+  // screen — the only difference is where the address comes from. Anything
+  // truthy here means "acknowledge, do not ask again".
+  const confirmedEmail = status === "done" ? email.trim().toLowerCase() : registeredEmail;
 
   const claim = async () => {
     const value = email.trim();
@@ -92,7 +103,7 @@ export function LaunchingSoon({
           textAlign: "center",
         }}
       >
-        {status === "done" ? (
+        {confirmedEmail ? (
           <>
             <div
               style={{
@@ -110,7 +121,7 @@ export function LaunchingSoon({
             </h1>
             <p style={{ margin: "18px 0 0", maxWidth: 520, fontSize: 16.5, lineHeight: 1.55, color: "var(--rt-body)" }}>
               {discountPct}% off your first season pass is locked to{" "}
-              <strong style={{ color: "var(--rt-ink)", fontWeight: 600 }}>{email.trim().toLowerCase()}</strong>. We&apos;ll
+              <strong style={{ color: "var(--rt-ink)", fontWeight: 600 }}>{confirmedEmail}</strong>. We&apos;ll
               email you the moment The Deep Edge opens.
             </p>
             <Link

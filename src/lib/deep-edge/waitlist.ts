@@ -111,8 +111,13 @@ export async function joinWaitlist(email: string, userId: string | null): Promis
 }
 
 /**
- * Find a discount this person can still spend — for billing to call at
- * checkout, once billing exists. Nothing calls it today.
+ * Find a discount this person can still spend.
+ *
+ * Two callers, same question. The Launching soon screen asks it on load so a
+ * returning registrant is shown "you're on the list" instead of the form
+ * again, and billing will ask it at checkout once billing exists. An
+ * already-spent discount is correctly absent from both answers: there is
+ * nothing left to acknowledge and nothing left to apply.
  *
  * Matches on user_id FIRST and email only as a fallback. Every row written so
  * far carries a real account id (the capture API requires sign-in, and the
