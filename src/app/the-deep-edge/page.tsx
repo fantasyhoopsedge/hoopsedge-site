@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
-import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/waitlist";
+import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/offer";
 
 /**
  * Public announcement/landing page for The Deep Edge — genuinely indexable

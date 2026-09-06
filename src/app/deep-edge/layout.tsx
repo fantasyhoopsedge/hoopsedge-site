@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
-import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/waitlist";
+import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/offer";
 import { LaunchingSoon } from "./_components/launching-soon";
 
 // Deep Edge is genuinely multi-route (Welcome/Home/Settings/Category

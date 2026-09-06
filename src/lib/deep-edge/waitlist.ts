@@ -2,6 +2,7 @@ import "server-only";
 import { promises as fs } from "fs";
 import path from "path";
 import { createClient as createSb, type SupabaseClient } from "@supabase/supabase-js";
+import { FOUNDING_DISCOUNT_PCT } from "./offer";
 
 /**
  * Storage for The Deep Edge founding-price waitlist.
@@ -38,19 +39,6 @@ interface WaitlistRow {
   source: string;
   createdAt: string;
 }
-
-/**
- * The offer as shown on the Launching soon screen. Exported so the screen and
- * the row it writes can never disagree about what was promised — but note the
- * stored `discount_pct` is a snapshot, not a live read of this constant: see
- * the migration's header for why a past promise must survive a price change.
- */
-export const SEASON_PASS_USD = 35;
-export const FOUNDING_DISCOUNT_PCT = 20;
-
-/** Rounded to whole dollars — 35 × 0.8 is exactly 28, but keep this derived
- *  rather than hardcoded so changing either constant above stays consistent. */
-export const FOUNDING_PRICE_USD = Math.round(SEASON_PASS_USD * (1 - FOUNDING_DISCOUNT_PCT / 100));
 
 /**
  * Deliberately permissive: this is a marketing capture, not an auth boundary,

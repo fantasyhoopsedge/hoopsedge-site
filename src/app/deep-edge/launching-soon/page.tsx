@@ -1,4 +1,4 @@
-import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/waitlist";
+import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/offer";
 import { LaunchingSoon } from "../_components/launching-soon";
 
 /**
