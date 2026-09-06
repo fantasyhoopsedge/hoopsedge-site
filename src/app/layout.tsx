@@ -114,6 +114,20 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('fhe-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`,
           }}
         />
+        {/* Launch-gateway flash guard — same class of problem as the theme init
+            above, so it lives beside it. The gate (rendered on `/` by
+            src/components/home/launch-gateway.tsx) is in the SSR HTML on every
+            visit, but a visitor who already came through this session must not
+            see it paint for a frame before React unmounts it. Marks the root
+            pre-paint so globals.css can hide it; the component's own effect
+            does the unmounting and owns the same session key. */}
+        <Script
+          id="fhe-gate-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(location.pathname!=='/')return;var d=sessionStorage.getItem('fhe-gate')==='off';if(location.search.indexOf('enter=')>-1){d=true;try{sessionStorage.setItem('fhe-gate','off');}catch(e){}}if(d)document.documentElement.setAttribute('data-fhe-gate','off');}catch(e){}})();`,
+          }}
+        />
         <AuthProvider>
           <SignUpModal />
           {children}

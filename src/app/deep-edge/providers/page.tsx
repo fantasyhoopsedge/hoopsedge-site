@@ -43,7 +43,13 @@ export default function DeepEdgeProvidersPage() {
   return (
     <OnboardingShell>
       <div style={{ padding: "24px 32px" }}>
-        <Link href="/deep-edge" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--rt-muted)", fontSize: 13.5, textDecoration: "none" }}>
+        {/* Points at the hub, NOT /deep-edge: that route is now a redirect
+            that sends anyone without a connected league straight back here,
+            so "Go back" pointing at it would trap you in a loop on exactly
+            the screen you were trying to leave. /deep-edge/home renders
+            either way — it degrades to a locked grid when no league is
+            connected — so it is safe with or without one. */}
+        <Link href="/deep-edge/home" style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--rt-muted)", fontSize: 13.5, textDecoration: "none" }}>
           <IconChevronLeft size={14} /> Go back
         </Link>
       </div>

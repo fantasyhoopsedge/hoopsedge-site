@@ -29,6 +29,7 @@
     "dynasty:verify-rookies": "tsx scripts/verify-dynasty-rookie-flags.ts",
     "dynasty:sync": "npm run dynasty:verify-rookies && npm run seasonal:build && npm run projections:build && npm run trends:build && npm run realsalary:build",
     "rb:seed": "tsx scripts/seed-rookie-board-supabase.ts",
+    "deepedge:backfill": "tsx scripts/backfill-deep-edge-waitlist.ts",
     "role-context:sync": "tsx scripts/sync-role-context.ts",
     "team-category:sync": "tsx scripts/sync-team-category.ts",
     "depth-chart:repair-live-mpg": "tsx scripts/repair-depth-chart-live-mpg.ts",
