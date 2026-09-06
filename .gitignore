@@ -66,6 +66,10 @@ src/data/fantrax-leagues.json
 # Same convention for the cached custom-valuations ledger (fx_custom_valuations
 # in Supabase is the source of truth in production).
 src/data/fantrax-custom-valuations.json
+# The Deep Edge founding-price waitlist, local-dev storage only
+# (deep_edge_waitlist in Supabase is the source of truth in production).
+# Personal data — never commit.
+src/data/deep-edge-waitlist.json
 
 # Generated build artifacts (regeneratable from Supabase, not committed source data).
 # player-trends now lives in the nba_player_trends table (trends:build pushes it);

@@ -8,13 +8,17 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 // "profile" doesn't match any NAV_ITEMS key by design — the account/settings
 // page isn't one of the main content sections, so nothing in the rail should
 // highlight while it's active.
-export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "ai-assistant" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor" | "fantrax" | "deep-edge" | "player-identity";
+export type AppSidebarActiveKey = "cat-values" | "dynasty" | "real-salary" | "rookie-board" | "rosters" | "arena" | "deep-edge-landing" | "profile" | "board-editor" | "depth-chart" | "dynasty-board-editor" | "fantrax" | "deep-edge" | "player-identity";
 
 type NavItem = {
   key: AppSidebarActiveKey;
   label: string;
   href: string | null;
   icon: ReactNode;
+  /** Small uppercase pill on the right. Defaults to "Soon" when href is null
+   *  (see the render loop below) — set explicitly for anything else, e.g. a
+   *  freshly-launched feature's "New" tag. */
+  badge?: string;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -80,12 +84,14 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    key: "ai-assistant",
-    label: "Edge AI Assistant",
-    href: null, // coming soon — not wired up yet
+    key: "deep-edge-landing",
+    label: "THE DEEP EDGE",
+    href: "/the-deep-edge",
+    badge: "New",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 3h5v5" /><path d="M21 3l-7 7" /><path d="M8 21H3v-5" /><path d="M3 21l7-7" />
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
       </svg>
     ),
   },
@@ -290,24 +296,29 @@ export function AppSidebar({
           >
             {item.icon}
             <span style={{ whiteSpace: "nowrap" }}>{item.label}</span>
-            {!item.href ? (
-              <span
-                style={{
-                  marginLeft: "auto",
-                  padding: "2px 7px",
-                  borderRadius: 999,
-                  background: "var(--rt-surface-strong)",
-                  color: "var(--rt-muted)",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                  textTransform: "uppercase",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Soon
-              </span>
-            ) : null}
+            {(() => {
+              const badge = item.badge ?? (!item.href ? "Soon" : null);
+              if (!badge) return null;
+              const isNew = badge.toLowerCase() === "new";
+              return (
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    padding: "2px 7px",
+                    borderRadius: 999,
+                    background: isNew ? "rgba(250,70,22,0.16)" : "var(--rt-surface-strong)",
+                    color: isNew ? "var(--rt-primary)" : "var(--rt-muted)",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {badge}
+                </span>
+              );
+            })()}
           </div>
         );
         return item.href ? (

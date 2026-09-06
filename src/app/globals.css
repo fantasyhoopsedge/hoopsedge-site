@@ -3739,6 +3739,15 @@ body:has(.dr-rankings-shell) {
   max-width: 760px;
   margin: 0 auto;
 }
+.home-deep-edge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+@media (max-width: 767px) {
+  .home-deep-edge-row { flex-direction: column; align-items: flex-start; gap: 24px; }
+}
 .home-nav-links { display: flex; }
 .home-nav-signin { display: inline-block; }
 
@@ -3747,18 +3756,26 @@ body:has(.dr-rankings-shell) {
    home-nav.tsx) — SiteNav's <nav> is position:fixed (an overlay, unlike
    the sticky header it replaces), so home-hero-grid gets matching top
    padding on mobile to avoid sitting under the bar. Threshold matches
-   .home-nav-links' own hide-below-1024px breakpoint directly below —
+   .home-nav-links' own hide breakpoint directly below —
    these two used to disagree (this swap was gated at 767px while the
    links vanished at 1023px), leaving 768-1023px viewports (iPad
    portrait) with neither the desktop links nor the hamburger: no way to
-   reach any nav destination from the home page at all. */
+   reach any nav destination from the home page at all. THEY MUST STAY
+   EQUAL.
+
+   Raised 1023 -> 1119 when The Deep Edge became a seventh link: at
+   1024px the logo, seven links and the two auth controls needed 1127px
+   of a 1009px row, so the Sign up button overflowed the header. Now
+   1024-1119px (iPad landscape) gets the same hamburger phones do, which
+   already carries every destination including The Deep Edge. Re-measure
+   before lowering this again. */
 .home-nav-mobile { display: none; }
-@media (max-width: 1023px) {
+@media (max-width: 1119px) {
   .home-nav-desktop { display: none; }
   .home-nav-mobile { display: block; }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1119px) {
   .home-nav-links { display: none; }
 }
 @media (max-width: 767px) {
@@ -3778,3 +3795,138 @@ body:has(.dr-rankings-shell) {
 @media (max-width: 640px) {
   .site-footer-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== Launch gateway (src/components/home/launch-gateway.tsx) =====
+ * The two-door front page, drawn over `/` for desktop and tablet only.
+ *
+ * The breakpoint IS the feature: below 768px this is display:none, so phones
+ * land on the marketing page underneath exactly as they did before the gateway
+ * existed. Doing it in CSS rather than JS or a UA check in src/proxy.ts means
+ * there is no flash, no hydration branch, and no width a crawler can render at
+ * that produces a page the homepage's own metadata doesn't describe.
+ *
+ * 768px (not the 1023px the homepage nav swaps at) because the ask was
+ * "desktop and tablet" — 768-1023px is iPad portrait, which gets the stacked
+ * card layout below rather than being treated as a phone.
+ *
+ * z-index 150 is deliberately between the homepage's sticky nav (50) and the
+ * sitewide sign-up modal (.modal-overlay, 200): the gate must cover the page
+ * it sits on, and the sign-in modal it opens must cover the gate. */
+.fhe-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--rt-canvas);
+  color: var(--rt-ink);
+  font-family: var(--rt-font-sans);
+}
+.fhe-gate-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.fhe-gate-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--rt-hairline-soft);
+}
+.fhe-gate-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+  text-align: center;
+}
+.fhe-gate-h1 {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -1.8px;
+}
+.fhe-gate-lede {
+  margin: 18px 0 0;
+  max-width: 580px;
+  font-size: 17px;
+  line-height: 1.55;
+  text-wrap: pretty;
+  color: var(--rt-body);
+}
+.fhe-gate-cards {
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+  width: 100%;
+  max-width: 880px;
+  margin-top: 48px;
+  text-align: left;
+}
+.fhe-gate-card {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  padding: 30px;
+  border-radius: 24px;
+}
+.fhe-gate-card-title {
+  margin: 14px 0 10px;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.fhe-gate-card-body {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--rt-body);
+}
+.fhe-gate-note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--rt-muted-soft);
+}
+.fhe-gate-foot {
+  margin: 44px 0 0;
+  font-size: 12.5px;
+  color: var(--rt-muted-soft);
+}
+.fhe-gate-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Tablet: same two doors, stacked, free option first so the reading order
+   matches the desktop left-to-right order. */
+@media (max-width: 1023px) {
+  .fhe-gate-header { height: 68px; padding: 0 32px; }
+  .fhe-gate-body { padding: 40px 32px; }
+  .fhe-gate-h1 { font-size: 46px; letter-spacing: -1.2px; }
+  .fhe-gate-lede { max-width: 520px; font-size: 16px; }
+  .fhe-gate-cards { flex-direction: column; max-width: 560px; gap: 18px; margin-top: 40px; }
+  .fhe-gate-card { padding: 26px; border-radius: 22px; }
+  .fhe-gate-card-title { font-size: 22px; }
+}
+
+/* Phones keep the current launch page — the gate never renders for them. */
+@media (max-width: 767px) {
+  .fhe-gate { display: none; }
+}
+
+/* Freeze the marketing page behind the overlay. Scoped to the widths that
+   actually show the gate, so the class is inert on phones. */
+@media (min-width: 768px) {
+  html.fhe-gate-open,
+  html.fhe-gate-open body { overflow: hidden; }
+}
+
+/* Set pre-paint by the gate script in src/app/layout.tsx for a visitor who has
+   already come through this session — without it the gate would paint for one
+   frame before React unmounts it. */
+html[data-fhe-gate="off"] .fhe-gate { display: none; }

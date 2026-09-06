@@ -13,6 +13,7 @@ const COLUMNS: { heading: string; links: FooterLink[] }[] = [
       { label: "Rookie draft board", href: "/draft-board" },
       { label: "NBA team rosters", href: "/team-rosters" },
       { label: "Predictions Arena", href: "/prediction-arena" },
+      { label: "The Deep Edge", href: "/the-deep-edge" },
     ],
   },
   {

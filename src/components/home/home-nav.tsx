@@ -6,13 +6,18 @@ import { BRAND_LOGO_HEIGHT } from "@/lib/brand";
 import { SiteNav } from "@/components/site-nav";
 import { Button } from "./button";
 
-const LINKS = [
+// `accent` marks the one destination here that isn't a free tool. The mobile
+// half of this nav is SiteNav, which already carries The Deep Edge — this row
+// is the desktop gap, and the way back for anyone the launch gateway or the
+// Deep Edge waitlist dropped onto this page.
+const LINKS: { label: string; href: string; accent?: boolean }[] = [
   { label: "Dynasty Consensus", href: "/dynasty-rankings" },
   { label: "Real Salary", href: "/real-salary-rankings" },
   { label: "Rookie board", href: "/draft-board" },
   { label: "Team rosters", href: "/team-rosters" },
   { label: "Player value", href: "/seasonal-rankings" },
   { label: "Arena", href: "/prediction-arena" },
+  { label: "The Deep Edge", href: "/the-deep-edge", accent: true },
 ];
 
 export function HomeNav() {
@@ -47,7 +52,7 @@ export function HomeNav() {
           height: 64,
           display: "flex",
           alignItems: "center",
-          gap: 32,
+          gap: 22,
           padding: "0 24px",
         }}
       >
@@ -59,7 +64,7 @@ export function HomeNav() {
           role="navigation"
           aria-label="Primary"
           className="home-nav-links"
-          style={{ gap: 24, marginLeft: 8 }}
+          style={{ gap: 16 }}
         >
           {LINKS.map((l) => (
             <Link
@@ -68,17 +73,18 @@ export function HomeNav() {
               style={{
                 fontFamily: "var(--rt-font-sans)",
                 fontSize: 14,
-                fontWeight: 500,
-                color: "var(--rt-on-dark)",
+                fontWeight: l.accent ? 600 : 500,
+                color: l.accent ? "var(--rt-primary)" : "var(--rt-on-dark)",
                 textDecoration: "none",
-                opacity: 0.9,
+                opacity: l.accent ? 1 : 0.9,
+                whiteSpace: "nowrap",
               }}
             >
               {l.label}
             </Link>
           ))}
         </div>
-        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
           {user && profile ? (
             <Link
               href="/profile"

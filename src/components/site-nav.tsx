@@ -397,6 +397,9 @@ export function SiteNav(props: {
                 <a href="/prediction-arena" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
                   Arena
                 </a>
+                <a href="/the-deep-edge" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
+                  The Deep Edge
+                </a>
                 {showBoardEditor && (
                   <a href="/admin/rookie-board" className="nav-mobile-panel-row" onClick={closeMobileMenu}>
                     Board Editor

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { DYNASTY_RANKINGS } from "@/lib/dynasty-rankings";
 import { HomeNav } from "@/components/home/home-nav";
+import { LaunchGateway } from "@/components/home/launch-gateway";
 import { Button } from "@/components/home/button";
 import { Badge } from "@/components/home/badge";
 import { Card } from "@/components/home/card";
@@ -10,7 +11,8 @@ import { PlayerRow } from "@/components/home/player-row";
 import { SearchPill } from "@/components/home/search-pill";
 
 // Rounded for marketing copy — the live consensus board fluctuates in the
-// low 400s as data refreshes; the Pricing section already promises "Top 450".
+// low 400s as data refreshes, and "Top 450" is the number used across the
+// feature copy and The Deep Edge landing page.
 const RANKED_PLAYER_COUNT = 450;
 
 const FEATURES = [
@@ -51,46 +53,6 @@ const FEATURES = [
   },
 ];
 
-const PRICING_TIERS = [
-  {
-    name: "Standard",
-    price: "Free",
-    cap: "/forever",
-    featured: false,
-    features: [
-      "Top 450 consensus dynasty rankings",
-      "Player category value / ranking",
-      "Rookie draft board",
-      "NBA team rosters",
-    ],
-  },
-  {
-    name: "Edge",
-    price: "$8",
-    cap: "/month",
-    featured: true,
-    features: ["Fantasy projections", "Create your own dynasty rankings", "AI Edge assistant", "League sync"],
-  },
-];
-
-function CheckIcon({ dark }: { dark: boolean }) {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={dark ? "var(--rt-on-dark)" : "var(--rt-primary)"}
-      strokeWidth="2.4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      style={{ flex: "0 0 16px", marginTop: 3 }}
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
 export default function Home() {
   const { openSignUp } = useAuth();
 
@@ -105,6 +67,13 @@ export default function Home() {
     // --rt-* tokens resolve to their light-theme values regardless of the
     // visitor's site-wide theme preference.
     <div data-theme="light" style={{ background: "var(--rt-canvas)" }}>
+      {/* The two-door launch gateway, drawn OVER this page on desktop/tablet
+          (phones never render it). Deliberately a sibling overlay rather than a
+          route of its own: every word of the marketing page below stays in
+          `/`'s HTML for crawlers, and the canonical URL never moves. See the
+          component's header for the full reasoning. */}
+      <LaunchGateway />
+
       {/* HERO — dark, floating dashboard cards */}
       <section style={{ background: "var(--rt-surface-dark)", overflow: "hidden" }}>
         <HomeNav />
@@ -256,6 +225,71 @@ export default function Home() {
             </a>
           ))}
         </div>
+
+        {/* THE DEEP EDGE — deliberately NOT a sixth cell in the grid above.
+            Everything in that grid is free and live; this is neither, so it
+            sits apart with the accent border rather than reading as a peer.
+            It is also the main way back for anyone the launch gateway or the
+            waitlist confirmation dropped onto this page. */}
+        <a href="/the-deep-edge" style={{ textDecoration: "none", display: "block", marginTop: 24 }}>
+          <Card variant="product-dark" hover padding={32} style={{ border: "1px solid var(--rt-primary)" }}>
+            <div className="home-deep-edge-row">
+              <div>
+                <Badge tone="dark" style={{ background: "rgba(250,70,22,0.16)", color: "var(--rt-primary)" }}>
+                  Launching soon
+                </Badge>
+                <h3
+                  style={{
+                    fontFamily: "var(--rt-font-sans)",
+                    fontSize: 22,
+                    fontWeight: 600,
+                    color: "var(--rt-on-dark)",
+                    margin: "16px 0 8px",
+                  }}
+                >
+                  The Deep Edge
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "var(--rt-font-sans)",
+                    fontSize: 15,
+                    lineHeight: 1.5,
+                    color: "var(--rt-on-dark-soft)",
+                    margin: 0,
+                    maxWidth: 620,
+                  }}
+                >
+                  Connect your league and every ranking, trade tool and projection will re-score to your actual scoring
+                  format, roster settings and category weights.
+                </p>
+              </div>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  flex: "0 0 auto",
+                  height: 48,
+                  padding: "0 24px",
+                  borderRadius: 100,
+                  background: "var(--rt-primary)",
+                  color: "var(--rt-on-primary)",
+                  fontFamily: "var(--rt-font-sans)",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Explore The Deep Edge
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M5 12h14" />
+                  <path d="m13 6 6 6-6 6" />
+                </svg>
+              </span>
+            </div>
+          </Card>
+        </a>
       </section>
 
       {/* RANKINGS PREVIEW — soft band */}
@@ -300,89 +334,6 @@ export default function Home() {
               />
             ))}
           </Card>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section style={{ maxWidth: 1200, margin: "0 auto", padding: "96px 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2
-            style={{
-              fontFamily: "var(--rt-font-sans)",
-              fontWeight: 400,
-              fontSize: 40,
-              lineHeight: 1.1,
-              letterSpacing: "-0.8px",
-              color: "var(--rt-ink)",
-              margin: "0 0 12px",
-            }}
-          >
-            Pick your edge.
-          </h2>
-          <p style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, color: "var(--rt-body)", margin: 0 }}>
-            Start free. Upgrade when your league gets serious.
-          </p>
-        </div>
-        <div className="home-pricing-grid">
-          {PRICING_TIERS.map((t) => {
-            const dark = t.featured;
-            return (
-              <Card key={t.name} variant={dark ? "product-dark" : "feature"} padding={32}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 18, fontWeight: 600, color: dark ? "var(--rt-on-dark)" : "var(--rt-ink)" }}>
-                    {t.name}
-                  </span>
-                  {dark ? <Badge tone="dark">Most popular</Badge> : null}
-                </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 24 }}>
-                  <span
-                    style={{
-                      fontFamily: "var(--rt-font-mono)",
-                      fontSize: 44,
-                      letterSpacing: "-1.5px",
-                      color: dark ? "var(--rt-on-dark)" : "var(--rt-ink)",
-                    }}
-                  >
-                    {t.price}
-                  </span>
-                  <span style={{ fontFamily: "var(--rt-font-sans)", fontSize: 15, color: dark ? "var(--rt-on-dark-soft)" : "var(--rt-muted)" }}>
-                    {t.cap}
-                  </span>
-                </div>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 12 }}>
-                  {t.features.map((f) => (
-                    <li
-                      key={f}
-                      style={{
-                        display: "flex",
-                        gap: 10,
-                        fontFamily: "var(--rt-font-sans)",
-                        fontSize: 15,
-                        lineHeight: 1.4,
-                        color: dark ? "var(--rt-on-dark)" : "var(--rt-body)",
-                      }}
-                    >
-                      <CheckIcon dark={dark} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                {t.price === "Free" ? (
-                  <Button
-                    variant={dark ? "primary" : "secondary-light"}
-                    style={{ width: "100%" }}
-                    onClick={() => openSignUp()}
-                  >
-                    Get started
-                  </Button>
-                ) : (
-                  <Button variant={dark ? "primary" : "secondary-light"} style={{ width: "100%" }} disabled>
-                    Coming soon
-                  </Button>
-                )}
-              </Card>
-            );
-          })}
         </div>
       </section>
 
