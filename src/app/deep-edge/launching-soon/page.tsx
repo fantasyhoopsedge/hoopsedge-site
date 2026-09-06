@@ -1,4 +1,10 @@
-import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/offer";
+import {
+  FOUNDING_DISCOUNT_PCT,
+  FOUNDING_OFFER_END_LABEL,
+  FOUNDING_PRICE_USD,
+  SEASON_PASS_USD,
+  foundingOfferIsOpen,
+} from "@/lib/deep-edge/offer";
 import { LaunchingSoon } from "../_components/launching-soon";
 
 /**
@@ -19,6 +25,8 @@ export default function DeepEdgeLaunchingSoonPage() {
       seasonPassUsd={SEASON_PASS_USD}
       discountPct={FOUNDING_DISCOUNT_PCT}
       foundingPriceUsd={FOUNDING_PRICE_USD}
+      offerOpen={foundingOfferIsOpen()}
+      offerEndLabel={FOUNDING_OFFER_END_LABEL}
     />
   );
 }

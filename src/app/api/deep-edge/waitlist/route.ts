@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { FOUNDING_OFFER_END_LABEL, foundingOfferIsOpen } from "@/lib/deep-edge/offer";
 import { isPlausibleEmail, joinWaitlist } from "@/lib/deep-edge/waitlist";
 
 /**
@@ -18,6 +19,16 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  // The authoritative deadline check. The UI hides the form once the offer
+  // closes, but this route is the only thing that actually enforces it — a
+  // statically-rendered page can be stale, and a form can be replayed.
+  if (!foundingOfferIsOpen()) {
+    return NextResponse.json(
+      { error: `The founding price closed on ${FOUNDING_OFFER_END_LABEL}.` },
+      { status: 410 },
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

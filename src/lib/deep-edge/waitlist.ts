@@ -38,6 +38,15 @@ interface WaitlistRow {
   discountPct: number;
   source: string;
   createdAt: string;
+  /** ISO timestamp, or null while the discount is still claimable. */
+  redeemedAt?: string | null;
+  redeemedRef?: string | null;
+}
+
+/** A discount that is on the list and has not been spent. */
+export interface EligibleDiscount {
+  email: string;
+  discountPct: number;
 }
 
 /**
@@ -95,6 +104,88 @@ export async function joinWaitlist(email: string, userId: string | null): Promis
     discountPct: FOUNDING_DISCOUNT_PCT,
     source: "launching-soon",
     createdAt: new Date().toISOString(),
+    redeemedAt: null,
+    redeemedRef: null,
   });
   await writeLocal(rows);
+}
+
+/**
+ * Find a discount this person can still spend — for billing to call at
+ * checkout, once billing exists. Nothing calls it today.
+ *
+ * Matches on user_id FIRST and email only as a fallback. Every row written so
+ * far carries a real account id (the capture API requires sign-in, and the
+ * backfill reads auth.users), so the account is the reliable key: someone who
+ * registered with one address and later pays under another still gets what
+ * they were promised. Email is kept as a fallback purely for a row that
+ * somehow has no user_id.
+ *
+ * Returns null when there is no row, or when the row has already been spent —
+ * the caller cannot tell those apart, and shouldn't need to.
+ */
+export async function findEligibleDiscount(
+  userId: string | null,
+  email: string | null,
+): Promise<EligibleDiscount | null> {
+  const normalized = email?.trim().toLowerCase() ?? null;
+
+  if (DE_WAITLIST_SUPABASE_ENABLED) {
+    const client = serviceClient();
+
+    for (const [column, value] of [
+      ["user_id", userId],
+      ["email", normalized],
+    ] as const) {
+      if (!value) continue;
+      const { data, error } = await client
+        .from("deep_edge_waitlist")
+        .select("email, discount_pct")
+        .eq(column, value)
+        .is("redeemed_at", null)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (data) return { email: String(data.email), discountPct: Number(data.discount_pct) };
+    }
+    return null;
+  }
+
+  const rows = await readLocal();
+  const hit = rows.find(
+    (r) => !r.redeemedAt && ((userId && r.userId === userId) || (normalized && r.email === normalized)),
+  );
+  return hit ? { email: hit.email, discountPct: hit.discountPct } : null;
+}
+
+/**
+ * Spend a discount. Returns false if it was already spent.
+ *
+ * The Supabase path is a compare-and-set — UPDATE ... WHERE redeemed_at IS
+ * NULL, and a zero-row result means someone got there first. That is what
+ * makes double redemption impossible without a transaction, so callers must
+ * treat `false` as "do not apply the discount", never as a retryable error.
+ */
+export async function markDiscountRedeemed(email: string, ref: string): Promise<boolean> {
+  const normalized = email.trim().toLowerCase();
+  const now = new Date().toISOString();
+
+  if (DE_WAITLIST_SUPABASE_ENABLED) {
+    const { data, error } = await serviceClient()
+      .from("deep_edge_waitlist")
+      .update({ redeemed_at: now, redeemed_ref: ref })
+      .eq("email", normalized)
+      .is("redeemed_at", null)
+      .select("email");
+    if (error) throw new Error(error.message);
+    return (data ?? []).length > 0;
+  }
+
+  const rows = await readLocal();
+  const row = rows.find((r) => r.email === normalized);
+  if (!row || row.redeemedAt) return false;
+  row.redeemedAt = now;
+  row.redeemedRef = ref;
+  await writeLocal(rows);
+  return true;
 }

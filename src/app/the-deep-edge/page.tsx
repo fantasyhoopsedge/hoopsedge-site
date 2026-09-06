@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
-import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/lib/deep-edge/offer";
+import {
+  FOUNDING_DISCOUNT_PCT,
+  FOUNDING_OFFER_END_LABEL,
+  FOUNDING_PRICE_USD,
+  SEASON_PASS_USD,
+  foundingOfferIsOpen,
+} from "@/lib/deep-edge/offer";
 
 /**
  * Public announcement/landing page for The Deep Edge — genuinely indexable
@@ -23,6 +29,16 @@ import { FOUNDING_DISCOUNT_PCT, FOUNDING_PRICE_USD, SEASON_PASS_USD } from "@/li
  * intent to build them yet, and advertising unbuilt tools on the page that
  * sells a season pass is a promise this product can't keep.
  */
+/**
+ * Statically rendered, so foundingOfferIsOpen() below would bake in at BUILD
+ * time and go on advertising the discount after it closed, until something
+ * happened to redeploy. Revalidating hourly bounds that staleness; the capture
+ * API (force-dynamic) is what actually enforces the deadline, so an hour of
+ * drift here only ever shows a slightly stale banner, never takes a
+ * registration it shouldn't.
+ */
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "The Deep Edge · Fantasy Hoops Edge",
   description:
@@ -56,6 +72,8 @@ function FeatureCard({ title, description }: { title: string; description: strin
 }
 
 export default function TheDeepEdgeLandingPage() {
+  const offerOpen = foundingOfferIsOpen();
+
   return (
     <main style={{ display: "flex", minHeight: "100vh", background: "var(--rt-canvas)", color: "var(--rt-ink)" }}>
       <PlatformSidebarNav active="deep-edge-landing" />
@@ -105,7 +123,9 @@ export default function TheDeepEdgeLandingPage() {
             </a>
           </div>
           <p style={{ marginTop: 16, color: "var(--rt-muted)", fontSize: 12.5 }}>
-            Opening soon — register now and the founding discount is locked to your account.
+            {offerOpen
+              ? `Opening soon — register by ${FOUNDING_OFFER_END_LABEL} and the founding discount is locked to your account.`
+              : "Opening soon."}
           </p>
         </div>
 
@@ -131,8 +151,16 @@ export default function TheDeepEdgeLandingPage() {
             </h2>
             <p style={{ color: "var(--rt-on-dark-soft)", fontSize: 14.5, lineHeight: 1.55, margin: 0 }}>
               A season pass, not a subscription — one payment covers you through to the end of the season.
-              Register while the founding price is open and {FOUNDING_DISCOUNT_PCT}% comes off your first
-              one, bringing it to <strong style={{ color: "var(--rt-on-dark)", fontWeight: 700 }}>US${FOUNDING_PRICE_USD}</strong>.
+              {offerOpen ? (
+                <>
+                  {" "}
+                  Register by {FOUNDING_OFFER_END_LABEL} and {FOUNDING_DISCOUNT_PCT}% comes off your first one,
+                  bringing it to{" "}
+                  <strong style={{ color: "var(--rt-on-dark)", fontWeight: 700 }}>US${FOUNDING_PRICE_USD}</strong>.
+                </>
+              ) : (
+                <> The founding price closed on {FOUNDING_OFFER_END_LABEL}.</>
+              )}
             </p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 12 }}>
@@ -144,7 +172,7 @@ export default function TheDeepEdgeLandingPage() {
                 whiteSpace: "nowrap",
               }}
             >
-              {FOUNDING_DISCOUNT_PCT}% OFF · LIMITED TIME
+              {offerOpen ? `${FOUNDING_DISCOUNT_PCT}% OFF · ENDS ${FOUNDING_OFFER_END_LABEL.toUpperCase()}` : "SEASON PASS"}
             </span>
             <Link
               href="/deep-edge/launching-soon"
@@ -154,7 +182,7 @@ export default function TheDeepEdgeLandingPage() {
                 textDecoration: "none", whiteSpace: "nowrap",
               }}
             >
-              Claim {FOUNDING_DISCOUNT_PCT}% off
+              {offerOpen ? `Claim ${FOUNDING_DISCOUNT_PCT}% off` : "Open The Deep Edge"}
             </Link>
           </div>
         </div>

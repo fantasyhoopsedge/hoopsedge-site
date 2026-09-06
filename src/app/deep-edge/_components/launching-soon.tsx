@@ -21,10 +21,18 @@ export function LaunchingSoon({
   seasonPassUsd,
   discountPct,
   foundingPriceUsd,
+  offerOpen,
+  offerEndLabel,
 }: {
   seasonPassUsd: number;
   discountPct: number;
   foundingPriceUsd: number;
+  /** Resolved on the server and passed down, not computed here: this is a
+   *  Client Component, and deciding it at render time would let the server and
+   *  the hydrating client disagree across the deadline. The capture API is the
+   *  real gate regardless — this only decides what is shown. */
+  offerOpen: boolean;
+  offerEndLabel: string;
 }) {
   const { user } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
@@ -154,10 +162,11 @@ export function LaunchingSoon({
             </h1>
 
             <p style={{ margin: "18px 0 0", maxWidth: 540, fontSize: 16.5, lineHeight: 1.55, color: "var(--rt-body)" }}>
-              Your league, wired into every ranking, trade tool and projection. We&apos;re finishing it now — leave your
-              email and we&apos;ll hold the founding price for you.
+              Your league, wired into every ranking, trade tool and projection. We&apos;re finishing it now
+              {offerOpen ? " — leave your email and we'll hold the founding price for you." : "."}
             </p>
 
+            {offerOpen ? (
             <div
               style={{
                 width: "100%", maxWidth: 500, marginTop: 36, padding: 26, borderRadius: 20,
@@ -172,7 +181,7 @@ export function LaunchingSoon({
                   letterSpacing: "0.06em", textTransform: "uppercase",
                 }}
               >
-                Founding price · limited time
+                Founding price · ends {offerEndLabel}
               </span>
 
               <div style={{ marginTop: 13, fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px" }}>
@@ -183,8 +192,7 @@ export function LaunchingSoon({
                     between an expression and text that wraps to the next line, which shipped
                     "USD $35covers" the first time this sentence was written. */}
                 The Deep Edge is a season pass, not a subscription: USD ${seasonPassUsd}{" "}
-                covers you through to the end of the season. Register while the founding price is open and
-                it&apos;s{" "}
+                covers you through to the end of the season. Register by {offerEndLabel} and it&apos;s{" "}
                 <strong style={{ color: "var(--rt-ink)", fontWeight: 600 }}>USD ${foundingPriceUsd}</strong>. Leave your
                 email and the discount is locked to it — one message when The Deep Edge opens, nothing else.
               </p>
@@ -229,6 +237,38 @@ export function LaunchingSoon({
 
               {error ? <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--rt-down)" }}>{error}</p> : null}
             </div>
+            ) : (
+            /* Past the deadline. The form is gone rather than disabled — an
+               input you can type into but not submit is worse than no input —
+               and the price shown is the real one, with no discount implied.
+               Anyone who registered before the cutoff keeps their own row and
+               its stored discount_pct; this only closes NEW registrations. */
+            <div
+              style={{
+                width: "100%", maxWidth: 500, marginTop: 36, padding: 26, borderRadius: 20,
+                background: "var(--rt-surface-dark)", border: "1px solid var(--rt-hairline)", textAlign: "left",
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block", padding: "4px 10px", borderRadius: 100,
+                  background: "var(--rt-surface-strong)", color: "var(--rt-muted)",
+                  fontFamily: "var(--rt-font-mono)", fontSize: 10.5, fontWeight: 700,
+                  letterSpacing: "0.06em", textTransform: "uppercase",
+                }}
+              >
+                Season pass
+              </span>
+
+              <div style={{ marginTop: 13, fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px" }}>
+                USD ${seasonPassUsd} for the season
+              </div>
+              <p style={{ margin: "7px 0 0", fontSize: 13.5, lineHeight: 1.5, color: "var(--rt-muted)" }}>
+                The founding price closed on {offerEndLabel}. A season pass is a one-off payment that covers you
+                through to the end of the season — no subscription.
+              </p>
+            </div>
+            )}
 
             <p style={{ marginTop: 26, fontSize: 12.5, color: "var(--rt-muted-soft)" }}>
               Fantasy Hoops Edge stays free and open while you wait.
