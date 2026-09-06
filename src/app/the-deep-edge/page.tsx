@@ -17,10 +17,15 @@ import {
  * anyone can land on. This page carries no auth branching of its own (same
  * content for every visitor) — the gate lives entirely on `/deep-edge`'s side.
  *
- * Both CTAs point at `/deep-edge/launching-soon` rather than `/deep-edge`,
- * because `/deep-edge` branches on the admin allowlist and would drop an
- * admin straight into the tool. Pre-launch, every click-through from this
- * page should land on the founding-price offer, whoever is clicking.
+ * Both CTAs point at `/deep-edge` and let IT decide where the visitor
+ * belongs: an admin lands in the tool, a signed-in non-admin gets the
+ * founding-price screen, a signed-out one is bounced to the gateway to sign
+ * in. They briefly pointed at `/deep-edge/launching-soon` instead, back when
+ * `/deep-edge` rendered a stale "connect or explore" card that nobody should
+ * have been sent to — but hardcoding a destination here is what CAUSED the
+ * next bug, an admin clicking "Open The Deep Edge" and being shown a
+ * launching-soon page for a product they can already use. One route knows who
+ * you are; this page does not, and shouldn't try to guess.
  *
  * Card copy/order is kept in sync with the real "Go deep" grid
  * (`src/app/deep-edge/_components/go-deep-grid.tsx`). The three "coming soon"
@@ -102,7 +107,7 @@ export default function TheDeepEdgeLandingPage() {
 
           <div style={{ display: "flex", gap: 14, marginTop: 34, justifyContent: "center", flexWrap: "wrap" }}>
             <Link
-              href="/deep-edge/launching-soon"
+              href="/deep-edge"
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", height: 46, padding: "0 26px",
                 borderRadius: 100, background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 15,
@@ -175,7 +180,7 @@ export default function TheDeepEdgeLandingPage() {
               {offerOpen ? `${FOUNDING_DISCOUNT_PCT}% OFF · ENDS ${FOUNDING_OFFER_END_LABEL.toUpperCase()}` : "SEASON PASS"}
             </span>
             <Link
-              href="/deep-edge/launching-soon"
+              href="/deep-edge"
               style={{
                 display: "inline-flex", alignItems: "center", justifyContent: "center", height: 44, padding: "0 22px",
                 borderRadius: 100, background: "var(--rt-primary)", color: "#fff", fontWeight: 700, fontSize: 14.5,

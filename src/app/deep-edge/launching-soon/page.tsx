@@ -8,16 +8,20 @@ import {
 import { LaunchingSoon } from "../_components/launching-soon";
 
 /**
- * The founding-price screen at a URL that always shows it.
+ * An ADMIN PREVIEW of the founding-price screen. Nothing links here.
  *
- * `/deep-edge` itself branches on the admin allowlist and sends an admin
- * straight into the tool, so it is the wrong target for a public "Open The
- * Deep Edge" link — /the-deep-edge points here instead. Sitting inside the
- * /deep-edge subtree is deliberate: this page inherits that layout's gate for
- * free, so a signed-out visitor is still bounced to the launch gateway to
- * sign in, and a signed-in NON-admin is served the layout's own copy of this
- * same screen. The only visitor who reaches THIS file is an admin, who would
- * otherwise never see what everyone else sees.
+ * Every real route resolves its own destination now: /deep-edge sends an admin
+ * to the tool and a signed-in non-admin to this same screen (rendered by the
+ * layout, not this file), and /the-deep-edge simply points at /deep-edge and
+ * lets it decide. This URL briefly WAS the target of those CTAs, which is
+ * exactly how an admin ended up being shown "launching soon" for a product
+ * they can already use — a hardcoded destination cannot know who is clicking.
+ *
+ * Kept because the layout's copy of this screen is by definition unreachable
+ * for an admin, so without this URL there is no way to see what customers
+ * actually see short of editing rb_admins or setting DEEP_EDGE_FORCE_SOON.
+ * That makes it a QA surface, not a link target — don't point a CTA here
+ * again; point it at /deep-edge.
  */
 export default function DeepEdgeLaunchingSoonPage() {
   return (
