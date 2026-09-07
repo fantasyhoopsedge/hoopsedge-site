@@ -5,13 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { readFantraxSession } from "../_lib/fantrax-session";
 import { useSavedLeagues } from "../_lib/use-saved-leagues";
-import { IconBell, IconChat, IconChevronDown, IconHome, IconLineChart, IconList, IconMoon, IconSun } from "./icons";
+import { IconChevronDown, IconDollar, IconHome, IconLineChart, IconList, IconMoon, IconSliders, IconSun, IconTarget, IconTrophy, IconUsers } from "./icons";
 
 /**
  * Deep Edge's own sidebar — distinct from both AppSidebar (the main site
- * rail) and admin/fantrax/_shell.tsx's FantraxShell. Matches the design's
- * Home/My leagues/Rankings/Edge assistant/Alerts nav + connected-platforms
- * list + Return to main site footer.
+ * rail) and admin/fantrax/_shell.tsx's FantraxShell. Home/My leagues nav,
+ * then one row per BUILT tool (the same six as GoDeepGrid, same names and
+ * icons), + connected-platforms list + Return to main site footer. Nothing
+ * unbuilt is listed here — an "Edge assistant"/"Alerts" row that only ever
+ * routed back to Home was a placeholder, not navigation.
  *
  * Only the active league renders under "My leagues" — with 15+ leagues
  * connected, listing every one permanently was the actual bug report, not a
@@ -49,18 +51,34 @@ export function DeepEdgeSidebar({
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, []);
 
-  // "Edge assistant"/"Alerts" have no dedicated screen in this round — they
-  // route to Home like Home itself, but only the item whose label matches
-  // the current section highlights (never more than one).
   const NAV = [
     { label: "Home", href: "/deep-edge/home", icon: <IconHome size={18} />, activeWhen: pathname === "/deep-edge/home" },
     { label: "My leagues", href: "/deep-edge/home", icon: <IconList size={18} />, activeWhen: false },
   ];
-  const NAV2 = [
-    { label: "Rankings", href: hasLeague ? "/deep-edge/home/rankings" : "/deep-edge/home", icon: <IconLineChart size={18} />, activeWhen: pathname === "/deep-edge/home/rankings" },
-    { label: "Edge assistant", href: "/deep-edge/home", icon: <IconChat size={18} />, activeWhen: false },
-    { label: "Alerts", href: "/deep-edge/home", icon: <IconBell size={18} />, activeWhen: false },
+
+  // Every built tool, in GoDeepGrid's order. Each is league-scoped, so
+  // without a league they all fall back to Home (same rule the grid's lock
+  // applies), and with one the active `?league=` is carried across so
+  // switching tools keeps you in the league you were just looking at
+  // instead of dropping back to the default.
+  const TOOLS = [
+    { label: "Power Rankings", path: "/deep-edge/home/rankings", icon: <IconTrophy size={18} /> },
+    { label: "Roster Edge", path: "/deep-edge/home/roster-edge", icon: <IconUsers size={18} /> },
+    { label: "Category Edge", path: "/deep-edge/home/category-edge", icon: <IconTarget size={18} /> },
+    { label: "Trade Edge", path: "/deep-edge/home/trade-edge", icon: <IconSliders size={18} /> },
+    { label: "Waiver Edge", path: "/deep-edge/home/waiver-edge", icon: <IconLineChart size={18} /> },
+    { label: "League Rankings", path: "/deep-edge/home/league-rankings", icon: <IconDollar size={18} /> },
   ];
+  const NAV2 = TOOLS.map((tool) => ({
+    label: tool.label,
+    href: hasLeague
+      ? activeLeagueId
+        ? `${tool.path}?league=${encodeURIComponent(activeLeagueId)}`
+        : tool.path
+      : "/deep-edge/home",
+    icon: tool.icon,
+    activeWhen: pathname === tool.path,
+  }));
 
   return (
     <aside
@@ -156,6 +174,12 @@ export function DeepEdgeSidebar({
             )}
           </div>
         )}
+
+        {/* Same mono section label as CONNECTED below — with six tool rows
+            the group needs a header to stay scannable. */}
+        <div style={{ marginTop: 14, marginBottom: 2, fontFamily: "var(--rt-font-mono)", fontSize: 10.5, letterSpacing: "0.06em", color: "var(--rt-muted)", padding: "0 10px" }}>
+          TOOLS
+        </div>
 
         {NAV2.map((item) => {
           const active = item.activeWhen;
