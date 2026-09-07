@@ -1,7 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
+import { hasDeepEdgeAccess } from "@/lib/deep-edge/access-cache";
 import { LOCAL_OWNER } from "@/lib/fantrax/store";
 
 /**
@@ -9,11 +9,12 @@ import { LOCAL_OWNER } from "@/lib/fantrax/store";
  * src/lib/fantrax/guard.ts's authorizeFantrax(). Kept as its own file (not a
  * re-export of authorizeFantrax) so it can be graduated to the real
  * one-free-league-then-paywall check independently of the Fantrax connector's
- * own admin gate — see that file's comment for the same graduation pattern:
- * drop the isRbAdmin() check here, nothing else assumes admin.
+ * own gate — see that file's comment for the same graduation pattern: drop
+ * the hasDeepEdgeAccess() check here, nothing else assumes admin.
  *
  * Localhost is trusted in dev; production requires a signed-in user in
- * rb_admins, same allowlist the other admin tools share. The whole
+ * EITHER rb_admins (full admin) or de_testers (Deep Edge only) — see
+ * lib/deep-edge/access-cache.ts for why those are two lists. The whole
  * /deep-edge subtree is gated once, centrally, in src/app/deep-edge/layout.tsx
  * — unlike /admin/fantrax's single page, Deep Edge is genuinely multi-route.
  */
@@ -36,7 +37,7 @@ export async function authorizeDeepEdge(): Promise<
   if (!user) {
     return { ok: false, response: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
-  if (!(await isDeepEdgeAdmin(user.email))) {
+  if (!(await hasDeepEdgeAccess(user.email))) {
     return {
       ok: false,
       response: NextResponse.json({ error: "The Deep Edge is in limited testing." }, { status: 403 }),
