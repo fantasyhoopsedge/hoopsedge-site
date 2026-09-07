@@ -1279,6 +1279,11 @@ function AddDropSimulatorModal({
   }, [salaryBefore, myRoster, dropIds, addPlayers, freeAgentSalaryByFantraxId]);
   const salaryCapTotal = saved.settings.salaryCapTotal ?? 0;
   const capDelta = salaryAfter != null && salaryCapTotal > 0 ? salaryAfter - salaryCapTotal : null;
+  /** What the staged moves themselves cost — distinct from capDelta, which
+   *  measures the AFTER total against the cap. Both matter and neither
+   *  substitutes for the other: "57 under cap" says where you land, "+2"
+   *  says what this move did (Ash, 2026-09-08). */
+  const salaryChange = salaryBefore != null && salaryAfter != null ? salaryAfter - salaryBefore : null;
 
   const format: SimFormat | null = useMemo(() => {
     if (!analysis) return null;
@@ -1459,10 +1464,17 @@ function AddDropSimulatorModal({
                 {showSalary && (
                   <div style={{ padding: 14, borderRadius: 12, border: "1px solid var(--rt-hairline)", minWidth: 170 }}>
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>TEAM SALARY</div>
-                    <div style={{ fontSize: 18, fontWeight: 700 }}>
-                      <span style={{ color: "var(--rt-muted)" }}>{fmtSalary(salaryBefore)}</span>
-                      {" → "}
-                      <span>{fmtSalary(salaryAfter)}</span>
+                    <div style={{ fontSize: 18, fontWeight: 700, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                      <span>
+                        <span style={{ color: "var(--rt-muted)" }}>{fmtSalary(salaryBefore)}</span>
+                        {" → "}
+                        <span>{fmtSalary(salaryAfter)}</span>
+                      </span>
+                      {salaryChange != null && salaryChange !== 0 && (
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rt-muted)" }}>
+                          {salaryChange > 0 ? "+" : "−"}{fmtSalary(Math.abs(salaryChange))}
+                        </span>
+                      )}
                     </div>
                     {capDelta != null && (
                       <div style={{ fontSize: 11.5, marginTop: 6, fontWeight: 600, color: capDelta > 0 ? "var(--rt-down)" : "var(--rt-up)" }}>
