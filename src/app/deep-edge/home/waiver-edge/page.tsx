@@ -80,8 +80,11 @@ import type { WaiverAssetRow, WaiverEdgeResult, WaiverSeasonMode } from "@/lib/f
  * Real Salary rank there instead of dynasty consensus, since that's the
  * number actually driving value for that league. SALARY (a free agent's
  * real-world NBA salary, since their in-league salary is always null) shows
- * for both real- and custom-salary leagues; neither DYN RANK/SAL RANK nor
- * SALARY applies to a points league (LEAGUE RANK still does).
+ * for REAL-salary leagues only — a custom league's own waiver pricing is its
+ * own rules (FAAB bid, $1 floor, $0 on drop), unrelated to the NBA contract,
+ * and Fantrax hands us no in-league salary for an unrostered player to show
+ * in its place. Neither DYN RANK/SAL RANK nor SALARY applies to a points
+ * league (LEAGUE RANK still does).
  *
  * The Add/Drop Simulator (bottom of this file) answers "if I made this move,
  * what happens to my team?" — pick free agents here (the ADD column), pick
@@ -96,6 +99,31 @@ import type { WaiverAssetRow, WaiverEdgeResult, WaiverSeasonMode } from "@/lib/f
 
 type ClassFilterKey = "rookie" | "soph" | "vet";
 const POSITION_OPTIONS = ["G", "F", "C"] as const;
+
+/** Real-NBA-salary bands, matching the ranges Fantrax's own salary dropdown
+ *  offers, as multi-select buttons rather than a select (Ash, 2026-09-07:
+ *  "instead of a drop down make it buttons where user can click one or many
+ *  or all"). Bands are contiguous and half-open, so no salary lands in two
+ *  of them and none falls between. REAL-salary leagues only — a custom
+ *  league never shows a real NBA figure on this screen at all, so filtering
+ *  by one would be filtering on a number the table doesn't display. */
+const SALARY_BANDS = [
+  { key: "u10", label: "$10M or under", min: 0, max: 10_000_000 },
+  { key: "10-20", label: "$10M–$20M", min: 10_000_000, max: 20_000_000 },
+  { key: "20-30", label: "$20M–$30M", min: 20_000_000, max: 30_000_000 },
+  { key: "30-40", label: "$30M–$40M", min: 30_000_000, max: 40_000_000 },
+  { key: "40+", label: "$40M+", min: 40_000_000, max: Infinity },
+] as const;
+type SalaryBandKey = (typeof SALARY_BANDS)[number]["key"];
+
+/** A player with no salary on file matches no band — he is excluded whenever
+ *  any band is selected, rather than silently surviving every filter. */
+function inSalaryBand(salary: number | null, key: SalaryBandKey): boolean {
+  if (salary == null) return false;
+  const band = SALARY_BANDS.find((b) => b.key === key);
+  if (!band) return false;
+  return salary >= band.min && salary < band.max;
+}
 type PositionFilterKey = (typeof POSITION_OPTIONS)[number];
 type StatMode = "perGame" | "totals";
 type CatvMode = "minus1" | "eightCat" | "nineCat";
@@ -236,6 +264,8 @@ function WaiverEdgeContent() {
   const [puntedCats, setPuntedCats] = useState<Set<FheCategory>>(new Set());
   const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
+  const [teamFilter, setTeamFilter] = useState<Set<string>>(new Set());
+  const [salaryBandFilter, setSalaryBandFilter] = useState<Set<SalaryBandKey>>(new Set());
   const [statMode, setStatMode] = useState<StatMode>("perGame");
   /** Which season's raw stats/CATV drives the table — "projection" (2026-27
    *  Projections, the default) or "current" (dynamically 2025-26 or 2026-27
@@ -452,16 +482,46 @@ function WaiverEdgeContent() {
   // than plain dynasty consensus, so it takes that column's ONE slot
   // instead of adding a second — every other format keeps Dyn Rank there.
   const useSalaryRank = !isPoints && salaryFormat === "real";
-  const showSalary = !isPoints && (salaryFormat === "real" || salaryFormat === "custom");
-  const fmtSalary = (n: number | null) => (salaryFormat === "custom" ? formatCustomSalary(n) : formatSalary(n));
+  // REAL-SALARY LEAGUES ONLY. The number here is the player's real NBA
+  // contract, which is a meaningful asset fact only where the league itself
+  // plays with real cap figures. In a custom-salary league it is noise: an
+  // unrostered player's in-league price is whatever that league's own rules
+  // say (in Old But Gold he sits at $1 until someone spends FAAB on him, and
+  // returns to $0 if dropped), which has nothing to do with his NBA deal —
+  // so showing $62.6M next to Stephen Curry on the waiver wire told a
+  // custom-salary manager nothing he could act on (Ash, 2026-09-07).
+  //
+  // Fantrax reports no in-league salary for a free agent to show instead:
+  // FxLeagueInfo.playerInfo (the payload free agents are built from,
+  // league.ts:415) carries only eligiblePos and status, where a ROSTER item
+  // carries salary. So there is nothing to substitute, and the column is
+  // simply absent for custom-salary leagues rather than showing a number
+  // that means something else.
+  const showSalary = !isPoints && salaryFormat === "real";
+  // Real NBA dollars, $00.0M — the column only renders for real-salary
+  // leagues now (see showSalary), so the league-aware formatter that used to
+  // pick formatCustomSalary here has nothing left to pick between. It was
+  // also wrong when it fired: a custom league's raw-integer cap formatter
+  // printed Curry's real contract as "62,587,158". The Add/Drop Simulator
+  // keeps its own league-aware formatter — those totals are cap figures.
+  const fmtSalary = (n: number | null) => formatSalary(n);
 
   const filteredRows = useMemo(() => {
     if (!data) return [];
     return data.assets.filter(
       (a) => (classFilter.size === 0 || classFilter.has(classOf(a)))
-        && (positionFilter.size === 0 || [...positionFilter].some((g) => touchesPosition(a.pos, g))),
+        && (positionFilter.size === 0 || [...positionFilter].some((g) => touchesPosition(a.pos, g)))
+        && (teamFilter.size === 0 || (a.nbaTeam != null && teamFilter.has(a.nbaTeam)))
+        && (salaryBandFilter.size === 0 || [...salaryBandFilter].some((k) => inSalaryBand(a.salary, k))),
     );
-  }, [data, classFilter, positionFilter]);
+  }, [data, classFilter, positionFilter, teamFilter, salaryBandFilter]);
+
+  /** Only teams that actually have a free agent on this board — a filter
+   *  offering all 30 would hand you empty results for whichever have none. */
+  const teamsOnBoard = useMemo(
+    () => [...new Set((data?.assets ?? []).map((a) => a.nbaTeam).filter((t): t is string => t != null))].sort(),
+    [data],
+  );
 
   const rowsWithValue = useMemo(
     () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", catvMode, statMode, puntedCats) })),
@@ -491,6 +551,177 @@ function WaiverEdgeContent() {
     });
   }
 
+  /* Filters live in the SAME grid cell as the title, beside the charts panel
+     rather than below it. The charts set that grid row's height, so with the
+     title alone in the left cell everything after the header started under a
+     ~200px band of empty canvas — the black space Ash flagged (2026-09-07).
+     Nothing here is new markup; it is the same rows, hoisted so they fill
+     the column they were always sitting beneath. */
+  const filtersBlock = !loadingSaved && saved ? (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SEASON</span>
+        <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+          <button type="button" onClick={() => setSeasonMode("projection")} style={pill(seasonMode === "projection")}>
+            2026-27 Projections
+          </button>
+          <button type="button" onClick={() => setSeasonMode("current")} style={pill(seasonMode === "current")}>
+            Current Season{data ? ` (${data.currentSeasonLabel})` : ""}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+        {!isPoints && (
+          <>
+            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>CATV</span>
+            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+              {CATV_OPTIONS.map(({ value, label }) => (
+                <button key={value} type="button" onClick={() => setCatvMode(value)} style={pill(catvMode === value)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            {catvMode === "eightCat" && (
+              <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>TO excluded</span>
+            )}
+          </>
+        )}
+        <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, marginLeft: "auto" }}>
+          {(["perGame", "totals"] as StatMode[]).map((v) => (
+            <button key={v} type="button" onClick={() => setStatMode(v)} style={pill(statMode === v)}>
+              {v === "perGame" ? "Per game" : "Totals"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!isPoints && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Punt</span>
+          <div style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+            {STAT_CATS.map((cat) => {
+              const active = puntedCats.has(cat);
+              const enabled = catvMode === "nineCat";
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  disabled={!enabled}
+                  onClick={() => togglePunt(cat)}
+                  aria-pressed={active}
+                  title={enabled ? (active ? `Un-punt ${CATEGORY_LABEL[cat]}` : `Exclude ${CATEGORY_LABEL[cat]} from 9CatV`) : "Punting only applies to 9CatV"}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    width: 46, height: 38, padding: "4px 2px", borderRadius: 8, border: "1px solid var(--rt-hairline)",
+                    cursor: enabled ? "pointer" : "not-allowed",
+                    background: active ? "var(--rt-surface-strong)" : "var(--rt-canvas)",
+                    color: active ? "var(--rt-muted)" : "var(--rt-ink)",
+                    opacity: enabled ? 1 : 0.4, fontSize: 11.5, fontWeight: 700, lineHeight: 1.2,
+                  }}
+                >
+                  <span>{CATEGORY_LABEL[cat]}</span>
+                  <span style={{ fontSize: 8.5, fontWeight: 700, marginTop: 2, letterSpacing: 0.4, visibility: active ? "visible" : "hidden" }}>PUNT</span>
+                </button>
+              );
+            })}
+          </div>
+          {catvMode !== "nineCat" && (
+            <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Switch to 9CatV to apply punts</span>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Position</span>
+        <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+          <button type="button" onClick={() => setPositionFilter(new Set())} style={pill(positionFilter.size === 0)}>ALL</button>
+          {POSITION_OPTIONS.map((pos) => (
+            <button
+              key={pos}
+              type="button"
+              onClick={() => setPositionFilter((prev) => {
+                const next = new Set(prev);
+                if (next.has(pos)) next.delete(pos); else next.add(pos);
+                return next;
+              })}
+              style={pill(positionFilter.has(pos))}
+            >
+              {pos}
+            </button>
+          ))}
+        </div>
+        <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600, marginLeft: 8 }}>Class</span>
+        <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
+          <button type="button" onClick={() => setClassFilter(new Set())} style={pill(classFilter.size === 0)}>ALL</button>
+          {([["rookie", "Rookies"], ["soph", "Sophomores"], ["vet", "Veterans"]] as [ClassFilterKey, string][]).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setClassFilter((prev) => {
+                const next = new Set(prev);
+                if (next.has(key)) next.delete(key); else next.add(key);
+                return next;
+              })}
+              style={pill(classFilter.has(key))}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {teamsOnBoard.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+          <label htmlFor="we-team" style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Team</label>
+          {/* A select, not the pill group every other filter here uses: 30
+              teams is too many buttons to spend the width on (Ash,
+              2026-09-08). Same shape as seasonal-rankings' own Team filter —
+              single choice, "" meaning all — and the Set is kept as the
+              state so the filter predicate is unchanged and a multi-select
+              could be restored without touching it. */}
+          <select
+            id="we-team"
+            value={teamFilter.size === 1 ? [...teamFilter][0] : ""}
+            onChange={(e) => setTeamFilter(e.target.value ? new Set([e.target.value]) : new Set())}
+            style={{
+              height: 34, borderRadius: 8, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", padding: "0 10px", fontSize: 12.5, color: "var(--rt-ink)",
+            }}
+          >
+            <option value="">All Teams</option>
+            {teamsOnBoard.map((team) => (
+              <option key={team} value={team}>{team}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {showSalary && (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Salary</span>
+          <div style={{ display: "inline-flex", flexWrap: "wrap", gap: 3, padding: 3, background: "var(--rt-surface-strong)", borderRadius: 14 }}>
+            <button type="button" onClick={() => setSalaryBandFilter(new Set())} style={pill(salaryBandFilter.size === 0)}>All salaries</button>
+            {SALARY_BANDS.map((band) => (
+              <button
+                key={band.key}
+                type="button"
+                onClick={() => setSalaryBandFilter((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(band.key)) next.delete(band.key); else next.add(band.key);
+                  return next;
+                })}
+                style={pill(salaryBandFilter.has(band.key))}
+              >
+                {band.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <HubShell hasLeague={Boolean(saved)} breadcrumb={saved ? `${saved.leagueName} · Waiver Edge` : "Waiver Edge"}>
       <style>{DEEP_EDGE_TABLE_CSS}</style>
@@ -509,13 +740,18 @@ function WaiverEdgeContent() {
         .we-chip button { background: none; border: none; color: var(--rt-muted); cursor: pointer; font-weight: 700; padding: 0; }
       `}</style>
 
-      <div style={{ display: "grid", gridTemplateColumns: chartsPanel ? "auto 1fr" : "auto", alignItems: "flex-start", gap: 24, marginBottom: 20 }}>
+      {/* minmax(0,1fr) auto, not "auto 1fr": the filters column takes the
+          space that's left and the charts size to their content, so the
+          pills wrap inside their own column instead of stretching the
+          header. */}
+      <div style={{ display: "grid", gridTemplateColumns: chartsPanel ? "minmax(0, 1fr) auto" : "minmax(0, 1fr)", alignItems: "flex-start", gap: 24, marginBottom: 14 }}>
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Waiver Edge</h1>
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: 0, maxWidth: 680 }}>
             Every free agent in {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts —
             click a header. Only free agents show here; nothing to filter by fantasy team.
           </p>
+          {filtersBlock}
         </div>
         {chartsPanel && <div style={{ display: "flex", justifyContent: "center" }}>{chartsPanel}</div>}
       </div>
@@ -535,117 +771,6 @@ function WaiverEdgeContent() {
               </a>.
             </p>
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SEASON</span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              <button type="button" onClick={() => setSeasonMode("projection")} style={pill(seasonMode === "projection")}>
-                2026-27 Projections
-              </button>
-              <button type="button" onClick={() => setSeasonMode("current")} style={pill(seasonMode === "current")}>
-                Current Season{data ? ` (${data.currentSeasonLabel})` : ""}
-              </button>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
-            {!isPoints && (
-              <>
-                <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>CATV</span>
-                <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-                  {CATV_OPTIONS.map(({ value, label }) => (
-                    <button key={value} type="button" onClick={() => setCatvMode(value)} style={pill(catvMode === value)}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                {catvMode === "eightCat" && (
-                  <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>TO excluded</span>
-                )}
-              </>
-            )}
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999, marginLeft: "auto" }}>
-              {(["perGame", "totals"] as StatMode[]).map((v) => (
-                <button key={v} type="button" onClick={() => setStatMode(v)} style={pill(statMode === v)}>
-                  {v === "perGame" ? "Per game" : "Totals"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {!isPoints && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Punt</span>
-              <div style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
-                {STAT_CATS.map((cat) => {
-                  const active = puntedCats.has(cat);
-                  const enabled = catvMode === "nineCat";
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      disabled={!enabled}
-                      onClick={() => togglePunt(cat)}
-                      aria-pressed={active}
-                      title={enabled ? (active ? `Un-punt ${CATEGORY_LABEL[cat]}` : `Exclude ${CATEGORY_LABEL[cat]} from 9CatV`) : "Punting only applies to 9CatV"}
-                      style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        width: 46, height: 38, padding: "4px 2px", borderRadius: 8, border: "1px solid var(--rt-hairline)",
-                        cursor: enabled ? "pointer" : "not-allowed",
-                        background: active ? "var(--rt-surface-strong)" : "var(--rt-canvas)",
-                        color: active ? "var(--rt-muted)" : "var(--rt-ink)",
-                        opacity: enabled ? 1 : 0.4, fontSize: 11.5, fontWeight: 700, lineHeight: 1.2,
-                      }}
-                    >
-                      <span>{CATEGORY_LABEL[cat]}</span>
-                      <span style={{ fontSize: 8.5, fontWeight: 700, marginTop: 2, letterSpacing: 0.4, visibility: active ? "visible" : "hidden" }}>PUNT</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {catvMode !== "nineCat" && (
-                <span style={{ fontSize: 11.5, color: "var(--rt-muted)" }}>Switch to 9CatV to apply punts</span>
-              )}
-            </div>
-          )}
-
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Position</span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              <button type="button" onClick={() => setPositionFilter(new Set())} style={pill(positionFilter.size === 0)}>ALL</button>
-              {POSITION_OPTIONS.map((pos) => (
-                <button
-                  key={pos}
-                  type="button"
-                  onClick={() => setPositionFilter((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(pos)) next.delete(pos); else next.add(pos);
-                    return next;
-                  })}
-                  style={pill(positionFilter.has(pos))}
-                >
-                  {pos}
-                </button>
-              ))}
-            </div>
-            <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600, marginLeft: 8 }}>Class</span>
-            <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
-              <button type="button" onClick={() => setClassFilter(new Set())} style={pill(classFilter.size === 0)}>ALL</button>
-              {([["rookie", "Rookies"], ["soph", "Sophomores"], ["vet", "Veterans"]] as [ClassFilterKey, string][]).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setClassFilter((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(key)) next.delete(key); else next.add(key);
-                    return next;
-                  })}
-                  style={pill(classFilter.has(key))}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14, flexWrap: "wrap", padding: "10px 14px", border: "1px solid var(--rt-hairline)", borderRadius: 12, background: "var(--rt-surface-soft)" }}>
             <strong style={{ fontSize: 13 }}>Add/Drop Simulator</strong>
@@ -874,6 +999,15 @@ function CategoryDeltaList({ title, color, deltas }: { title: string; color: str
  *  rostered), so ADD candidates need the real-world fallback the main
  *  Waiver Edge table already computed (data.assets[].salary), while DROP
  *  candidates (already rostered) use their own real in-league salary as-is. */
+/** What an unrostered player costs against a CUSTOM-salary league's cap
+ *  before anyone bids on him. Fantrax shows exactly this — every free agent
+ *  in Old But Gold lists Sal 1 — and whether that is the league's own rule
+ *  or a platform default doesn't change the answer here: it is the floor a
+ *  pickup enters at, and the winning FAAB bid that eventually replaces it
+ *  cannot be known at simulation time. Deliberately NOT the player's real
+ *  NBA salary, which is a different currency entirely. */
+const CUSTOM_SALARY_FA_COST = 1;
+
 function sumSalary(players: { fantraxId: string; salary: number | null }[], overrideByFantraxId?: ReadonlyMap<string, number | null>): number {
   let total = 0;
   for (const p of players) {
@@ -1113,13 +1247,28 @@ function AddDropSimulatorModal({
   );
   const unresolvedAdds = resolvedAdds.filter((r) => r.player === null);
 
-  // Real-world salary fallback for a free agent (see this modal's own prop
-  // doc) and this league's full ledger rank (rostered players included) —
-  // both sourced from the main table's already-fetched `data`, never
-  // refetched here.
-  const freeAgentSalaryByFantraxId = useMemo(() => new Map((data?.assets ?? []).map((a) => [a.fantraxId, a.salary] as const)), [data]);
+  // This league's full ledger rank (rostered players included), sourced from
+  // the main table's already-fetched `data`, never refetched here.
   const leagueRankByFantraxId = data?.leagueRankByFantraxId ?? {};
   const salaryFormat = saved.settings.salaryFormat ?? "none";
+  // What an added free agent costs THIS league's cap.
+  //
+  // A real-salary league: his real NBA contract, which is the cap currency
+  // that league actually plays in.
+  //
+  // A custom-salary league: CUSTOM_SALARY_FA_COST, never the NBA figure.
+  // Adding Stephen Curry used to add $62,587,158 to a cap measured in units
+  // of 70 — two different currencies summed as if they were one, so the
+  // after-cap line was meaningless the moment any add was staged (Ash,
+  // 2026-09-07). An unrostered player enters at the league's floor and rises
+  // only if someone spends FAAB on him, and a real bid is unknowable here
+  // anyway, so the floor is the honest default; cap space in these leagues
+  // keeps most winning bids near it regardless.
+  const freeAgentSalaryByFantraxId = useMemo(
+    () => new Map((data?.assets ?? []).map((a) =>
+      [a.fantraxId, salaryFormat === "custom" ? CUSTOM_SALARY_FA_COST : a.salary] as const)),
+    [data, salaryFormat],
+  );
   const showSalary = salaryFormat !== "none";
   const fmtSalary = (n: number | null) => (n == null ? "—" : salaryFormat === "custom" ? formatCustomSalary(n) : formatSalary(n));
   const salaryBefore = useMemo(() => (myRoster ? sumSalary(myRoster.players) : null), [myRoster]);
@@ -1130,6 +1279,11 @@ function AddDropSimulatorModal({
   }, [salaryBefore, myRoster, dropIds, addPlayers, freeAgentSalaryByFantraxId]);
   const salaryCapTotal = saved.settings.salaryCapTotal ?? 0;
   const capDelta = salaryAfter != null && salaryCapTotal > 0 ? salaryAfter - salaryCapTotal : null;
+  /** What the staged moves themselves cost — distinct from capDelta, which
+   *  measures the AFTER total against the cap. Both matter and neither
+   *  substitutes for the other: "57 under cap" says where you land, "+2"
+   *  says what this move did (Ash, 2026-09-08). */
+  const salaryChange = salaryBefore != null && salaryAfter != null ? salaryAfter - salaryBefore : null;
 
   const format: SimFormat | null = useMemo(() => {
     if (!analysis) return null;
@@ -1310,10 +1464,17 @@ function AddDropSimulatorModal({
                 {showSalary && (
                   <div style={{ padding: 14, borderRadius: 12, border: "1px solid var(--rt-hairline)", minWidth: 170 }}>
                     <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, color: "var(--rt-muted)", marginBottom: 6 }}>TEAM SALARY</div>
-                    <div style={{ fontSize: 18, fontWeight: 700 }}>
-                      <span style={{ color: "var(--rt-muted)" }}>{fmtSalary(salaryBefore)}</span>
-                      {" → "}
-                      <span>{fmtSalary(salaryAfter)}</span>
+                    <div style={{ fontSize: 18, fontWeight: 700, display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                      <span>
+                        <span style={{ color: "var(--rt-muted)" }}>{fmtSalary(salaryBefore)}</span>
+                        {" → "}
+                        <span>{fmtSalary(salaryAfter)}</span>
+                      </span>
+                      {salaryChange != null && salaryChange !== 0 && (
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--rt-muted)" }}>
+                          {salaryChange > 0 ? "+" : "−"}{fmtSalary(Math.abs(salaryChange))}
+                        </span>
+                      )}
                     </div>
                     {capDelta != null && (
                       <div style={{ fontSize: 11.5, marginTop: 6, fontWeight: 600, color: capDelta > 0 ? "var(--rt-down)" : "var(--rt-up)" }}>
