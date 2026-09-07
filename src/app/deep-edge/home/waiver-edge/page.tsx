@@ -672,28 +672,28 @@ function WaiverEdgeContent() {
       </div>
 
       {teamsOnBoard.length > 0 && (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600, paddingTop: 8 }}>Team</span>
-          {/* Wraps rather than scrolls: up to 30 three-letter pills read
-              as a block you scan, and a scroller would hide selections
-              that are already active. */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 3, padding: 3, background: "var(--rt-surface-strong)", borderRadius: 14, flex: "1 1 320px" }}>
-            <button type="button" onClick={() => setTeamFilter(new Set())} style={pill(teamFilter.size === 0)}>ALL</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+          <label htmlFor="we-team" style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>Team</label>
+          {/* A select, not the pill group every other filter here uses: 30
+              teams is too many buttons to spend the width on (Ash,
+              2026-09-08). Same shape as seasonal-rankings' own Team filter —
+              single choice, "" meaning all — and the Set is kept as the
+              state so the filter predicate is unchanged and a multi-select
+              could be restored without touching it. */}
+          <select
+            id="we-team"
+            value={teamFilter.size === 1 ? [...teamFilter][0] : ""}
+            onChange={(e) => setTeamFilter(e.target.value ? new Set([e.target.value]) : new Set())}
+            style={{
+              height: 34, borderRadius: 8, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", padding: "0 10px", fontSize: 12.5, color: "var(--rt-ink)",
+            }}
+          >
+            <option value="">All Teams</option>
             {teamsOnBoard.map((team) => (
-              <button
-                key={team}
-                type="button"
-                onClick={() => setTeamFilter((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(team)) next.delete(team); else next.add(team);
-                  return next;
-                })}
-                style={pill(teamFilter.has(team))}
-              >
-                {team}
-              </button>
+              <option key={team} value={team}>{team}</option>
             ))}
-          </div>
+          </select>
         </div>
       )}
 
