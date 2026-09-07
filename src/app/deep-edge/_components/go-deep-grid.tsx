@@ -1,26 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { IconChat, IconDollar, IconGear, IconLineChart, IconSliders, IconTarget, IconTrophy, IconUsers } from "./icons";
+import { IconDollar, IconLineChart, IconSliders, IconTarget, IconTrophy, IconUsers } from "./icons";
 
-const CARDS: { index: string; title: string; description: string; href: string | null; icon: React.ReactNode }[] = [
+const CARDS: { index: string; title: string; description: string; href: string; icon: React.ReactNode }[] = [
   { index: "01", title: "Power Rankings", description: "Every team in your league, ranked by your league's scoring format.", href: "/deep-edge/home/rankings", icon: <IconTrophy /> },
   { index: "02", title: "Roster Edge", description: "Your full roster, real per-game stats, salary and dynasty context in one table.", href: "/deep-edge/home/roster-edge", icon: <IconUsers /> },
   { index: "03", title: "Category Edge", description: "Your best 7 vs every team's best 7, category by category.", href: "/deep-edge/home/category-edge", icon: <IconTarget /> },
   { index: "04", title: "Trade Edge", description: "Simulate a trade and see the real before/after — standing, category impact, asset value.", href: "/deep-edge/home/trade-edge", icon: <IconSliders /> },
-  { index: "05", title: "Waiver Edge", description: "The best available free agents, ranked for your league's format.", href: "/deep-edge/home/waiver-edge", icon: <IconSliders /> },
+  { index: "05", title: "Waiver Edge", description: "The best available free agents, ranked for your league's format.", href: "/deep-edge/home/waiver-edge", icon: <IconLineChart /> },
   { index: "06", title: "League Rankings", description: "Every player, free agent and pick — custom, dynasty, real-salary and redraft rankings side by side.", href: "/deep-edge/home/league-rankings", icon: <IconDollar /> },
-  { index: "07", title: "Custom Projections", description: "Tune the projection model to your own assumptions.", href: null, icon: <IconLineChart /> },
-  { index: "08", title: "AI Edge Assistant", description: "Ask questions about your league in plain English.", href: null, icon: <IconChat /> },
-  { index: "09", title: "Custom Agent Alerts", description: "Get pinged when something in your league needs attention.", href: null, icon: <IconGear /> },
 ];
 
-/** The 8-card "Go deep" grid — full opacity and clickable once a league is
- *  connected; dimmed and non-interactive before one is. Settings isn't a
- *  card here — the "Review settings" button above already covers it, and a
- *  second entry point was redundant. Power Rankings, Roster Edge, Category
- *  Edge, Trade Edge, Waiver Edge and League Rankings are built out past the
- *  card this round.
+/** The "Go deep" grid — one card per BUILT tool, full opacity and clickable
+ *  once a league is connected; dimmed and non-interactive before one is.
+ *  Every card here routes somewhere real: unbuilt features (Custom
+ *  Projections, AI Edge Assistant, Custom Agent Alerts) used to sit at the
+ *  end as dead, hrefless cards and were removed rather than shipped as
+ *  placeholders. Settings isn't a card either — the "Review settings"
+ *  button above already covers it, and a second entry point was redundant.
  *  `leagueId` carries the currently-selected league through to each tool
  *  page via `?league=`, so with more than one saved league this grid always
  *  opens the one the user is actually looking at on Home, not just
@@ -46,7 +44,7 @@ export function GoDeepGrid({ unlocked, leagueId }: { unlocked: boolean; leagueId
         }}
       >
         {CARDS.map((card) => {
-          const clickable = unlocked && card.href;
+          const clickable = unlocked;
           const body = (
             <div
               style={{
@@ -71,7 +69,7 @@ export function GoDeepGrid({ unlocked, leagueId }: { unlocked: boolean; leagueId
           );
           const href = leagueId ? `${card.href}?league=${encodeURIComponent(leagueId)}` : card.href;
           return clickable ? (
-            <Link key={card.index} href={href!} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link key={card.index} href={href} style={{ textDecoration: "none", color: "inherit" }}>
               {body}
             </Link>
           ) : (

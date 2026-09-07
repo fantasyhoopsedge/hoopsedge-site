@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { createClient } from "@/utils/supabase/server";
-import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
+import { hasDeepEdgeAccess } from "@/lib/deep-edge/access-cache";
 import {
   FOUNDING_DISCOUNT_PCT,
   FOUNDING_OFFER_END_LABEL,
@@ -15,9 +15,11 @@ import { LaunchingSoon } from "./_components/launching-soon";
 // Deep Edge is genuinely multi-route (Welcome/Home/Settings/Category
 // Edge/Power Rankings all read naturally as distinct URLs), so the gate
 // lives once here rather than copy-pasted into every page.tsx the way
-// admin/fantrax's single-page shell does it. Admin-gated for now — Ash is
-// testing everything through this gate; the real one-free-league-then-pay
-// entitlement replaces it once billing exists (see src/lib/deep-edge/guard.ts).
+// admin/fantrax's single-page shell does it. Allowlist-gated for now — full
+// admins (rb_admins) plus the pre-launch tester cohort (de_testers), which is
+// a SEPARATE list precisely so a tester gets this product and no admin rights;
+// see src/lib/deep-edge/access-cache.ts. The real one-free-league-then-pay
+// entitlement replaces both once billing exists (src/lib/deep-edge/guard.ts).
 //
 // The launch gateway (src/components/home/launch-gateway.tsx) now sends real
 // visitors at this door, so the two non-admin outcomes changed from dead ends
@@ -77,7 +79,7 @@ export default async function DeepEdgeLayout({ children }: { children: ReactNode
   // account.
   if (!user) return launchingSoon(null, null, false);
 
-  if (!(await isDeepEdgeAdmin(user.email))) return launchingSoon(user.id, user.email ?? null, true);
+  if (!(await hasDeepEdgeAccess(user.email))) return launchingSoon(user.id, user.email ?? null, true);
 
   return <>{children}</>;
 }
