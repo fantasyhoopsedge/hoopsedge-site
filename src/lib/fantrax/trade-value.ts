@@ -135,12 +135,26 @@ const EXPIRING_PENALTY_SCALE = 1.0;
  *  backtested, same as EXPIRING_PENALTY_SCALE — a documented starting point. */
 const EXPIRING_PENALTY_MAX_FRACTION = 0.35;
 
+/** How much of a fixed-length contract's team control is still AHEAD of the
+ *  current season, as a fraction of the contract type's own maximum length.
+ *  0 = this is the final season, the player is gone after it; 1 = the full
+ *  horizon still to come.
+ *
+ *  Counts seasons of control BEYOND the current one, deliberately. The `+ 1`
+ *  this once carried counted the current season as remaining control, which
+ *  made the penalty unreachable at exactly the moment it should be largest
+ *  (Ash, 2026-09-07, on Ryan Rollins @ E26-27 in Old But Gold): a final-year
+ *  2-year deal scored 0.5 and took half the penalty, and a maxYears:1
+ *  contract — the purest rental there is — scored 1.0 and took NONE. No
+ *  parseable label could reach EXPIRING_PENALTY_MAX_FRACTION at all; 26.2%
+ *  of a documented 35% was the ceiling. A dynasty trade chip is worth what
+ *  you keep AFTER this season, so that is what this measures. */
 function expiringRemainingFraction(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
   const maxYears = rule.maxYears ?? 1;
   const expiry = contractExpirySeason(contract);
   if (expiry == null || maxYears <= 0) return 0; // unparseable label -> treat as fully expiring now
   const yearsRemaining = Math.max(0, expiry - currentSeason);
-  return Math.min(1, (yearsRemaining + 1) / maxYears);
+  return Math.min(1, yearsRemaining / maxYears);
 }
 
 function expiringDiscount(rule: ContractRule, contract: string | null | undefined, currentSeason: number): number {
@@ -292,6 +306,17 @@ function customSalaryValues(
       salaryZ: rank != null ? rankToZ(rank, salariedRows.length) : 0,
       salary: p.salary,
       contractClass: rule?.kind === "rookieScale" ? "rookie-scale" : undefined,
+      // A fixed-length, no-renewal contract's PRICE expires with it, so its
+      // salary term carries only as far as the control does. Without this,
+      // an auto-drop rental banked the full cheapness credit of a player you
+      // keep for years and the expiry was only ever clawed back afterwards,
+      // by a discount applied below — after the ranking that credit had
+      // already won him (Ash, 2026-09-07: Rollins @ $2 on E26-27 ranking 23
+      // places ABOVE his dynasty consensus). Every other row leaves this
+      // undefined and blendScore's own default of 1 applies.
+      salaryHorizonFactor: rule?.kind === "expiring"
+        ? expiringRemainingFraction(rule, p.contract, currentSeason)
+        : undefined,
       rule,
     };
   });

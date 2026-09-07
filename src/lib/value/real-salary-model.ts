@@ -311,6 +311,26 @@ export interface RealSalaryFactors {
    *  CHEAPNESS_CREDIT and WeightPreset.rookieScaleAdjustment. Optional;
    *  omitted means "standard", the neutral case. */
   contractClass?: ContractClass;
+  /** How long a CHEAP contract's price stays yours, as a fraction in [0,1] —
+   *  1 (the default, and the only value the site-wide Real Salary model ever
+   *  passes) meaning open-ended team control.
+   *
+   *  Exists for one caller: a custom-salary league whose house rules define
+   *  a fixed-length, no-renewal contract (fantrax/trade-value.ts). Cheapness
+   *  is only worth what you KEEP — a $2 player auto-dropped after this season
+   *  is not the asset a $2 player you hold for years is, but at 1 both score
+   *  identically here and the gap has to be clawed back afterwards by a
+   *  discount that never sees the ranking.
+   *
+   *  Scales the CREDIT half only, never the penalty half (Ash, 2026-09-07,
+   *  rejecting the symmetric version): the symmetric reading — an expiring
+   *  price is short-term in both directions, so bad money coming off the
+   *  books should hurt less — makes an expensive rental score HIGHER than the
+   *  same player on a normal deal, and collapses a $2 rental and a $40 rental
+   *  onto the same score once control hits zero. Neither is a trade anyone
+   *  would make. An overpay stays an overpay for as long as you hold him;
+   *  only the upside of a bargain is what expires with the contract. */
+  salaryHorizonFactor?: number;
 }
 
 export interface RealSalaryComputed {
@@ -339,7 +359,18 @@ export function blendScore(r: RealSalaryFactors, preset: WeightPreset, minSalary
   // (CHEAPNESS_CREDIT) shrinks Efficiency rather than reweighting it into
   // production — see CHEAPNESS_CREDIT. Identical to the old formula for both
   // rookie-scale and standard deals, where the credit is 1.
-  const salaryWeight = baseSalaryWeight * cheapnessCredit(cls, r.salary, minSalary);
+  // Two independent dampers on the same term, deliberately multiplied rather
+  // than combined: cheapnessCredit asks "is this price actually cheap?",
+  // salaryHorizonFactor asks "for how long?". Both default to 1, so this is
+  // identical to the old formula everywhere outside a custom-salary league
+  // with fixed-length contract rules.
+  //
+  // salaryZ is rank-to-z of salary ASCENDING, so a POSITIVE salaryZ is the
+  // cheap end — the only end the horizon damper touches. See the field's own
+  // doc for why an expensive contract keeps its full penalty regardless of
+  // how soon it expires.
+  const horizonDamper = r.salaryZ > 0 ? (r.salaryHorizonFactor ?? 1) : 1;
+  const salaryWeight = baseSalaryWeight * cheapnessCredit(cls, r.salary, minSalary) * horizonDamper;
   const productionWeight = 1 - baseSalaryWeight;
   const efficiencyZ = salaryWeight * r.salaryZ + productionWeight * r.productionZ;
   return preset.consensus * r.consensusZ + preset.efficiency * efficiencyZ;
