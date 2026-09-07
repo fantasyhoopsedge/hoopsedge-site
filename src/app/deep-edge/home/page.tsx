@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
+import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import type { CustomValuationsDoc } from "@/lib/fantrax/custom-valuations-store";
 import { HubShell } from "../_components/hub-shell";
 import { GoDeepGrid } from "../_components/go-deep-grid";
@@ -29,6 +29,27 @@ function HomeHubContent() {
   const salaryFormat = league?.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat;
   const isCustomSalaryLeague = salaryFormat === "custom";
   const isRedraft = leagueType === "redraft";
+
+  // League-card facts, all read from the saved settings rather than assumed.
+  // Every one of these used to be wrong for this league (Ash, 2026-09-07, on
+  // Old But Gold): a custom-salary league read "non-salary" and "No salary
+  // cap" because both tests were two-way (real / not-real) against a
+  // three-way SalaryFormat, and the scoring chip was the hardcoded string
+  // "Roto · 9-CAT" — printing Roto at an H2H league and 9-CAT regardless of
+  // how many categories it actually scores.
+  const leagueFormat = league?.settings.format ?? DEFAULT_LEAGUE_TAGS.format;
+  // Points is a Fantrax-reported scoringMode, not one of our two LeagueFormat
+  // tags, so it can only be recognised from the raw imported string — the
+  // Settings screen reads it off the live analysis, which Home never loads.
+  const isPointsLeague = /points/i.test(league?.settings.scoringType ?? "");
+  const formatLabel = isPointsLeague ? "points" : leagueFormat === "h2h" ? "H2H" : "roto";
+  const salaryLabel = salaryFormat === "real" ? "real salary" : salaryFormat === "custom" ? "custom salary" : "non-salary";
+  const scoredCatCount = (league?.settings.scoredCategoriesOverride ?? league?.settings.categories ?? []).length;
+  const scoringChip = isPointsLeague
+    ? "Points"
+    : `${leagueFormat === "h2h" ? "H2H" : "Roto"}${scoredCatCount > 0 ? ` · ${scoredCatCount}-CAT` : ""}`;
+  const salaryCapChip = salaryFormat === "real" ? "Real salary cap" : salaryFormat === "custom" ? "Custom salary cap" : "No salary cap";
+  const lineupCadence = league?.settings.lineupCadence ?? DEFAULT_GAMES_CAP_SETTINGS.lineupCadence;
 
   // One unified generator (Ash, 2026-08-25 redesign) — a single "generate
   // asset values" action per league, dispatching internally to whichever
@@ -312,8 +333,7 @@ function HomeHubContent() {
             )}
           </div>
           <p style={{ fontSize: 13, color: "var(--rt-muted)", margin: "0 0 18px" }}>
-            {league.settings.teamCount}-team · {(league.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "real salary" : "non-salary"}{" "}
-            {(league.settings.format ?? DEFAULT_LEAGUE_TAGS.format) === "h2h" ? "H2H" : "roto"} · via Fantrax
+            {league.settings.teamCount}-team · {salaryLabel} {formatLabel} · via Fantrax
           </p>
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
             <Link
@@ -339,10 +359,11 @@ function HomeHubContent() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {[
               `${league.settings.teamCount} teams`,
-              `Roto · 9-CAT`,
-              `${(league.settings.salaryFormat ?? DEFAULT_LEAGUE_TAGS.salaryFormat) === "real" ? "Real salary" : "No salary"} cap`,
-              `${(league.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType)}`,
+              scoringChip,
+              salaryCapChip,
+              `${league.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType}`,
               `${league.settings.maxTotalPlayers}-man roster`,
+              `${lineupCadence === "weekly" ? "Weekly" : "Daily"} moves`,
             ].map((fact) => (
               <span
                 key={fact}

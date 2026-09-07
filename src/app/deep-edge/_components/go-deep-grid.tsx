@@ -4,9 +4,9 @@ import Link from "next/link";
 import { IconDollar, IconLineChart, IconSliders, IconTarget, IconTrophy, IconUsers } from "./icons";
 
 const CARDS: { index: string; title: string; description: string; href: string; icon: React.ReactNode }[] = [
-  { index: "01", title: "Power Rankings", description: "Every team in your league, ranked by your league's scoring format.", href: "/deep-edge/home/rankings", icon: <IconTrophy /> },
+  { index: "01", title: "Power Rankings", description: "Applies FHE projections to simulate where your team finishes against the rest of your league.", href: "/deep-edge/home/rankings", icon: <IconTrophy /> },
   { index: "02", title: "Roster Edge", description: "Your full roster, real per-game stats, salary and dynasty context in one table.", href: "/deep-edge/home/roster-edge", icon: <IconUsers /> },
-  { index: "03", title: "Category Edge", description: "Your best 7 vs every team's best 7, category by category.", href: "/deep-edge/home/category-edge", icon: <IconTarget /> },
+  { index: "03", title: "Category Edge", description: "Your starters, plus bench depth, against every team's best lineup — category by category.", href: "/deep-edge/home/category-edge", icon: <IconTarget /> },
   { index: "04", title: "Trade Edge", description: "Simulate a trade and see the real before/after — standing, category impact, asset value.", href: "/deep-edge/home/trade-edge", icon: <IconSliders /> },
   { index: "05", title: "Waiver Edge", description: "The best available free agents, ranked for your league's format.", href: "/deep-edge/home/waiver-edge", icon: <IconLineChart /> },
   { index: "06", title: "League Rankings", description: "Every player, free agent and pick — custom, dynasty, real-salary and redraft rankings side by side.", href: "/deep-edge/home/league-rankings", icon: <IconDollar /> },
