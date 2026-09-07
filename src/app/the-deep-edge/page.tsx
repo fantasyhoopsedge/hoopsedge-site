@@ -51,9 +51,9 @@ export const metadata: Metadata = {
 };
 
 const BUILT_CARDS: { title: string; description: string }[] = [
-  { title: "Power Rankings", description: "Every team in your league, ranked by your league's scoring format." },
+  { title: "Power Rankings", description: "Applies FHE projections to simulate where your team finishes against the rest of your league." },
   { title: "Roster Edge", description: "Your full roster, real per-game stats, salary and dynasty context in one table." },
-  { title: "Category Edge", description: "Your best 7 vs every team's best 7, category by category." },
+  { title: "Category Edge", description: "Your starters, plus bench depth, against every team's best lineup — category by category." },
   { title: "Trade Edge", description: "Simulate a trade and see the real before/after — standing, category impact, asset value." },
   { title: "Waiver Edge", description: "The best available free agents, ranked for your league's format." },
   { title: "League Rankings", description: "Every player, free agent and pick — custom, dynasty, real-salary and redraft rankings side by side." },
