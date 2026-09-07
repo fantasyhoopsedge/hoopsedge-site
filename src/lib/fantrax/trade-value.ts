@@ -306,17 +306,6 @@ function customSalaryValues(
       salaryZ: rank != null ? rankToZ(rank, salariedRows.length) : 0,
       salary: p.salary,
       contractClass: rule?.kind === "rookieScale" ? "rookie-scale" : undefined,
-      // A fixed-length, no-renewal contract's PRICE expires with it, so its
-      // salary term carries only as far as the control does. Without this,
-      // an auto-drop rental banked the full cheapness credit of a player you
-      // keep for years and the expiry was only ever clawed back afterwards,
-      // by a discount applied below — after the ranking that credit had
-      // already won him (Ash, 2026-09-07: Rollins @ $2 on E26-27 ranking 23
-      // places ABOVE his dynasty consensus). Every other row leaves this
-      // undefined and blendScore's own default of 1 applies.
-      salaryHorizonFactor: rule?.kind === "expiring"
-        ? expiringRemainingFraction(rule, p.contract, currentSeason)
-        : undefined,
       rule,
     };
   });
