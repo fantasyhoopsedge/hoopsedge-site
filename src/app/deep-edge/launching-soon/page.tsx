@@ -51,6 +51,7 @@ export default async function DeepEdgeLaunchingSoonPage() {
       offerOpen={foundingOfferIsOpen()}
       offerEndLabel={FOUNDING_OFFER_END_LABEL}
       registeredEmail={registeredEmail}
+      signedIn={Boolean(user)}
     />
   );
 }

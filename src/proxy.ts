@@ -16,10 +16,26 @@ import type { Database } from "@/types/database";
 const PROTECTED_PREFIXES: string[] = [
   // "/account",
   "/admin", // analyst-only review panel; the page also re-checks authorization
-  "/deep-edge", // admin-gated for now (see src/lib/deep-edge/guard.ts); a first-class
-  // route on purpose, not /admin/deep-edge, so no URL move is needed when it
-  // graduates to a real freemium gate for all signed-in users.
 ];
+
+/**
+ * `/deep-edge` is deliberately NOT protected here, despite being gated.
+ *
+ * This list can only express allow-or-bounce, and bouncing is the wrong answer
+ * for that subtree: a signed-out visitor who asked for The Deep Edge should see
+ * the Launching soon placeholder, not be thrown at /prediction-arena — an
+ * unrelated feature they never asked about. While it was listed, this
+ * middleware ran BEFORE src/app/deep-edge/layout.tsx and won, so that layout's
+ * own signed-out handling was unreachable and every such visitor landed on the
+ * Arena's sign-in page.
+ *
+ * Nothing is opened up by removing it. That layout is `force-dynamic` and
+ * resolves all three outcomes itself (admin → tool, signed-in non-admin →
+ * Launching soon, signed out → Launching soon), and every Deep Edge API route
+ * re-checks authorization through authorizeDeepEdge() rather than trusting the
+ * path. The token refresh below still runs on these requests — that is driven
+ * by the matcher at the bottom of this file, not by this list.
+ */
 
 export async function proxy(request: NextRequest) {
   // These admin tools are "localhost trusted" per their own page.tsx (dev
