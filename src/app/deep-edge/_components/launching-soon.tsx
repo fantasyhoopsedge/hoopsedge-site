@@ -24,6 +24,7 @@ export function LaunchingSoon({
   offerOpen,
   offerEndLabel,
   registeredEmail,
+  signedIn,
 }: {
   seasonPassUsd: number;
   discountPct: number;
@@ -39,8 +40,12 @@ export function LaunchingSoon({
    *  waitlist row, so a returning registrant sees the acknowledgement
    *  immediately rather than the form flashing first and correcting itself. */
   registeredEmail: string | null;
+  /** Server-resolved. The capture API requires an account, so a signed-out
+   *  visitor is offered sign-in rather than an email field that would 401 on
+   *  submit — the screen itself is public, only claiming needs an account. */
+  signedIn: boolean;
 }) {
-  const { user } = useAuth();
+  const { user, openSignUp } = useAuth();
   const [email, setEmail] = useState(user?.email ?? "");
   const [status, setStatus] = useState<"idle" | "saving" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +179,13 @@ export function LaunchingSoon({
 
             <p style={{ margin: "18px 0 0", maxWidth: 540, fontSize: 16.5, lineHeight: 1.55, color: "var(--rt-body)" }}>
               Your league, wired into every ranking, trade tool and projection. We&apos;re finishing it now
-              {offerOpen ? " — leave your email and we'll hold the founding price for you." : "."}
+              {/* Must track the card below: a signed-out visitor is offered sign-in,
+                  not an email field, so promising one here would be a lie. */}
+              {!offerOpen
+                ? "."
+                : signedIn
+                  ? " — leave your email and we'll hold the founding price for you."
+                  : " — sign in and we'll hold the founding price for you."}
             </p>
 
             {offerOpen ? (
@@ -208,6 +219,26 @@ export function LaunchingSoon({
                 email and the discount is locked to it — one message when The Deep Edge opens, nothing else.
               </p>
 
+              {!signedIn ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => openSignUp("/deep-edge", "signup")}
+                    className="rt-hover-primary"
+                    style={{
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      height: 48, marginTop: 18, padding: "0 24px", borderRadius: 100,
+                      background: "var(--rt-primary)", border: "none", color: "#fff",
+                      fontFamily: "var(--rt-font-sans)", fontSize: 14.5, fontWeight: 700, cursor: "pointer",
+                    }}
+                  >
+                    Sign in to claim {discountPct}% off
+                  </button>
+                  <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--rt-muted-soft)" }}>
+                    A free Fantasy Hoops Edge account — it&apos;s what the discount gets locked to.
+                  </p>
+                </>
+              ) : (
               <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
                 <input
                   type="email"
@@ -245,6 +276,7 @@ export function LaunchingSoon({
                   {status === "saving" ? "Saving…" : `Claim ${discountPct}% off`}
                 </button>
               </div>
+              )}
 
               {error ? <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "var(--rt-down)" }}>{error}</p> : null}
             </div>

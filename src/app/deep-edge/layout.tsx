@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { isDeepEdgeAdmin } from "@/lib/deep-edge/admin-cache";
 import {
@@ -31,7 +30,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-async function launchingSoon(userId: string | null, userEmail: string | null) {
+async function launchingSoon(userId: string | null, userEmail: string | null, signedIn: boolean) {
   // A registration failing to load must not present as "never registered" —
   // that would show the form to someone already on the list and invite a
   // duplicate submit. Falling back to null is still the safest of the two
@@ -52,6 +51,7 @@ async function launchingSoon(userId: string | null, userEmail: string | null) {
       offerOpen={foundingOfferIsOpen()}
       offerEndLabel={FOUNDING_OFFER_END_LABEL}
       registeredEmail={registeredEmail}
+      signedIn={signedIn}
     />
   );
 }
@@ -62,19 +62,22 @@ export default async function DeepEdgeLayout({ children }: { children: ReactNode
     // unreachable in dev — set DEEP_EDGE_FORCE_SOON=1 in .env.local to see the
     // Launching soon screen without deploying or removing yourself from
     // rb_admins. Dev-only: production never reads this.
-    if (process.env.DEEP_EDGE_FORCE_SOON === "1") return launchingSoon(null, null);
+    if (process.env.DEEP_EDGE_FORCE_SOON === "1") return launchingSoon(null, null, false);
     return <>{children}</>;
   }
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  // Back to the gateway with the sign-in modal open, rather than to
-  // /prediction-arena — that landing was the right answer when this gate was
-  // internal-only, but it now drops a visitor who asked for The Deep Edge onto
-  // an unrelated feature's signed-out page.
-  if (!user) redirect("/?signin=deep-edge");
 
-  if (!(await isDeepEdgeAdmin(user.email))) return launchingSoon(user.id, user.email ?? null);
+  // Signed out gets the placeholder, not a redirect. Someone who asked for The
+  // Deep Edge should be told what it is and when it opens — with a way back to
+  // the main site — rather than being bounced to a sign-in wall for a feature
+  // they did not ask about. The screen offers sign-in itself, for claiming the
+  // founding price, which is the only thing here that actually needs an
+  // account.
+  if (!user) return launchingSoon(null, null, false);
+
+  if (!(await isDeepEdgeAdmin(user.email))) return launchingSoon(user.id, user.email ?? null, true);
 
   return <>{children}</>;
 }
