@@ -431,9 +431,16 @@ export function simulateH2HCategoryStandings(
       // actually does: tie the categories and both teams bank a draw (Ash,
       // 2026-09-09). Counting draws as losses read a 1W-1D-1L team at 33%
       // instead of 50%.
+      // Half credit for a draw on BOTH rules — a tied category in a
+      // MULTI_WIN league is recorded as a tie, exactly like a tied matchup in
+      // a SINGLE_WIN or points league, and a tie has never been a loss. The
+      // category side carried categoryWins/categoryTotal from the start,
+      // which zeroed every draw; ties are not rare here either, since a
+      // category counts as tied when the gap is under 12% of its spread, so
+      // most teams carry some (Ash, 2026-09-09).
       winPct: winRule === "perMatchup"
         ? (totalWins + 0.5 * totalDraws) / matchupTotal
-        : categoryWins / categoryTotal,
+        : (categoryWins + 0.5 * categoryDraws) / categoryTotal,
       categoryWins, categoryLosses, categoryDraws,
       rank: 0,
     };
