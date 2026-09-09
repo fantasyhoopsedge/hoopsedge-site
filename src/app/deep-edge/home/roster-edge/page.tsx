@@ -261,6 +261,17 @@ function RosterEdgeContent() {
   const showSalary = cols.salary && salaryFormat !== "none";
   const showContract = cols.contract && salaryFormat !== "none";
   const isDynasty = (saved?.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType) === "dynasty";
+  /** The ticked players' weighted per-game FPTS — total points over total
+   *  games, matching how weightedAverage() combines every category cell in
+   *  the same row. Points leagues only. */
+  const tickedFpts = useMemo(() => {
+    if (format !== "points") return null;
+    const withPoints = tickedPlayers.filter((p) => p.pointsValue != null);
+    const games = withPoints.reduce((sum, p) => sum + (p.gamesPlayed ?? 0), 0);
+    if (games === 0) return null;
+    return withPoints.reduce((sum, p) => sum + p.pointsValue! * (p.gamesPlayed ?? 0), 0) / games;
+  }, [tickedPlayers, format]);
+
   // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns,
   // plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown.
   // MINUS1 is deliberately excluded — it renders as its own <td> right after
@@ -539,7 +550,15 @@ function RosterEdgeContent() {
               <tbody>
                 {tickedPlayers.length > 0 && (
                   <tr className="mine">
-                    <td colSpan={colSpanBeforeStats} className="l">Σ {tickedPlayers.length} TICKED — weighted per-game average</td>
+                    <td colSpan={colSpanBeforeStats - 1} className="l">Σ {tickedPlayers.length} TICKED — weighted per-game average</td>
+                    {/* The FPTS/VALUE column, previously inside the colSpan and
+                        so left blank while every category beside it carried a
+                        figure. Points leagues get the team's own weighted
+                        per-game FPTS — the same basis as the cells to its
+                        right, since this table has no totals mode. A
+                        categories VALUE stays blank: a z-score doesn't
+                        average meaningfully across a roster. */}
+                    <td>{format === "points" ? (tickedFpts == null ? "—" : tickedFpts.toFixed(1)) : "—"}</td>
                     {format !== "points" && <td>—</td>}
                     {visibleCats.map((cat) => (
                       <td key={cat}>{formatStat(cat, weightedAverage(tickedPlayers, cat))}</td>
