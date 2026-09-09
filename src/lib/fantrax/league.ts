@@ -497,13 +497,22 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
 /**
  * Categories vs points, from Fantrax's `scoringSystem.type`.
  *
- * There is no single vocabulary. One account's leagues return FIVE distinct
- * forms (audited across 30 real saved leagues, 2026-09-09):
+ * There is no single vocabulary. Fantrax's own getLeagueInfo docs name six
+ * types, and a real account returns two more the docs don't mention:
  *
- *   HEAD_TO_HEAD_ROTI_MULTI_WIN   H2H categories
- *   ROTISSERIE / rotisserie       roto, in two different cases
- *   HEAD_TO_HEAD_POINTS_BASED     H2H points
- *   points                        points
+ *   ROTISSERIE                     season-long rotisserie      categories
+ *   POINTS_BASED                   season-long points          points
+ *   HEAD_TO_HEAD_POINTS_BASED      head-to-head points         points
+ *   HEAD_TO_HEAD_ROTI_SINGLE_WIN   h2h, most categories        categories
+ *   HEAD_TO_HEAD_ROTI_MULTI_WIN    h2h, each category          categories
+ *   BRACKET                        bracket                     (unknown)
+ *   rotisserie                     undocumented, seen live     categories
+ *   points                         undocumented, seen live     points
+ *
+ * The last two are lower-case legacy forms returned by real leagues on a
+ * real account (audited across 30 saved leagues, 2026-09-09) and absent from
+ * the documentation — so the documented list is not exhaustive either, and
+ * parsing has to tolerate forms neither source names.
  *
  * This used to be `scoringType === "points"` — exact and case-sensitive, so
  * it recognised only the last of those. A HEAD_TO_HEAD_POINTS_BASED league
@@ -514,11 +523,22 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
  * so a points league could be neither auto-detected NOR set by hand (Ash,
  * 2026-09-09).
  *
- * Substring match on POINTS rather than an allow-list of the four known
- * strings: Fantrax has already shown it will vary case and add qualifiers,
- * and every categories form observed says ROTI, never POINTS. A new
- * *_POINTS_* variant should classify correctly the first time it appears
- * rather than after someone notices a league scoring on phantom categories.
+ * Substring match on POINTS rather than an allow-list: Fantrax varies case,
+ * adds qualifiers, and returns undocumented forms, while every categories
+ * type says ROTI and never POINTS. That tolerance has already paid —
+ * HEAD_TO_HEAD_ROTI_SINGLE_WIN and POINTS_BASED both classify correctly here
+ * despite never having been seen live, where an allow-list built from
+ * observed strings would have missed both.
+ *
+ * NOTE what this does NOT capture: POINTS_BASED is SEASON-LONG points and
+ * HEAD_TO_HEAD_POINTS_BASED is matchup points, but both collapse to "points"
+ * here, and every consumer then simulates head-to-head matchups
+ * (simulateH2HPointsStandings) and shows a Win%. That is right for the
+ * second and wrong for the first. Same shape for
+ * HEAD_TO_HEAD_ROTI_SINGLE_WIN, one win per matchup, which is ranked on
+ * per-category win% like MULTI_WIN. Neither type appears on the account
+ * audited, so neither is live-wrong today; both need a scoringMode with more
+ * than two values to fix properly.
  */
 export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
   return /points/i.test(scoringType ?? "") ? "points" : "categories";
