@@ -166,7 +166,7 @@ export function weightedAverage(players: ResolvedPlayer[], cat: FheCategory | Ex
  *  like Power Rankings' embedded roster panel. FG%/FT% still read as a
  *  blended attempts-weighted rate (weightedAverage) — a season shooting
  *  percentage isn't meaningful summed across players. */
-export function summedTotal(players: ResolvedPlayer[], cat: FheCategory): number | null {
+export function summedTotal(players: ResolvedPlayer[], cat: FheCategory | ExtraCode): number | null {
   if (cat === "FG" || cat === "FT") return weightedAverage(players, cat);
   let total = 0;
   let any = false;
@@ -299,6 +299,12 @@ export function RosterTableRow({
     ? rankAmong(leaguePlayers, (pl) => pl.pointsValue, p.pointsValue)
     : (p.catVRank?.perGame.nineCatV ?? null);
   const minus1Rank = p.catVRank?.perGame.minus1V ?? null;
+  // Per-game rate as-is; season total is that rate over the player's own GP.
+  const pointsDisplay = format !== "points" || p.pointsValue == null
+    ? null
+    : statsMode === "totals"
+      ? (p.gamesPlayed != null ? Math.round(p.pointsValue * p.gamesPlayed).toLocaleString("en-US") : null)
+      : p.pointsValue.toFixed(1);
   const usgZ = zOf(p.usgPct, usgStats);
   const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
@@ -327,8 +333,26 @@ export function RosterTableRow({
       <td>{p.gamesPlayed ?? "—"}</td>
       <td>{p.minutesPerGame != null ? p.minutesPerGame.toFixed(1) : "—"}</td>
       <td style={{ background: statBg(usgZ) }}>{p.usgPct != null ? `${p.usgPct.toFixed(1)}%` : "—"}</td>
+      {/* Points mode shows the FPTS figure itself alongside its rank — the
+          rank alone said where a player sits without saying what he scores,
+          which is the number a points league actually plays for (Ash,
+          2026-09-09). Follows the table's own PER GAME/TOTALS toggle:
+          pointsValue is a per-game rate, so a season total is that rate over
+          his own GP, the same "rate x his own GP" rule summedTotal uses for
+          every category column. Categories mode is unchanged — its VALUE is
+          a z-score, which is meaningful as a rank and not as a printed
+          figure. */}
       <td style={{ background: valueBg(value) }} title={value != null ? `z-score ${value.toFixed(2)}` : undefined}>
-        {formatRank(valueRank)}
+        {format === "points" ? (
+          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5 }}>
+            <span>{pointsDisplay ?? "—"}</span>
+            {valueRank != null && (
+              <span style={{ fontSize: 10.5, color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)" }}>
+                {formatRank(valueRank)}
+              </span>
+            )}
+          </span>
+        ) : formatRank(valueRank)}
       </td>
       {format !== "points" && (
         <td style={{ background: valueBg(p.catV?.perGame.minus1V) }} title={p.catV?.perGame.minus1V != null ? `z-score ${p.catV.perGame.minus1V.toFixed(2)}` : undefined}>

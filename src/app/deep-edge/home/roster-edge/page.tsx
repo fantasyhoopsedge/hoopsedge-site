@@ -8,16 +8,24 @@ import { CATEGORY_LABEL, currentSeasonDraftStatus, FANTRAX_DATASETS, type Fantra
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, EXTRA_CATEGORIES } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { buildOptimalLineup, resolveEffectiveScoring, UI_VALUE_MODE_OPTIONS } from "@/lib/fantrax/lineup";
-import { buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, simulateH2HCategoryStandings } from "@/lib/fantrax/power-rankings";
+import { buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, formatTotal, simulateH2HCategoryStandings } from "@/lib/fantrax/power-rankings";
 import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { SegmentedControl } from "../../_components/segmented-control";
 import {
-  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, weightedAverage,
+  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, weightedAverage,
   type EnrichData, type ExtraCode, type RosterTableFormat, type ValueDisplayMode,
 } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
+
+/** Per-game vs season totals for every stat column and the Σ row — the same
+ *  choice Power Rankings' own roster panel has had. Roster Edge shipped
+ *  without it and was silently per-game only (Ash, 2026-09-09). */
+const STATS_BASIS_OPTIONS: { value: "perGame" | "totals"; label: string }[] = [
+  { value: "perGame", label: "Per game" },
+  { value: "totals", label: "Totals" },
+];
 
 /** Depth-ladder labels matching the rest of Deep Edge (Starters = 0, +1..+5)
  *  — used for both the tick-set depth pill and the Power Rank badge's
@@ -82,6 +90,7 @@ function RosterEdgeContent() {
   const [extraCols, setExtraCols] = useState<Set<ExtraCode>>(new Set());
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
   const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
+  const [statsMode, setStatsMode] = useState<"perGame" | "totals">("perGame");
 
   useEffect(() => {
     if (!saved) return;
@@ -235,12 +244,26 @@ function RosterEdgeContent() {
       if (key === "gp") return row.gamesPlayed ?? -Infinity;
       if (key === "min") return row.minutesPerGame ?? -Infinity;
       if (key === "usg") return row.usgPct ?? -Infinity;
-      if (key === "value") return (format === "points" ? row.pointsValue : row.leagueV) ?? -Infinity;
+      // In totals mode the cells show rate x GP, so the sort has to as well —
+      // otherwise the column displays season totals while ordering on
+      // per-game rates, and a high-rate/low-games player sits above someone
+      // the table plainly shows as ahead of him.
+      if (key === "value") {
+        if (format !== "points") return row.leagueV ?? -Infinity;
+        if (row.pointsValue == null) return -Infinity;
+        return statsMode === "totals" ? row.pointsValue * (row.gamesPlayed ?? 0) : row.pointsValue;
+      }
       if (key === "minus1") return row.catV?.perGame.minus1V ?? -Infinity;
       if (key === "nineCat") return row.catV?.perGame.nineCatV ?? -Infinity;
       if (key === "eightCat") return row.catV?.perGame.eightCatV ?? -Infinity;
-      return statValue(row, key) ?? -Infinity;
+      const raw = statValue(row, key);
+      if (raw == null) return -Infinity;
+      // FG%/FT% are rates in both modes — a season shooting percentage is
+      // never a sum, which is the same rule summedTotal() follows.
+      if (statsMode !== "totals" || key === "FG" || key === "FT") return raw;
+      return raw * (row.gamesPlayed ?? 0);
     },
+    [statsMode],
   );
   // The roster table's sort order follows whichever value flavor the
   // tick-set selector is on — best to worst (Ash, 2026-08-14). Runs once per
@@ -261,6 +284,18 @@ function RosterEdgeContent() {
   const showSalary = cols.salary && salaryFormat !== "none";
   const showContract = cols.contract && salaryFormat !== "none";
   const isDynasty = (saved?.settings.leagueType ?? DEFAULT_LEAGUE_TAGS.leagueType) === "dynasty";
+  /** The ticked players' weighted per-game FPTS — total points over total
+   *  games, matching how weightedAverage() combines every category cell in
+   *  the same row. Points leagues only. */
+  const tickedFpts = useMemo(() => {
+    if (format !== "points") return null;
+    const withPoints = tickedPlayers.filter((p) => p.pointsValue != null);
+    const total = withPoints.reduce((sum, p) => sum + p.pointsValue! * (p.gamesPlayed ?? 0), 0);
+    if (statsMode === "totals") return withPoints.length > 0 ? total : null;
+    const games = withPoints.reduce((sum, p) => sum + (p.gamesPlayed ?? 0), 0);
+    return games > 0 ? total / games : null;
+  }, [tickedPlayers, format, statsMode]);
+
   // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns,
   // plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown.
   // MINUS1 is deliberately excluded — it renders as its own <td> right after
@@ -454,6 +489,7 @@ function RosterEdgeContent() {
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap", fontSize: 12 }}>
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Stats:</span>
+            <SegmentedControl<"perGame" | "totals"> options={STATS_BASIS_OPTIONS} value={statsMode} onChange={setStatsMode} />
             {effective?.scored.map((cat) => (
               <button
                 key={cat}
@@ -539,14 +575,33 @@ function RosterEdgeContent() {
               <tbody>
                 {tickedPlayers.length > 0 && (
                   <tr className="mine">
-                    <td colSpan={colSpanBeforeStats} className="l">Σ {tickedPlayers.length} TICKED — weighted per-game average</td>
+                    <td colSpan={colSpanBeforeStats - 1} className="l">
+                      Σ {tickedPlayers.length} TICKED — {statsMode === "totals" ? "season totals" : "weighted per-game average"}
+                    </td>
+                    {/* The FPTS/VALUE column, previously inside the colSpan and
+                        so left blank while every category beside it carried a
+                        figure. Points leagues get the team's own weighted
+                        per-game FPTS — the same basis as the cells to its
+                        right, since this table has no totals mode. A
+                        categories VALUE stays blank: a z-score doesn't
+                        average meaningfully across a roster. */}
+                    <td>
+                      {format === "points"
+                        ? (tickedFpts == null ? "—" : statsMode === "totals" ? Math.round(tickedFpts).toLocaleString("en-US") : tickedFpts.toFixed(1))
+                        : "—"}
+                    </td>
                     {format !== "points" && <td>—</td>}
-                    {visibleCats.map((cat) => (
-                      <td key={cat}>{formatStat(cat, weightedAverage(tickedPlayers, cat))}</td>
-                    ))}
-                    {[...extraCols].map((col) => (
-                      <td key={col}>{formatStat(col, weightedAverage(tickedPlayers, col))}</td>
-                    ))}
+                    {visibleCats.map((cat) => {
+                      const raw = statsMode === "totals" ? summedTotal(tickedPlayers, cat) : weightedAverage(tickedPlayers, cat);
+                      return <td key={cat}>{raw == null ? "—" : statsMode === "totals" ? formatTotal(cat, raw) : formatStat(cat, raw)}</td>;
+                    })}
+                    {[...extraCols].map((col) => {
+                      const raw = statsMode === "totals" ? summedTotal(tickedPlayers, col) : weightedAverage(tickedPlayers, col);
+                      // formatTotal is typed to FheCategory and these are the
+                      // informational extras (DD/TD/PF…), so they round here
+                      // rather than routing through it.
+                      return <td key={col}>{raw == null ? "—" : statsMode === "totals" ? Math.round(raw).toLocaleString("en-US") : formatStat(col, raw)}</td>;
+                    })}
                   </tr>
                 )}
                 {rotoSort.sorted.map((p) => (
@@ -564,6 +619,7 @@ function RosterEdgeContent() {
                     showSalaryRank={cols.salaryRank}
                     salaryFormat={salaryFormat}
                     valueMode={tickValueMode}
+                    statsMode={statsMode}
                     positionSlots={effective?.positionSlots ?? {}}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
