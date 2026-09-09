@@ -426,7 +426,14 @@ export function simulateH2HCategoryStandings(
     return {
       teamId: mine.teamId, teamName: mine.teamName, matchups,
       totalWins, totalLosses, totalDraws,
-      winPct: winRule === "perMatchup" ? totalWins / matchupTotal : categoryWins / categoryTotal,
+      // A drawn matchup is half a win, never a loss — the same convention
+      // simulateH2HPointsStandings already uses, and what SINGLE_WIN scoring
+      // actually does: tie the categories and both teams bank a draw (Ash,
+      // 2026-09-09). Counting draws as losses read a 1W-1D-1L team at 33%
+      // instead of 50%.
+      winPct: winRule === "perMatchup"
+        ? (totalWins + 0.5 * totalDraws) / matchupTotal
+        : categoryWins / categoryTotal,
       categoryWins, categoryLosses, categoryDraws,
       rank: 0,
     };
