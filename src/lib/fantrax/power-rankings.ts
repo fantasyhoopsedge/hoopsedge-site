@@ -1,5 +1,5 @@
 import type { LeagueAnalysis, ResolvedPlayer, RotoStandingRow, TeamCategoryProfile, TeamStatTotals } from "./analyze";
-import type { FheCategory, LeaguePointsFormula, ScoringShape } from "./league";
+import type { FheCategory, LeaguePointsFormula, LeagueSchedulePeriod, ScoringShape } from "./league";
 import { buildOptimalLineup, profileFromLineup, type LineupValueMode, type OptimalLineup } from "./lineup";
 
 export type RankingsFormat = "roto" | "h2hcat" | "points" | "unconfirmed";
@@ -500,53 +500,151 @@ export function simulateSeasonPointsStandings(profiles: TeamCategoryProfile[]): 
  *
  * Returns null for roto — that has its own standings (rotoStandingsByRawStat).
  */
+/** What the dispatcher needs off the league snapshot. Declared structurally
+ *  so callers can hand it `analysis.league` directly rather than unpacking
+ *  two fields at ten call sites. */
+export interface StandingsContext {
+  scoringShape?: ScoringShape | null;
+  schedule?: readonly LeagueSchedulePeriod[] | null;
+}
+
 export function simulateStandingsFor(
   format: RankingsFormat,
-  shape: ScoringShape | null | undefined,
+  league: StandingsContext | null | undefined,
   profiles: TeamCategoryProfile[],
   scored: readonly FheCategory[],
 ): TeamH2HRecord[] | null {
   if (format === "h2hcat") {
-    return simulateH2HCategoryStandings(profiles, scored, shape === "h2hCatSingle" ? "perMatchup" : "perCategory");
+    return simulateH2HCategoryStandings(profiles, scored, league?.scoringShape === "h2hCatSingle" ? "perMatchup" : "perCategory");
   }
   if (format === "points") {
-    return shape === "seasonPoints" ? simulateSeasonPointsStandings(profiles) : simulateH2HPointsStandings(profiles);
+    return league?.scoringShape === "seasonPoints"
+      ? simulateSeasonPointsStandings(profiles)
+      : simulateH2HPointsStandings(profiles, league?.schedule);
   }
   return null;
 }
 
-export function simulateH2HPointsStandings(profiles: TeamCategoryProfile[]): TeamH2HRecord[] {
+/**
+ * Weekly team-score volatility, as a fraction of the team's own average —
+ * the scale that decides how often a stronger team actually loses.
+ *
+ * MEASURED, not assumed (2026-09-09). Across 365 players with 40+ games in
+ * 2025-26, scored on a real league's own formula (PTS + 1.2·REB + 1.5·AST +
+ * 3·STL + 3·BLK − TO), a player averages 22.0 fantasy points a game with a
+ * per-game SD of 9.9 — a ~46% coefficient of variation. A fantasy team banks
+ * roughly 10 starters × ~3.5 NBA games ≈ 35 player-games a week, and the
+ * variance of a sum grows with √n, so:
+ *
+ *     weekly SD   = √35 × 9.9 ≈ 58.6
+ *     weekly mean = 35   × 22.0 = 770
+ *     team CV     ≈ 58.6 / 770 ≈ 7.6%
+ *
+ * 8% is that floor. The true figure is likely higher — players share NBA
+ * teams and idle nights, and weekly game counts swing 2-4, both of which add
+ * variance the independence assumption above ignores — so this errs toward a
+ * more decisive table than a real season plays out. Raising it compresses
+ * the records; it can never REORDER them, since expected wins is monotone in
+ * team scoring, which is what makes this a presentation choice rather than a
+ * ranking one (Ash, 2026-09-09, chose 8% over a realistic 10-12%).
+ *
+ * What it deliberately does NOT model is manager behaviour — injuries,
+ * streaming, abandoned teams — which is why real standings spread wider than
+ * this will, and why chasing a remembered 15-4 by shrinking the constant
+ * would be reverse-engineering a number rather than modelling anything.
+ */
+const WEEKLY_TEAM_CV = 0.08;
+
+/**
+ * Head-to-head points standings over the league's REAL fixture list.
+ *
+ * Was a deterministic round robin: every team met every other exactly once
+ * and the higher season-average FPTS/GM simply won. Two things were wrong
+ * with that, and the second is the one that showed (Ash, 2026-09-09, on a
+ * 12-team league reading 11-0-0, 10-0-1, … 0-0-11):
+ *
+ *   · it played 11 games, not the league's real 17;
+ *   · comparing a single number is TRANSITIVE, so a round robin can only
+ *     ever produce a perfect ladder — best beats everyone, second beats all
+ *     but one, worst loses every game — for any league, any inputs. A 9%
+ *     spread in scoring came out as 100% vs 0%.
+ *
+ * Now each real fixture is scored as a probability, Φ((μa − μb) / σ√2) with
+ * σ from WEEKLY_TEAM_CV, and a team's record is its expected wins across its
+ * own fixtures. Repeated opponents count each time they are actually played,
+ * so strength of schedule falls out for free.
+ *
+ * `schedule` empty (a league Fantrax gives no fixtures for) falls back to the
+ * round robin — now probabilistic too, so it no longer produces a ladder.
+ */
+export function simulateH2HPointsStandings(
+  profiles: TeamCategoryProfile[],
+  schedule?: readonly LeagueSchedulePeriod[] | null,
+): TeamH2HRecord[] {
   const perGame = (p: TeamCategoryProfile) => (p.statTotals.gamesPlayed > 0 ? (p.pointsTotal ?? 0) / p.statTotals.gamesPlayed : 0);
+  const byId = new Map(profiles.map((p) => [p.teamId, p]));
+
+  // One σ for the whole league, off the league's own scoring level, so the
+  // scale doesn't drift between a high- and low-scoring format.
+  const leagueMean = profiles.length > 0 ? profiles.reduce((sum, p) => sum + perGame(p), 0) / profiles.length : 0;
+  const sigma = Math.max(1e-9, WEEKLY_TEAM_CV * leagueMean * Math.SQRT2);
+
+  // Real fixtures where we have them; otherwise every pairing once.
+  const fixtures: { home: string; away: string }[] = [];
+  for (const period of schedule ?? []) {
+    for (const pair of period.pairs) {
+      if (byId.has(pair.home) && byId.has(pair.away)) fixtures.push(pair);
+    }
+  }
+  if (fixtures.length === 0) {
+    for (let i = 0; i < profiles.length; i += 1) {
+      for (let j = i + 1; j < profiles.length; j += 1) {
+        fixtures.push({ home: profiles[i].teamId, away: profiles[j].teamId });
+      }
+    }
+  }
 
   const records: TeamH2HRecord[] = profiles.map((mine) => {
     const mineScore = perGame(mine);
-    const matchups: H2HMatchup[] = profiles
-      .filter((p) => p.teamId !== mine.teamId)
-      .map((opp) => {
-        const theirScore = perGame(opp);
-        const matchupResult: H2HMatchup["matchupResult"] = mineScore === theirScore ? "draw" : mineScore > theirScore ? "win" : "loss";
-        return {
-          opponentId: opp.teamId, opponentName: opp.teamName, categoryResults: [],
-          wins: matchupResult === "win" ? 1 : 0, losses: matchupResult === "loss" ? 1 : 0, draws: matchupResult === "draw" ? 1 : 0,
-          matchupResult, scoreline: { mine: mineScore, theirs: theirScore },
-        };
+    const matchups: H2HMatchup[] = [];
+    let expectedWins = 0;
+
+    for (const fixture of fixtures) {
+      const oppId = fixture.home === mine.teamId ? fixture.away
+        : fixture.away === mine.teamId ? fixture.home
+        : null;
+      if (oppId == null) continue;
+      const opp = byId.get(oppId);
+      if (!opp) continue;
+      const theirScore = perGame(opp);
+      const winProb = normCdf((mineScore - theirScore) / sigma);
+      expectedWins += winProb;
+      matchups.push({
+        opponentId: opp.teamId, opponentName: opp.teamName, categoryResults: [],
+        wins: winProb > 0.5 ? 1 : 0, losses: winProb < 0.5 ? 1 : 0, draws: 0,
+        matchupResult: winProb > 0.5 ? "win" : winProb < 0.5 ? "loss" : "draw",
+        scoreline: { mine: mineScore, theirs: theirScore },
+        projected: { mine: winProb, theirs: 1 - winProb },
       });
-    const totalWins = matchups.filter((m) => m.matchupResult === "win").length;
-    const totalLosses = matchups.filter((m) => m.matchupResult === "loss").length;
-    const totalDraws = matchups.filter((m) => m.matchupResult === "draw").length;
-    const denom = matchups.length || 1;
+    }
+
+    const games = matchups.length;
+    // Round the wins and let losses take the remainder, so W+L always equals
+    // games played — rounding both independently can produce a record that
+    // doesn't add up.
+    const totalWins = Math.round(expectedWins);
     return {
       teamId: mine.teamId, teamName: mine.teamName, matchups,
-      totalWins, totalLosses, totalDraws,
-      winPct: (totalWins + 0.5 * totalDraws) / denom,
+      totalWins, totalLosses: games - totalWins, totalDraws: 0,
+      // The UNROUNDED rate, so ranking and the strength bar keep the
+      // precision the displayed record loses.
+      winPct: games > 0 ? expectedWins / games : 0,
       categoryWins: 0, categoryLosses: 0, categoryDraws: 0,
       rank: 0,
     };
   });
 
-  records.sort((a, b) =>
-    b.totalWins - a.totalWins || b.winPct - a.winPct || perGame(profiles.find((p) => p.teamId === b.teamId)!) - perGame(profiles.find((p) => p.teamId === a.teamId)!),
-  );
+  records.sort((a, b) => b.winPct - a.winPct || a.teamName.localeCompare(b.teamName));
   records.forEach((r, i) => { r.rank = i + 1; });
   return records;
 }

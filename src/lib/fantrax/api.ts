@@ -75,6 +75,19 @@ export interface FxLeagueInfo {
   /** Fantrax player id → league-specific eligibility/ownership. */
   playerInfo?: Record<string, { eligiblePos?: string; status?: string }>;
   scoringPeriods?: { number: number; startDate: string; endDate: string }[];
+  /** The real fixture list, one entry per scoring period. Playoff periods
+   *  carry only `{ seed }` on each side — the teams are undecided — so a
+   *  side without an `id` is a bracket placeholder, not a missing field. */
+  matchups?: { period?: number; matchupList?: { home?: { id?: string }; away?: { id?: string } }[] }[];
+  /** Head-to-head leagues only. `lastRegularSeasonPeriod` is what separates
+   *  the real schedule above from the bracket. */
+  playoffs?: {
+    used?: boolean;
+    lastRegularSeasonPeriod?: number;
+    firstPlayoffPeriod?: number;
+    numPlayoffTeams?: number;
+    mergePlayoffPeriods?: boolean;
+  };
 }
 
 export interface FxRosterItem {
