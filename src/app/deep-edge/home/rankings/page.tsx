@@ -8,7 +8,7 @@ import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/l
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import {
   buildDepthWeightedProfiles, deriveRankingsFormat, depthCaption, depthWeight, formatPerGame, formatTotal,
-  rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, totalsValue, weightedPerGame,
+  rotoStandingsByRawStat, simulateStandingsFor, totalsValue, weightedPerGame,
   type RankingsFormat, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
 import { buildOptimalLineup, greedyAssignment, resolveEffectiveScoring, RESERVE_SLOTS, UI_VALUE_MODE_OPTIONS, type LineupValueMode } from "@/lib/fantrax/lineup";
@@ -138,6 +138,11 @@ function PowerRankingsContent() {
   // RosterTableFormat excludes "unconfirmed"/null — the roster panel never
   // renders while format is unresolved (see the `!rosterTeam` guard below).
   const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
+  /** Season-long points (POINTS_BASED): no matchups, so no record and no win
+   *  rate. The standings are just total fantasy points, and the columns say
+   *  so rather than showing a Win% simulateSeasonPointsStandings deliberately
+   *  doesn't compute. */
+  const isSeasonPoints = analysis?.league.scoringShape === "seasonPoints";
 
   const profiles = useMemo(() => {
     if (!analysis || !format || format === "unconfirmed" || !effective) return null;
@@ -150,6 +155,10 @@ function PowerRankingsContent() {
     // own team's precision actually matters to what's displayed.
     return buildDepthWeightedProfiles(analysis, depth, weight, { ...effective, exactTeamId: analysis.myTeamId ?? undefined, valueMode });
   }, [analysis, format, depth, lineupCadence, capPos, capMatch, effective, valueMode]);
+  // Declared after `profiles` on purpose: closing over it before its own
+  // declaration is legal at runtime but stops the React Compiler preserving
+  // the memoization above.
+  const pointsTotalOf = (teamId: string) => profiles?.find((p) => p.teamId === teamId)?.pointsTotal ?? 0;
 
   // Dynamically derived from whichever raw-stat basis (per-game rate vs
   // season totals) is currently selected — NOT the z-score-based standings
@@ -161,10 +170,9 @@ function PowerRankingsContent() {
   );
   const h2hRecords: TeamH2HRecord[] | null = useMemo(() => {
     if (!profiles) return null;
-    if (format === "h2hcat") return simulateH2HCategoryStandings(profiles, scored);
-    if (format === "points") return simulateH2HPointsStandings(profiles);
-    return null;
-  }, [profiles, format, scored]);
+    if (!format) return null;
+    return simulateStandingsFor(format, analysis?.league.scoringShape, profiles, scored);
+  }, [profiles, format, scored, analysis]);
 
   const rotoSort = useSortableTable<RotoStandingRow, "team" | "totalPoints" | FheCategory>(
     rotoStandings ?? [],
@@ -522,7 +530,7 @@ function PowerRankingsContent() {
 
           {(format === "h2hcat" || format === "points") && h2hSorted.length > 0 && (
             <>
-              <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+              <div style={{ display: isSeasonPoints ? "none" : "flex", gap: 8, marginBottom: 14 }}>
                 <span style={{ fontSize: 12.5, color: "var(--rt-muted)", marginRight: 4 }}>Sort by</span>
                 {(format === "h2hcat"
                   ? [["matchup", "Matchup record"], ["winpct", "Win %"]]
@@ -550,8 +558,8 @@ function PowerRankingsContent() {
                     <tr>
                       <th>#</th>
                       <th className="l">TEAM</th>
-                      <th>WIN %</th>
-                      {format === "h2hcat" ? <th>CATEGORY W-D-L</th> : <th>RECORD</th>}
+                      <th>{isSeasonPoints ? "SEASON FPTS" : "WIN %"}</th>
+                      {format === "h2hcat" ? <th>CATEGORY W-D-L</th> : isSeasonPoints ? null : <th>RECORD</th>}
                       {format === "h2hcat" ? <th className="l">YOU VS TEAM</th> : <th>FPTS/GM</th>}
                       <th style={{ minWidth: 120 }}>STRENGTH</th>
                     </tr>
@@ -566,7 +574,7 @@ function PowerRankingsContent() {
                       >
                         <td style={{ boxShadow: row.teamId === rosterTeamId ? "inset 3px 0 0 var(--rt-primary)" : undefined }}>{i + 1}</td>
                         <td className="l"><span className="de-player-name">{row.teamName}{row.teamId === saved.teamId ? " · YOU" : ""}</span></td>
-                        <td>{(row.winPct * 100).toFixed(1)}%</td>
+                        <td>{isSeasonPoints ? pointsTotalOf(row.teamId).toFixed(0) : `${(row.winPct * 100).toFixed(1)}%`}</td>
                         {format === "h2hcat" ? (
                           <>
                             <td>{row.categoryWins}-{row.categoryDraws}-{row.categoryLosses}</td>
@@ -576,7 +584,7 @@ function PowerRankingsContent() {
                           </>
                         ) : (
                           <>
-                            <td>{row.totalWins}-{row.totalDraws}-{row.totalLosses}</td>
+                            {!isSeasonPoints && <td>{row.totalWins}-{row.totalDraws}-{row.totalLosses}</td>}
                             <td>{(profiles!.find((p) => p.teamId === row.teamId)!.pointsTotal! / Math.max(1, profiles!.find((p) => p.teamId === row.teamId)!.statTotals.gamesPlayed)).toFixed(1)}</td>
                           </>
                         )}

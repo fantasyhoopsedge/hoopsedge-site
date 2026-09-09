@@ -3,6 +3,7 @@ import {
   toDisplayName, type FxDraftPicks, type FxDraftResults, type FxLeagueInfo,
   type FxPlayerIdMap, type FxStandingsRow, type FxTeamRosters,
 } from "./api";
+import type { LeagueFormat } from "./league-tags";
 
 /**
  * Turns the four raw FXEA payloads into one normalized league snapshot the rest
@@ -212,6 +213,14 @@ export interface FantraxLeague {
    *  scoringModeOf(). Every consumer branches on THIS, never on the raw
    *  string. */
   scoringMode: "categories" | "points";
+  /** Rotisserie vs head-to-head-categories, parsed from scoringType by
+   *  leagueFormatOf() — null when the label doesn't say. A categories
+   *  league only; meaningless when scoringMode is "points". */
+  derivedFormat: LeagueFormat | null;
+  /** The FULL scoring shape — the distinctions scoringMode and derivedFormat
+   *  flatten away, and the only field that says how standings should be
+   *  ranked. See scoringShapeOf(). Null when the label doesn't say. */
+  scoringShape: ScoringShape | null;
   categories: LeagueCategories;
   /** Populated only when scoringMode === "points". */
   pointsFormula: LeaguePointsFormula | null;
@@ -428,6 +437,8 @@ export function buildLeague(
   const picks = draft?.draftPicks ?? [];
   const scoringType = info.scoringSystem?.type ?? "unknown";
   const scoringMode = scoringModeOf(scoringType);
+  const derivedFormat = leagueFormatOf(scoringType);
+  const scoringShape = scoringShapeOf(scoringType);
 
   return {
     leagueId,
@@ -435,6 +446,8 @@ export function buildLeague(
     seasonYear,
     scoringType,
     scoringMode,
+    derivedFormat,
+    scoringShape,
     categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
     pointsFormula: scoringMode === "points" ? parsePointsFormula(info) : null,
     teamCount,
@@ -490,13 +503,22 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
 /**
  * Categories vs points, from Fantrax's `scoringSystem.type`.
  *
- * There is no single vocabulary. One account's leagues return FIVE distinct
- * forms (audited across 30 real saved leagues, 2026-09-09):
+ * There is no single vocabulary. Fantrax's own getLeagueInfo docs name six
+ * types, and a real account returns two more the docs don't mention:
  *
- *   HEAD_TO_HEAD_ROTI_MULTI_WIN   H2H categories
- *   ROTISSERIE / rotisserie       roto, in two different cases
- *   HEAD_TO_HEAD_POINTS_BASED     H2H points
- *   points                        points
+ *   ROTISSERIE                     season-long rotisserie      categories
+ *   POINTS_BASED                   season-long points          points
+ *   HEAD_TO_HEAD_POINTS_BASED      head-to-head points         points
+ *   HEAD_TO_HEAD_ROTI_SINGLE_WIN   h2h, most categories        categories
+ *   HEAD_TO_HEAD_ROTI_MULTI_WIN    h2h, each category          categories
+ *   BRACKET                        bracket                     (unknown)
+ *   rotisserie                     undocumented, seen live     categories
+ *   points                         undocumented, seen live     points
+ *
+ * The last two are lower-case legacy forms returned by real leagues on a
+ * real account (audited across 30 saved leagues, 2026-09-09) and absent from
+ * the documentation — so the documented list is not exhaustive either, and
+ * parsing has to tolerate forms neither source names.
  *
  * This used to be `scoringType === "points"` — exact and case-sensitive, so
  * it recognised only the last of those. A HEAD_TO_HEAD_POINTS_BASED league
@@ -507,14 +529,93 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
  * so a points league could be neither auto-detected NOR set by hand (Ash,
  * 2026-09-09).
  *
- * Substring match on POINTS rather than an allow-list of the four known
- * strings: Fantrax has already shown it will vary case and add qualifiers,
- * and every categories form observed says ROTI, never POINTS. A new
- * *_POINTS_* variant should classify correctly the first time it appears
- * rather than after someone notices a league scoring on phantom categories.
+ * Substring match on POINTS rather than an allow-list: Fantrax varies case,
+ * adds qualifiers, and returns undocumented forms, while every categories
+ * type says ROTI and never POINTS. That tolerance has already paid —
+ * HEAD_TO_HEAD_ROTI_SINGLE_WIN and POINTS_BASED both classify correctly here
+ * despite never having been seen live, where an allow-list built from
+ * observed strings would have missed both.
+ *
+ * NOTE what this does NOT capture: POINTS_BASED is SEASON-LONG points and
+ * HEAD_TO_HEAD_POINTS_BASED is matchup points, but both collapse to "points"
+ * here, and every consumer then simulates head-to-head matchups
+ * (simulateH2HPointsStandings) and shows a Win%. That is right for the
+ * second and wrong for the first. Same shape for
+ * HEAD_TO_HEAD_ROTI_SINGLE_WIN, one win per matchup, which is ranked on
+ * per-category win% like MULTI_WIN. Neither type appears on the account
+ * audited, so neither is live-wrong today; both need a scoringMode with more
+ * than two values to fix properly.
  */
 export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
   return /points/i.test(scoringType ?? "") ? "points" : "categories";
+}
+
+/**
+ * How a league's standings are actually decided — the distinction
+ * scoringModeOf() and leagueFormatOf() both flatten away.
+ *
+ *   roto          season-long rotisserie
+ *   h2hCat        h2h, a win/loss/tie for EVERY scoring category
+ *   h2hCatSingle  h2h, most categories takes ONE win/loss per matchup
+ *   h2hPoints     h2h points, weekly matchups
+ *   seasonPoints  season-long points, no matchups at all
+ *
+ * The two flattened pairs are not cosmetic. h2hCat vs h2hCatSingle changes
+ * what a standings row is ranked ON (category record vs matchup record), and
+ * h2hPoints vs seasonPoints decides whether a Win% is a real number or a
+ * fabricated one — a season-long points league has no matchups to win.
+ * Before this existed both pairs collapsed and the whole app simulated
+ * head-to-head matchups for all of them.
+ *
+ * "POINTS_BASED" is matched EXACTLY for seasonPoints rather than by
+ * "not head-to-head": the legacy lower-case "points" form is ambiguous (it
+ * predates Fantrax splitting these types, and the one real league carrying
+ * it is head-to-head points — confirmed against the live API 2026-09-09), so
+ * it keeps today's h2hPoints reading rather than being silently reclassified
+ * as season-long on a guess. A re-sync replaces it with a precise value.
+ */
+export type ScoringShape = "roto" | "h2hCat" | "h2hCatSingle" | "h2hPoints" | "seasonPoints";
+
+export function scoringShapeOf(scoringType: string | null | undefined): ScoringShape | null {
+  const t = (scoringType ?? "").toUpperCase();
+  if (!t || t === "UNKNOWN") return null;
+  const h2h = t.startsWith("HEAD_TO_HEAD") || t === "HEADTOHEAD";
+  if (/POINTS/.test(t)) {
+    if (h2h) return "h2hPoints";
+    return t === "POINTS_BASED" ? "seasonPoints" : "h2hPoints";
+  }
+  if (/ROTI/.test(t)) {
+    if (!h2h) return "roto";
+    return /SINGLE_WIN/.test(t) ? "h2hCatSingle" : "h2hCat";
+  }
+  return null;
+}
+
+/**
+ * Rotisserie vs head-to-head-categories, from the same `scoringSystem.type`.
+ *
+ * This code carried the opposite claim from 2026-08-09 until the audit
+ * behind scoringModeOf() disproved it: "Fantrax does NOT distinguish
+ * rotisserie from head-to-head-categories — both report rotisserie". They
+ * are plainly distinguishable — ROTISSERIE vs HEAD_TO_HEAD_ROTI_MULTI_WIN —
+ * and the earlier finding was almost certainly two leagues that both
+ * happened to return the lowercase "rotisserie" form.
+ *
+ * That belief is why `format` defaulted to roto behind a "which is it?"
+ * prompt on every league. Deriving it retires the prompt wherever the label
+ * answers the question.
+ *
+ * Returns null rather than guessing when the label doesn't say — a bare
+ * "rotisserie"/"ROTISSERIE" does say (roto), but an unrecognised or absent
+ * type does not, and those leagues keep the prompt. A wrong format silently
+ * re-sorts every standing, so "don't know" has to stay expressible.
+ */
+export function leagueFormatOf(scoringType: string | null | undefined): LeagueFormat | null {
+  const t = (scoringType ?? "").toUpperCase();
+  if (!t || t === "UNKNOWN") return null;
+  if (t.startsWith("HEAD_TO_HEAD") || t === "HEADTOHEAD") return "h2h";
+  if (/ROTI/.test(t)) return "roto";
+  return null;
 }
 
 /** Human label for the Fantrax scoring type — see scoringModeOf() on why this

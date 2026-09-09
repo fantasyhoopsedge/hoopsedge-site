@@ -14,7 +14,7 @@ import {
   type FantraxDatasetKey, type FheCategory, type PointsStat,
 } from "@/lib/fantrax/league";
 import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
-import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
+import { FormatConfirmPrompt, needsFormatConfirm as needsFormatConfirmFor } from "@/lib/fantrax/format-confirm";
 import type { SavedLeague } from "@/lib/fantrax/store";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
 
@@ -111,12 +111,12 @@ export function FantraxConnector() {
   const [leagueType, setLeagueType] = useState<LeagueType>(DEFAULT_LEAGUE_TAGS.leagueType);
   const [format, setFormat] = useState<LeagueFormat>(DEFAULT_LEAGUE_TAGS.format);
   const [salaryFormat, setSalaryFormat] = useState<SalaryFormat>(DEFAULT_LEAGUE_TAGS.salaryFormat);
-  // Fantrax's API can't tell roto from head-to-head-categories (verified live
-  // 2026-08-09 against real leagues of each — both report the same
-  // scoringType). `format` therefore defaults to "roto" with no signal it was
-  // ever actually checked; this tracks whether the USER has confirmed it, so
-  // Standings/Edge can require that confirmation instead of silently scoring
-  // an unconfirmed league as roto.
+  // Whether the USER has explicitly confirmed roto vs head-to-head-categories.
+  // Fantrax's own scoringType answers it for nearly every league now
+  // (league.ts's leagueFormatOf) — the 2026-08-09 note claiming both report
+  // the same string was disproved by an audit of 30 real leagues. This flag
+  // survives as the override: a confirmation outranks the derived label,
+  // since one real league reports ROTISSERIE and is played head-to-head.
   const [formatConfirmed, setFormatConfirmed] = useState(false);
 
   // Restore the session's credentials on mount. sessionStorage is per-tab, so
@@ -302,9 +302,10 @@ export function FantraxConnector() {
   );
   const isSaved = analysis ? saved.some((l) => l.leagueId === analysis.league.leagueId) : false;
   const pointsMode = analysis?.league.scoringMode === "points";
-  // Points leagues don't have a roto/H2H question at all — only categories
-  // leagues need the confirmation gate.
-  const needsFormatConfirm = !pointsMode && !formatConfirmed;
+  // Points leagues don't have a roto/H2H question at all, and a categories
+  // league whose scoringType names its format has already answered it — the
+  // gate is only for the genuinely unlabelled (league.ts's leagueFormatOf).
+  const needsFormatConfirm = needsFormatConfirmFor(pointsMode, formatConfirmed, analysis?.league.derivedFormat);
 
   return (
     <div className="fx-shell">

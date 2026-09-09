@@ -4,13 +4,13 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory, type ScoringShape, type TeamDraftPick } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { categoryTier, resolveEffectiveScoring, type CategoryTier } from "@/lib/fantrax/lineup";
 import {
   buildDepthWeightedProfiles, deriveRankingsFormat, depthCaption, depthWeight,
-  rotoStandingsByRawStat, simulateH2HCategoryStandings, simulateH2HPointsStandings, type RankingsFormat,
+  rotoStandingsByRawStat, simulateStandingsFor, type RankingsFormat,
 } from "@/lib/fantrax/power-rankings";
 import {
   tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
@@ -448,11 +448,11 @@ function formatVerdictValue(n: number): string {
  *  before and after" — caught live on FBI Super20, badge read 9th while the
  *  before/after compare table right below it, and the real Power Rankings
  *  tool, both read 5th for the same team/lineup). */
-function teamRankOf(profiles: TeamCategoryProfile[], format: RosterTableFormat, scored: readonly FheCategory[], teamId: string, statMode: "perGame" | "totals"): number | null {
+function teamRankOf(profiles: TeamCategoryProfile[], format: RosterTableFormat, scored: readonly FheCategory[], teamId: string, statMode: "perGame" | "totals", shape: ScoringShape | null | undefined): number | null {
   if (format === "roto") {
     return rotoStandingsByRawStat(profiles, scored, statMode).find((r) => r.teamId === teamId)?.projectedRank ?? null;
   }
-  const rows = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles);
+  const rows = simulateStandingsFor(format, shape, profiles, scored) ?? [];
   return rows.find((r) => r.teamId === teamId)?.rank ?? null;
 }
 
@@ -665,7 +665,7 @@ function TradeVerdictSideColumn({
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, myTeamId, myPlayers, myPicks, theirPlayers, theirPicks, leaguePlayers, baseValueByFantraxId,
   secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear,
-  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode,
+  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode, shape,
 }: {
   verdict: TradeVerdict; myTeamName: string; theirTeamName: string; myTeamId: string;
   /** sideA (myTeamName) is what I RECEIVE — receivePlayers/receivePicks;
@@ -697,6 +697,8 @@ function TradeVerdictPanel({
    *  on the same basis or it silently disagrees with the table right under
    *  it. */
   statMode: "perGame" | "totals";
+  /** Standings rule for this league — see power-rankings.ts's simulateStandingsFor. */
+  shape: ScoringShape | null | undefined;
 }) {
   const verdictLabel = verdict.winner === "Fair" ? "Fair trade" : verdict.winner === "A" ? `${myTeamName} wins` : `${theirTeamName} wins`;
   const verdictColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
@@ -708,8 +710,8 @@ function TradeVerdictPanel({
   const theirNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "B" ? "var(--rt-up)" : "var(--rt-down)";
   const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, ledgerValues, onRequestValue };
 
-  const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode) : null;
-  const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode) : null;
+  const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode, shape) : null;
+  const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode, shape) : null;
   const fptsBefore = trade && family === "points" ? teamFptsPerGame(trade.before, myTeamId) : null;
   const fptsAfter = trade && family === "points" ? teamFptsPerGame(trade.after, myTeamId) : null;
   const salaryDelta = salaryBefore != null && salaryAfter != null ? salaryAfter - salaryBefore : null;
@@ -946,7 +948,7 @@ function TradePreviewTable({
  *  this is the one Deep Edge table where a second team's row matters as
  *  much as your own. */
 function PowerRankingsCompareTable({
-  profiles, format, scored, myTeamId, teamBId, statMode,
+  profiles, format, scored, myTeamId, teamBId, statMode, shape,
 }: {
   profiles: TeamCategoryProfile[]; format: RosterTableFormat; scored: readonly FheCategory[]; myTeamId: string; teamBId: string;
   /** Same "which raw-stat basis" toggle the trade preview tables above
@@ -957,6 +959,8 @@ function PowerRankingsCompareTable({
    *  stats — roto points are the default (and here, only) display for this
    *  table, matching Power Rankings' own default (Ash, 2026-08-14). */
   statMode: "perGame" | "totals";
+  /** Standings rule for this league — see power-rankings.ts's simulateStandingsFor. */
+  shape: ScoringShape | null | undefined;
 }) {
   const teamCount = profiles.length;
   const rowClass = (teamId: string) => (teamId === myTeamId ? "mine" : teamId === teamBId ? "partner" : "");
@@ -1000,7 +1004,7 @@ function PowerRankingsCompareTable({
     );
   }
 
-  const rows = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : simulateH2HPointsStandings(profiles);
+  const rows = simulateStandingsFor(format, shape, profiles, scored) ?? [];
   const myRecord = rows.find((r) => r.teamId === myTeamId);
   return (
     <div className="de-table-wrap">
@@ -1555,12 +1559,12 @@ function TradeEdgeContent() {
     if (rowFormat === "roto") {
       for (const row of projectRotoStandings(trade.after, effective.scored)) map.set(row.teamId, row.projectedRank);
     } else if (rowFormat === "h2hcat") {
-      for (const row of simulateH2HCategoryStandings(trade.after, effective.scored)) map.set(row.teamId, row.rank);
+      for (const row of simulateStandingsFor("h2hcat", analysis?.league.scoringShape, trade.after, effective.scored) ?? []) map.set(row.teamId, row.rank);
     } else {
-      for (const row of simulateH2HPointsStandings(trade.after)) map.set(row.teamId, row.rank);
+      for (const row of simulateStandingsFor("points", analysis?.league.scoringShape, trade.after, effective.scored) ?? []) map.set(row.teamId, row.rank);
     }
     return map;
-  }, [trade, effective, rowFormat]);
+  }, [trade, effective, rowFormat, analysis?.league.scoringShape]);
   const teamIdByName = useMemo(
     () => new Map((analysis?.league.teams ?? []).map((t) => [t.name, t.id])),
     [analysis],
@@ -1921,6 +1925,7 @@ function TradeEdgeContent() {
 
                   {tradeVerdict && myRoster && theirRoster && (
                     <TradeVerdictPanel
+                      shape={analysis?.league.scoringShape}
                       verdict={tradeVerdict}
                       myTeamName={myRoster.teamName}
                       theirTeamName={theirRoster.teamName}
@@ -1985,11 +1990,11 @@ function TradeEdgeContent() {
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 20 }}>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>BEFORE</div>
-                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} />
+                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} shape={analysis?.league.scoringShape} />
                         </div>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>AFTER</div>
-                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} />
+                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} shape={analysis?.league.scoringShape} />
                         </div>
                       </div>
                     </div>
