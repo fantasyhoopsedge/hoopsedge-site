@@ -86,6 +86,15 @@ export function AddLeagueModal({
             // exactly the fields that CAN'T be inferred this way (salary cap
             // total, max contract length): see store.ts's SavedLeagueSettings.
             salaryFormat: league.hasSalaries ? "real" : DEFAULT_LEAGUE_TAGS.salaryFormat,
+            // Roto vs H2H-categories, read off Fantrax's own scoring label
+            // (league.ts's leagueFormatOf) rather than defaulting to roto and
+            // asking. formatConfirmed stays false on purpose — "confirmed"
+            // means a human said so, and nothing here has. The views that
+            // care read the derived value straight off the analysis
+            // (deriveRankingsFormat); this is only so surfaces that see the
+            // saved settings WITHOUT an analysis — the Home league card —
+            // don't print "roto" at a head-to-head league.
+            format: league.derivedFormat ?? DEFAULT_LEAGUE_TAGS.format,
             scoredCategoriesOverride: league.categories.scored,
             positionSlotsOverride: league.positionSlots,
             ...DEFAULT_GAMES_CAP_SETTINGS,

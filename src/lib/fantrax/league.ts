@@ -3,6 +3,7 @@ import {
   toDisplayName, type FxDraftPicks, type FxDraftResults, type FxLeagueInfo,
   type FxPlayerIdMap, type FxStandingsRow, type FxTeamRosters,
 } from "./api";
+import type { LeagueFormat } from "./league-tags";
 
 /**
  * Turns the four raw FXEA payloads into one normalized league snapshot the rest
@@ -212,6 +213,10 @@ export interface FantraxLeague {
    *  scoringModeOf(). Every consumer branches on THIS, never on the raw
    *  string. */
   scoringMode: "categories" | "points";
+  /** Rotisserie vs head-to-head-categories, parsed from scoringType by
+   *  leagueFormatOf() — null when the label doesn't say. A categories
+   *  league only; meaningless when scoringMode is "points". */
+  derivedFormat: LeagueFormat | null;
   categories: LeagueCategories;
   /** Populated only when scoringMode === "points". */
   pointsFormula: LeaguePointsFormula | null;
@@ -428,6 +433,7 @@ export function buildLeague(
   const picks = draft?.draftPicks ?? [];
   const scoringType = info.scoringSystem?.type ?? "unknown";
   const scoringMode = scoringModeOf(scoringType);
+  const derivedFormat = leagueFormatOf(scoringType);
 
   return {
     leagueId,
@@ -435,6 +441,7 @@ export function buildLeague(
     seasonYear,
     scoringType,
     scoringMode,
+    derivedFormat,
     categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
     pointsFormula: scoringMode === "points" ? parsePointsFormula(info) : null,
     teamCount,
@@ -515,6 +522,33 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
  */
 export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
   return /points/i.test(scoringType ?? "") ? "points" : "categories";
+}
+
+/**
+ * Rotisserie vs head-to-head-categories, from the same `scoringSystem.type`.
+ *
+ * This code carried the opposite claim from 2026-08-09 until the audit
+ * behind scoringModeOf() disproved it: "Fantrax does NOT distinguish
+ * rotisserie from head-to-head-categories — both report rotisserie". They
+ * are plainly distinguishable — ROTISSERIE vs HEAD_TO_HEAD_ROTI_MULTI_WIN —
+ * and the earlier finding was almost certainly two leagues that both
+ * happened to return the lowercase "rotisserie" form.
+ *
+ * That belief is why `format` defaulted to roto behind a "which is it?"
+ * prompt on every league. Deriving it retires the prompt wherever the label
+ * answers the question.
+ *
+ * Returns null rather than guessing when the label doesn't say — a bare
+ * "rotisserie"/"ROTISSERIE" does say (roto), but an unrecognised or absent
+ * type does not, and those leagues keep the prompt. A wrong format silently
+ * re-sorts every standing, so "don't know" has to stay expressible.
+ */
+export function leagueFormatOf(scoringType: string | null | undefined): LeagueFormat | null {
+  const t = (scoringType ?? "").toUpperCase();
+  if (!t || t === "UNKNOWN") return null;
+  if (t.startsWith("HEAD_TO_HEAD") || t === "HEADTOHEAD") return "h2h";
+  if (/ROTI/.test(t)) return "roto";
+  return null;
 }
 
 /** Human label for the Fantrax scoring type — see scoringModeOf() on why this

@@ -7,10 +7,10 @@ export type RankingsFormat = "roto" | "h2hcat" | "points" | "unconfirmed";
 /**
  * Production format lock: Fantrax's own API can't distinguish rotisserie
  * from head-to-head-categories (both report scoringType "rotisserie" — see
- * league.ts) — only points-vs-categories is reliable. So the league's
- * manually-confirmed `format` tag (set in Settings, gated the same way
- * Standings/Edge already gate on it) is what actually decides Roto vs
- * H2H-categories; scoringMode alone only decides points vs everything else.
+ * league.ts) — Fantrax's own label answers it for nearly every league via
+ * leagueFormatOf(), and the league's `format` tag (set in Settings) overrides
+ * that when someone has explicitly confirmed one. "unconfirmed" is now only
+ * reached when the label says nothing AND nobody has confirmed.
  * The design's prototype freely toggles all three tabs for demo purposes —
  * in production this is what locks it to the league's real format.
  */
@@ -19,8 +19,17 @@ export function deriveRankingsFormat(
   tags: { format: "roto" | "h2h"; formatConfirmed?: boolean },
 ): RankingsFormat {
   if (analysis.league.scoringMode === "points") return "points";
-  if (!tags.formatConfirmed) return "unconfirmed";
-  return tags.format === "h2h" ? "h2hcat" : "roto";
+  // Precedence is deliberate: an explicit confirmation outranks the derived
+  // label, so a commissioner who has told us what their league really is
+  // never gets overruled by Fantrax's own tag (one real league reports
+  // ROTISSERIE and is played head-to-head). Derivation only fills the gap
+  // where nobody has said — which, since leagueFormatOf() reads the same
+  // scoringType that already decides points-vs-categories, is nearly every
+  // league, and is what retires the "which is it?" prompt.
+  if (tags.formatConfirmed) return tags.format === "h2h" ? "h2hcat" : "roto";
+  const derived = analysis.league.derivedFormat;
+  if (derived) return derived === "h2h" ? "h2hcat" : "roto";
+  return "unconfirmed";
 }
 
 /** The design's depth-weighting table: how much an extra bench player's

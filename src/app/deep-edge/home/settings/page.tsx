@@ -225,12 +225,19 @@ function DeepEdgeSettingsContent() {
   }
 
   const pointsMode = analysis?.league.scoringMode === "points";
+  /** Roto vs H2H-categories as Fantrax's own scoring label reports it — null
+   *  when the label doesn't say. Present for nearly every league, which is
+   *  what retires the format confirm from the count below. */
+  const derivedFormat = analysis?.league.derivedFormat ?? null;
   const mappedPct = saved
     ? Math.round((saved.settings.categories.length / Math.max(1, saved.settings.categories.length + saved.settings.unmodelledCategories.length)) * 100)
     : 100;
 
+  // A field only needs confirming when nothing can answer it for us. Format
+  // no longer qualifies wherever Fantrax's label says which it is — asking
+  // someone to confirm a fact already in hand is just a chore.
   const confirmCount = draft
-    ? (!pointsMode && !draft.formatConfirmed ? 1 : 0) +
+    ? (!pointsMode && !derivedFormat && !draft.formatConfirmed ? 1 : 0) +
       (draft.salaryFormat !== "none" && !draft.salaryCapConfirmed ? 1 : 0)
     : 0;
 
@@ -464,9 +471,13 @@ function DeepEdgeSettingsContent() {
               </span>
             </SettingsRow>
             {divider}
+            {/* Shows the derived format until someone overrides it, so the
+                control reflects the league rather than the "roto" default a
+                head-to-head league never chose. An explicit change still
+                wins everywhere (see deriveRankingsFormat). */}
             <SettingsRow label="Scoring format">
               <SegmentedControl
-                value={pointsMode ? "points" : draft.format}
+                value={pointsMode ? "points" : draft.formatConfirmed ? draft.format : (derivedFormat ?? draft.format)}
                 onChange={(v) => { if (v !== "points") { update("format", v as LeagueFormat); update("formatConfirmed", true); } }}
                 disabledOptions={pointsMode ? ["roto", "h2h"] : ["points"]}
                 options={[{ value: "roto", label: "Roto" }, { value: "h2h", label: "H2H categories" }, { value: "points", label: "Points" }]}
