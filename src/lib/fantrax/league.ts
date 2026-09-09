@@ -204,13 +204,13 @@ export interface FantraxLeague {
   leagueId: string;
   name: string;
   seasonYear: number;
-  /** Fantrax's own scoring label, e.g. "rotisserie". Note this does NOT
-   *  distinguish rotisserie from head-to-head-categories — both report
-   *  "rotisserie" (verified live against real leagues of each, 2026-08-09).
-   *  It only reliably distinguishes categories scoring from points scoring. */
+  /** Fantrax's own scoring label, verbatim. There is no single vocabulary
+   *  here — see scoringModeOf() for the five distinct forms real leagues
+   *  return. Read scoringMode below rather than comparing this yourself. */
   scoringType: string;
-  /** "points" only when Fantrax reports scoringType "points"; everything else
-   *  (rotisserie AND head-to-head-categories) is "categories". */
+  /** Categories vs points scoring, parsed from scoringType by
+   *  scoringModeOf(). Every consumer branches on THIS, never on the raw
+   *  string. */
   scoringMode: "categories" | "points";
   categories: LeagueCategories;
   /** Populated only when scoringMode === "points". */
@@ -427,7 +427,7 @@ export function buildLeague(
 
   const picks = draft?.draftPicks ?? [];
   const scoringType = info.scoringSystem?.type ?? "unknown";
-  const scoringMode: "categories" | "points" = scoringType === "points" ? "points" : "categories";
+  const scoringMode = scoringModeOf(scoringType);
 
   return {
     leagueId,
@@ -487,12 +487,43 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
   { key: "2026:regular", season: 2026, type: "regular", label: "2025-26 Actual" },
 ];
 
-/** Human label for the Fantrax scoring type. */
+/**
+ * Categories vs points, from Fantrax's `scoringSystem.type`.
+ *
+ * There is no single vocabulary. One account's leagues return FIVE distinct
+ * forms (audited across 30 real saved leagues, 2026-09-09):
+ *
+ *   HEAD_TO_HEAD_ROTI_MULTI_WIN   H2H categories
+ *   ROTISSERIE / rotisserie       roto, in two different cases
+ *   HEAD_TO_HEAD_POINTS_BASED     H2H points
+ *   points                        points
+ *
+ * This used to be `scoringType === "points"` — exact and case-sensitive, so
+ * it recognised only the last of those. A HEAD_TO_HEAD_POINTS_BASED league
+ * was classified as categories, which meant its points formula was never
+ * parsed, parseCategories() read its points-scoring stat list as though the
+ * stats were categories (6 phantom "categories" on FBI Draft Only POINTS 02),
+ * and the Settings screen greyed out the Points toggle it derives from this —
+ * so a points league could be neither auto-detected NOR set by hand (Ash,
+ * 2026-09-09).
+ *
+ * Substring match on POINTS rather than an allow-list of the four known
+ * strings: Fantrax has already shown it will vary case and add qualifiers,
+ * and every categories form observed says ROTI, never POINTS. A new
+ * *_POINTS_* variant should classify correctly the first time it appears
+ * rather than after someone notices a league scoring on phantom categories.
+ */
+export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
+  return /points/i.test(scoringType ?? "") ? "points" : "categories";
+}
+
+/** Human label for the Fantrax scoring type — see scoringModeOf() on why this
+ *  can't be a lookup table over three lowercase strings. */
 export function scoringTypeLabel(type: string): string {
-  switch (type) {
-    case "rotisserie": return "Rotisserie";
-    case "headToHead": return "Head-to-head";
-    case "points": return "Points";
-    default: return type;
-  }
+  const t = (type ?? "").toUpperCase();
+  const h2h = t.startsWith("HEAD_TO_HEAD") || t === "HEADTOHEAD";
+  if (/POINTS/.test(t)) return h2h ? "Head-to-head points" : "Points";
+  if (/ROTI/.test(t)) return h2h ? "Head-to-head categories" : "Rotisserie";
+  if (h2h) return "Head-to-head";
+  return type;
 }
