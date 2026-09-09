@@ -124,6 +124,18 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
   // deliberately excluded — it renders as its own <td> right after this
   // colSpan cell, not folded into it (same layout Roster Edge's ticked row uses).
   const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  /** The driving players' FPTS on the row's own basis: totals sums each
+   *  player's own season figure (rate x his GP), per-game averages the rates
+   *  weighted by GP — matching summedTotal/weightedAverage for categories. */
+  const drivingFpts = (() => {
+    if (format !== "points") return null;
+    const withPoints = drivingPlayers.filter((p) => p.pointsValue != null);
+    if (withPoints.length === 0) return null;
+    const total = withPoints.reduce((sum, p) => sum + p.pointsValue! * (p.gamesPlayed ?? 0), 0);
+    if (statsMode === "totals") return total;
+    const games = withPoints.reduce((sum, p) => sum + (p.gamesPlayed ?? 0), 0);
+    return games > 0 ? total / games : null;
+  })();
   const totalCols = colSpanBeforeStats + (format !== "points" ? 1 : 0) + visibleCats.length;
 
   if (!roster) return null;
@@ -198,8 +210,20 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
           <tbody>
             {drivingPlayers.length > 0 && (
               <tr className="mine">
-                <td colSpan={colSpanBeforeStats} className="l">
+                <td colSpan={colSpanBeforeStats - 1} className="l">
                   Σ {drivingPlayers.length} DRIVING — {statsMode === "totals" ? "season totals" : "weighted per-game average"}
+                </td>
+                {/* The FPTS/VALUE column, previously swallowed by the colSpan
+                    and left blank while every category beside it carried a
+                    figure. Points leagues get the team's own number here —
+                    same weighting as the category cells, so it reads on the
+                    same basis as the rest of the row. A categories VALUE is a
+                    z-score, which doesn't sum or average meaningfully across
+                    a roster, so that stays blank. */}
+                <td>
+                  {format === "points"
+                    ? (drivingFpts == null ? "—" : statsMode === "totals" ? Math.round(drivingFpts).toLocaleString("en-US") : drivingFpts.toFixed(1))
+                    : "—"}
                 </td>
                 {format !== "points" && <td>—</td>}
                 {visibleCats.map((cat) => {
