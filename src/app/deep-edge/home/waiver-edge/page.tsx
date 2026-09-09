@@ -8,11 +8,11 @@ import { TeamLogo, formatCustomSalary, formatRank, formatSalary, statBg, valueBg
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { Modal } from "../../_components/modal";
 import { CategoryRadarChart, CategoryStrengthChart, DashboardCard, PercentileRing, type RadarPoint } from "../../_components/category-dashboard";
-import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory, type ScoringShape } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, FHE_CATEGORIES, type FheCategory } from "@/lib/fantrax/league";
 import { categoryEdges, projectRotoStandings, type LeagueAnalysis, type ResolvedPlayer, type TeamCategoryProfile } from "@/lib/fantrax/analyze";
 import {
   buildDepthWeightedProfiles, deriveRankingsFormat, depthWeight, formatPerGame, formatTotal, rotoStandingsByRawStat,
-  simulateStandingsFor, totalsValue, weightedPerGame, type TeamH2HRecord,
+  simulateStandingsFor, totalsValue, weightedPerGame, type StandingsContext, type TeamH2HRecord,
 } from "@/lib/fantrax/power-rankings";
 import { tierBg, tierFill } from "../../_components/tier-colors";
 import { StrengthBar } from "../../_components/strength-bar";
@@ -416,8 +416,8 @@ function WaiverEdgeContent() {
   const chartH2hRecords: TeamH2HRecord[] | null = useMemo(() => {
     if (!chartProfiles) return null;
     if (!chartFormat) return null;
-    return simulateStandingsFor(chartFormat, chartAnalysis?.league.scoringShape, chartProfiles, chartScored);
-  }, [chartProfiles, chartFormat, chartScored, chartAnalysis?.league.scoringShape]);
+    return simulateStandingsFor(chartFormat, chartAnalysis?.league, chartProfiles, chartScored);
+  }, [chartProfiles, chartFormat, chartScored, chartAnalysis?.league]);
   const chartMyTeamId = chartAnalysis?.myTeamId ?? null;
   const myPowerRank = useMemo(() => {
     if (!chartMyTeamId) return null;
@@ -1076,16 +1076,16 @@ function RotoFullTable({
  *  Rankings itself uses — CATEGORY W-D-L + the per-category YOU VS TEAM glyph
  *  row for h2hcat, RECORD + FPTS/GM for points, STRENGTH bar either way. */
 function H2HFullTable({
-  format, profiles, scored, myTeamId, shape,
+  format, profiles, scored, myTeamId, league,
 }: {
   format: "h2hcat" | "points";
   profiles: TeamCategoryProfile[];
   scored: readonly FheCategory[];
   myTeamId: string;
-  /** Standings rule for this league — see power-rankings.ts's simulateStandingsFor. */
-  shape: ScoringShape | null | undefined;
+  /** Scoring shape + real fixture list — see power-rankings.ts's simulateStandingsFor. */
+  league: StandingsContext | null | undefined;
 }) {
-  const rows = [...(simulateStandingsFor(format, shape, profiles, scored) ?? [])]
+  const rows = [...(simulateStandingsFor(format, league, profiles, scored) ?? [])]
     .sort((a, b) => a.rank - b.rank);
   const myRecord = rows.find((r) => r.teamId === myTeamId);
   return (
@@ -1135,7 +1135,7 @@ function H2HFullTable({
 }
 
 function FullStandingsModal({
-  format, before, after, scored, statMode, myTeamId, shape, onClose,
+  format, before, after, scored, statMode, myTeamId, league, onClose,
 }: {
   format: SimFormat;
   before: TeamCategoryProfile[];
@@ -1143,8 +1143,8 @@ function FullStandingsModal({
   scored: readonly FheCategory[];
   statMode: StatMode;
   myTeamId: string;
-  /** Standings rule for this league — see power-rankings.ts's simulateStandingsFor. */
-  shape: ScoringShape | null | undefined;
+  /** Scoring shape + real fixture list — see power-rankings.ts's simulateStandingsFor. */
+  league: StandingsContext | null | undefined;
   onClose: () => void;
 }) {
   return (
@@ -1158,13 +1158,13 @@ function FullStandingsModal({
           <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 10px" }}>BEFORE</h4>
           {format === "roto"
             ? <RotoFullTable profiles={before} scored={scored} statMode={statMode} myTeamId={myTeamId} />
-            : <H2HFullTable format={format} profiles={before} scored={scored} myTeamId={myTeamId} shape={shape} />}
+            : <H2HFullTable format={format} profiles={before} scored={scored} myTeamId={myTeamId} league={league} />}
         </div>
         <div>
           <h4 style={{ fontSize: 12, fontFamily: "var(--rt-font-mono)", color: "var(--rt-muted)", margin: "0 0 10px" }}>AFTER</h4>
           {format === "roto"
             ? <RotoFullTable profiles={after} scored={scored} statMode={statMode} myTeamId={myTeamId} />
-            : <H2HFullTable format={format} profiles={after} scored={scored} myTeamId={myTeamId} shape={shape} />}
+            : <H2HFullTable format={format} profiles={after} scored={scored} myTeamId={myTeamId} league={league} />}
         </div>
       </div>
     </Modal>
@@ -1323,12 +1323,12 @@ function AddDropSimulatorModal({
   function powerRankOf(profiles: TeamCategoryProfile[]): number | null {
     if (!myTeamId || !format) return null;
     if (format === "roto") return rotoStandingsByRawStat(profiles, scored, statMode).find((r) => r.teamId === myTeamId)?.projectedRank ?? null;
-    const rows = simulateStandingsFor(format, analysis?.league.scoringShape, profiles, scored) ?? [];
+    const rows = simulateStandingsFor(format, analysis?.league, profiles, scored) ?? [];
     return rows.find((r) => r.teamId === myTeamId)?.rank ?? null;
   }
   function winPctOf(profiles: TeamCategoryProfile[]): number | null {
     if (!myTeamId || (format !== "h2hcat" && format !== "points")) return null;
-    const rows = simulateStandingsFor(format, analysis?.league.scoringShape, profiles, scored) ?? [];
+    const rows = simulateStandingsFor(format, analysis?.league, profiles, scored) ?? [];
     return rows.find((r) => r.teamId === myTeamId)?.winPct ?? null;
   }
   function rotoPointsOf(profiles: TeamCategoryProfile[]): number | null {
@@ -1514,7 +1514,7 @@ function AddDropSimulatorModal({
         scored={scored}
         statMode={statMode}
         myTeamId={myTeamId}
-        shape={analysis?.league.scoringShape}
+        league={analysis?.league}
         onClose={() => setShowStandings(false)}
       />
     )}

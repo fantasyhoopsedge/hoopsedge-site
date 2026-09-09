@@ -217,6 +217,10 @@ export interface FantraxLeague {
    *  leagueFormatOf() — null when the label doesn't say. A categories
    *  league only; meaningless when scoringMode is "points". */
   derivedFormat: LeagueFormat | null;
+  /** The league's real regular-season fixture list, one entry per scoring
+   *  period — see parseSchedule(). Empty when Fantrax doesn't give one, and
+   *  callers fall back to a round robin. */
+  schedule: LeagueSchedulePeriod[];
   /** The FULL scoring shape — the distinctions scoringMode and derivedFormat
    *  flatten away, and the only field that says how standings should be
    *  ranked. See scoringShapeOf(). Null when the label doesn't say. */
@@ -439,6 +443,7 @@ export function buildLeague(
   const scoringMode = scoringModeOf(scoringType);
   const derivedFormat = leagueFormatOf(scoringType);
   const scoringShape = scoringShapeOf(scoringType);
+  const schedule = parseSchedule(info);
 
   return {
     leagueId,
@@ -448,6 +453,7 @@ export function buildLeague(
     scoringMode,
     derivedFormat,
     scoringShape,
+    schedule,
     categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
     pointsFormula: scoringMode === "points" ? parsePointsFormula(info) : null,
     teamCount,
@@ -548,6 +554,42 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
  */
 export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
   return /points/i.test(scoringType ?? "") ? "points" : "categories";
+}
+
+/** One scoring period's real fixtures, both sides resolved to team ids. */
+export interface LeagueSchedulePeriod {
+  period: number;
+  pairs: { home: string; away: string }[];
+}
+
+/**
+ * The REGULAR-SEASON fixture list, from Fantrax's own `matchups`.
+ *
+ * Everything past `playoffs.lastRegularSeasonPeriod` is a bracket: those
+ * periods carry `{ seed }` and no team id, because the teams aren't decided
+ * yet, and they cover fewer teams each round. Simulating them would hand
+ * qualifiers extra games and tell you nothing about league strength, so they
+ * are excluded — a side with no id is dropped either way, which also covers
+ * a league that reports no playoff block at all.
+ *
+ * Verified against a real 12-team league (2026-09-09): periods 1-17 carry a
+ * full six-fixture slate and every team plays exactly 17, then 18/19/20 have
+ * 4/2/1 seeded placeholders. Note that is 17 games, NOT the 19 that counting
+ * `scoringPeriods` suggests.
+ */
+function parseSchedule(info: FxLeagueInfo): LeagueSchedulePeriod[] {
+  const lastRegular = info.playoffs?.lastRegularSeasonPeriod;
+  const out: LeagueSchedulePeriod[] = [];
+  for (const entry of info.matchups ?? []) {
+    const period = entry.period;
+    if (period == null) continue;
+    if (lastRegular != null && period > lastRegular) continue;
+    const pairs = (entry.matchupList ?? [])
+      .map((m) => ({ home: m.home?.id, away: m.away?.id }))
+      .filter((m): m is { home: string; away: string } => Boolean(m.home && m.away));
+    if (pairs.length > 0) out.push({ period, pairs });
+  }
+  return out;
 }
 
 /**

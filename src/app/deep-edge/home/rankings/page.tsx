@@ -171,7 +171,7 @@ function PowerRankingsContent() {
   const h2hRecords: TeamH2HRecord[] | null = useMemo(() => {
     if (!profiles) return null;
     if (!format) return null;
-    return simulateStandingsFor(format, analysis?.league.scoringShape, profiles, scored);
+    return simulateStandingsFor(format, analysis?.league, profiles, scored);
   }, [profiles, format, scored, analysis]);
 
   const rotoSort = useSortableTable<RotoStandingRow, "team" | "totalPoints" | FheCategory>(
