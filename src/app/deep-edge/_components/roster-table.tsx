@@ -166,7 +166,7 @@ export function weightedAverage(players: ResolvedPlayer[], cat: FheCategory | Ex
  *  like Power Rankings' embedded roster panel. FG%/FT% still read as a
  *  blended attempts-weighted rate (weightedAverage) — a season shooting
  *  percentage isn't meaningful summed across players. */
-export function summedTotal(players: ResolvedPlayer[], cat: FheCategory): number | null {
+export function summedTotal(players: ResolvedPlayer[], cat: FheCategory | ExtraCode): number | null {
   if (cat === "FG" || cat === "FT") return weightedAverage(players, cat);
   let total = 0;
   let any = false;

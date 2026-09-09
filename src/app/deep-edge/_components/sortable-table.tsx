@@ -46,6 +46,14 @@ export function useSortableTable<T, K extends string>(
   rows: T[],
   initial: SortState<K>,
   valueOf: (row: T, key: K) => number | string | null,
+  /** Anything OUTSIDE `rows` that changes what `valueOf` returns — a per-game
+   *  vs totals basis, say. `valueOf` itself is deliberately not a dependency
+   *  (it is a fresh closure every render, so it would re-sort on every one),
+   *  which means a caller whose accessor reads external state has to declare
+   *  that state here or the table keeps its stale order. Keep the array's
+   *  length constant across renders, as React requires of any dependency
+   *  list. */
+  accessorDeps: readonly unknown[] = [],
 ) {
   const [sort, setSort] = useState<SortState<K>>(initial);
 
@@ -66,7 +74,7 @@ export function useSortableTable<T, K extends string>(
       return sort.dir === "asc" ? av - bv : bv - av;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, sort]);
+  }, [rows, sort, ...accessorDeps]);
 
   return { sort, onSort, sorted };
 }
