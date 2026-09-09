@@ -1,5 +1,5 @@
 import type { LeagueAnalysis, ResolvedPlayer, RotoStandingRow, TeamCategoryProfile, TeamStatTotals } from "./analyze";
-import type { FheCategory, LeaguePointsFormula } from "./league";
+import type { FheCategory, LeaguePointsFormula, ScoringShape } from "./league";
 import { buildOptimalLineup, profileFromLineup, type LineupValueMode, type OptimalLineup } from "./lineup";
 
 export type RankingsFormat = "roto" | "h2hcat" | "points" | "unconfirmed";
@@ -375,9 +375,17 @@ function normCdf(z: number): number {
   return 0.5 * (1 + erf(z / Math.SQRT2));
 }
 
+/** Which record a head-to-head CATEGORIES league is ranked on.
+ *  "perCategory" = HEAD_TO_HEAD_ROTI_MULTI_WIN, a win/loss/tie for every
+ *  scoring category. "perMatchup" = HEAD_TO_HEAD_ROTI_SINGLE_WIN, most
+ *  categories takes one win/loss for the matchup. Both records are computed
+ *  either way — this only chooses which one decides the table. */
+export type H2HWinRule = "perCategory" | "perMatchup";
+
 export function simulateH2HCategoryStandings(
   profiles: TeamCategoryProfile[],
   scored: readonly FheCategory[],
+  winRule: H2HWinRule = "perCategory",
 ): TeamH2HRecord[] {
   const stdevByCat = new Map(scored.map((c) => [c, categoryStdev(profiles, c)]));
 
@@ -414,20 +422,83 @@ export function simulateH2HCategoryStandings(
     const categoryLosses = matchups.reduce((sum, m) => sum + m.losses, 0);
     const categoryDraws = matchups.reduce((sum, m) => sum + m.draws, 0);
     const categoryTotal = categoryWins + categoryDraws + categoryLosses || 1;
+    const matchupTotal = totalWins + totalDraws + totalLosses || 1;
     return {
       teamId: mine.teamId, teamName: mine.teamName, matchups,
       totalWins, totalLosses, totalDraws,
-      winPct: categoryWins / categoryTotal,
+      winPct: winRule === "perMatchup" ? totalWins / matchupTotal : categoryWins / categoryTotal,
       categoryWins, categoryLosses, categoryDraws,
       rank: 0,
     };
   });
 
+  // Tie-breaks follow the ranking rule: a SINGLE_WIN league breaks a level
+  // matchup record on categories won, a MULTI_WIN league the other way round.
   records.sort((a, b) =>
-    b.winPct - a.winPct || (b.totalWins - a.totalWins) || (b.categoryWins - a.categoryWins) || a.teamName.localeCompare(b.teamName),
+    winRule === "perMatchup"
+      ? b.winPct - a.winPct || (b.categoryWins - a.categoryWins) || (b.totalWins - a.totalWins) || a.teamName.localeCompare(b.teamName)
+      : b.winPct - a.winPct || (b.totalWins - a.totalWins) || (b.categoryWins - a.categoryWins) || a.teamName.localeCompare(b.teamName),
   );
   records.forEach((r, i) => { r.rank = i + 1; });
   return records;
+}
+
+/**
+ * Season-long points (POINTS_BASED): no matchups, no record — the table is
+ * simply total fantasy points, most first.
+ *
+ * Returns the same TeamH2HRecord shape so the standings tables can render it
+ * without a parallel type, but the record fields are deliberately ZERO
+ * rather than simulated: this format has no wins to report, and inventing
+ * some was exactly the bug (every points league used to be run through
+ * simulateH2HPointsStandings and shown a Win% it doesn't have). `winPct`
+ * carries each team's share of the leader's total instead — a 0-1 strength
+ * ratio for the bar, never a win rate, and callers must not label it one.
+ */
+export function simulateSeasonPointsStandings(profiles: TeamCategoryProfile[]): TeamH2HRecord[] {
+  const totalOf = (p: TeamCategoryProfile) => p.pointsTotal ?? 0;
+  const leader = Math.max(1, ...profiles.map(totalOf));
+
+  const records: TeamH2HRecord[] = profiles.map((p) => ({
+    teamId: p.teamId,
+    teamName: p.teamName,
+    matchups: [],
+    totalWins: 0, totalLosses: 0, totalDraws: 0,
+    winPct: totalOf(p) / leader,
+    categoryWins: 0, categoryLosses: 0, categoryDraws: 0,
+    rank: 0,
+  }));
+
+  records.sort((a, b) => b.winPct - a.winPct || a.teamName.localeCompare(b.teamName));
+  records.forEach((r, i) => { r.rank = i + 1; });
+  return records;
+}
+
+/**
+ * The one place that decides which standings simulation a league gets.
+ *
+ * Every screen used to inline `format === "h2hcat" ? categories : points`,
+ * which had no way to express the two distinctions ScoringShape carries —
+ * so a SINGLE_WIN league was ranked on categories and a season-long points
+ * league was given simulated matchups. Passing the shape here fixes all of
+ * them at once; a null shape (unlabelled or legacy league) falls back to the
+ * old reading, which is right for every league that has one.
+ *
+ * Returns null for roto — that has its own standings (rotoStandingsByRawStat).
+ */
+export function simulateStandingsFor(
+  format: RankingsFormat,
+  shape: ScoringShape | null | undefined,
+  profiles: TeamCategoryProfile[],
+  scored: readonly FheCategory[],
+): TeamH2HRecord[] | null {
+  if (format === "h2hcat") {
+    return simulateH2HCategoryStandings(profiles, scored, shape === "h2hCatSingle" ? "perMatchup" : "perCategory");
+  }
+  if (format === "points") {
+    return shape === "seasonPoints" ? simulateSeasonPointsStandings(profiles) : simulateH2HPointsStandings(profiles);
+  }
+  return null;
 }
 
 export function simulateH2HPointsStandings(profiles: TeamCategoryProfile[]): TeamH2HRecord[] {

@@ -217,6 +217,10 @@ export interface FantraxLeague {
    *  leagueFormatOf() — null when the label doesn't say. A categories
    *  league only; meaningless when scoringMode is "points". */
   derivedFormat: LeagueFormat | null;
+  /** The FULL scoring shape — the distinctions scoringMode and derivedFormat
+   *  flatten away, and the only field that says how standings should be
+   *  ranked. See scoringShapeOf(). Null when the label doesn't say. */
+  scoringShape: ScoringShape | null;
   categories: LeagueCategories;
   /** Populated only when scoringMode === "points". */
   pointsFormula: LeaguePointsFormula | null;
@@ -434,6 +438,7 @@ export function buildLeague(
   const scoringType = info.scoringSystem?.type ?? "unknown";
   const scoringMode = scoringModeOf(scoringType);
   const derivedFormat = leagueFormatOf(scoringType);
+  const scoringShape = scoringShapeOf(scoringType);
 
   return {
     leagueId,
@@ -442,6 +447,7 @@ export function buildLeague(
     scoringType,
     scoringMode,
     derivedFormat,
+    scoringShape,
     categories: scoringMode === "categories" ? parseCategories(info) : { scored: [], unmodelled: [] },
     pointsFormula: scoringMode === "points" ? parsePointsFormula(info) : null,
     teamCount,
@@ -542,6 +548,47 @@ export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: s
  */
 export function scoringModeOf(scoringType: string | null | undefined): "categories" | "points" {
   return /points/i.test(scoringType ?? "") ? "points" : "categories";
+}
+
+/**
+ * How a league's standings are actually decided — the distinction
+ * scoringModeOf() and leagueFormatOf() both flatten away.
+ *
+ *   roto          season-long rotisserie
+ *   h2hCat        h2h, a win/loss/tie for EVERY scoring category
+ *   h2hCatSingle  h2h, most categories takes ONE win/loss per matchup
+ *   h2hPoints     h2h points, weekly matchups
+ *   seasonPoints  season-long points, no matchups at all
+ *
+ * The two flattened pairs are not cosmetic. h2hCat vs h2hCatSingle changes
+ * what a standings row is ranked ON (category record vs matchup record), and
+ * h2hPoints vs seasonPoints decides whether a Win% is a real number or a
+ * fabricated one — a season-long points league has no matchups to win.
+ * Before this existed both pairs collapsed and the whole app simulated
+ * head-to-head matchups for all of them.
+ *
+ * "POINTS_BASED" is matched EXACTLY for seasonPoints rather than by
+ * "not head-to-head": the legacy lower-case "points" form is ambiguous (it
+ * predates Fantrax splitting these types, and the one real league carrying
+ * it is head-to-head points — confirmed against the live API 2026-09-09), so
+ * it keeps today's h2hPoints reading rather than being silently reclassified
+ * as season-long on a guess. A re-sync replaces it with a precise value.
+ */
+export type ScoringShape = "roto" | "h2hCat" | "h2hCatSingle" | "h2hPoints" | "seasonPoints";
+
+export function scoringShapeOf(scoringType: string | null | undefined): ScoringShape | null {
+  const t = (scoringType ?? "").toUpperCase();
+  if (!t || t === "UNKNOWN") return null;
+  const h2h = t.startsWith("HEAD_TO_HEAD") || t === "HEADTOHEAD";
+  if (/POINTS/.test(t)) {
+    if (h2h) return "h2hPoints";
+    return t === "POINTS_BASED" ? "seasonPoints" : "h2hPoints";
+  }
+  if (/ROTI/.test(t)) {
+    if (!h2h) return "roto";
+    return /SINGLE_WIN/.test(t) ? "h2hCatSingle" : "h2hCat";
+  }
+  return null;
 }
 
 /**

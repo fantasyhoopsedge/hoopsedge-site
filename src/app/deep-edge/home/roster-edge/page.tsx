@@ -151,13 +151,16 @@ function RosterEdgeContent() {
 
   const powerRank = useMemo(() => {
     if (!leagueProfiles || !effective || format !== "h2hcat" || !teamId) return null;
-    const records = simulateH2HCategoryStandings(leagueProfiles, effective.scored);
+    const records = simulateH2HCategoryStandings(
+      leagueProfiles, effective.scored,
+      analysis?.league.scoringShape === "h2hCatSingle" ? "perMatchup" : "perCategory",
+    );
     const sorted = [...records].sort((a, b) => b.winPct - a.winPct);
     const idx = sorted.findIndex((r) => r.teamId === teamId);
     const mine = sorted[idx];
     return mine ? { rank: idx + 1, of: sorted.length, winPct: mine.winPct } : null;
     // Roto/points power-rank display: fast-follow, not in this pass
-  }, [leagueProfiles, effective, format, teamId]);
+  }, [leagueProfiles, effective, format, teamId, analysis?.league.scoringShape]);
 
   const isPointsLeague = format === "points";
   const myStandings = useMemo(

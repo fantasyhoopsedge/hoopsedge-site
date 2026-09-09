@@ -261,7 +261,9 @@ function CategoryEdgeContent() {
       ? Math.round(rotoRawStandings!.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0)
       : (standings.find((s) => s.teamId === myTeamId)?.totalPoints ?? 0);
 
-    const h2h = format === "h2hcat" ? simulateH2HCategoryStandings(profiles, scored) : null;
+    const h2h = format === "h2hcat"
+      ? simulateH2HCategoryStandings(profiles, scored, analysis?.league.scoringShape === "h2hCatSingle" ? "perMatchup" : "perCategory")
+      : null;
     const myH2H = h2h?.find((r) => r.teamId === myTeamId) ?? null;
     // The single "power ranking" the dashboard's ring shows — same finish
     // Power Rankings itself would report for this team at this depth/value
