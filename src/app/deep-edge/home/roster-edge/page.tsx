@@ -74,7 +74,7 @@ const ROSTER_ONLY_EXTRAS: { code: ExtraCode; label: string }[] = [
   { code: "FTA", label: "Free throw attempts (FTA)" },
 ];
 
-type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
+type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "fptsRank" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
 type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
 
 function RosterEdgeContent() {
@@ -233,6 +233,17 @@ function RosterEdgeContent() {
     () => meanStd(leaguePlayers.map((p) => p.usgPct).filter((v): v is number => v != null)),
     [leaguePlayers],
   );
+  /** FPTS spread across the players THIS TABLE SHOWS, not the league pool.
+   *  valueBg() saturates above one SD, and a rostered player is routinely two
+   *  or three SD above a league pool that includes deep bench and free
+   *  agents — every cell would come out the same flat green, which is the
+   *  bug this replaced. Scored against his own teammates the column
+   *  discriminates, and reads as what a roster table is for: who on THIS team
+   *  scores. League-wide standing is the RANK column's job. */
+  const fptsStats = useMemo(
+    () => meanStd((roster?.players ?? []).map((p) => p.pointsValue).filter((v): v is number => v != null)),
+    [roster],
+  );
 
   const rotoSort = useSortableTable<ResolvedPlayer, SortKey>(
     roster?.players ?? [],
@@ -248,6 +259,12 @@ function RosterEdgeContent() {
       // otherwise the column displays season totals while ordering on
       // per-game rates, and a high-rate/low-games player sits above someone
       // the table plainly shows as ahead of him.
+      // Its own key rather than reusing "value": the two columns order
+      // identically (rank IS derived from FPTS), but sharing a key would
+      // leave both headers lit and toggling one flip the other's arrow.
+      // Ascending here means #1 first, which is what clicking a rank column
+      // is expected to do.
+      if (key === "fptsRank") return row.pointsValue == null ? -Infinity : row.pointsValue;
       if (key === "value") {
         if (format !== "points") return row.leagueV ?? -Infinity;
         if (row.pointsValue == null) return -Infinity;
@@ -567,7 +584,7 @@ function RosterEdgeContent() {
                       FPTS, so clicking it would sort exactly as the FPTS
                       header beside it already does, with two headers fighting
                       over one sort state. */}
-                  {format === "points" && <th>RANK</th>}
+                  {format === "points" && <SortTh<SortKey> label="RANK" sortKey="fptsRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {format !== "points" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {visibleCats.map((cat) => (
                     <SortTh<SortKey> key={cat} label={CATEGORY_LABEL[cat]} sortKey={cat} sort={rotoSort.sort} onSort={rotoSort.onSort} />
@@ -630,6 +647,7 @@ function RosterEdgeContent() {
                     positionSlots={effective?.positionSlots ?? {}}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
+                    fptsStats={fptsStats}
                     leadingCell={
                       <td>
                         <input

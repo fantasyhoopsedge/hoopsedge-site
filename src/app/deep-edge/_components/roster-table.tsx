@@ -195,6 +195,16 @@ export function vBg(v: number | null | undefined, posAnchor: number, negAnchor: 
 }
 export const statBg = (v: number | null | undefined) => vBg(v, 2.0, 2.0);
 export const valueBg = (v: number | null | undefined) => vBg(v, 1.0, 0.6);
+/** Shading for a RANK column: 1st is fully green, last fully red, linear
+ *  between. Ranks are uniform by construction, so there is no distribution to
+ *  z-score — position in the list IS the signal. Anchored at ±1 for a gentler
+ *  gradient than the value columns, which is what makes a rank column read as
+ *  supporting detail rather than competing with the figure beside it. */
+export function rankBg(rank: number | null | undefined, poolSize: number): string {
+  if (rank == null || !Number.isFinite(rank) || poolSize < 2) return "transparent";
+  const t = 1 - (2 * (rank - 1)) / (poolSize - 1); // +1 best … −1 worst
+  return vBg(t, 1, 1);
+}
 export function meanStd(values: number[]): { mu: number; sigma: number } {
   if (values.length === 0) return { mu: 0, sigma: 0 };
   const mu = values.reduce((a, b) => a + b, 0) / values.length;
@@ -277,6 +287,12 @@ export interface RosterTableRowProps {
    *  points-mode VALUE rank (see rankAmong). */
   leaguePlayers: ResolvedPlayer[];
   usgStats: { mu: number; sigma: number };
+  /** Mean/SD of FPTS across the league pool, for the points-mode FPTS
+   *  column's shading. Required because valueBg() is a Z-SCORE scale: fed a
+   *  raw per-game FPTS figure (25-50) it saturates at full green for every
+   *  player, which is exactly what shipped (Ash, 2026-09-10). Categories mode
+   *  passes its own z-scores already and ignores this. */
+  fptsStats?: { mu: number; sigma: number };
   /** First `<td>` in the row — a checkbox, a rank number, or nothing
    *  (`<td />`). Callers own what selection means here (lineup tick in
    *  Roster Edge, trade selection in Trade Edge). */
@@ -286,7 +302,7 @@ export interface RosterTableRowProps {
 
 export function RosterTableRow({
   player: p, enrich, format, scored, visibleCats, extraCols = [], showSalary, showContract,
-  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", statsMode = "perGame", positionSlots, leaguePlayers, usgStats, leadingCell, className,
+  showDynastyRank, showSalaryRank, salaryFormat = "real", valueMode = "minus1V", statsMode = "perGame", positionSlots, leaguePlayers, usgStats, fptsStats, leadingCell, className,
 }: RosterTableRowProps) {
   const isCustomSalary = salaryFormat === "custom";
   const salaryRank = showSalaryRank && p.fheId ? enrich?.salaryRankByFheId[p.fheId] : null;
@@ -306,6 +322,10 @@ export function RosterTableRow({
       ? (p.gamesPlayed != null ? Math.round(p.pointsValue * p.gamesPlayed).toLocaleString("en-US") : null)
       : p.pointsValue.toFixed(1);
   const usgZ = zOf(p.usgPct, usgStats);
+  // FPTS shades off the league's own scoring distribution, not the raw
+  // figure — see the fptsStats prop.
+  const fptsZ = format === "points" && fptsStats ? zOf(p.pointsValue, fptsStats) : null;
+  const fptsPoolSize = format === "points" ? leaguePlayers.filter((pl) => pl.pointsValue != null).length : 0;
   const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
   return (
@@ -342,11 +362,19 @@ export function RosterTableRow({
           every category column. Categories mode is unchanged — its VALUE is
           a z-score, which is meaningful as a rank and not as a printed
           figure. */}
-      <td style={{ background: valueBg(value) }} title={value != null ? `z-score ${value.toFixed(2)}` : undefined}>
+      <td
+        style={{ background: format === "points" ? valueBg(fptsZ) : valueBg(value) }}
+        title={format === "points"
+          ? (fptsZ != null ? `${fptsZ.toFixed(2)} SD vs league` : undefined)
+          : (value != null ? `z-score ${value.toFixed(2)}` : undefined)}
+      >
         {format === "points" ? (pointsDisplay ?? "—") : formatRank(valueRank)}
       </td>
       {format === "points" && (
-        <td style={{ color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)", fontSize: 12 }}>
+        <td
+          style={{ background: rankBg(valueRank, fptsPoolSize), fontFamily: "var(--rt-font-mono)", fontSize: 12 }}
+          title={valueRank != null ? `${valueRank} of ${fptsPoolSize}` : undefined}
+        >
           {formatRank(valueRank)}
         </td>
       )}

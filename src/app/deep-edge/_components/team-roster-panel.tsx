@@ -115,6 +115,17 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
     () => meanStd(leaguePlayers.map((p) => p.usgPct).filter((v): v is number => v != null)),
     [leaguePlayers],
   );
+  /** FPTS spread across the players THIS TABLE SHOWS, not the league pool.
+   *  valueBg() saturates above one SD, and a rostered player is routinely two
+   *  or three SD above a league pool that includes deep bench and free
+   *  agents — every cell would come out the same flat green, which is the
+   *  bug this replaced. Scored against his own teammates the column
+   *  discriminates, and reads as what a roster table is for: who on THIS team
+   *  scores. League-wide standing is the RANK column's job. */
+  const fptsStats = useMemo(
+    () => meanStd((roster?.players ?? []).map((p) => p.pointsValue).filter((v): v is number => v != null)),
+    [roster],
+  );
   const visibleCats = useMemo(() => scored.filter((c) => !hiddenCats.has(c)), [scored, hiddenCats]);
 
   const showSalary = cols.salary && salaryFormat !== "none";
@@ -268,6 +279,7 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
                     positionSlots={positionSlots}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}
+                    fptsStats={fptsStats}
                     leadingCell={<td>{drivingIds.has(p.fantraxId) ? "✓" : ""}</td>}
                   />
                 ))}
