@@ -2089,7 +2089,7 @@
   {
     "consensusRank": 107,
     "player": "Peyton Watson",
-    "team": "DEN",
+    "team": "CLE",
     "isRookie": false,
     "position": "F",
     "age": 23.7,
@@ -3077,7 +3077,7 @@
   {
     "consensusRank": 159,
     "player": "Bennedict Mathurin",
-    "team": "LAC",
+    "team": "NOR",
     "isRookie": false,
     "position": "G/F",
     "age": 24,
@@ -3514,7 +3514,7 @@
   {
     "consensusRank": 182,
     "player": "Jonathan Kuminga",
-    "team": "FA",
+    "team": "MIN",
     "isRookie": false,
     "position": "F",
     "age": 23.7,
@@ -3951,7 +3951,7 @@
   {
     "consensusRank": 205,
     "player": "DeMar DeRozan",
-    "team": "FA",
+    "team": "DEN",
     "isRookie": false,
     "position": "G/F",
     "age": 36.8,
@@ -5081,7 +5081,7 @@
   {
     "consensusRank": 265,
     "player": "Max Strus",
-    "team": "CLE",
+    "team": "LAC",
     "isRookie": false,
     "position": "F",
     "age": 30.2,
@@ -5251,7 +5251,7 @@
   {
     "consensusRank": 274,
     "player": "Bradley Beal",
-    "team": "FA",
+    "team": "LAC",
     "isRookie": false,
     "position": "G",
     "age": 32.9,
@@ -5375,7 +5375,7 @@
   {
     "consensusRank": 281,
     "player": "Cody Williams",
-    "team": "UTA",
+    "team": "MIN",
     "isRookie": false,
     "position": "G/F",
     "age": 21.5,
@@ -5950,7 +5950,7 @@
   {
     "consensusRank": 312,
     "player": "Dennis Schroder",
-    "team": "CLE",
+    "team": "CHA",
     "isRookie": false,
     "position": "G",
     "age": 32.7,
@@ -5969,7 +5969,7 @@
   {
     "consensusRank": 313,
     "player": "Brandon Williams",
-    "team": "FA",
+    "team": "GSW",
     "isRookie": false,
     "position": "G",
     "age": 26.5,
@@ -6599,7 +6599,7 @@
   {
     "consensusRank": 348,
     "player": "Spencer Jones",
-    "team": "OKC",
+    "team": "DEN",
     "isRookie": false,
     "position": "F",
     "age": 25,
@@ -6865,7 +6865,7 @@
   {
     "consensusRank": 363,
     "player": "Jeremy Sochan",
-    "team": "FA",
+    "team": "POR",
     "isRookie": false,
     "position": "F/C",
     "age": 23.1,
@@ -7044,7 +7044,7 @@
   {
     "consensusRank": 373,
     "player": "Klay Thompson",
-    "team": "DAL",
+    "team": "MIA",
     "isRookie": false,
     "position": "G/F",
     "age": 36.3,
@@ -7359,7 +7359,7 @@
   {
     "consensusRank": 391,
     "player": "Kentavious Caldwell-Pope",
-    "team": "MEM",
+    "team": "PHI",
     "isRookie": false,
     "position": "G",
     "age": 33.3,
@@ -7697,7 +7697,7 @@
   {
     "consensusRank": 411,
     "player": "Johni Broome",
-    "team": "PHI",
+    "team": "LAC",
     "isRookie": false,
     "position": "C",
     "age": 23.9,
@@ -7731,7 +7731,7 @@
   {
     "consensusRank": 413,
     "player": "Josh Green",
-    "team": "MIN",
+    "team": "UTA",
     "isRookie": false,
     "position": "G",
     "age": 25.63,
@@ -7748,7 +7748,7 @@
   {
     "consensusRank": 414,
     "player": "Gary Payton II",
-    "team": "FA",
+    "team": "GSW",
     "isRookie": false,
     "position": "G",
     "age": 33.6,
@@ -7832,7 +7832,7 @@
   {
     "consensusRank": 419,
     "player": "Trendon Watford",
-    "team": "FA",
+    "team": "NOR",
     "isRookie": false,
     "position": "F",
     "age": 25.6,
@@ -8052,7 +8052,7 @@
   {
     "consensusRank": 432,
     "player": "Tre Mann",
-    "team": "CHA",
+    "team": "WAS",
     "isRookie": false,
     "position": "G",
     "age": 25.3,
@@ -8204,7 +8204,7 @@
   {
     "consensusRank": 441,
     "player": "Andre Jackson Jr.",
-    "team": "MIL",
+    "team": "TOR",
     "isRookie": false,
     "position": "G",
     "age": 24.7,
@@ -8288,7 +8288,7 @@
   {
     "consensusRank": 446,
     "player": "Nick Richards",
-    "team": "FA",
+    "team": "MIA",
     "isRookie": false,
     "position": "C",
     "age": 28.5,
@@ -8607,7 +8607,7 @@
   {
     "consensusRank": 465,
     "player": "Taelon Peter",
-    "team": "IND",
+    "team": "SAS",
     "isRookie": false,
     "position": "G",
     "age": 24.35,
@@ -9014,7 +9014,7 @@
   {
     "consensusRank": 490,
     "player": "Rafael Castro",
-    "team": "MIL",
+    "team": "HOU",
     "isRookie": true,
     "position": "C",
     "age": 23.34426957525287,
