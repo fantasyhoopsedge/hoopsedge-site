@@ -563,6 +563,11 @@ function RosterEdgeContent() {
                   <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   <SortTh<SortKey> label={format === "points" ? "FPTS" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
+                  {/* RANK is deliberately NOT sortable: it is derived from
+                      FPTS, so clicking it would sort exactly as the FPTS
+                      header beside it already does, with two headers fighting
+                      over one sort state. */}
+                  {format === "points" && <th>RANK</th>}
                   {format !== "points" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {visibleCats.map((cat) => (
                     <SortTh<SortKey> key={cat} label={CATEGORY_LABEL[cat]} sortKey={cat} sort={rotoSort.sort} onSort={rotoSort.onSort} />
@@ -590,7 +595,9 @@ function RosterEdgeContent() {
                         ? (tickedFpts == null ? "—" : statsMode === "totals" ? Math.round(tickedFpts).toLocaleString("en-US") : tickedFpts.toFixed(1))
                         : "—"}
                     </td>
-                    {format !== "points" && <td>—</td>}
+                    {/* RANK (points) or MINUS1 (categories) — neither
+                        aggregates across a roster. */}
+                    <td>—</td>
                     {visibleCats.map((cat) => {
                       const raw = statsMode === "totals" ? summedTotal(tickedPlayers, cat) : weightedAverage(tickedPlayers, cat);
                       return <td key={cat}>{raw == null ? "—" : statsMode === "totals" ? formatTotal(cat, raw) : formatStat(cat, raw)}</td>;

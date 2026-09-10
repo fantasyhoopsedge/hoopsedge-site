@@ -343,17 +343,13 @@ export function RosterTableRow({
           a z-score, which is meaningful as a rank and not as a printed
           figure. */}
       <td style={{ background: valueBg(value) }} title={value != null ? `z-score ${value.toFixed(2)}` : undefined}>
-        {format === "points" ? (
-          <span style={{ display: "inline-flex", alignItems: "baseline", gap: 5 }}>
-            <span>{pointsDisplay ?? "—"}</span>
-            {valueRank != null && (
-              <span style={{ fontSize: 10.5, color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)" }}>
-                {formatRank(valueRank)}
-              </span>
-            )}
-          </span>
-        ) : formatRank(valueRank)}
+        {format === "points" ? (pointsDisplay ?? "—") : formatRank(valueRank)}
       </td>
+      {format === "points" && (
+        <td style={{ color: "var(--rt-muted)", fontFamily: "var(--rt-font-mono)", fontSize: 12 }}>
+          {formatRank(valueRank)}
+        </td>
+      )}
       {format !== "points" && (
         <td style={{ background: valueBg(p.catV?.perGame.minus1V) }} title={p.catV?.perGame.minus1V != null ? `z-score ${p.catV.perGame.minus1V.toFixed(2)}` : undefined}>
           {formatRank(minus1Rank)}
@@ -430,7 +426,12 @@ export function RosterTableHead({
       <th>MIN</th>
       <th>USG</th>
       <th>{isPoints ? "FPTS" : "VALUE"}</th>
-      {!isPoints && <th>MINUS1</th>}
+      {/* Points leagues carry the FPTS figure and its rank in SEPARATE
+          columns (Ash, 2026-09-10) — one cell holding "49.3 #6" made the
+          rank look like a suffix of the score and neither sortable on its
+          own. Sits where MINUS1 sits for a categories league, so the column
+          count is the same either way. */}
+      {isPoints ? <th>RANK</th> : <th>MINUS1</th>}
       {visibleCats.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
       {extraCols.map((col) => <th key={col}>{col}</th>)}
     </tr>

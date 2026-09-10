@@ -136,7 +136,9 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
     const games = withPoints.reduce((sum, p) => sum + (p.gamesPlayed ?? 0), 0);
     return games > 0 ? total / games : null;
   })();
-  const totalCols = colSpanBeforeStats + (format !== "points" ? 1 : 0) + visibleCats.length;
+  // +1 either way for the column after FPTS/VALUE: RANK in a points league,
+  // MINUS1 in a categories one.
+  const totalCols = colSpanBeforeStats + 1 + visibleCats.length;
 
   if (!roster) return null;
 
@@ -225,7 +227,9 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
                     ? (drivingFpts == null ? "—" : statsMode === "totals" ? Math.round(drivingFpts).toLocaleString("en-US") : drivingFpts.toFixed(1))
                     : "—"}
                 </td>
-                {format !== "points" && <td>—</td>}
+                {/* RANK (points) or MINUS1 (categories) — neither aggregates
+                    across a roster, so both stay blank here. */}
+                <td>—</td>
                 {visibleCats.map((cat) => {
                   const raw = statsMode === "totals" ? summedTotal(drivingPlayers, cat) : weightedAverage(drivingPlayers, cat);
                   const text = raw == null ? "—" : statsMode === "totals" ? formatTotal(cat, raw) : formatStat(cat, raw);
