@@ -16,6 +16,7 @@ import {
   deriveRankingsFormat, rotoStandingsByRawStat, simulateH2HCategoryStandings,
 } from "@/lib/fantrax/power-rankings";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
+import { AssetMiniCard } from "../../_components/asset-mini-card";
 import {
   CategoryRadarChart, DashboardCard, ordinal, PercentileRing, RankBarPanel, RankBarRow, statusColor, TierPill,
   type RadarPoint,
@@ -31,35 +32,65 @@ const TIER_COLOR: Record<string, string> = {
   detractor: "var(--rt-down)",
 };
 
-/** Hover tooltip for the category-row headshot chips — a real, immediate
- *  tooltip rather than the native `title` attribute, which has a delay and
- *  is easy to miss entirely. */
-const CHIP_TOOLTIP_CSS = `
-  .de-chip { position: relative; }
-  .de-chip-tooltip {
-    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-6px);
-    background: var(--rt-ink); color: var(--rt-canvas); font-size: 11px; font-weight: 600;
-    padding: 4px 9px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none;
-    transition: opacity 0.12s ease; z-index: 20;
-  }
-  .de-chip:hover .de-chip-tooltip { opacity: 1; }
-`;
-
-/** A player headshot chip in a category row — bigger than the old 26px
- *  photo (hard to make out who's who at a glance) and shows the player's
- *  name on hover via CHIP_TOOLTIP_CSS above. Shared between the starters
- *  and bench chip lists so both get the same sizing/tooltip behavior. */
-function CategoryChip({ name, slot, ring, dimmed, isRookie }: { name: string; slot: string; ring: string; dimmed?: boolean; isRookie?: boolean }) {
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+/**
+ * A player in a category row, as the same asset card Trade Edge uses
+ * (AssetMiniCard) rather than the round headshot chip that used to sit here
+ * — Ash, 2026-09-12: "replacing the player headshots with the player trading
+ * cards."
+ *
+ * The card carries exactly two pieces of information, both about THIS
+ * category and nothing else:
+ *   fill — his promoter / passive / detractor tier in it (categoryTier off
+ *          his own z, the same call the chip's ring used to make), so a row
+ *          reads as a block of color before you read a single number.
+ *   number — his RANK in it among every rostered player in the league, the
+ *          same pool Trade Edge's own cards rank within. Not a rank within
+ *          your roster: the question a category row answers is "how good is
+ *          this in my league," and a within-team rank would say 1..10 for
+ *          every team regardless of whether the category is won or lost.
+ *
+ * Only the SELECTED lineup is shown — the starters plus whatever the +N
+ * depth control has pulled up (Ash, 2026-09-12: "only display players that
+ * form part of the selected roster ie starters + 1 etc"). The bench cards
+ * that used to trail each row are gone: the row is about the lineup this
+ * screen is scoring, and a tail of players who aren't in it pushed the real
+ * answer onto a second line.
+ *
+ * The card takes its width from its flex parent rather than carrying one, so
+ * a row fits a whole lineup on ONE line and simply gets tighter as the depth
+ * control adds bodies — see the row's own container below.
+ */
+function CategoryPlayerCard({
+  player, slot, cat, rank, statMode,
+}: {
+  player: ResolvedPlayer; slot: string; cat: FheCategory; rank: number | null;
+  /** Both the fill and the rank follow the page's Per Game / Totals toggle,
+   *  reading catsTotals instead of cats under Totals. The old chip's ring
+   *  was always per-game, which made it the last thing on this screen that
+   *  stayed frozen while the toggle moved everything else — the exact
+   *  complaint that produced edgeStandings above (Ash, 2026-08-24: "I would
+   *  expect all of the charts and cat ranks to move"). */
+  statMode: "perGame" | "totals";
+}) {
+  const tier = categoryTier(catZ(player, cat, statMode));
   return (
-    <div className="de-chip" style={{ textAlign: "center", opacity: dimmed ? 0.4 : 1 }}>
-      <span className="de-chip-tooltip">{name}</span>
-      <div style={{ width: 46, height: 46, borderRadius: "50%", padding: 2, border: `2px solid ${ring}` }}>
-        <PlayerHeadshot name={name} size={40} initials={initials} background="var(--rt-surface-strong)" color={ring} fontSize={13} rookie={isRookie} />
-      </div>
-      <div style={{ fontSize: 9.5, color: "var(--rt-muted)", marginTop: 3, fontFamily: "var(--rt-font-mono)" }}>{slot}</div>
-    </div>
+    <AssetMiniCard
+      name={player.name}
+      subLabel={`${slot} · ${player.nbaTeam || "—"}`}
+      bg={tier ? TIER_COLOR[tier] : "var(--rt-surface-strong)"}
+      headline={rank != null ? `#${rank}` : "—"}
+      isRookie={player.isRookie}
+      compact
+      title={`${player.name} — ${CATEGORY_LABEL[cat]}${rank != null ? ` #${rank} in the league` : ""}`}
+    />
   );
+}
+
+/** The z-score the ACTIVE display mode is about — the single accessor the
+ *  card's fill, its rank and the order of the cards in a row all read, so
+ *  none of the three can disagree with the other two. */
+function catZ(player: ResolvedPlayer, cat: FheCategory, statMode: "perGame" | "totals"): number | undefined {
+  return statMode === "totals" ? player.catsTotals[cat] : player.cats[cat];
 }
 
 function formatPerGame(cat: FheCategory, raw: number): string {
@@ -297,6 +328,46 @@ function CategoryEdgeContent() {
     };
   }, [analysis, activeTeamId, baseProfiles, effective, depth, saved, format, forcedIn, forcedOut, valueMode, weight, statMode]);
 
+  /**
+   * Every rostered player's RANK within each scored category, across the
+   * whole league — the number each category-row card shows (see
+   * CategoryPlayerCard).
+   *
+   * The pool is every rostered player in the league, the same one Trade
+   * Edge's own cards rank within, so "#4" means the same kind of thing on
+   * both screens. Deliberately NOT a within-roster rank: every team would
+   * then read 1..10 in every category whether it wins that category or
+   * loses it, which is the one thing this screen is for.
+   *
+   * Ranked on the z-score for the ACTIVE display mode — `cats` per game,
+   * `catsTotals` under Totals, the same pair the card's own fill reads (see
+   * CategoryPlayerCard) — so a rank and the color around it never disagree,
+   * and neither sits still while the rest of the page responds to the
+   * toggle. Higher is always better in both, TO included: the value engine
+   * stores it already sign-flipped, which is why categoryTier can treat
+   * every category identically. A player with no z in a category is left
+   * out of the map rather than ranked last — absent isn't bad, and "—" says
+   * so honestly.
+   *
+   * Independent of `depth`/`forcedIn`/`forcedOut` — those change who STARTS,
+   * not how good a player is in a category.
+   */
+  const categoryRanks = useMemo(() => {
+    const byCat = new Map<FheCategory, Map<string, number>>();
+    if (!analysis || !effective) return byCat;
+    const leaguePlayers = analysis.rosters.flatMap((r) => r.players);
+    const zOf = (p: ResolvedPlayer, cat: FheCategory) => catZ(p, cat, statMode);
+    for (const cat of effective.scored) {
+      const ranked = leaguePlayers
+        .filter((p) => Number.isFinite(zOf(p, cat) as number))
+        .sort((a, b) => (zOf(b, cat) as number) - (zOf(a, cat) as number));
+      const map = new Map<string, number>();
+      ranked.forEach((p, i) => map.set(p.fantraxId, i + 1));
+      byCat.set(cat, map);
+    }
+    return byCat;
+  }, [analysis, effective, statMode]);
+
   // Derived purely for the dashboard summary — kept separate from `computed`
   // so that block stays focused on the real analysis math. TO greys out
   // under the 8-Cat lens (valueMode === "eightCatV"), same "shown but
@@ -390,7 +461,6 @@ function CategoryEdgeContent() {
         </p>
       ) : (
         <>
-          <style>{CHIP_TOOLTIP_CSS}</style>
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: "0 0 24px", maxWidth: 640 }}>
             {isMyTeam ? "Your" : `${computed.myRoster.teamName}'s`} best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
             driven by z-scores; the numbers shown are real {statMode === "perGame" ? "per-game averages" : "season totals"}.
@@ -497,6 +567,7 @@ function CategoryEdgeContent() {
                   const inLineup = Boolean(assignment);
                   const status = out ? "Ruled out" : cantFit ? "Can't fit" : assignment ? `Starts ${assignment.slot}${forced ? " (forced)" : ""}` : "Bench";
                   const borderColor = out || cantFit ? "var(--rt-down)" : inLineup ? "var(--rt-ink)" : "var(--rt-hairline)";
+                  const benched = !out && !cantFit && !inLineup;
                   return (
                     <button
                       key={p.fantraxId}
@@ -515,13 +586,39 @@ function CategoryEdgeContent() {
                         display: "flex", alignItems: "center", gap: 10, padding: 10, borderRadius: 12, textAlign: "left",
                         border: `1px solid ${borderColor}`,
                         background: out || cantFit ? "rgba(219,43,57,0.06)" : "var(--rt-canvas)", cursor: "pointer",
-                        opacity: out ? 0.7 : inLineup || cantFit ? 1 : 0.45,
-                        filter: !out && !cantFit && !inLineup ? "grayscale(0.6)" : "none",
+                        // A <button> does NOT inherit `color` — with none set
+                        // it falls back to the UA's `buttontext`, which is
+                        // BLACK unless the browser has resolved the page to a
+                        // dark color-scheme. So every player name here was
+                        // painting near-black on the dark canvas' near-black
+                        // (#0a0a0a) while the position/status line beneath it,
+                        // which sets --rt-muted explicitly, stayed perfectly
+                        // legible — exactly the split in Ash's screenshot
+                        // (2026-09-12). Every other button in Deep Edge already
+                        // names its own color for this reason; this one didn't.
+                        color: "var(--rt-ink)",
+                        // Bench cards recede through their own parts — greyed
+                        // headshot, muted name, hairline border — never by
+                        // fading the whole button, which drags the text toward
+                        // the background along with everything else. `out`
+                        // keeps a light fade: its name is struck through, and
+                        // that survives the fade.
+                        opacity: out ? 0.7 : 1,
                       }}
                     >
-                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
+                      <span style={{ display: "flex", flexShrink: 0, opacity: benched ? 0.6 : 1, filter: benched ? "grayscale(0.7)" : "none" }}>
+                        <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
+                      </span>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: out ? "line-through" : "none" }}>
+                        <div
+                          style={{
+                            fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                            textDecoration: out ? "line-through" : "none",
+                            // Muted ink rather than faded ink: the token is
+                            // designed to stay readable on both canvases.
+                            color: benched ? "var(--rt-muted)" : undefined,
+                          }}
+                        >
                           {p.name}
                         </div>
                         <div style={{ fontSize: 11, color: out || cantFit ? "var(--rt-down)" : "var(--rt-muted)" }}>
@@ -580,7 +677,8 @@ function CategoryEdgeContent() {
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.promoter, marginRight: 5 }} />Promoter</span>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.passive, marginRight: 5 }} />Passive</span>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.detractor, marginRight: 5 }} />Detractor</span>
-            <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", border: "1px solid var(--rt-hairline)", marginRight: 5 }} />Not in lineup</span>
+            {/* No bench swatch: the rows show the selected lineup only, so
+                there is no "not in lineup" card left to explain. */}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -612,19 +710,27 @@ function CategoryEdgeContent() {
                     />
                     <TierPill rank={edge.rank} of={computed.teamCount} greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)} />
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 14, flex: 1 }}>
+                  {/* One row per category, whole lineup on it. Each card is a
+                      flex item with a small basis and room to grow, capped at
+                      78px, so ten starters spread out and a +5 lineup of
+                      fifteen tightens to ~46px rather than spilling onto a
+                      second line. 46 is the floor because it is about where
+                      a two-line name and a "#436" rank stop fitting at all;
+                      wrapping stays ON below it so a narrow viewport gets a
+                      second row instead of a line of illegible stamps. */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: 1, minWidth: 0 }}>
                     {[...computed.effectiveStarters]
-                      .sort((a, b) => (b.player.cats[edge.category] ?? -Infinity) - (a.player.cats[edge.category] ?? -Infinity))
-                      .map((a) => {
-                        const tier = categoryTier(a.player.cats[edge.category]);
-                        const ring = tier ? TIER_COLOR[tier] : "var(--rt-hairline)";
-                        return <CategoryChip key={a.player.fantraxId} name={a.player.name} slot={a.slot} ring={ring} isRookie={a.player.isRookie} />;
-                      })}
-                    {[...computed.effectiveBench]
-                      .sort((a, b) => (b.cats[edge.category] ?? -Infinity) - (a.cats[edge.category] ?? -Infinity))
-                      .slice(0, 6)
-                      .map((p) => (
-                        <CategoryChip key={p.fantraxId} name={p.name} slot={p.slot} ring="var(--rt-hairline)" dimmed isRookie={p.isRookie} />
+                      .sort((a, b) => (catZ(b.player, edge.category, statMode) ?? -Infinity) - (catZ(a.player, edge.category, statMode) ?? -Infinity))
+                      .map((a) => (
+                        <div key={a.player.fantraxId} style={{ flex: "1 1 46px", minWidth: 46, maxWidth: 78 }}>
+                          <CategoryPlayerCard
+                            player={a.player}
+                            slot={a.slot}
+                            cat={edge.category}
+                            rank={categoryRanks.get(edge.category)?.get(a.player.fantraxId) ?? null}
+                            statMode={statMode}
+                          />
+                        </div>
                       ))}
                   </div>
                 </div>
