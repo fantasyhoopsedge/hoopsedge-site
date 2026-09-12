@@ -567,6 +567,7 @@ function CategoryEdgeContent() {
                   const inLineup = Boolean(assignment);
                   const status = out ? "Ruled out" : cantFit ? "Can't fit" : assignment ? `Starts ${assignment.slot}${forced ? " (forced)" : ""}` : "Bench";
                   const borderColor = out || cantFit ? "var(--rt-down)" : inLineup ? "var(--rt-ink)" : "var(--rt-hairline)";
+                  const benched = !out && !cantFit && !inLineup;
                   return (
                     <button
                       key={p.fantraxId}
@@ -585,13 +586,39 @@ function CategoryEdgeContent() {
                         display: "flex", alignItems: "center", gap: 10, padding: 10, borderRadius: 12, textAlign: "left",
                         border: `1px solid ${borderColor}`,
                         background: out || cantFit ? "rgba(219,43,57,0.06)" : "var(--rt-canvas)", cursor: "pointer",
-                        opacity: out ? 0.7 : inLineup || cantFit ? 1 : 0.45,
-                        filter: !out && !cantFit && !inLineup ? "grayscale(0.6)" : "none",
+                        // A <button> does NOT inherit `color` — with none set
+                        // it falls back to the UA's `buttontext`, which is
+                        // BLACK unless the browser has resolved the page to a
+                        // dark color-scheme. So every player name here was
+                        // painting near-black on the dark canvas' near-black
+                        // (#0a0a0a) while the position/status line beneath it,
+                        // which sets --rt-muted explicitly, stayed perfectly
+                        // legible — exactly the split in Ash's screenshot
+                        // (2026-09-12). Every other button in Deep Edge already
+                        // names its own color for this reason; this one didn't.
+                        color: "var(--rt-ink)",
+                        // Bench cards recede through their own parts — greyed
+                        // headshot, muted name, hairline border — never by
+                        // fading the whole button, which drags the text toward
+                        // the background along with everything else. `out`
+                        // keeps a light fade: its name is struck through, and
+                        // that survives the fade.
+                        opacity: out ? 0.7 : 1,
                       }}
                     >
-                      <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
+                      <span style={{ display: "flex", flexShrink: 0, opacity: benched ? 0.6 : 1, filter: benched ? "grayscale(0.7)" : "none" }}>
+                        <PlayerHeadshot name={p.name} size={42} initials={p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")} background="var(--rt-surface-strong)" color="var(--rt-muted)" fontSize={13} rookie={p.isRookie} />
+                      </span>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: out ? "line-through" : "none" }}>
+                        <div
+                          style={{
+                            fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                            textDecoration: out ? "line-through" : "none",
+                            // Muted ink rather than faded ink: the token is
+                            // designed to stay readable on both canvases.
+                            color: benched ? "var(--rt-muted)" : undefined,
+                          }}
+                        >
                           {p.name}
                         </div>
                         <div style={{ fontSize: 11, color: out || cantFit ? "var(--rt-down)" : "var(--rt-muted)" }}>

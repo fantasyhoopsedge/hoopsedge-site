@@ -29,7 +29,7 @@ import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
  * white").
  */
 export function AssetMiniCard({
-  name, subLabel, bg, headline, isRookie, checked, onToggle, dot, width, dimmed, title, compact,
+  name, subLabel, bg, headline, isRookie, checked, onToggle, dot, width, title, compact,
 }: {
   name: string;
   /** The line under the name — "PG/SG · OKC" in Trade Edge, lineup slot plus
@@ -53,7 +53,6 @@ export function AssetMiniCard({
    *  card in — Trade Edge's auto-fill grid cells, or Category Edge's flex
    *  items, which size themselves so a whole lineup lands on one row. */
   width?: number;
-  dimmed?: boolean;
   title?: string;
   /** Scales the type down for a card rendered small (Ash, 2026-09-12: "make
    *  cards a little bit smaller... make the player rank # slightly smaller
@@ -83,7 +82,7 @@ export function AssetMiniCard({
         // A FIXED-width card must not be squeezed by a flex parent; a
         // fill-the-box one is being sized by that parent on purpose.
         flexShrink: width != null ? 0 : undefined,
-        opacity: dimmed ? 0.55 : 1, padding: 0,
+        padding: 0,
       }}
     >
       {/* Headshot fills the card's own bottom-right quadrant, flush to the
