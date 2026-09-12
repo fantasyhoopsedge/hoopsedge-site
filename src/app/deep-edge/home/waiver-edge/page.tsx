@@ -112,6 +112,17 @@ const ROSTER_VIEW_OPTIONS: { value: RosterView; label: string }[] = [
   { value: "myTeam", label: "My Team" },
 ];
 
+/** The same gold Trade Edge's asset cards already use (asset-tiers.ts's
+ *  rookie-tier fill), reused verbatim rather than picked fresh so the Deep
+ *  Edge palette stays one palette. It carries no rookie meaning on this
+ *  screen — here the only thing wearing it is a row that's already yours.
+ *  A solid fill rather than the muted outline it replaced: in a 110-row
+ *  mixed board the whole job of this tag is to be findable while scanning
+ *  (Ash, 2026-09-12: "make rostered players standout"). Dark ink on gold
+ *  reads the same in both themes, so it needs no light/dark variant. */
+const ROSTERED_GOLD = "#D9A521";
+const ROSTERED_GOLD_INK = "#241B04";
+
 type ClassFilterKey = "rookie" | "soph" | "vet";
 const POSITION_OPTIONS = ["G", "F", "C"] as const;
 
@@ -950,7 +961,7 @@ function WaiverEdgeContent() {
                                   views every row is the same kind, so a tag on
                                   each one would be noise rather than signal. */}
                               {rosterView === "both" && a.owned && (
-                                <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4, color: "var(--rt-muted)", border: "1px solid var(--rt-hairline)", borderRadius: 4, padding: "1px 4px" }}>
+                                <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, letterSpacing: 0.5, color: ROSTERED_GOLD_INK, background: ROSTERED_GOLD, borderRadius: 4, padding: "2px 5px", verticalAlign: "middle" }}>
                                   ROSTERED
                                 </span>
                               )}
