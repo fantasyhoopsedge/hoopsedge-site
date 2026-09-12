@@ -16,8 +16,19 @@ import type { SeasonPlayerStats } from "@/types/database";
 /**
  * Waiver Edge (Ash, 2026-08-29, revised 2026-08-31) — every free agent in a
  * connected league, ranked for that league's own scoring format. Unlike
- * League Rankings, this ONLY ever shows free agents (no rostered players, no
- * draft picks, no fantasy-team column).
+ * League Rankings, this shows no draft picks and no fantasy-team column: its
+ * subject is the waiver decision, which is always "this player versus that
+ * one," never a whole-league asset board.
+ *
+ * It showed FREE AGENTS ONLY until 2026-09-12, when the viewer gained a
+ * choice of three populations — "My Team + Free Agents", "Free Agents"
+ * (still the default) and "My Team" (Ash). The point of the first is that a
+ * waiver claim is a comparison: a free agent is only worth adding relative
+ * to whoever he'd replace, and ranking both sides in ONE sorted table is
+ * what makes the swap legible. So a rostered row is built by the same loop,
+ * off the same stats, values and league rank as a free-agent row — anything
+ * else would make the comparison a lie. `owned` marks which is which; see
+ * WaiverEdgeResult.myTeamAssets on why they travel as two arrays.
  *
  * WaiverSeasonMode (its own doc, above) picks which season's raw stats drive
  * the whole table — 2026-27 Projections (default) or "Current Season",
@@ -117,6 +128,13 @@ export interface WaiverAssetRow {
   key: string;
   fantraxId: string;
   name: string;
+  /** True for a player on the CONNECTED team's roster, false for a free
+   *  agent. Both shapes are built by the same code path off the same
+   *  sources, so the two are directly comparable in one sorted table — this
+   *  flag exists so the client can tell them apart where it matters (the
+   *  Add column, which only means something for a free agent), never to
+   *  value them differently. */
+  owned: boolean;
   pos: string | null;
   nbaTeam: string | null;
   isRookie: boolean;
@@ -154,7 +172,16 @@ export interface WaiverAssetRow {
 }
 
 export interface WaiverEdgeResult {
+  /** Free agents — the board's default view, and every row `owned: false`. */
   assets: WaiverAssetRow[];
+  /** The CONNECTED team's own rostered players, in the identical row shape
+   *  (Ash, 2026-09-12: a view switch between "My Team + Free Agents", "Free
+   *  Agents" and "My Team"). Empty when no team is connected. Kept a
+   *  SEPARATE array rather than folded into `assets` behind a flag so that
+   *  every existing consumer of `assets` — which has meant "free agents"
+   *  since this file was written, including the Add/Drop Simulator's own
+   *  add-cart — keeps meaning exactly that without auditing each one. */
+  myTeamAssets: WaiverAssetRow[];
   family: "categories" | "points";
   /** Categories this league actually scores, FHE_CATEGORIES order — the
    *  client's 8CatV option only ever excludes TO regardless of this (that's
@@ -277,17 +304,30 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
 
   const idx = playerIdentity();
   const rawFAs = analysis.league.freeAgents ?? [];
+  // The connected team's own roster, resolved and priced through the exact
+  // same path as a free agent so the two are comparable in one sorted table
+  // (Ash, 2026-09-12). A LeagueRoster's `players` are LeagueRosterSpot, the
+  // same shape `freeAgents` already is, which is what makes one shared loop
+  // possible rather than a parallel implementation that could drift.
+  // Empty when no team is connected — the client hides the views that need
+  // it rather than showing an empty board.
+  const myRoster = teamId ? analysis.league.rosters.find((r) => r.teamId === teamId)?.players ?? [] : [];
+  const population: { spot: (typeof rawFAs)[number]; owned: boolean }[] = [
+    ...rawFAs.map((spot) => ({ spot, owned: false })),
+    ...myRoster.map((spot) => ({ spot, owned: true })),
+  ];
   const fheIdByFantraxId = new Map<string, string>();
-  for (const fa of rawFAs) {
+  for (const { spot } of population) {
     // Fantrax id, never name — see this file's header.
-    const r = idx.resolve({ fantraxId: fa.fantraxId });
+    const r = idx.resolve({ fantraxId: spot.fantraxId });
     if (r.kind === "matched" && r.identity.fheId) {
-      fheIdByFantraxId.set(fa.fantraxId, r.identity.fheId);
+      fheIdByFantraxId.set(spot.fantraxId, r.identity.fheId);
     }
   }
   const fheIds = [...new Set(fheIdByFantraxId.values())];
 
   const assets: WaiverAssetRow[] = [];
+  const myTeamAssets: WaiverAssetRow[] = [];
 
   if (fheIds.length > 0) {
     // Resolve fhe_id -> season_player_stats FIRST, then join season_player_values
@@ -338,7 +378,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
       }] as const;
     }));
 
-    for (const fa of rawFAs) {
+    for (const { spot: fa, owned } of population) {
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
       if (!fheId) continue;
       const stat = statByFheId.get(fheId);
@@ -358,8 +398,8 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
       const fpts = family === "points" && pointsFormula ? pointsValueOf(statLine, pointsFormula) : null;
       const contractInfo = contractByFheId[fheId];
 
-      assets.push({
-        key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name,
+      (owned ? myTeamAssets : assets).push({
+        key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name, owned,
         pos: positionGroup(fa.eligible), nbaTeam: fa.nbaTeam && fa.nbaTeam !== "(N/A)" ? fa.nbaTeam : null,
         isRookie: rookieByFheId[fheId] ?? false,
         isSophomore: sophomoreByFheId[fheId] ?? false,
@@ -371,6 +411,11 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         fpts,
         catsRaw, catsZ: v.catsZ, catsZTotals: v.catsZTotals,
         leagueRank: leagueRankByFantraxId[fa.fantraxId] ?? null,
+        // Real-world NBA salary for a rostered player too, NOT his in-league
+        // one (spot.salary) — the SALARY column only renders for real-salary
+        // leagues, where the two are meant to be the same number anyway, and
+        // one source across both populations is what keeps a mixed My Team +
+        // Free Agents board sortable on it. See this file's header.
         salary: contractInfo?.currentSalary ?? null,
         salaryRank: salaryRankByFheId[fheId] ?? null,
       });
@@ -379,6 +424,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
 
   return {
     assets,
+    myTeamAssets,
     family,
     scoredCategories: [...scored],
     positionSlots: analysis.league.positionSlots ?? {},
