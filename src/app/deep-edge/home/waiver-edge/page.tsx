@@ -97,6 +97,21 @@ import type { WaiverAssetRow, WaiverEdgeResult, WaiverSeasonMode } from "@/lib/f
  * waiverBoard) rather than every row in this table.
  */
 
+/** Which population the board shows (Ash, 2026-09-12). "Free Agents" stays
+ *  the default — it is what Waiver Edge has always been, and the screen's
+ *  whole subject is who to claim. The other two exist because a claim is a
+ *  COMPARISON: "My Team + Free Agents" ranks both sides in one sorted table
+ *  so the swap is legible at a glance, and "My Team" alone answers the
+ *  other half of the same question (who is droppable). Rostered rows are
+ *  computed identically to free-agent ones server-side — see
+ *  waiver-edge.ts's own header. */
+type RosterView = "both" | "freeAgents" | "myTeam";
+const ROSTER_VIEW_OPTIONS: { value: RosterView; label: string }[] = [
+  { value: "both", label: "My Team + Free Agents" },
+  { value: "freeAgents", label: "Free Agents" },
+  { value: "myTeam", label: "My Team" },
+];
+
 type ClassFilterKey = "rookie" | "soph" | "vet";
 const POSITION_OPTIONS = ["G", "F", "C"] as const;
 
@@ -262,6 +277,7 @@ function WaiverEdgeContent() {
    *  on a league change same as catvModeInitialized below (a punt chosen
    *  against one league's category set has no meaning against another's). */
   const [puntedCats, setPuntedCats] = useState<Set<FheCategory>>(new Set());
+  const [rosterView, setRosterView] = useState<RosterView>("freeAgents");
   const [classFilter, setClassFilter] = useState<Set<ClassFilterKey>>(new Set());
   const [positionFilter, setPositionFilter] = useState<Set<PositionFilterKey>>(new Set());
   const [teamFilter, setTeamFilter] = useState<Set<string>>(new Set());
@@ -505,22 +521,48 @@ function WaiverEdgeContent() {
   // keeps its own league-aware formatter — those totals are cap figures.
   const fmtSalary = (n: number | null) => formatSalary(n);
 
+  /** The rows this view is drawn from, before any filter. A league with no
+   *  connected team has no myTeamAssets at all, so the two views that need
+   *  them fall back to free agents rather than rendering an empty board —
+   *  the select hides those options in that case too, so this is the belt
+   *  to that braces. */
+  const hasMyTeam = (data?.myTeamAssets.length ?? 0) > 0;
+  const baseRows = useMemo(() => {
+    if (!data) return [];
+    if (!hasMyTeam) return data.assets;
+    if (rosterView === "myTeam") return data.myTeamAssets;
+    if (rosterView === "both") return [...data.myTeamAssets, ...data.assets];
+    return data.assets;
+  }, [data, rosterView, hasMyTeam]);
+
+  /** Only teams actually represented in the CURRENT view — a filter offering
+   *  all 30 would hand you empty results for whichever have none, and one
+   *  built from the free agents alone would do the same on My Team. */
+  const teamsOnBoard = useMemo(
+    () => [...new Set(baseRows.map((a) => a.nbaTeam).filter((t): t is string => t != null))].sort(),
+    [baseRows],
+  );
+
+  /** A team chosen on one view can be absent from the next (a team with a
+   *  free agent but nobody on my roster, say). Intersecting here means
+   *  switching views silently widens that filter back out instead of
+   *  showing an empty board under a filter the user can no longer see — and
+   *  it does so without resetting their choice, so switching back restores
+   *  it. */
+  const effectiveTeamFilter = useMemo(
+    () => new Set([...teamFilter].filter((t) => teamsOnBoard.includes(t))),
+    [teamFilter, teamsOnBoard],
+  );
+
   const filteredRows = useMemo(() => {
     if (!data) return [];
-    return data.assets.filter(
+    return baseRows.filter(
       (a) => (classFilter.size === 0 || classFilter.has(classOf(a)))
         && (positionFilter.size === 0 || [...positionFilter].some((g) => touchesPosition(a.pos, g)))
-        && (teamFilter.size === 0 || (a.nbaTeam != null && teamFilter.has(a.nbaTeam)))
+        && (effectiveTeamFilter.size === 0 || (a.nbaTeam != null && effectiveTeamFilter.has(a.nbaTeam)))
         && (salaryBandFilter.size === 0 || [...salaryBandFilter].some((k) => inSalaryBand(a.salary, k))),
     );
-  }, [data, classFilter, positionFilter, teamFilter, salaryBandFilter]);
-
-  /** Only teams that actually have a free agent on this board — a filter
-   *  offering all 30 would hand you empty results for whichever have none. */
-  const teamsOnBoard = useMemo(
-    () => [...new Set((data?.assets ?? []).map((a) => a.nbaTeam).filter((t): t is string => t != null))].sort(),
-    [data],
-  );
+  }, [data, baseRows, classFilter, positionFilter, effectiveTeamFilter, salaryBandFilter]);
 
   const rowsWithValue = useMemo(
     () => filteredRows.map((a) => ({ asset: a, value: waiverValueOf(a, data?.family ?? "categories", catvMode, statMode, puntedCats) })),
@@ -558,6 +600,33 @@ function WaiverEdgeContent() {
      the column they were always sitting beneath. */
   const filtersBlock = !loadingSaved && saved ? (
     <div style={{ marginTop: 18 }}>
+      {/* First row, ahead of SEASON: it decides WHO the board is about, and
+          every filter under it narrows within that choice. A select rather
+          than pills for the same reason the Team filter is one — three long
+          labels would eat the column's width. Shown only when there is a
+          connected team to show; a league with none has nothing but free
+          agents to offer, so the control would be a menu of one. */}
+      {hasMyTeam && (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+          <label htmlFor="we-view" style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SHOW</label>
+          <select
+            id="we-view"
+            value={rosterView}
+            onChange={(e) => setRosterView(e.target.value as RosterView)}
+            style={{
+              height: 34, borderRadius: 8, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", padding: "0 10px", fontSize: 12.5, color: "var(--rt-ink)",
+            }}
+          >
+            {ROSTER_VIEW_OPTIONS.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {value === "freeAgents" ? label : label.replace("My Team", saved.teamName ?? "My Team")}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
         <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SEASON</span>
         <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>
@@ -747,8 +816,9 @@ function WaiverEdgeContent() {
         <div>
           <h1 style={{ fontSize: 28, fontWeight: 700, margin: "0 0 8px" }}>Waiver Edge</h1>
           <p style={{ color: "var(--rt-body)", fontSize: 14, margin: 0, maxWidth: 680 }}>
-            Every free agent in {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts —
-            click a header. Only free agents show here; nothing to filter by fantasy team.
+            {rosterView === "myTeam" ? "Your roster" : rosterView === "both" ? "Your roster and every free agent" : "Every free agent"} in{" "}
+            {saved?.leagueName ?? "your league"}, ranked for its own scoring format. Every column sorts — click a header.
+            {hasMyTeam ? " Switch what the board covers with SHOW." : " Only free agents show here; nothing to filter by fantasy team."}
           </p>
           {filtersBlock}
         </div>
@@ -805,7 +875,7 @@ function WaiverEdgeContent() {
                   <tr>
                     <th style={{ width: 34 }}>ADD</th>
                     <th>RANK</th>
-                    <SortTh<SortKey> label="FREE AGENT" sortKey="name" sort={sort} onSort={onSort} align="left" />
+                    <SortTh<SortKey> label={rosterView === "freeAgents" ? "FREE AGENT" : "PLAYER"} sortKey="name" sort={sort} onSort={onSort} align="left" />
                     <SortTh<SortKey> label="TEAM" sortKey="team" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="AGE" sortKey="age" sort={sort} onSort={onSort} />
                     <SortTh<SortKey>
@@ -849,15 +919,25 @@ function WaiverEdgeContent() {
                     return (
                       <tr key={a.key}>
                         <td>
-                          <button
-                            type="button"
-                            className={`we-add-btn${inCart ? " we-add-btn-active" : ""}`}
-                            onClick={() => toggleCart(a)}
-                            aria-pressed={inCart}
-                            title={inCart ? "Remove from simulator" : "Add to simulator"}
-                          >
-                            {inCart ? "✓" : "+"}
-                          </button>
+                          {/* A player already on your roster can't be ADDED,
+                              so he gets no + here. Dropping him is the
+                              Simulator's own separate step, chosen there
+                              against the live roster — see AddDropSimulator.
+                              The cell keeps its width rather than collapsing
+                              so the column stays aligned in a mixed view. */}
+                          {a.owned ? (
+                            <span style={{ color: "var(--rt-muted)", fontSize: 11 }} title="Already on your roster">●</span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={`we-add-btn${inCart ? " we-add-btn-active" : ""}`}
+                              onClick={() => toggleCart(a)}
+                              aria-pressed={inCart}
+                              title={inCart ? "Remove from simulator" : "Add to simulator"}
+                            >
+                              {inCart ? "✓" : "+"}
+                            </button>
+                          )}
                         </td>
                         <td>{i + 1 <= 10 ? <span style={{ color: "var(--rt-primary)", fontWeight: 700 }}>{i + 1}</span> : i + 1}</td>
                         <td className="l">
@@ -866,6 +946,14 @@ function WaiverEdgeContent() {
                             <span>
                               <span className="de-player-name">{a.name}</span>
                               {a.pos && <span style={{ color: "var(--rt-muted)", marginLeft: 6, fontSize: 11 }}>{a.pos}</span>}
+                              {/* Only in the mixed view: on the single-population
+                                  views every row is the same kind, so a tag on
+                                  each one would be noise rather than signal. */}
+                              {rosterView === "both" && a.owned && (
+                                <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 700, letterSpacing: 0.4, color: "var(--rt-muted)", border: "1px solid var(--rt-hairline)", borderRadius: 4, padding: "1px 4px" }}>
+                                  ROSTERED
+                                </span>
+                              )}
                             </span>
                           </div>
                         </td>
