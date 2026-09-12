@@ -12,7 +12,7 @@ import type { TradeValueMode } from "./trade-edge";
 import { playerIdentity } from "../player-identity/bundled";
 import { DRAFT_BOARD } from "../rookie-board";
 import { createAdminClient } from "../../utils/supabase/admin";
-import type { LedgerRow } from "./custom-valuations-store";
+import type { LedgerRow, PickValueCurve } from "./custom-valuations-store";
 
 /**
  * The custom league-asset ledger — everything this session validated by
@@ -224,6 +224,11 @@ export interface CustomLedgerResult {
   pickCount: number;
   extraPickCount: number;
   rows: LedgerRow[];
+  /** The current draft class's full per-slot value curve — see
+   *  PickValueCurve for why this is stored alongside the (ownership-
+   *  filtered) pick rows rather than derived from them. Flows into the
+   *  saved doc via the API route's own `...result` spread. */
+  pickCurve: PickValueCurve;
   /** "full" = every rostered player/FA/pick revalued (computeCustomLedger);
    *  "picksOnly" = draft-pick values alone, generated for a league that
    *  otherwise reads standard base values (computePickValuesLedger below) —
@@ -370,7 +375,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
   // therefore value) versus the original combined computation — reusing
   // this map instead of a fresh, narrower call is what keeps player values
   // byte-identical to before this function was split in two.
-  const { rows: pickRows, pickCount, extraPickCount, rawBaseValueByFantraxId } = buildPickAssetRows({
+  const { rows: pickRows, pickCount, extraPickCount, rawBaseValueByFantraxId, pickCurve } = buildPickAssetRows({
     analysis, corePlayers: [...rostered, ...faPlayers], dynastyRankByFheId, idx, rookieSalaryScale,
     leagueType, valueBasis, categoryFallbackMode, consensusPoolSize, realSalaryRankByFheId, realSalaryPoolSize,
     keeperPolicy, contractRules, currentSeason,
@@ -432,6 +437,7 @@ export async function computeCustomLedger(input: CustomValuationsInput): Promise
     pickCount,
     extraPickCount,
     rows,
+    pickCurve,
     mode: "full",
     realSalaryEfficiencyWeight: salaryFormat === "real" ? (input.realSalaryEfficiencyWeight ?? DEFAULT_EFFICIENCY_WEIGHT) : null,
   };
@@ -471,6 +477,8 @@ interface PickAssetRowsResult {
   rows: LedgerRow[];
   pickCount: number;
   extraPickCount: number;
+  /** See CustomLedgerResult.pickCurve. */
+  pickCurve: PickValueCurve;
   /** computeBaseTradeValues' own output over the full corePlayers+pick pool
    *  — handed back so a caller with its own corePlayers (computeCustomLedger)
    *  can price ITS OWN player rows off the exact same computation, rather
@@ -497,7 +505,20 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
   const allPickYears = analysis.league.rosters.flatMap((r) => r.draftPicks.map((p) => p.year));
   const draftYear = allPickYears.length > 0 ? Math.min(...allPickYears) : new Date().getFullYear();
   const currentYearPicks = analysis.league.rosters.flatMap((r) => r.draftPicks).filter((p) => p.year === draftYear);
-  const totalPicks = currentYearPicks.reduce((max, p) => Math.max(max, p.overallPick ?? 0), TOTAL_2026_PICKS_DEFAULT);
+  // How deep this league's draft runs. `currentYearPicks` only ever carries
+  // the slots still UNDRAFTED (see currentSeasonPickAssets in league.ts), so
+  // its own max slot shrinks as the draft proceeds and hits zero once it
+  // concludes — which would silently shorten the value curve below to
+  // TOTAL_2026_PICKS_DEFAULT and leave a projected 3rd-round slot past #60
+  // with no anchor at all. league.draft.totalPicks is the whole draft board,
+  // drafted or not, so it stays put for the entire draft window. It reports
+  // the CURRENT season's board, which is the right length even when
+  // draftYear has already rolled to the next class (a 3-round league stays a
+  // 3-round league), so it's read as a depth hint, never as a year.
+  const totalPicks = Math.max(
+    currentYearPicks.reduce((max, p) => Math.max(max, p.overallPick ?? 0), TOTAL_2026_PICKS_DEFAULT),
+    analysis.league.draft?.totalPicks ?? 0,
+  );
   const candidates: { name: string; pos: string; nbaTeam: string; fheId: string; consensusRank: number }[] = [];
   for (const boardPlayer of DRAFT_BOARD) {
     const r = idx.resolve({ name: boardPlayer.name });
@@ -641,7 +662,13 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
     }
   }
 
-  return { rows, pickCount, extraPickCount, rawBaseValueByFantraxId };
+  return {
+    rows, pickCount, extraPickCount, rawBaseValueByFantraxId,
+    // The same `pickValues` the bracket loop above just sampled — handed
+    // out whole rather than left behind as a local, so a consumer can price
+    // ANY slot instead of only the ones this league still owns rows for.
+    pickCurve: { draftYear, values: pickValues },
+  };
 }
 
 export interface PickValuesInput {
@@ -711,7 +738,7 @@ export async function computePickValuesLedger(input: PickValuesInput): Promise<C
   const faPlayers = await resolveFreeAgentPlayers(analysis, admin, dynastyRankByFheId);
   const corePlayers = [...rostered, ...faPlayers];
 
-  const { rows, pickCount, extraPickCount, rawBaseValueByFantraxId } = buildPickAssetRows({
+  const { rows, pickCount, extraPickCount, rawBaseValueByFantraxId, pickCurve } = buildPickAssetRows({
     analysis, corePlayers, dynastyRankByFheId, idx, rookieSalaryScale,
     leagueType, valueBasis, categoryFallbackMode, consensusPoolSize,
     realSalaryRankByFheId: salaryRank.rankByFheId, realSalaryPoolSize: salaryRank.poolSize,
@@ -735,5 +762,5 @@ export async function computePickValuesLedger(input: PickValuesInput): Promise<C
   combined.sort((a, b) => b.value - a.value);
   combined.forEach((entry, i) => { if (entry.row) entry.row.tradeRank = i + 1; });
 
-  return { playerCount: 0, pickCount, extraPickCount, rows, mode: "picksOnly", realSalaryEfficiencyWeight: null };
+  return { playerCount: 0, pickCount, extraPickCount, rows, pickCurve, mode: "picksOnly", realSalaryEfficiencyWeight: null };
 }
