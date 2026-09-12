@@ -462,7 +462,6 @@ function HomeHubContent() {
 
       {showAddLeague && (
         <AddLeagueModal
-          savedLeagues={leagues}
           onClose={() => setShowAddLeague(false)}
           onImported={() => {
             setShowAddLeague(false);

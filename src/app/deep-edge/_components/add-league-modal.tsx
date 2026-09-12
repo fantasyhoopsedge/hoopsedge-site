@@ -6,7 +6,6 @@ import { fetchUserLeagues, type FxLeagueSummary } from "@/lib/fantrax/api";
 import { DEFAULT_ADVANCED_SETTINGS, DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/league";
 import type { LeagueAnalysis } from "@/lib/fantrax/analyze";
-import type { SavedLeague } from "@/lib/fantrax/store";
 import { readFantraxSession } from "../_lib/fantrax-session";
 import { Modal } from "./modal";
 import { IconClose } from "./icons";
@@ -14,20 +13,15 @@ import { IconClose } from "./icons";
 /**
  * Opened from the Home hub's "+ Add a league" CTA. Two states: no platform
  * connected yet (send back to Providers), or a connected platform's league
- * list to import from. The one-free-league rule (client-side only — no
- * server-side entitlement exists yet, that's the whole payment workstream)
- * is temporarily OFF (ENFORCE_LEAGUE_CAP = false) so Ash can connect
- * unlimited leagues for pre-launch testing; flip it back on once payment
- * infra lands. The paywall UI/copy stays wired so it's a one-line revert,
- * not a rebuild.
+ * list to import from. There is no league cap: the season pass covers the
+ * whole of The Deep Edge however many leagues are connected, and the pass
+ * itself is enforced server-side (src/app/deep-edge/layout.tsx and the API
+ * guards), never here.
  */
-const ENFORCE_LEAGUE_CAP = false;
 export function AddLeagueModal({
-  savedLeagues,
   onClose,
   onImported,
 }: {
-  savedLeagues: SavedLeague[];
   onClose: () => void;
   onImported: () => void;
 }) {
@@ -36,7 +30,6 @@ export function AddLeagueModal({
   const [leagues, setLeagues] = useState<FxLeagueSummary[] | null>(null);
   const [importing, setImporting] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     const session = readFantraxSession();
@@ -48,10 +41,6 @@ export function AddLeagueModal({
   }, []);
 
   async function importLeague(entry: FxLeagueSummary) {
-    if (ENFORCE_LEAGUE_CAP && savedLeagues.length >= 1) {
-      setShowPaywall(true);
-      return;
-    }
     setImporting(entry.leagueId);
     setError("");
     try {
@@ -125,24 +114,7 @@ export function AddLeagueModal({
         </button>
       </div>
 
-      {showPaywall ? (
-        <div style={{ textAlign: "center", padding: "20px 0" }}>
-          <p style={{ fontSize: 14.5, color: "var(--rt-body)", lineHeight: 1.5, margin: "0 0 20px" }}>
-            Your first league is free with full access to every Deep Edge tool. Connecting a second league needs a
-            season pass — pricing coming soon.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowPaywall(false)}
-            style={{
-              height: 40, padding: "0 20px", borderRadius: 100, border: "1px solid var(--rt-hairline)",
-              background: "transparent", color: "var(--rt-ink)", fontWeight: 600, fontSize: 13.5, cursor: "pointer",
-            }}
-          >
-            Back
-          </button>
-        </div>
-      ) : !connected ? (
+      {!connected ? (
         <div style={{ textAlign: "center", padding: "20px 0" }}>
           <p style={{ fontSize: 14.5, color: "var(--rt-body)", lineHeight: 1.5, margin: "0 0 20px" }}>
             No platform is connected yet. Connect one to import a real league and self-render its settings.

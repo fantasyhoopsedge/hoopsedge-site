@@ -7,16 +7,14 @@ import { LOCAL_OWNER } from "@/lib/fantrax/store";
 /**
  * Access gate for The Deep Edge — API-route shape, structurally identical to
  * src/lib/fantrax/guard.ts's authorizeFantrax(). Kept as its own file (not a
- * re-export of authorizeFantrax) so it can be graduated to the real
- * one-free-league-then-paywall check independently of the Fantrax connector's
- * own gate — see that file's comment for the same graduation pattern: drop
- * the hasDeepEdgeAccess() check here, nothing else assumes admin.
+ * re-export of authorizeFantrax) so the two can diverge if the connector is
+ * ever opened up beyond The Deep Edge.
  *
- * Localhost is trusted in dev; production requires a signed-in user in
- * EITHER rb_admins (full admin) or de_testers (Deep Edge only) — see
- * lib/deep-edge/access-cache.ts for why those are two lists. The whole
- * /deep-edge subtree is gated once, centrally, in src/app/deep-edge/layout.tsx
- * — unlike /admin/fantrax's single page, Deep Edge is genuinely multi-route.
+ * Localhost is trusted in dev; production requires a signed-in user who holds
+ * a season pass for the current season, or is in rb_admins (full admin) or
+ * de_testers (Deep Edge only) — see lib/deep-edge/access-cache.ts. The
+ * /deep-edge pages are gated once, centrally, in src/app/deep-edge/layout.tsx,
+ * but a layout never runs for an API route, so every route re-checks here.
  */
 
 export interface DeepEdgeAccess {
@@ -37,10 +35,10 @@ export async function authorizeDeepEdge(): Promise<
   if (!user) {
     return { ok: false, response: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
-  if (!(await hasDeepEdgeAccess(user.email))) {
+  if (!(await hasDeepEdgeAccess(user.id, user.email))) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "The Deep Edge is in limited testing." }, { status: 403 }),
+      response: NextResponse.json({ error: "The Deep Edge needs a season pass." }, { status: 403 }),
     };
   }
   return { ok: true, access: { owner: user.email! } };

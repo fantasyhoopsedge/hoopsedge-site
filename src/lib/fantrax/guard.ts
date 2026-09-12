@@ -7,13 +7,13 @@ import { LOCAL_OWNER } from "./store";
 /**
  * Access gate for the Fantrax league connector.
  *
- * The connector ships allowlisted on purpose: it is the first feature that talks
- * to a third-party account, and it goes to every FHE user only once it has been
- * exercised against real leagues. Localhost is trusted in dev; in production the
- * signed-in user's email must be in rb_admins (full admin) or de_testers (the
- * pre-launch Deep Edge cohort) — see lib/deep-edge/access-cache.ts.
+ * The connector is The Deep Edge's data layer, so it sits behind the same
+ * entitlement. Localhost is trusted in dev; in production the signed-in user
+ * must hold a season pass for the current season, or be in rb_admins (full
+ * admin) or de_testers (the pre-launch Deep Edge cohort) — see
+ * lib/deep-edge/access-cache.ts.
  *
- * To graduate the feature to all signed-in users, drop the hasDeepEdgeAccess()
+ * To open the connector to all signed-in users, drop the hasDeepEdgeAccess()
  * check here and keep the getUser() one — nothing else in src/lib/fantrax or
  * src/app/api/fantrax assumes admin.
  */
@@ -35,11 +35,11 @@ export async function authorizeFantrax(): Promise<
   if (!user) {
     return { ok: false, response: NextResponse.json({ error: "Sign in required." }, { status: 401 }) };
   }
-  if (!(await hasDeepEdgeAccess(user.email))) {
+  if (!(await hasDeepEdgeAccess(user.id, user.email))) {
     return {
       ok: false,
       response: NextResponse.json(
-        { error: "The Fantrax connector is in limited testing." },
+        { error: "The Fantrax connector is part of The Deep Edge season pass." },
         { status: 403 },
       ),
     };
