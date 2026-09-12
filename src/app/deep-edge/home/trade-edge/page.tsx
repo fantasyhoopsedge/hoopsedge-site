@@ -23,6 +23,7 @@ import {
   DraftPickCardsGrid, formatContract, formatCustomContract, formatCustomSalary, formatSalary,
   pickValueStatus, posDisplayFor, rankAmong, rankAmongCombined, statValue, weightedAverage, type EnrichData, type RosterTableFormat,
 } from "../../_components/roster-table";
+import { AssetMiniCard } from "../../_components/asset-mini-card";
 import { ASSET_TIER_COLOR, pickAssetTier, playerAssetTier, type ContractClass } from "../../_components/asset-tiers";
 import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
 import { HubShell } from "../../_components/hub-shell";
@@ -212,24 +213,20 @@ function tradeValueRankFor(
   return rank != null ? `#${rank}` : "—";
 }
 
-/** A player asset card for the trade pickers — square, solid color fill by
- *  asset tier (rookie/sophomore/rookie-scale/veteran — see asset-tiers.ts,
- *  Ash's own color-coding spec 2026-08-23). Name/position/team sit top-left;
- *  the trade-value rank sits bottom-left. The headshot bleeds off the card's
- *  own bottom-right corner, faded on its left edge so it blends into the
- *  tier color rather than reading as a boxed-in photo — the original ask —
- *  but now sized and positioned to fill exactly the quadrant Ash marked up
- *  on a real screenshot (2026-08-23: "place it fully in the area marked out
- *  by the orange square"), not the earlier version that bled across nearly
- *  the whole card. Every text element is plain white with a soft drop shadow
- *  so it reads the same on every tier color, light or dark (Ash: "player
- *  names etc should all be in white"). No source (custom/default) or
- *  tier-name text on the card itself — the color alone carries the tier, and
- *  the page's own settings panel already states whether custom valuations
- *  are active; there's no room for a repeated label on a card this small.
- *  No longer dims for roster-depth "assessed" state — Ash, 2026-08-23:
- *  "remove the semi greyed application to some of the cards that was a
- *  legacy UI request." */
+/** A player asset card for the trade pickers — the shared Deep Edge card
+ *  (AssetMiniCard, which owns the geometry: solid fill, name/position/team
+ *  top-left, one big number bottom-left, headshot bleeding off the
+ *  bottom-right corner) filled in with what it means HERE: asset-tier color
+ *  (rookie/sophomore/rookie-scale/veteran — see asset-tiers.ts, Ash's own
+ *  color-coding spec 2026-08-23), the trade-value rank as the number, and
+ *  the category-fit tier as the corner dot. Category Edge fills the same
+ *  card in differently; see asset-mini-card.tsx's own header.
+ *  No source (custom/default) or tier-name text on the card itself — the
+ *  color alone carries the tier, and the page's own settings panel already
+ *  states whether custom valuations are active; there's no room for a
+ *  repeated label on a card this small. No longer dims for roster-depth
+ *  "assessed" state — Ash, 2026-08-23: "remove the semi greyed application
+ *  to some of the cards that was a legacy UI request." */
 function PlayerMiniCard({
   player, checked, onToggle, tier, positionSlots, isSophomore, contractClass, leaguePlayers, baseValueByFantraxId, pickValues,
 }: {
@@ -245,67 +242,20 @@ function PlayerMiniCard({
    *  ledger's raw per-player rank. */
   pickValues: readonly number[];
 }) {
-  const initials = player.name.split(" ").map((w) => w[0]).slice(0, 2).join("");
-  const posDisplay = posDisplayFor(player.eligible, positionSlots).join("/");
   const assetTier = playerAssetTier({
     isRookie: player.isRookie, isSophomore, isRookieScaleContract: contractClass === "rookie-scale",
   });
-  const { bg } = ASSET_TIER_COLOR[assetTier];
-  const rankLabel = tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, pickValues);
-  const textShadow = "0 1px 3px rgba(0,0,0,0.45)";
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      title={player.name}
-      style={{
-        position: "relative", aspectRatio: "1 / 1", borderRadius: 16,
-        border: checked ? "2px solid var(--rt-ink)" : "2px solid transparent",
-        background: bg, cursor: "pointer", textAlign: "left", color: "#fff",
-        overflow: "hidden", font: "inherit", width: "100%", padding: 0,
-      }}
-    >
-      {/* Headshot fills the card's own bottom-right quadrant, flush to the
-          real corner (unpadded, so it can bleed to the card's true edge —
-          the card's own overflow:hidden + border-radius clips its outer
-          corner to match). fadeEdge blends its left edge into the card's
-          tier color instead of a hard rectangular cut. */}
-      <div style={{ position: "absolute", right: 0, bottom: 0, width: "48%", height: "50%" }}>
-        <PlayerHeadshot
-          name={player.name} size={44} width="100%" height="100%" radius={0} fadeEdge
-          initials={initials} background="transparent" color="#fff" fontSize={13} rookie={player.isRookie}
-        />
-      </div>
-      {tier && (
-        <span style={{ position: "absolute", top: 10, right: checked ? 32 : 10, width: 9, height: 9, borderRadius: 999, background: TIER_COLOR[tier], boxShadow: "0 0 0 2px rgba(255,255,255,0.6)" }} />
-      )}
-      {checked && (
-        <span style={{ position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 999, background: "var(--rt-ink)", color: "var(--rt-canvas)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800 }}>
-          ✓
-        </span>
-      )}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: 10 }}>
-        <div style={{ maxWidth: "78%" }}>
-          <div
-            style={{
-              fontSize: 11.5, fontWeight: 800, lineHeight: 1.15, textShadow,
-              overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
-            }}
-          >
-            {player.name}
-          </div>
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.85)", textShadow, marginTop: 2 }}>
-            {posDisplay || "—"} · {player.nbaTeam || "—"}
-          </div>
-        </div>
-        <div style={{ flex: 1 }} />
-        <div style={{ maxWidth: "48%" }}>
-          <span style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontFamily: "var(--rt-font-mono)", color: "#fff", textShadow }}>
-            {rankLabel}
-          </span>
-        </div>
-      </div>
-    </button>
+    <AssetMiniCard
+      name={player.name}
+      subLabel={`${posDisplayFor(player.eligible, positionSlots).join("/") || "—"} · ${player.nbaTeam || "—"}`}
+      bg={ASSET_TIER_COLOR[assetTier].bg}
+      headline={tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, pickValues)}
+      isRookie={player.isRookie}
+      checked={checked}
+      onToggle={onToggle}
+      dot={tier ? TIER_COLOR[tier] : null}
+    />
   );
 }
 
