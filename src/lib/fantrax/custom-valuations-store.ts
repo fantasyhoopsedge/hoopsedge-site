@@ -79,6 +79,42 @@ export interface LedgerRow {
   owner: string;
 }
 
+/**
+ * The current draft class's FULL per-slot value curve — `values[i]` is overall
+ * pick #(i+1), in the same units as every LedgerRow.tradeValue.
+ *
+ * Stored because the ledger's own pick ROWS are ownership-filtered: a row
+ * exists only for a slot some team still holds, and a league's made picks
+ * stop being owned assets the moment they're drafted (see
+ * currentSeasonPickAssets in league.ts). Rebuilding an anchor table from
+ * those rows therefore loses the front of the curve as soon as a rookie
+ * draft opens, and all of it once the draft ends — which is exactly what
+ * shipped: McCarty DMD30 regenerated 2026-09-12 mid-draft (62 of 90 picks
+ * made) stored anchors for #63-90 only, so Trade Edge's future 1sts and 2nds
+ * had nothing to project onto and read "—" indefinitely, while its 3rds
+ * sampled the flat tail and read as the league's ~510th asset (Ash,
+ * 2026-09-12: "the draft asset values are not wiring through").
+ *
+ * The curve itself was never the missing part — buildPickAssetRows computes
+ * every slot 1..N regardless of ownership, and the future-year bracket rows
+ * are derived from it (which is why those stayed correct in the same doc).
+ * It simply wasn't persisted. ~90 numbers.
+ *
+ * `draftYear` is the class the curve describes — the decay base for a future
+ * pick sampling it, which is NOT interchangeable with the league's season
+ * year: once a season's draft concludes, draftYear rolls to the next class
+ * while seasonYear doesn't, and decaying off the wrong one is a silent
+ * off-by-one-year on every future pick.
+ *
+ * A null entry means that slot has no resolvable value (only possible when
+ * no rookie-board prospect resolved at all); consumers skip it rather than
+ * treating it as zero.
+ */
+export interface PickValueCurve {
+  draftYear: number;
+  values: (number | null)[];
+}
+
 export interface CustomValuationsDoc {
   leagueId: string;
   generatedAt: string;
@@ -86,6 +122,11 @@ export interface CustomValuationsDoc {
   pickCount: number;
   extraPickCount: number;
   rows: LedgerRow[];
+  /** This draft class's full per-slot value curve — see PickValueCurve.
+   *  Absent on any doc generated before this field existed; a consumer must
+   *  fall back to reading anchors off the pick rows (the pre-fix behaviour)
+   *  rather than treating a missing curve as "no ledger data". */
+  pickCurve?: PickValueCurve;
   /** "full" = every rostered player/FA/pick revalued against this league's
    *  own rules (the original custom-valuations flow). "picksOnly" = draft-
    *  pick values alone, generated for a STANDARD (non-custom) dynasty/keeper

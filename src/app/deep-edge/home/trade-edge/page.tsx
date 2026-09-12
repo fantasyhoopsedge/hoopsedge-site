@@ -528,7 +528,7 @@ function RankRing({ rank, of, size = 54, stroke = "var(--rt-primary)" }: { rank:
  *  match for the font type"). */
 function TradeVerdictAssetRow({
   player, pick, rawValue, adjustedValue, leaguePlayers, baseValueByFantraxId, secondRankMode, showSalary, salaryFormat,
-  family, positionSlots, isSophomore, contractClass, seasonYear, currentYearPickValueByOverallPick, ledgerValues,
+  family, positionSlots, isSophomore, contractClass, seasonYear, currentYearPickValueByOverallPick, pickCurveYear, ledgerValues,
   onRequestValue,
 }: {
   player: ResolvedPlayer | null; pick: TeamDraftPick | null; rawValue: number; adjustedValue: number;
@@ -536,7 +536,7 @@ function TradeVerdictAssetRow({
   secondRankMode: Exclude<TradeValueMode, "surplusV">; showSalary: boolean; salaryFormat: SalaryFormat;
   family: "categories" | "points"; positionSlots: Record<string, number>;
   isSophomore: boolean; contractClass: ContractClass | undefined; seasonYear: number;
-  currentYearPickValueByOverallPick: ReadonlyMap<number, number>; ledgerValues: readonly number[];
+  currentYearPickValueByOverallPick: ReadonlyMap<number, number>; pickCurveYear: number | undefined; ledgerValues: readonly number[];
   /** Launches the Power Rankings compare so an unresolved future pick's
    *  real value gets computed — every row here is already part of the
    *  proposed trade, so (unlike the picker cards) the trigger always shows
@@ -545,7 +545,7 @@ function TradeVerdictAssetRow({
 }) {
   const isCustomSalary = salaryFormat === "custom";
   const label = player ? player.name : pickLabel(pick!);
-  const pickStatus = player ? null : pickValueStatus(pick!, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues: ledgerValues });
+  const pickStatus = player ? null : pickValueStatus(pick!, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickCurveYear, pickLedgerValues: ledgerValues });
   const valRk = player ? tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerValues) : pickStatus!.label;
   const secondRk = player ? valueDisplayFor(player, secondRankMode, leaguePlayers, undefined) : "—";
   const salaryDisplay = player
@@ -603,7 +603,7 @@ function TradeVerdictAssetRow({
 
 function TradeVerdictSideColumn({
   teamName, teamNameColor, side, players, picks, leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel,
-  showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick,
+  showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, pickCurveYear,
   ledgerValues, onRequestValue,
 }: {
   teamName: string; teamNameColor: string; side: TradeVerdict["sideA"]; players: ResolvedPlayer[]; picks: readonly TeamDraftPick[];
@@ -612,6 +612,8 @@ function TradeVerdictSideColumn({
   showSalary: boolean; salaryFormat: SalaryFormat; family: "categories" | "points";
   positionSlots: Record<string, number>;
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
+  /** The draft class that map describes — see pickValueStatus's own doc. */
+  pickCurveYear: number | undefined;
   ledgerValues: readonly number[]; onRequestValue: () => void;
 }) {
   const assetValueByLabel = useMemo(() => new Map(side.assets.map((a) => [a.label, a])), [side.assets]);
@@ -650,7 +652,7 @@ function TradeVerdictSideColumn({
                   leaguePlayers={leaguePlayers} baseValueByFantraxId={baseValueByFantraxId} secondRankMode={secondRankMode}
                   showSalary={showSalary} salaryFormat={salaryFormat} family={family}
                   positionSlots={positionSlots} isSophomore={isSophomore} contractClass={contractClass} seasonYear={seasonYear}
-                  currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} ledgerValues={ledgerValues}
+                  currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} pickCurveYear={pickCurveYear} ledgerValues={ledgerValues}
                   onRequestValue={onRequestValue}
                 />
               );
@@ -665,7 +667,7 @@ function TradeVerdictSideColumn({
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, myTeamId, myPlayers, myPicks, theirPlayers, theirPicks, leaguePlayers, baseValueByFantraxId,
   secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear,
-  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode, league,
+  currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode, league,
 }: {
   verdict: TradeVerdict; myTeamName: string; theirTeamName: string; myTeamId: string;
   /** sideA (myTeamName) is what I RECEIVE — receivePlayers/receivePicks;
@@ -677,6 +679,8 @@ function TradeVerdictPanel({
   showSalary: boolean; salaryFormat: SalaryFormat; family: "categories" | "points";
   positionSlots: Record<string, number>;
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
+  /** The draft class that map describes — see pickValueStatus's own doc. */
+  pickCurveYear: number | undefined;
   ledgerValues: readonly number[]; onRequestValue: () => void;
   /** Before/after league-wide profiles — null until the Power Rankings
    *  compare panel has been opened at least once (see `trade`'s own doc in
@@ -708,7 +712,7 @@ function TradeVerdictPanel({
   // losing side's reads red, both neutral on a fair trade.
   const myNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
   const theirNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "B" ? "var(--rt-up)" : "var(--rt-down)";
-  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, ledgerValues, onRequestValue };
+  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, onRequestValue };
 
   const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode, league) : null;
   const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode, league) : null;
@@ -1473,8 +1477,22 @@ function TradeEdgeContent() {
   // ratio-model estimate, which was found to diverge wildly from it (Ash,
   // 2026-08-23: a real pick #44 the ledger ranks #357 read as rank #177 —
   // nearly twice as valuable — once carried through the generic model).
+  //
+  // Read off the ledger's stored CURVE (every slot the draft has, whoever
+  // owns it) and not its pick ROWS, which exist only for slots a team still
+  // holds: a made pick stops being an owned asset the moment it's drafted,
+  // so a ledger regenerated during a rookie draft carries anchors for the
+  // undrafted tail alone, and one regenerated after it carries none (see
+  // PickValueCurve's own doc for the live McCarty DMD30 case). The rows
+  // loop survives as the fallback for a doc generated before the curve was
+  // stored — same behaviour those docs already had, no worse.
   const currentYearPickValueByOverallPick = useMemo(() => {
     const map = new Map<number, number>();
+    const curve = customLedger?.pickCurve;
+    if (curve) {
+      curve.values.forEach((v, i) => { if (v != null) map.set(i + 1, v); });
+      return map;
+    }
     for (const row of customLedger?.rows ?? []) {
       if (!row.pickKey) continue;
       const overallPick = Number(row.pickKey.split(":")[1]);
@@ -1482,6 +1500,11 @@ function TradeEdgeContent() {
     }
     return map;
   }, [customLedger]);
+  // The class that curve prices, which a future pick decays FROM — see
+  // pickValueStatus's own pickCurveYear doc for why this is not simply the
+  // league's season year. Undefined for a pre-curve ledger, where the
+  // anchors were the season's own class and seasonYear is already right.
+  const pickCurveYear = customLedger?.pickCurve?.draftYear;
   // Every ledger PICK row's own tradeValue — never player rows (a full-mode
   // ledger's `rows` mixes both; filtered here so this can double as the
   // "every other draft pick's value" pool every player card's rank ALSO
@@ -1870,6 +1893,7 @@ function TradeEdgeContent() {
                         baseValueByFantraxId={baseValueByFantraxId}
                         family={isPointsLeague ? "points" : "categories"}
                         currentYearPickValueByOverallPick={currentYearPickValueByOverallPick}
+                        pickCurveYear={pickCurveYear}
                         ledgerValues={ledgerValues}
                         onRequestValue={() => setActivePanel("rankings")}
                       />
@@ -1937,7 +1961,7 @@ function TradeEdgeContent() {
                       showSalary={showSalary} salaryFormat={salaryFormat}
                       family={isPointsLeague ? "points" : "categories"}
                       positionSlots={effective?.positionSlots ?? {}} enrich={enrich} seasonYear={seasonYear}
-                      currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} ledgerValues={ledgerValues}
+                      currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} pickCurveYear={pickCurveYear} ledgerValues={ledgerValues}
                       onRequestValue={() => setActivePanel("rankings")}
                       trade={trade} rowFormat={rowFormat} scored={effective?.scored ?? []} teamCount={teamCount}
                       salaryBefore={salaryBefore} salaryAfter={salaryAfter} statMode={statMode}

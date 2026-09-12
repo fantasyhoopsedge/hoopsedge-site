@@ -694,6 +694,15 @@ export function pickValueStatus(
     /** This league's current/imminent draft year — a pick beyond it is a
      *  future pick eligible for tiers 2/3 above. */
     seasonYear?: number;
+    /** The draft class currentYearPickValueByOverallPick actually describes
+     *  (the stored curve's own draftYear), which is the base a future pick
+     *  decays FROM. Not interchangeable with seasonYear: once a season's
+     *  rookie draft concludes, the curve rolls forward to the next class
+     *  while seasonYear stays put, and decaying off seasonYear would then
+     *  charge a year of decay the pick hasn't actually waited. Falls back to
+     *  seasonYear when absent (a pre-curve ledger, whose anchors really were
+     *  the season's own class). */
+    pickCurveYear?: number;
     /** Every OTHER pick's own value — the generated ledger's rows, PICK
      *  rows only (a full-mode ledger's PLAYER rows must never end up here;
      *  they're already counted once through `leaguePlayers` above, via
@@ -703,7 +712,7 @@ export function pickValueStatus(
     pickLedgerValues?: readonly number[];
   },
 ): PickValueStatus {
-  const { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues } = opts;
+  const { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickCurveYear, pickLedgerValues } = opts;
   const rankOf = (value: number | null): number | null =>
     leaguePlayers
       ? rankAmongCombined(leaguePlayers, (p) => baseValueByFantraxId?.get(p.fantraxId) ?? null, pickLedgerValues ?? [], value)
@@ -726,7 +735,7 @@ export function pickValueStatus(
     if (pick.overallPick != null) {
       const anchor = currentYearPickValueByOverallPick!.get(pick.overallPick);
       if (anchor != null) {
-        const value = decayFromAnchor(anchor, pick.year - seasonYear!);
+        const value = decayFromAnchor(anchor, Math.max(0, pick.year - (pickCurveYear ?? seasonYear!)));
         return { label: formatRank(rankOf(value)), needsCalc: false };
       }
     }
@@ -861,7 +870,7 @@ function DraftPickEmptyCard({ year, seasonYear, draftStatus }: { year: number; s
  */
 export function DraftPickCardsGrid({
   teamName, picks, seasonYear, draftStatus, selectedKeys, onTogglePick, leaguePlayers, baseValueByFantraxId, family,
-  currentYearPickValueByOverallPick, ledgerValues, onRequestValue, yearsWithLeagueData,
+  currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, onRequestValue, yearsWithLeagueData,
 }: {
   teamName: string; picks: readonly TeamDraftPick[]; seasonYear: number; draftStatus: CurrentSeasonDraftStatus;
   /** Every year for which ANY team in the league owns at least one pick —
@@ -901,6 +910,8 @@ export function DraftPickCardsGrid({
    *  future pick nearly TWICE as valuable as the real curve says the same
    *  slot is worth). */
   currentYearPickValueByOverallPick?: ReadonlyMap<number, number>;
+  /** The draft class that map describes — see pickValueStatus's own doc. */
+  pickCurveYear?: number;
   /** Every OTHER pick's own value (the generated ledger's PICK rows only) —
    *  combined with leaguePlayers for every tier of pickValueStatus's rankOf,
    *  so a pick's card and a player's card are always counted against the
@@ -914,7 +925,7 @@ export function DraftPickCardsGrid({
   onRequestValue?: () => void;
 }) {
   const rows = draftPickYearRows(picks, seasonYear, yearsWithLeagueData);
-  const statusFor = (pick: TeamDraftPick) => pickValueStatus(pick, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickLedgerValues: ledgerValues });
+  const statusFor = (pick: TeamDraftPick) => pickValueStatus(pick, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickCurveYear, pickLedgerValues: ledgerValues });
   return (
     <div>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{teamName} — Draft Picks</div>
