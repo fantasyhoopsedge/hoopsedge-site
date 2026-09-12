@@ -29,7 +29,7 @@ import { PlayerHeadshot } from "@/app/team-rosters/_components/roster-headshot";
  * white").
  */
 export function AssetMiniCard({
-  name, subLabel, bg, headline, isRookie, checked, onToggle, dot, width, dimmed, title,
+  name, subLabel, bg, headline, isRookie, checked, onToggle, dot, width, dimmed, title, compact,
 }: {
   name: string;
   /** The line under the name — "PG/SG · OKC" in Trade Edge, lineup slot plus
@@ -49,15 +49,25 @@ export function AssetMiniCard({
   /** Small dot, top-right — Trade Edge uses it for the category tier that
    *  Category Edge instead carries in the fill itself. */
   dot?: string | null;
-  /** Fixed card width in px. Omit to fill the grid cell (Trade Edge's own
-   *  auto-fill columns); Category Edge sets one because its cards sit in a
-   *  wrapping flex row beside the category's stat block, not a grid. */
+  /** Fixed card width in px. Omit to fill whatever box the caller puts the
+   *  card in — Trade Edge's auto-fill grid cells, or Category Edge's flex
+   *  items, which size themselves so a whole lineup lands on one row. */
   width?: number;
   dimmed?: boolean;
   title?: string;
+  /** Scales the type down for a card rendered small (Ash, 2026-09-12: "make
+   *  cards a little bit smaller... make the player rank # slightly smaller
+   *  also"). One flag rather than a size prop per text element: the three
+   *  sizes are a set, and letting a caller mix them is how a shared card
+   *  ends up with a different hierarchy on each screen. */
+  compact?: boolean;
 }) {
   const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
   const textShadow = "0 1px 3px rgba(0,0,0,0.45)";
+  const pad = compact ? 7 : 10;
+  const nameSize = compact ? 10 : 11.5;
+  const subSize = compact ? 8.5 : 9.5;
+  const headlineSize = compact ? 16 : 22;
   const selectable = Boolean(onToggle);
   const Tag = selectable ? "button" : "div";
   return (
@@ -69,7 +79,10 @@ export function AssetMiniCard({
         position: "relative", aspectRatio: "1 / 1", borderRadius: 16,
         border: checked ? "2px solid var(--rt-ink)" : "2px solid transparent",
         background: bg, cursor: selectable ? "pointer" : "default", textAlign: "left", color: "#fff",
-        overflow: "hidden", font: "inherit", width: width ?? "100%", flexShrink: 0,
+        overflow: "hidden", font: "inherit", width: width ?? "100%",
+        // A FIXED-width card must not be squeezed by a flex parent; a
+        // fill-the-box one is being sized by that parent on purpose.
+        flexShrink: width != null ? 0 : undefined,
         opacity: dimmed ? 0.55 : 1, padding: 0,
       }}
     >
@@ -92,23 +105,23 @@ export function AssetMiniCard({
           ✓
         </span>
       )}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: 10 }}>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", height: "100%", padding: pad }}>
         <div style={{ maxWidth: "78%" }}>
           <div
             style={{
-              fontSize: 11.5, fontWeight: 800, lineHeight: 1.15, textShadow,
+              fontSize: nameSize, fontWeight: 800, lineHeight: 1.15, textShadow,
               overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const,
             }}
           >
             {name}
           </div>
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.85)", textShadow, marginTop: 2 }}>
+          <div style={{ fontSize: subSize, fontWeight: 700, color: "rgba(255,255,255,0.85)", textShadow, marginTop: 2 }}>
             {subLabel}
           </div>
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ maxWidth: "48%" }}>
-          <span style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, fontFamily: "var(--rt-font-mono)", color: "#fff", textShadow }}>
+          <span style={{ fontSize: headlineSize, fontWeight: 800, lineHeight: 1, fontFamily: "var(--rt-font-mono)", color: "#fff", textShadow }}>
             {headline}
           </span>
         </div>

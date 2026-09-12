@@ -49,13 +49,19 @@ const TIER_COLOR: Record<string, string> = {
  *          this in my league," and a within-team rank would say 1..10 for
  *          every team regardless of whether the category is won or lost.
  *
- * Bench players keep the dimming the old chips had, and now also get their
- * real tier color rather than a flat hairline ring — a bench bat who would
- * be a promoter in a category is precisely what this screen exists to
- * surface, and greying that away hid it.
+ * Only the SELECTED lineup is shown — the starters plus whatever the +N
+ * depth control has pulled up (Ash, 2026-09-12: "only display players that
+ * form part of the selected roster ie starters + 1 etc"). The bench cards
+ * that used to trail each row are gone: the row is about the lineup this
+ * screen is scoring, and a tail of players who aren't in it pushed the real
+ * answer onto a second line.
+ *
+ * The card takes its width from its flex parent rather than carrying one, so
+ * a row fits a whole lineup on ONE line and simply gets tighter as the depth
+ * control adds bodies — see the row's own container below.
  */
 function CategoryPlayerCard({
-  player, slot, cat, rank, statMode, dimmed,
+  player, slot, cat, rank, statMode,
 }: {
   player: ResolvedPlayer; slot: string; cat: FheCategory; rank: number | null;
   /** Both the fill and the rank follow the page's Per Game / Totals toggle,
@@ -65,7 +71,6 @@ function CategoryPlayerCard({
    *  complaint that produced edgeStandings above (Ash, 2026-08-24: "I would
    *  expect all of the charts and cat ranks to move"). */
   statMode: "perGame" | "totals";
-  dimmed?: boolean;
 }) {
   const tier = categoryTier(catZ(player, cat, statMode));
   return (
@@ -75,8 +80,7 @@ function CategoryPlayerCard({
       bg={tier ? TIER_COLOR[tier] : "var(--rt-surface-strong)"}
       headline={rank != null ? `#${rank}` : "—"}
       isRookie={player.isRookie}
-      width={96}
-      dimmed={dimmed}
+      compact
       title={`${player.name} — ${CATEGORY_LABEL[cat]}${rank != null ? ` #${rank} in the league` : ""}`}
     />
   );
@@ -646,10 +650,8 @@ function CategoryEdgeContent() {
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.promoter, marginRight: 5 }} />Promoter</span>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.passive, marginRight: 5 }} />Passive</span>
             <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.detractor, marginRight: 5 }} />Detractor</span>
-            {/* The bench marker is no longer a colorless swatch: a bench card
-                now carries its real tier color and says "bench" by being
-                faded, so the legend shows a faded swatch to match. */}
-            <span><span style={{ display: "inline-block", width: 9, height: 9, borderRadius: "50%", background: TIER_COLOR.promoter, opacity: 0.55, marginRight: 5 }} />Not in lineup</span>
+            {/* No bench swatch: the rows show the selected lineup only, so
+                there is no "not in lineup" card left to explain. */}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -681,32 +683,27 @@ function CategoryEdgeContent() {
                     />
                     <TierPill rank={edge.rank} of={computed.teamCount} greyed={edge.category === "TO" && (dashboard?.isTOGreyed ?? false)} />
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 14, flex: 1 }}>
+                  {/* One row per category, whole lineup on it. Each card is a
+                      flex item with a small basis and room to grow, capped at
+                      78px, so ten starters spread out and a +5 lineup of
+                      fifteen tightens to ~46px rather than spilling onto a
+                      second line. 46 is the floor because it is about where
+                      a two-line name and a "#436" rank stop fitting at all;
+                      wrapping stays ON below it so a narrow viewport gets a
+                      second row instead of a line of illegible stamps. */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: 1, minWidth: 0 }}>
                     {[...computed.effectiveStarters]
                       .sort((a, b) => (catZ(b.player, edge.category, statMode) ?? -Infinity) - (catZ(a.player, edge.category, statMode) ?? -Infinity))
                       .map((a) => (
-                        <CategoryPlayerCard
-                          key={a.player.fantraxId}
-                          player={a.player}
-                          slot={a.slot}
-                          cat={edge.category}
-                          rank={categoryRanks.get(edge.category)?.get(a.player.fantraxId) ?? null}
-                          statMode={statMode}
-                        />
-                      ))}
-                    {[...computed.effectiveBench]
-                      .sort((a, b) => (catZ(b, edge.category, statMode) ?? -Infinity) - (catZ(a, edge.category, statMode) ?? -Infinity))
-                      .slice(0, 6)
-                      .map((p) => (
-                        <CategoryPlayerCard
-                          key={p.fantraxId}
-                          player={p}
-                          slot={p.slot}
-                          cat={edge.category}
-                          rank={categoryRanks.get(edge.category)?.get(p.fantraxId) ?? null}
-                          statMode={statMode}
-                          dimmed
-                        />
+                        <div key={a.player.fantraxId} style={{ flex: "1 1 46px", minWidth: 46, maxWidth: 78 }}>
+                          <CategoryPlayerCard
+                            player={a.player}
+                            slot={a.slot}
+                            cat={edge.category}
+                            rank={categoryRanks.get(edge.category)?.get(a.player.fantraxId) ?? null}
+                            statMode={statMode}
+                          />
+                        </div>
                       ))}
                   </div>
                 </div>
