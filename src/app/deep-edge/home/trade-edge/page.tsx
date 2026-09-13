@@ -1629,8 +1629,11 @@ function TradeEdgeContent() {
       ...sendPicks.map((pk) => ({ label: pickLabel(pk), pick: pk })),
     ];
     const family = isPointsLeague ? "points" : "categories";
-    return computeTradeVerdict(myTeamGets, theirTeamGets, leaguePlayers, baseValueByFantraxId, family);
-  }, [myTeamId, teamBId, hasTradeSelected, sendPlayers, sendPicks, receivePlayers, receivePicks, leaguePlayers, baseValueByFantraxId, isPointsLeague]);
+    // Redraft flattens the concentration premium — see REDRAFT_BLEND. A
+    // keeper league keeps the dynasty treatment: it still pays for
+    // concentration, since its roster spots carry across seasons.
+    return computeTradeVerdict(myTeamGets, theirTeamGets, leaguePlayers, baseValueByFantraxId, family, undefined, leagueType === "redraft");
+  }, [myTeamId, teamBId, hasTradeSelected, sendPlayers, sendPicks, receivePlayers, receivePicks, leaguePlayers, baseValueByFantraxId, isPointsLeague, leagueType]);
 
   const hasLeague = Boolean(saved);
 
