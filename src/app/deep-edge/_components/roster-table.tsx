@@ -53,6 +53,58 @@ export type RosterTableFormat = "roto" | "h2hcat" | "points";
  *  always excludes TO for everyone; 9-Cat and FPTS decorate nothing. */
 export type ValueDisplayMode = Exclude<LineupValueMode, "league">;
 
+/**
+ * What the VALUE column shows for a given mode — the z-score behind the
+ * shading, and the RANK printed in the cell.
+ *
+ * This used to be hardcoded: the cell always printed the 9-Cat rank and
+ * shaded off `leagueV`, whatever the "Rank lineup by" toggle said, so
+ * switching to 8-Cat or Minus1V changed which category cells got decorated
+ * and nothing else (Ash, 2026-09-13: "check that the toggle is wired in
+ * dynamically... the toggle should change the display rank # for Value
+ * column based on what is selected"). It also meant the number and its own
+ * rank came from two different measures — leagueV is the mean z across THIS
+ * league's scored categories, while the rank beside it was always the
+ * standard 9-cat one, and in an 8-cat league those genuinely disagree.
+ *
+ * Both now come from the same place, and both follow PER GAME/TOTALS: a
+ * totals view that ordered on per-game rates was the same class of bug
+ * already fixed in the category columns.
+ *
+ * ADP is the market's number rather than FHE's, so it has no z-score to
+ * shade with — the cell prints the ADP itself (1dp, as Fantrax reports it)
+ * and ranks ascending, since pick 1.5 beats pick 244. A player with no
+ * recorded ADP ranks nowhere rather than last; see ResolvedPlayer.adp.
+ */
+export function valueForMode(
+  p: ResolvedPlayer,
+  mode: ValueDisplayMode,
+  statsMode: "perGame" | "totals",
+  leaguePlayers: readonly ResolvedPlayer[],
+  format: RosterTableFormat,
+): { value: number | null; rank: number | null; display: string | null } {
+  if (mode === "adp") {
+    const rank = p.adp == null
+      ? null
+      : rankAmong(leaguePlayers, (pl) => (pl.adp == null ? null : -pl.adp), -p.adp);
+    return { value: null, rank, display: p.adp == null ? null : p.adp.toFixed(1) };
+  }
+  if (format === "points" || mode === "fpts") {
+    const rank = rankAmong(leaguePlayers, (pl) => pl.pointsValue, p.pointsValue);
+    const display = p.pointsValue == null
+      ? null
+      : statsMode === "totals"
+        ? (p.gamesPlayed != null ? Math.round(p.pointsValue * p.gamesPlayed).toLocaleString("en-US") : null)
+        : p.pointsValue.toFixed(1);
+    return { value: p.pointsValue, rank, display };
+  }
+  return {
+    value: p.catV?.[statsMode][mode] ?? null,
+    rank: p.catVRank?.[statsMode][mode] ?? null,
+    display: null,
+  };
+}
+
 export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";
   return `$${(n / 1_000_000).toFixed(1)}M`;
@@ -219,7 +271,7 @@ export function zOf(raw: number | null | undefined, ms: { mu: number; sigma: num
  *  only for the points-mode VALUE column, which has no precomputed FPTS rank
  *  anywhere else. Categories-mode VALUE/MINUS1 instead read the real
  *  precomputed catVRank fields. */
-export function rankAmong(players: ResolvedPlayer[], value: (p: ResolvedPlayer) => number | null, target: number | null): number | null {
+export function rankAmong(players: readonly ResolvedPlayer[], value: (p: ResolvedPlayer) => number | null, target: number | null): number | null {
   if (target == null) return null;
   let rank = 1;
   for (const p of players) {
@@ -310,22 +362,18 @@ export function RosterTableRow({
   const contract = p.fheId ? enrich?.contractByFheId[p.fheId] : undefined;
   const trendTag: TrendTag | null = p.trendTags?.nineCatV ?? null;
   const weak = format !== "points" ? weakestCat(p, scored) : null;
-  const value = format === "points" ? p.pointsValue : p.leagueV;
-  const valueRank = format === "points"
-    ? rankAmong(leaguePlayers, (pl) => pl.pointsValue, p.pointsValue)
-    : (p.catVRank?.perGame.nineCatV ?? null);
-  const minus1Rank = p.catVRank?.perGame.minus1V ?? null;
-  // Per-game rate as-is; season total is that rate over the player's own GP.
-  const pointsDisplay = format !== "points" || p.pointsValue == null
-    ? null
-    : statsMode === "totals"
-      ? (p.gamesPlayed != null ? Math.round(p.pointsValue * p.gamesPlayed).toLocaleString("en-US") : null)
-      : p.pointsValue.toFixed(1);
+  const { value, rank: valueRank, display: valueDisplay } = valueForMode(p, valueMode, statsMode, leaguePlayers, format);
+  const isAdp = valueMode === "adp";
+  const minus1Rank = p.catVRank?.[statsMode].minus1V ?? null;
   const usgZ = zOf(p.usgPct, usgStats);
   // FPTS shades off the league's own scoring distribution, not the raw
   // figure — see the fptsStats prop.
   const fptsZ = format === "points" && fptsStats ? zOf(p.pointsValue, fptsStats) : null;
   const fptsPoolSize = format === "points" ? leaguePlayers.filter((pl) => pl.pointsValue != null).length : 0;
+  // Only players who HAVE an ADP — ranking against the whole roster pool
+  // would make "#40 of 516" read as mid-pack when it is in fact 40th of the
+  // ~292 players anyone drafts at all.
+  const adpPoolSize = isAdp ? leaguePlayers.filter((pl) => pl.adp != null).length : 0;
   const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
   return (
@@ -363,17 +411,23 @@ export function RosterTableRow({
           a z-score, which is meaningful as a rank and not as a printed
           figure. */}
       <td
-        style={{ background: format === "points" ? valueBg(fptsZ) : valueBg(value) }}
+        style={{ background: format === "points" ? valueBg(fptsZ) : isAdp ? undefined : valueBg(value) }}
         title={format === "points"
           ? (fptsZ != null ? `${fptsZ.toFixed(2)} SD vs league` : undefined)
-          : (value != null ? `z-score ${value.toFixed(2)}` : undefined)}
+          : isAdp
+            ? (valueRank != null ? `ADP rank ${valueRank} in this league` : "No recorded ADP")
+            : (value != null ? `z-score ${value.toFixed(2)}` : undefined)}
       >
-        {format === "points" ? (pointsDisplay ?? "—") : formatRank(valueRank)}
+        {format === "points" || isAdp ? (valueDisplay ?? "—") : formatRank(valueRank)}
       </td>
-      {format === "points" && (
+      {/* ADP gets the same figure/rank split points mode has: the number
+          everyone quotes is the ADP itself, and its rank within THIS league's
+          pool is the separate, sortable thing. Reuses the column points mode
+          already puts here, so the column count stays fixed either way. */}
+      {(format === "points" || isAdp) && (
         <td
-          style={{ background: rankBg(valueRank, fptsPoolSize), fontFamily: "var(--rt-font-mono)", fontSize: 12 }}
-          title={valueRank != null ? `${valueRank} of ${fptsPoolSize}` : undefined}
+          style={{ background: rankBg(valueRank, isAdp ? adpPoolSize : fptsPoolSize), fontFamily: "var(--rt-font-mono)", fontSize: 12 }}
+          title={valueRank != null ? `${valueRank} of ${isAdp ? adpPoolSize : fptsPoolSize}` : undefined}
         >
           {formatRank(valueRank)}
         </td>
@@ -428,7 +482,7 @@ export function RosterTableRow({
  *  union); this plain version is for callers that don't need per-column
  *  sorting (Trade Edge's roster pickers). */
 export function RosterTableHead({
-  leadingLabel, visibleCats, extraCols = [], showSalary, showContract, showDynastyRank, showSalaryRank, isPoints,
+  leadingLabel, visibleCats, extraCols = [], showSalary, showContract, showDynastyRank, showSalaryRank, isPoints, valueMode = "minus1V",
 }: {
   leadingLabel: ReactNode;
   visibleCats: readonly FheCategory[];
@@ -438,6 +492,10 @@ export function RosterTableHead({
   showDynastyRank: boolean;
   showSalaryRank: boolean;
   isPoints: boolean;
+  /** Only changes two header labels — VALUE becomes ADP and MINUS1 becomes
+   *  RANK when the ADP mode is active, matching what the row actually puts
+   *  in those two cells. */
+  valueMode?: ValueDisplayMode;
 }) {
   return (
     <tr>
@@ -453,13 +511,13 @@ export function RosterTableHead({
       <th>GP</th>
       <th>MIN</th>
       <th>USG</th>
-      <th>{isPoints ? "FPTS" : "VALUE"}</th>
+      <th>{isPoints ? "FPTS" : valueMode === "adp" ? "ADP" : "VALUE"}</th>
       {/* Points leagues carry the FPTS figure and its rank in SEPARATE
           columns (Ash, 2026-09-10) — one cell holding "49.3 #6" made the
           rank look like a suffix of the score and neither sortable on its
           own. Sits where MINUS1 sits for a categories league, so the column
           count is the same either way. */}
-      {isPoints ? <th>RANK</th> : <th>MINUS1</th>}
+      {isPoints || valueMode === "adp" ? <th>RANK</th> : <th>MINUS1</th>}
       {visibleCats.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
       {extraCols.map((col) => <th key={col}>{col}</th>)}
     </tr>

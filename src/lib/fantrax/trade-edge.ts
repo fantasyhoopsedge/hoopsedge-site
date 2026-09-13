@@ -37,6 +37,7 @@ export type TradeValueMode = Exclude<LineupValueMode, "league"> | "surplusV";
 export const TRADE_VALUE_MODE_LABEL: Record<TradeValueMode, string> = {
   eightCatV: LINEUP_VALUE_MODE_LABEL.eightCatV, nineCatV: LINEUP_VALUE_MODE_LABEL.nineCatV,
   minus1V: LINEUP_VALUE_MODE_LABEL.minus1V, fpts: LINEUP_VALUE_MODE_LABEL.fpts,
+  adp: LINEUP_VALUE_MODE_LABEL.adp,
   // Renamed from "Surplus $" (2026-08-23): this tag no longer means a
   // dynasty cost-vs-production surplus specifically — it reads off Trade
   // Edge's base-value cascade (trade-value.ts), which can be a consensus
@@ -65,6 +66,8 @@ export function lineupModeFor(mode: TradeValueMode, fallback: LineupValueMode): 
  *  rank" and for summarizeAssets' give/receive totals. */
 export function valueOf(p: ResolvedPlayer, mode: TradeValueMode, surplusByFantraxId?: ReadonlyMap<string, number>): number | null {
   if (mode === "surplusV") return surplusByFantraxId?.get(p.fantraxId) ?? null;
+  // Negated so bigger stays better here too — every caller sorts descending.
+  if (mode === "adp") return p.adp == null ? null : -p.adp;
   if (mode === "fpts") return p.pointsValue;
   return p.catV?.perGame[mode] ?? null;
 }

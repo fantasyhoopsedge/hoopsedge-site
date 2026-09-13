@@ -299,6 +299,9 @@ function PowerRankingsContent() {
       for (let i = 0; i < count; i++) slotInstances.push(slot);
     }
     const rankValue = (p: ResolvedPlayer): number | null => {
+      // Negated, like lineup.ts's own lineupValueOf: this comparator wants
+      // bigger-is-better, and a lower ADP is the better player.
+      if (valueMode === "adp") return p.adp == null ? null : -p.adp;
       if (valueMode === "fpts" || valueMode === "league") return p.pointsValue;
       const set = rosterStatsMode === "totals" ? p.catV?.totals : p.catV?.perGame;
       return set?.[valueMode] ?? null;
@@ -610,6 +613,7 @@ function PowerRankingsContent() {
                 drivingIds={drivingIds}
                 slotByFantraxId={slotByFantraxId}
                 statsMode={rosterStatsMode}
+                valueMode={valueMode === "league" ? "minus1V" : valueMode}
               />
             </div>
           )}

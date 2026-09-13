@@ -13,7 +13,7 @@ import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { SegmentedControl } from "../../_components/segmented-control";
 import {
-  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, weightedAverage,
+  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, valueForMode, weightedAverage,
   type EnrichData, type ExtraCode, type RosterTableFormat, type ValueDisplayMode,
 } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
@@ -42,7 +42,11 @@ type TickValueMode = ValueDisplayMode;
  *  based on those values from best to worst"). FPTS sorts by the VALUE
  *  column, which already reads pointsValue for a points-format league. */
 const SORT_KEY_FOR_TICK_MODE: Record<TickValueMode, SortKey> = {
-  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat", fpts: "value",
+  // Every mode now sorts by the VALUE column itself, which reads whichever
+  // number the mode selected (see valueForMode) — the per-flavor keys stay
+  // only because those standalone columns still exist and are still
+  // separately clickable.
+  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat", fpts: "value", adp: "value",
 };
 
 /** The Settings screen's "Add category" codes that Roster Edge can actually
@@ -266,13 +270,24 @@ function RosterEdgeContent() {
       // is expected to do.
       if (key === "fptsRank") return row.pointsValue == null ? -Infinity : row.pointsValue;
       if (key === "value") {
-        if (format !== "points") return row.leagueV ?? -Infinity;
-        if (row.pointsValue == null) return -Infinity;
-        return statsMode === "totals" ? row.pointsValue * (row.gamesPlayed ?? 0) : row.pointsValue;
+        // Follows the "Rank lineup by" toggle, exactly as the cell does —
+        // sorting on leagueV while the column displayed a mode-selected rank
+        // meant the arrow ordered by a number the table wasn't showing (Ash,
+        // 2026-09-13). valueForMode is the single definition both read.
+        const { value, rank } = valueForMode(row, tickValueMode, statsMode, roster?.players ?? [], format === "points" ? "points" : "roto");
+        // ADP has no z-score, only a rank, and a rank sorts the other way
+        // round — negate so "descending" still means "best first" for it.
+        if (tickValueMode === "adp") return rank == null ? -Infinity : -rank;
+        if (value == null) return -Infinity;
+        return format === "points" && statsMode === "totals" ? value * (row.gamesPlayed ?? 0) : value;
       }
-      if (key === "minus1") return row.catV?.perGame.minus1V ?? -Infinity;
-      if (key === "nineCat") return row.catV?.perGame.nineCatV ?? -Infinity;
-      if (key === "eightCat") return row.catV?.perGame.eightCatV ?? -Infinity;
+      // Follow PER GAME/TOTALS like every other column: these sorted on
+      // per-game z-scores even under Totals, so the table ordered by numbers
+      // it wasn't showing — the same mismatch already fixed for the category
+      // columns below and now for VALUE above.
+      if (key === "minus1") return row.catV?.[statsMode].minus1V ?? -Infinity;
+      if (key === "nineCat") return row.catV?.[statsMode].nineCatV ?? -Infinity;
+      if (key === "eightCat") return row.catV?.[statsMode].eightCatV ?? -Infinity;
       const raw = statValue(row, key);
       if (raw == null) return -Infinity;
       // FG%/FT% are rates in both modes — a season shooting percentage is
@@ -280,7 +295,10 @@ function RosterEdgeContent() {
       if (statsMode !== "totals" || key === "FG" || key === "FT") return raw;
       return raw * (row.gamesPlayed ?? 0);
     },
-    [statsMode],
+    // tickValueMode joins statsMode here now that the VALUE accessor reads it
+    // — without it, switching flavor left the table in its previous order
+    // until something else re-sorted it.
+    [statsMode, tickValueMode],
   );
   // The roster table's sort order follows whichever value flavor the
   // tick-set selector is on — best to worst (Ash, 2026-08-14). Runs once per
@@ -579,13 +597,13 @@ function RosterEdgeContent() {
                   <SortTh<SortKey> label="GP" sortKey="gp" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label={format === "points" ? "FPTS" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
+                  <SortTh<SortKey> label={format === "points" ? "FPTS" : tickValueMode === "adp" ? "ADP" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   {/* RANK is deliberately NOT sortable: it is derived from
                       FPTS, so clicking it would sort exactly as the FPTS
                       header beside it already does, with two headers fighting
                       over one sort state. */}
-                  {format === "points" && <SortTh<SortKey> label="RANK" sortKey="fptsRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
-                  {format !== "points" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {(format === "points" || tickValueMode === "adp") && <SortTh<SortKey> label="RANK" sortKey="fptsRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {format !== "points" && tickValueMode !== "adp" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {visibleCats.map((cat) => (
                     <SortTh<SortKey> key={cat} label={CATEGORY_LABEL[cat]} sortKey={cat} sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   ))}
