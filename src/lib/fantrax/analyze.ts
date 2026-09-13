@@ -66,6 +66,13 @@ export interface ResolvedPlayer extends LeagueRosterSpot {
   fheId: string | null;
   /** Which dataset supplied the category values. */
   source: "projection" | "regular" | null;
+  /** Fantrax's own Average Draft Position for this player, or null when he
+   *  has no recorded one (nobody has drafted him in a Fantrax redraft league
+   *  — roughly half a deep dynasty roster, which is correct, not missing
+   *  data). Joined on the raw Fantrax id, so unlike every other field here it
+   *  is present even for a player the identity registry never linked.
+   *  Rounded to 1dp at the point of display, never here. */
+  adp: number | null;
   /** Per-category z-scores from the league's baseline pool (per-game). Drives
    *  LeagueV and the Edge tool's category-fit scoring — those stay per-game
    *  regardless of the roster table's display toggle. */
