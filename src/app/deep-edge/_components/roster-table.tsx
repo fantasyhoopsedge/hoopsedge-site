@@ -114,6 +114,14 @@ export function formatSalary(n: number | null | undefined): string {
   if (n == null) return "—";
   return `$${(n / 1_000_000).toFixed(1)}M`;
 }
+/** A group's combined salary for a Σ row — null when nobody in it carries
+ *  one, so the cell reads "—" rather than a misleading $0.0M. Same raw
+ *  `salary` field every row's own SAL$ cell prints, in either salary format;
+ *  the caller picks formatSalary/formatCustomSalary to match. */
+export function sumSalary(players: readonly ResolvedPlayer[]): number | null {
+  const paid = players.filter((p) => p.salary != null);
+  return paid.length > 0 ? paid.reduce((sum, p) => sum + p.salary!, 0) : null;
+}
 export function formatContract(info: ContractInfo | undefined): string {
   if (!info) return "—";
   return `${info.yearsRemaining}yr/$${(info.totalRemaining / 1_000_000).toFixed(1)}M`;
@@ -392,6 +400,14 @@ export function RosterTableRow({
     : valueMode === "adp"
       ? leaguePlayers.filter((pl) => pl.adp != null).length
       : leaguePlayers.filter((pl) => pl.pointsValue != null).length;
+  // ADP heat (Ash, 2026-09-13: "add conditional formatting for ADP"): shaded
+  // by this player's rank among the players who HAVE an ADP — lower ADP is
+  // better, so it ranks on -adp. Ranking against everyone would make a
+  // mid-pack ADP read as elite, the same pool mistake rankPoolSize avoids.
+  const adpRank = showAdp && p.adp != null
+    ? rankAmong(leaguePlayers, (pl) => (pl.adp == null ? null : -pl.adp), -p.adp)
+    : null;
+  const adpPoolSize = adpRank != null ? leaguePlayers.filter((pl) => pl.adp != null).length : 0;
   const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
   return (
@@ -426,7 +442,14 @@ export function RosterTableRow({
           market's number sits alongside FHE's own so the two can be read
           against each other without switching anything. 1dp, as Fantrax
           reports it. */}
-      {showAdp && <td style={{ fontFamily: "var(--rt-font-mono)" }}>{p.adp != null ? p.adp.toFixed(1) : "—"}</td>}
+      {showAdp && (
+        <td
+          style={{ fontFamily: "var(--rt-font-mono)", background: rankBg(adpRank, adpPoolSize) }}
+          title={adpRank != null ? `ADP rank ${adpRank} of ${adpPoolSize} drafted players` : "No recorded ADP"}
+        >
+          {p.adp != null ? p.adp.toFixed(1) : "—"}
+        </td>
+      )}
       {/* Points mode shows the FPTS figure itself alongside its rank — the
           rank alone said where a player sits without saying what he scores,
           which is the number a points league actually plays for (Ash,

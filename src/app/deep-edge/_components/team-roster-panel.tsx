@@ -6,7 +6,7 @@ import { CATEGORY_LABEL, type FheCategory } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import { formatTotal } from "@/lib/fantrax/power-rankings";
 import {
-  formatStat, meanStd, RosterTableHead, RosterTableRow, summedTotal, weightedAverage,
+  formatCustomSalary, formatSalary, formatStat, meanStd, RosterTableHead, RosterTableRow, summedTotal, sumSalary, weightedAverage,
   type EnrichData, type RosterTableFormat, type ValueDisplayMode,
 } from "./roster-table";
 
@@ -50,7 +50,14 @@ export interface TeamRosterPanelProps {
   valueMode?: ValueDisplayMode;
 }
 
-type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
+/** Same column set Roster Edge ticks on/off (roster-edge/page.tsx's own
+ *  OptionalCols). ADP/Trend/GP/MIN/USG became optional there on 2026-09-13;
+ *  this panel kept counting them as fixed, so its Σ and group-header rows
+ *  fell a column short once ADP started rendering (Ash, 2026-09-13). */
+type OptionalCols = {
+  salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean;
+  adp: boolean; trend: boolean; gp: boolean; min: boolean; usg: boolean;
+};
 
 /**
  * Roster sub-header groups (Ash, 2026-08-19: "add a small sub header for
@@ -89,7 +96,10 @@ function groupForBenchPlayer(rawSlot: string): PositionGroup {
  * leading column is an informational ✓ rather than a checkbox.
  */
 export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots, leaguePlayers, salaryFormat, drivingIds, slotByFantraxId, statsMode = "perGame", valueMode = "minus1V" }: TeamRosterPanelProps) {
-  const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
+  const [cols, setCols] = useState<OptionalCols>({
+    salary: true, contract: true, dynastyRank: true, salaryRank: true,
+    adp: true, trend: true, gp: true, min: true, usg: true,
+  });
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
 
   const drivingPlayers = useMemo(
@@ -135,11 +145,16 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
 
   const showSalary = cols.salary && salaryFormat !== "none";
   const showContract = cols.contract && salaryFormat !== "none";
-  // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns, plus
-  // whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown. MINUS1 is
+  // ✓/PLAYER/TEAM/POS/VALUE = 5 genuinely always-present columns, plus
+  // whichever optional ones are currently shown — the same count Roster Edge
+  // uses. This used to be a hardcoded 9 that treated TREND/GP/MIN/USG as fixed
+  // and knew nothing of ADP, so once ADP became a standing column the Σ and
+  // group-header rows ended one cell short of the header. MINUS1 is
   // deliberately excluded — it renders as its own <td> right after this
   // colSpan cell, not folded into it (same layout Roster Edge's ticked row uses).
-  const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  const optionalShown = [showSalary, showContract, cols.dynastyRank, cols.salaryRank, cols.trend, cols.gp, cols.min, cols.usg, cols.adp]
+    .filter(Boolean).length;
+  const colSpanBeforeStats = 5 + optionalShown;
   /** The driving players' FPTS on the row's own basis: totals sums each
    *  player's own season figure (rate x his GP), per-game averages the rates
    *  weighted by GP — matching summedTotal/weightedAverage for categories. */
@@ -169,6 +184,7 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
         <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
         {([
           ["salary", "Salary"], ["contract", "Contract"], ["dynastyRank", "Dynasty rank"], ["salaryRank", "Salary rank"],
+          ["adp", "ADP"], ["trend", "Trend"], ["gp", "GP"], ["min", "MIN"], ["usg", "USG"],
         ] as [keyof OptionalCols, string][]).map(([key, label]) => {
           // Salary/Contract have nothing to show in a non-salary league —
           // showSalary/showContract are hard-gated on salaryFormat !== "none"
@@ -222,15 +238,33 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
               showContract={showContract}
               showDynastyRank={cols.dynastyRank}
               showSalaryRank={cols.salaryRank}
+              showTrend={cols.trend}
+              showGp={cols.gp}
+              showMin={cols.min}
+              showUsg={cols.usg}
+              showAdp={cols.adp}
               isPoints={format === "points"}
             />
           </thead>
           <tbody>
             {drivingPlayers.length > 0 && (
               <tr className="mine">
-                <td colSpan={colSpanBeforeStats - 1} className="l">
+                <td colSpan={4} className="l">
                   Σ {drivingPlayers.length} DRIVING — {statsMode === "totals" ? "season totals" : "weighted per-game average"}
                 </td>
+                {/* SAL$ gets its own total (Ash, 2026-09-13: "add a total sum
+                    for salary") — the label used to span straight across it.
+                    Everything else before VALUE (contract, ranks, trend, GP,
+                    MIN, USG, ADP) doesn't sum across a roster, so it stays one
+                    blank spacer. */}
+                {showSalary && (
+                  <td style={{ fontWeight: 700 }}>
+                    {salaryFormat === "custom" ? formatCustomSalary(sumSalary(drivingPlayers)) : formatSalary(sumSalary(drivingPlayers))}
+                  </td>
+                )}
+                {colSpanBeforeStats - 1 - 4 - (showSalary ? 1 : 0) > 0 && (
+                  <td colSpan={colSpanBeforeStats - 1 - 4 - (showSalary ? 1 : 0)} />
+                )}
                 {/* The FPTS/VALUE column, previously swallowed by the colSpan
                     and left blank while every category beside it carried a
                     figure. Points leagues get the team's own number here —
@@ -279,6 +313,11 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
                     showContract={showContract}
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
+                    showTrend={cols.trend}
+                    showGp={cols.gp}
+                    showMin={cols.min}
+                    showUsg={cols.usg}
+                    showAdp={cols.adp}
                     salaryFormat={salaryFormat}
                     statsMode={statsMode}
                     valueMode={valueMode}
