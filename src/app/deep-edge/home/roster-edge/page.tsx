@@ -13,7 +13,7 @@ import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { SegmentedControl } from "../../_components/segmented-control";
 import {
-  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, valueForMode, weightedAverage,
+  DraftPicksPanel, formatCustomSalary, formatSalary, formatStat, meanStd, RosterTableRow, statValue, summedTotal, sumSalary, valueForMode, weightedAverage,
   type EnrichData, type ExtraCode, type RosterTableFormat, type ValueDisplayMode,
 } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
@@ -637,9 +637,20 @@ function RosterEdgeContent() {
               <tbody>
                 {tickedPlayers.length > 0 && (
                   <tr className="mine">
-                    <td colSpan={colSpanBeforeStats - 1} className="l">
+                    <td colSpan={4} className="l">
                       Σ {tickedPlayers.length} TICKED — {statsMode === "totals" ? "season totals" : "weighted per-game average"}
                     </td>
+                    {/* SAL$ total — same split as Power Rankings' Σ row
+                        (team-roster-panel.tsx); every other pre-VALUE column
+                        doesn't sum, so it stays one blank spacer. */}
+                    {showSalary && (
+                      <td style={{ fontWeight: 700 }}>
+                        {salaryFormat === "custom" ? formatCustomSalary(sumSalary(tickedPlayers)) : formatSalary(sumSalary(tickedPlayers))}
+                      </td>
+                    )}
+                    {colSpanBeforeStats - 1 - 4 - (showSalary ? 1 : 0) > 0 && (
+                      <td colSpan={colSpanBeforeStats - 1 - 4 - (showSalary ? 1 : 0)} />
+                    )}
                     {/* The FPTS/VALUE column, previously inside the colSpan and
                         so left blank while every category beside it carried a
                         figure. Points leagues get the team's own weighted
