@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { categoryTier, resolveEffectiveScoring, type CategoryTier } from "@/lib/fantrax/lineup";
@@ -1168,12 +1168,20 @@ function TradeEdgeContent() {
   // recomputed on page load, same GET contract that page uses. Only fetched
   // when the league has opted in; still null otherwise.
   const [customLedger, setCustomLedger] = useState<CustomValuationsDoc | null>(null);
+  /** Which season drives every value on this page (Ash, 2026-09-13: "allow
+   *  the user to toggle between projections, prior season, current season as
+   *  the value driver, keeping everything dynamic"). Seeded from the
+   *  league's own saved default and then page-local — changing it here is a
+   *  display choice, not a league setting, so it never writes back. Unlike
+   *  the other controls in this panel it re-FETCHES: a different season is
+   *  different data, not a different view of the same rows. */
+  const [dataset, setDataset] = useState<FantraxDatasetKey>(saved?.settings.defaultDataset ?? "2027:projection");
 
   useEffect(() => {
     if (!saved) return;
     const params = new URLSearchParams({
       leagueId: saved.leagueId,
-      dataset: saved.settings.defaultDataset ?? "2027:projection",
+      dataset,
       leagueType: saved.settings.leagueType ?? "redraft",
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
@@ -1191,7 +1199,7 @@ function TradeEdgeContent() {
         setConsensusPoolSize(cPoolSize ?? null);
       })
       .catch((err) => setError(String(err)));
-  }, [saved]);
+  }, [saved, dataset]);
 
   useEffect(() => {
     // Fetched whenever EITHER opt-in is on — full custom valuations, or the
@@ -1700,6 +1708,18 @@ function TradeEdgeContent() {
                   />
                 </div>
               )}
+
+              {/* Interactive, unlike the locked league-fact controls beside
+                  it: which season you read a player against is a question
+                  about THIS analysis, not a property of the league. */}
+              <div>
+                <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Value driver</div>
+                <SegmentedControl<FantraxDatasetKey>
+                  options={FANTRAX_DATASETS.map((d) => ({ value: d.key, label: d.label }))}
+                  value={dataset}
+                  onChange={setDataset}
+                />
+              </div>
 
               <div>
                 <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Scoring format</div>

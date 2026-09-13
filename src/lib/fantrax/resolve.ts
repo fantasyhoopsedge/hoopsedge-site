@@ -15,7 +15,7 @@ import {
   type LeagueAnalysis, type ResolvedPlayer, type StatLine, type TrendTags,
 } from "./analyze";
 import {
-  CATEGORY_VALUE_COLUMN, FANTRAX_DATASETS, FHE_CATEGORIES,
+  CATEGORY_VALUE_COLUMN, DATASET_FALLBACK, FANTRAX_DATASETS, FHE_CATEGORIES,
   type FantraxDatasetKey, type FantraxLeague, type FheCategory, type LeaguePointsFormula, type LeagueRosterSpot,
 } from "./league";
 import { fetchAdp } from "./api";
@@ -479,12 +479,17 @@ export async function analyzeLeague(
   const pointsFormula = league.pointsFormula;
 
   const primarySpec = FANTRAX_DATASETS.find((d) => d.key === datasetKey) ?? FANTRAX_DATASETS[0];
-  const fallbackSpec = FANTRAX_DATASETS.find((d) => d.key !== primarySpec.key)!;
+  // Declared per dataset, never "whichever one isn't the primary" — see
+  // DATASET_FALLBACK. The current season resolves ALONE, so before opening
+  // night it returns nulls rather than last season's numbers wearing this
+  // season's label.
+  const fallbackKey = DATASET_FALLBACK[primarySpec.key];
+  const fallbackSpec = fallbackKey ? FANTRAX_DATASETS.find((d) => d.key === fallbackKey) : undefined;
   const [primary, fallback] = await Promise.all([
     loadDataset(primarySpec, league.poolSize),
-    loadDataset(fallbackSpec, league.poolSize),
+    fallbackSpec ? loadDataset(fallbackSpec, league.poolSize) : Promise.resolve(null),
   ]);
-  const order = [primary, fallback];
+  const order = fallback ? [primary, fallback] : [primary];
   const consensus = consensusIndex();
 
   // Fantrax id → identity. Duplicate names were already resolved (or refused)
