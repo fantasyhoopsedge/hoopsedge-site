@@ -31,6 +31,7 @@ import { playerIdentity } from "../src/lib/player-identity/bundled";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import {
   computeAllLeagueSizes,
+  LEAGUE_SIZES,
   type PlayerStats,
   type RankedPlayerValues,
 } from "../src/lib/value/compute-values";
@@ -53,6 +54,39 @@ const DRY_RUN = argv.includes("--dry-run");
 const onlyArgIdx = argv.indexOf("--only");
 // --only 2026:regular  → build just that dataset (key = `${season}:${type}`).
 const ONLY = onlyArgIdx >= 0 ? argv[onlyArgIdx + 1] : null;
+const sizesArgIdx = argv.indexOf("--sizes");
+/**
+ * `--sizes 112,140,168` → compute and write ONLY those league sizes,
+ * leaving every other size's existing rows untouched.
+ *
+ * Added 2026-09-13 alongside the sub-250 sizes. Without it, adding one size
+ * means recomputing all sixteen and upserting every row — and this build is
+ * NOT deterministic to the last decimal (identical code reshuffles ~100 rows
+ * by ±0.001, see docs/ and the seasonal-build note), so a full rerun would
+ * churn every existing league's values as a side effect of adding a pool
+ * nobody was using yet. Narrow writes keep "add a size" from meaning
+ * "silently restate everything".
+ *
+ * Unknown sizes are rejected rather than silently skipped: a typo would
+ * otherwise look like a successful no-op build.
+ */
+const SIZES: readonly number[] | null = sizesArgIdx >= 0
+  ? (argv[sizesArgIdx + 1] ?? "").split(",").map((x) => Number(x.trim())).filter((n) => Number.isFinite(n))
+  : null;
+/** The validation gate below reads league_size 400 specifically, so a
+ *  narrowed build still COMPUTES 400 — it just doesn't write it. Dropping
+ *  the gate to save one size's arithmetic would trade the build's only
+ *  correctness check for nothing. */
+const GATE_SIZE = 400;
+const COMPUTE_SIZES: readonly number[] | null = SIZES
+  ? (SIZES.includes(GATE_SIZE) ? SIZES : [...SIZES, GATE_SIZE])
+  : null;
+if (SIZES) {
+  const unknown = SIZES.filter((n) => !(LEAGUE_SIZES as readonly number[]).includes(n));
+  if (unknown.length > 0) {
+    throw new Error(`--sizes: ${unknown.join(", ")} not in LEAGUE_SIZES (${LEAGUE_SIZES.join(", ")})`);
+  }
+}
 
 // ── validation gate reference (league_size = 400) ──────────────────────────────
 const REF_VALUES: Record<string, number> = {
@@ -541,6 +575,10 @@ async function upsert(
 
   const valueRows: Record<string, unknown>[] = [];
   for (const [size, rows] of values) {
+    // 400 is computed for the gate even when it wasn't requested — skip it
+    // here so a narrowed build never restates a size it wasn't asked to
+    // touch (see COMPUTE_SIZES).
+    if (SIZES && !SIZES.includes(size)) continue;
     for (const r of rows) {
       const t = totIndex.get(`${size}:${r.playerId}`) ?? null;
       valueRows.push({
@@ -640,11 +678,11 @@ async function buildDataset(
     }
   }
 
-  const values = computeAllLeagueSizes(stats);
+  const values = computeAllLeagueSizes(stats, COMPUTE_SIZES ?? undefined);
   assertFinite(values);
 
   // Totals mode: same engine over season totals (rewards volume/durability).
-  const totals = computeAllLeagueSizes(buildTotalsStats(agg));
+  const totals = computeAllLeagueSizes(buildTotalsStats(agg), COMPUTE_SIZES ?? undefined);
   assertFinite(totals);
 
   // The reference export only applies to the calibrated dataset (per-game); other
