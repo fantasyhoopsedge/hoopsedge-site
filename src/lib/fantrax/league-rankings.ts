@@ -5,6 +5,7 @@ import type { ResolvedPlayer, StatLine } from "./analyze";
 import type { FheCategory, TeamDraftPick } from "./league";
 import type { LeagueType, SalaryFormat } from "./league-tags";
 import { getAgeByFheId, getConsensusPoolSize, getContractByFheId, getDynastyRankByFheId, getSalaryRankByFheId, getSophomoreByFheId } from "./roster-edge";
+import { defaultAssetValueMode } from "./trade-edge";
 import { computeBaseTradeValues, computeKeeperWeight } from "./trade-value";
 import { CATEGORIES_PICK_TIERS, pickEquivalentValue } from "./trade-verdict";
 import { playerIdentity } from "../player-identity/bundled";
@@ -217,7 +218,16 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
   const consensusPoolSize = getConsensusPoolSize();
 
   const scoredCount = analysis.league.categories?.scored?.length ?? 9;
-  const categoryFallbackMode = scoredCount === 8 ? "eightCatV" : "nineCatV";
+  // Same matrix Trade Edge defaults to, so the two surfaces can't disagree
+  // about what a league's own asset value IS (see defaultAssetValueMode).
+  // It only changes the answer for a REDRAFT league — which is the only kind
+  // the matrix governs — and only for 9-cat H2H, where it is Minus1V rather
+  // than the 9-Cat this line used to return regardless of format.
+  const categoryFallbackMode = defaultAssetValueMode({
+    scoringMode: analysis.league.scoringMode === "points" ? "points" : "categories",
+    scoredCount,
+    isH2H: leagueType !== "dynasty" && analysis.league.derivedFormat === "h2h",
+  });
   const family: "categories" | "points" = analysis.league.scoringMode === "points" ? "points" : "categories";
 
   // ── free agents — same identity-registry + season_player_values resolve

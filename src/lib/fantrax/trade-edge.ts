@@ -34,6 +34,42 @@ import { EFFICIENCY_BASE_SALARY_WEIGHT, rankBy, rankToZ } from "../value/real-sa
  *  "surplus"); see lineupModeFor's fallback. */
 export type TradeValueMode = Exclude<LineupValueMode, "league"> | "surplusV";
 
+/**
+ * The asset value a league is scored in by default — Ash's own matrix
+ * (2026-09-13), which the code did NOT previously implement: it branched on
+ * 8-vs-9 categories alone and never looked at roto vs H2H, so a 9-cat H2H
+ * league defaulted to 9-Cat when the matrix says Minus1.
+ *
+ *   9-cat  roto  ->  nineCatV     8-cat  roto  ->  eightCatV
+ *   9-cat  H2H   ->  minus1V      8-cat  H2H   ->  eightCatV
+ *   points either ->  fpts
+ *
+ * Minus1 for 9-cat H2H because a head-to-head week is won category by
+ * category: punting your own worst one costs a manager nothing most weeks,
+ * which is exactly what Minus1V prices and what a season-long roto total
+ * would not.
+ *
+ * This is a DEFAULT, never a lock — the viewer can pick any mode and the
+ * board and the trade calculator both follow (Ash: "i'm happy for asset
+ * value to remain dynamic so if a user would rather use 9-cat z-score value
+ * for 9-cat H2H format then that is their choice").
+ *
+ * Redraft-shaped leagues only. A dynasty league prices assets off the
+ * consensus / real-salary / custom cascade generated from its Home screen,
+ * so this never applies there.
+ */
+export function defaultAssetValueMode(opts: {
+  scoringMode: "categories" | "points" | string;
+  scoredCount: number;
+  /** Null/unknown is treated as roto — the season-long reading, and the one
+   *  that matches what this code did before the matrix existed. */
+  isH2H: boolean;
+}): Exclude<TradeValueMode, "surplusV" | "adp"> {
+  if (opts.scoringMode === "points") return "fpts";
+  if (opts.scoredCount === 8) return "eightCatV";
+  return opts.isH2H ? "minus1V" : "nineCatV";
+}
+
 export const TRADE_VALUE_MODE_LABEL: Record<TradeValueMode, string> = {
   eightCatV: LINEUP_VALUE_MODE_LABEL.eightCatV, nineCatV: LINEUP_VALUE_MODE_LABEL.nineCatV,
   minus1V: LINEUP_VALUE_MODE_LABEL.minus1V, fpts: LINEUP_VALUE_MODE_LABEL.fpts,

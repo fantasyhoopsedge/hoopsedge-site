@@ -13,7 +13,7 @@ import {
   rotoStandingsByRawStat, simulateStandingsFor, type RankingsFormat, type StandingsContext,
 } from "@/lib/fantrax/power-rankings";
 import {
-  tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
+  defaultAssetValueMode, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
   type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
 import { computeBaseTradeValues } from "@/lib/fantrax/trade-value";
@@ -1294,7 +1294,20 @@ function TradeEdgeContent() {
   // the same category mode the league would otherwise default to (and the
   // production input the base-value cascade's own Efficiency term uses for
   // custom-salary dynasty leagues). See lineupModeFor/trade-value.ts.
-  const categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp"> = isPointsLeague ? "fpts" : ((effective?.scored.length ?? 9) === 8 ? "eightCatV" : "nineCatV");
+  /** This league's own default asset value. For a redraft-shaped league that
+   *  is Ash's matrix (defaultAssetValueMode) — which, unlike the old
+   *  8-vs-9-category branch here, distinguishes roto from H2H and so lands a
+   *  9-cat H2H league on Minus1V rather than 9-Cat (Ash, 2026-09-13, spotted
+   *  live on FBI_01 DO H2H). A DYNASTY league keeps the old reading: its
+   *  assets are priced by the consensus / real-salary / custom cascade it
+   *  generates from Home, and the matrix is explicitly redraft-only. */
+  const categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp"> = leagueType === "dynasty"
+    ? (isPointsLeague ? "fpts" : ((effective?.scored.length ?? 9) === 8 ? "eightCatV" : "nineCatV"))
+    : defaultAssetValueMode({
+      scoringMode: isPointsLeague ? "points" : "categories",
+      scoredCount: effective?.scored.length ?? 9,
+      isH2H: format === "h2hcat",
+    });
   /** What a REDRAFT league prices assets in. Derived from the one "Rank
    *  players by" control rather than a second, conflicting selector (Ash,
    *  2026-09-13: "as it stands these 2 features are conflicting") — picking
