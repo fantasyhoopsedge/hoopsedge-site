@@ -7,7 +7,7 @@ import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import { formatTotal } from "@/lib/fantrax/power-rankings";
 import {
   formatStat, meanStd, RosterTableHead, RosterTableRow, summedTotal, weightedAverage,
-  type EnrichData, type RosterTableFormat,
+  type EnrichData, type RosterTableFormat, type ValueDisplayMode,
 } from "./roster-table";
 
 export interface TeamRosterPanelProps {
@@ -43,6 +43,11 @@ export interface TeamRosterPanelProps {
    *  to a season total, comma-formatted with no decimals (formatTotal).
    *  Defaults to "perGame". */
   statsMode?: "perGame" | "totals";
+  /** Which "Rank lineup by" flavor the VALUE column reads. The panel used to
+   *  take no such prop, so its VALUE column was pinned to the 9-Cat rank
+   *  while Power Rankings' own toggle moved everything ELSE on the screen —
+   *  the same disconnect Roster Edge had (Ash, 2026-09-13). */
+  valueMode?: ValueDisplayMode;
 }
 
 type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
@@ -83,7 +88,7 @@ function groupForBenchPlayer(rawSlot: string): PositionGroup {
  * "driving" set comes in as a prop (the standings' own profile), and the
  * leading column is an informational ✓ rather than a checkbox.
  */
-export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots, leaguePlayers, salaryFormat, drivingIds, slotByFantraxId, statsMode = "perGame" }: TeamRosterPanelProps) {
+export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots, leaguePlayers, salaryFormat, drivingIds, slotByFantraxId, statsMode = "perGame", valueMode = "minus1V" }: TeamRosterPanelProps) {
   const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
 
@@ -276,6 +281,7 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
                     showSalaryRank={cols.salaryRank}
                     salaryFormat={salaryFormat}
                     statsMode={statsMode}
+                    valueMode={valueMode}
                     positionSlots={positionSlots}
                     leaguePlayers={leaguePlayers}
                     usgStats={usgStats}

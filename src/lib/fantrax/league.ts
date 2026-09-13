@@ -498,13 +498,47 @@ export function currentSeasonDraftStatus(draft: FantraxLeague["draft"]): Current
  * The FHE datasets a league can be valued against. Lives here rather than in
  * resolve.ts because the connector UI renders this menu, and resolve.ts is
  * server-only.
+ *
+ * Three of them as of 2026-09-13 (Ash: "allow the user to toggle between
+ * projections, prior season, current season as the value driver"):
+ *
+ *   2027:projection — 2026-27 Projections. The default, and the only one
+ *                     that describes the season being played.
+ *   2026:regular    — last season's real production.
+ *   2027:regular    — THIS season's real production. Deliberately empty
+ *                     until games are played; see DATASET_FALLBACK on why it
+ *                     is left that way rather than quietly backfilled.
  */
-export type FantraxDatasetKey = "2027:projection" | "2026:regular";
+export type FantraxDatasetKey = "2027:projection" | "2026:regular" | "2027:regular";
 
 export const FANTRAX_DATASETS: { key: FantraxDatasetKey; season: number; type: string; label: string }[] = [
   { key: "2027:projection", season: 2027, type: "projection", label: "2026-27 Projections" },
   { key: "2026:regular", season: 2026, type: "regular", label: "2025-26 Actual" },
+  { key: "2027:regular", season: 2027, type: "regular", label: "2026-27 Season" },
 ];
+
+/**
+ * Which dataset backfills a player the selected one doesn't know — and, for
+ * the current season, the deliberate decision that NOTHING does.
+ *
+ * The projection set misses players with no projection row, and last
+ * season's misses anyone who hadn't played yet, so those two have always
+ * covered for each other. The current season is different in kind: before
+ * opening night it is empty for EVERYONE, so a fallback wouldn't be filling
+ * gaps, it would be silently serving last season's numbers under a heading
+ * that says 2026-27. A viewer who picks "2026-27 Season" in September is
+ * asking what has happened so far, and the honest answer is "nothing yet"
+ * (Ash, 2026-09-13: "note current season is not yet underway so would return
+ * null values"). Blank cells say that; borrowed ones lie about it.
+ *
+ * This also replaces a naive `find(d => d.key !== primary.key)`, which with
+ * a third dataset would have picked whichever happened to be declared first.
+ */
+export const DATASET_FALLBACK: Record<FantraxDatasetKey, FantraxDatasetKey | null> = {
+  "2027:projection": "2026:regular",
+  "2026:regular": "2027:projection",
+  "2027:regular": null,
+};
 
 /**
  * Categories vs points, from Fantrax's `scoringSystem.type`.

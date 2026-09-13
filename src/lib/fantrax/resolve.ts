@@ -15,11 +15,15 @@ import {
   type LeagueAnalysis, type ResolvedPlayer, type StatLine, type TrendTags,
 } from "./analyze";
 import {
-  CATEGORY_VALUE_COLUMN, FANTRAX_DATASETS, FHE_CATEGORIES,
+  CATEGORY_VALUE_COLUMN, DATASET_FALLBACK, FANTRAX_DATASETS, FHE_CATEGORIES,
   type FantraxDatasetKey, type FantraxLeague, type FheCategory, type LeaguePointsFormula, type LeagueRosterSpot,
 } from "./league";
+import { fetchAdp } from "./api";
 
 export { FANTRAX_DATASETS, type FantraxDatasetKey };
+
+/** ADP moves on the order of a day — see getAdpByFantraxId. */
+const ADP_TTL = 3600;
 
 /**
  * Joins a Fantrax league to FHE's category values, through the player identity
@@ -224,6 +228,7 @@ function resolveOne(
   scored: readonly FheCategory[],
   identityByFantraxId: Record<string, { fheId: string; name: string }>,
   pointsFormula: LeaguePointsFormula | null,
+  adpByFantraxId: ReadonlyMap<string, number>,
 ): ResolvedPlayer {
   const norm = normalizePlayerName(spot.name);
   const consensusRank = lookupWithNameAlias(consensus, norm) ?? null;
@@ -233,11 +238,17 @@ function resolveOne(
   // name fallback.
   const ambiguousName = !identity;
 
+  // Joined on the RAW Fantrax id, before the identity gate below — a player
+  // the registry never linked still has a real ADP, and withholding it
+  // because some OTHER join failed would be inventing a gap.
+  const adp = adpByFantraxId.get(spot.fantraxId) ?? null;
+
   const blank: ResolvedPlayer = {
     ...spot,
     playerId: null,
     fheId: identity?.fheId ?? null,
     source: null,
+    adp,
     cats: {},
     catsTotals: {},
     leagueV: null,
@@ -314,6 +325,7 @@ function resolveOne(
       playerId: stats.player_id,
       fheId: identity.fheId,
       source: isProjection ? "projection" : "regular",
+      adp,
       cats,
       catsTotals,
       leagueV: leagueValueOf(cats, scored),
@@ -433,6 +445,29 @@ function applyTrendTags(
  *  free agents is wasted work when the board only ever shows the top slice. */
 const WAIVER_BOARD_SIZE = 60;
 
+/**
+ * Fantrax id → ADP, for every player who has one.
+ *
+ * One league-wide fetch per resolve, not per player, and cached for an hour:
+ * ADP is a rolling average over thousands of drafts, so it moves on the order
+ * of a day — a 60s TTL like the league snapshot's would be re-fetching the
+ * same 18KB for no reason, and a build-time copy would be stale by the time
+ * anyone drafted against it.
+ *
+ * A failure here is NOT a failure of the resolve. ADP is one more column on
+ * screens that all worked before it existed, so an outage or a shape change
+ * degrades to "no ADP anywhere" rather than taking down every Deep Edge tool
+ * with it — the same reasoning the trend-tag layer below is best-effort.
+ */
+export async function getAdpByFantraxId(): Promise<ReadonlyMap<string, number>> {
+  try {
+    const rows = await fetchAdp("NBA", { next: { revalidate: ADP_TTL } });
+    return new Map(rows.filter((r) => Number.isFinite(r.ADP)).map((r) => [r.id, r.ADP]));
+  } catch {
+    return new Map();
+  }
+}
+
 export async function analyzeLeague(
   league: FantraxLeague,
   myTeamId: string | null,
@@ -444,17 +479,23 @@ export async function analyzeLeague(
   const pointsFormula = league.pointsFormula;
 
   const primarySpec = FANTRAX_DATASETS.find((d) => d.key === datasetKey) ?? FANTRAX_DATASETS[0];
-  const fallbackSpec = FANTRAX_DATASETS.find((d) => d.key !== primarySpec.key)!;
+  // Declared per dataset, never "whichever one isn't the primary" — see
+  // DATASET_FALLBACK. The current season resolves ALONE, so before opening
+  // night it returns nulls rather than last season's numbers wearing this
+  // season's label.
+  const fallbackKey = DATASET_FALLBACK[primarySpec.key];
+  const fallbackSpec = fallbackKey ? FANTRAX_DATASETS.find((d) => d.key === fallbackKey) : undefined;
   const [primary, fallback] = await Promise.all([
     loadDataset(primarySpec, league.poolSize),
-    loadDataset(fallbackSpec, league.poolSize),
+    fallbackSpec ? loadDataset(fallbackSpec, league.poolSize) : Promise.resolve(null),
   ]);
-  const order = [primary, fallback];
+  const order = fallback ? [primary, fallback] : [primary];
   const consensus = consensusIndex();
 
   // Fantrax id → identity. Duplicate names were already resolved (or refused)
   // when the registry was built, so nothing has to be recomputed per import.
   const identityByFantraxId = await getIdentityByFantraxId();
+  const adpByFantraxId = await getAdpByFantraxId();
 
   const byValue = isPoints ? byPointsValue : byLeagueValue;
   const hasValue = (p: ResolvedPlayer) => (isPoints ? p.pointsValue !== null : p.leagueV !== null);
@@ -463,7 +504,7 @@ export async function analyzeLeague(
     teamId: r.teamId,
     teamName: r.teamName,
     players: r.players
-      .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula))
+      .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula, adpByFantraxId))
       .sort(byValue),
   }));
 
@@ -486,7 +527,7 @@ export async function analyzeLeague(
       })();
 
   let waiverBoard = league.freeAgents
-    .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula))
+    .map((p) => resolveOne(p, order, consensus, scored, identityByFantraxId, pointsFormula, adpByFantraxId))
     // Small samples are excluded here rather than de-ranked: a 3-game call-up
     // isn't a better pickup than every real free agent, and showing him as one
     // discredits the whole board.

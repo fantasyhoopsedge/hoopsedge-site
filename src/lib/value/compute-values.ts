@@ -23,7 +23,29 @@
  * retained because the build's validation gate is calibrated against the
  * reference export at size 400.
  */
-export const LEAGUE_SIZES = [250, 280, 300, 320, 340, 360, 380, 400, 420, 450] as const;
+/**
+ * Every baseline pool the engine precomputes values for.
+ *
+ * The 250-450 band was built for deep dynasty leagues. The seven sizes below
+ * it are teams x 14 for an 8- to 20-team REDRAFT league (Ash's own table,
+ * 2026-09-13: 8T 112, 10T 140, 12T 168 ... 20T 280), added because a shallow
+ * redraft league was being valued against a replacement level far deeper
+ * than it actually plays — a 12-team 14-man league wants a 168-player
+ * baseline and was snapping up to 250, the smallest that existed.
+ *
+ * 250 stays even though the new band brackets it: real leagues already have
+ * it stored in their saved settings and real rows behind it, and dropping a
+ * size silently re-snaps every one of them to a neighbour. 280 was already
+ * here, so the table's 20T entry needs nothing new.
+ *
+ * ADDING A SIZE REQUIRES A BUILD. season_player_values is precomputed per
+ * size, so a size listed here with no rows behind it resolves to NO values
+ * at all for any league that snaps to it. Run
+ * `npm run seasonal:build -- --sizes 112,140,168,196,224,252` (which
+ * writes ONLY those, leaving the existing ten untouched — see that flag's
+ * own doc for why that matters) before this list ships.
+ */
+export const LEAGUE_SIZES = [112, 140, 168, 196, 224, 250, 252, 280, 300, 320, 340, 360, 380, 400, 420, 450] as const;
 export type LeagueSize = (typeof LEAGUE_SIZES)[number];
 
 /** Default pool shown on the page. */
@@ -209,8 +231,8 @@ export function computeLeagueValues(players: PlayerStats[], n: number): RankedPl
 }
 
 /** Compute values for every league size in LEAGUE_SIZES. */
-export function computeAllLeagueSizes(players: PlayerStats[]): Map<number, RankedPlayerValues[]> {
+export function computeAllLeagueSizes(players: PlayerStats[], sizes: readonly number[] = LEAGUE_SIZES): Map<number, RankedPlayerValues[]> {
   const out = new Map<number, RankedPlayerValues[]>();
-  for (const n of LEAGUE_SIZES) out.set(n, computeLeagueValues(players, n));
+  for (const n of sizes) out.set(n, computeLeagueValues(players, n));
   return out;
 }

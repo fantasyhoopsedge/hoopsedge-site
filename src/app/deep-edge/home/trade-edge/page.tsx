@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { CategoryEdge, LeagueAnalysis, ResolvedPlayer, TeamCategoryProfile, TradePartnerSuggestion } from "@/lib/fantrax/analyze";
 import { categoryEdges, projectRotoStandings, suggestTradePartners, teamStrengthsWeaknesses } from "@/lib/fantrax/analyze";
-import { CATEGORY_LABEL, currentSeasonDraftStatus, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
+import { CATEGORY_LABEL, currentSeasonDraftStatus, FANTRAX_DATASETS, type FantraxDatasetKey, type FheCategory, type TeamDraftPick } from "@/lib/fantrax/league";
 import { DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS, type LeagueType, type SalaryFormat } from "@/lib/fantrax/league-tags";
 import { FormatConfirmPrompt } from "@/lib/fantrax/format-confirm";
 import { categoryTier, resolveEffectiveScoring, type CategoryTier } from "@/lib/fantrax/lineup";
@@ -13,10 +13,10 @@ import {
   rotoStandingsByRawStat, simulateStandingsFor, type RankingsFormat, type StandingsContext,
 } from "@/lib/fantrax/power-rankings";
 import {
-  tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
+  defaultAssetValueMode, tradeProfiles, TRADE_VALUE_MODE_LABEL, valueOf,
   type TradeValueMode,
 } from "@/lib/fantrax/trade-edge";
-import { computeBaseTradeValues, type RedraftBaseMode } from "@/lib/fantrax/trade-value";
+import { computeBaseTradeValues } from "@/lib/fantrax/trade-value";
 import type { CustomValuationsDoc } from "@/lib/fantrax/custom-valuations-store";
 import { computeTradeVerdict, type TradeVerdict } from "@/lib/fantrax/trade-verdict";
 import {
@@ -208,8 +208,24 @@ function tradeValueRankFor(
   leaguePlayers: readonly ResolvedPlayer[],
   baseValueByFantraxId: ReadonlyMap<string, number> | undefined,
   pickValues: readonly number[],
+  mode: TradeValueMode,
 ): string {
-  const rank = rankAmongCombined(leaguePlayers as ResolvedPlayer[], (pl) => baseValueByFantraxId?.get(pl.fantraxId) ?? null, pickValues, baseValueByFantraxId?.get(p.fantraxId) ?? null);
+  // Ranks in whatever the viewer selected, not always the trade value: a
+  // card that re-sorted on the toggle while its own number stayed put was
+  // showing two different opinions at once (Ash, 2026-09-13: "the players
+  // card should update dynamically the #rank and reorder players").
+  //
+  // Draft picks only belong in the pool when the mode IS trade value. They
+  // have a trade value and nothing else — no 9-cat z-score, no ADP — so
+  // counting them under any other mode would pad the ranks with assets that
+  // can't be measured in the unit being displayed.
+  const extras = mode === "surplusV" ? pickValues : [];
+  const rank = rankAmongCombined(
+    leaguePlayers,
+    (pl) => valueOf(pl, mode, baseValueByFantraxId),
+    extras,
+    valueOf(p, mode, baseValueByFantraxId),
+  );
   return rank != null ? `#${rank}` : "—";
 }
 
@@ -228,9 +244,11 @@ function tradeValueRankFor(
  *  "assessed" state — Ash, 2026-08-23: "remove the semi greyed application
  *  to some of the cards that was a legacy UI request." */
 function PlayerMiniCard({
-  player, checked, onToggle, tier, positionSlots, isSophomore, contractClass, leaguePlayers, baseValueByFantraxId, pickValues,
+  player, checked, onToggle, tier, positionSlots, isSophomore, contractClass, leaguePlayers, baseValueByFantraxId, pickValues, valueMode,
 }: {
   player: ResolvedPlayer; checked: boolean; onToggle: () => void;
+  /** Which value the card's big number ranks in — see tradeValueRankFor. */
+  valueMode: TradeValueMode;
   tier: CategoryTier | null; positionSlots: Record<string, number>; isSophomore: boolean;
   contractClass: ContractClass | undefined; leaguePlayers: readonly ResolvedPlayer[];
   baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
@@ -250,7 +268,7 @@ function PlayerMiniCard({
       name={player.name}
       subLabel={`${posDisplayFor(player.eligible, positionSlots).join("/") || "—"} · ${player.nbaTeam || "—"}`}
       bg={ASSET_TIER_COLOR[assetTier].bg}
-      headline={tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, pickValues)}
+      headline={tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, pickValues, valueMode)}
       isRookie={player.isRookie}
       checked={checked}
       onToggle={onToggle}
@@ -274,6 +292,22 @@ function PlayerMiniCard({
  *  as 0, so a missing value can't silently understate what's actually moving;
  *  `missing` surfaces the count so the caller can flag it instead of
  *  presenting a partial total as if it were complete. */
+/** One side's fantasy points, on the table's own PER GAME / TOTALS basis —
+ *  per-game sums each player's rate (the side's combined output for a night),
+ *  totals sums rate x his own games, the same rule every category column in
+ *  this table already follows. Null when nobody on the side has a points
+ *  value, so an empty side reads "—" rather than a confident 0. */
+function fptsFor(players: readonly ResolvedPlayer[], statMode: "perGame" | "totals"): number | null {
+  const withPoints = players.filter((p) => p.pointsValue != null);
+  if (withPoints.length === 0) return null;
+  return withPoints.reduce((sum, p) => sum + p.pointsValue! * (statMode === "totals" ? (p.gamesPlayed ?? 0) : 1), 0);
+}
+
+function formatFpts(n: number | null, statMode: "perGame" | "totals"): string {
+  if (n == null) return "—";
+  return statMode === "totals" ? Math.round(n).toLocaleString("en-US") : n.toFixed(1);
+}
+
 function sumSalary(players: ResolvedPlayer[]): { total: number; missing: number } {
   let total = 0, missing = 0;
   for (const p of players) {
@@ -282,11 +316,15 @@ function sumSalary(players: ResolvedPlayer[]): { total: number; missing: number 
   return { total, missing };
 }
 
-function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalary, showContract, salaryFormat }: {
+function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalary, showContract, salaryFormat, showDynastyRank, showAdp, showFpts }: {
   scored: readonly FheCategory[]; sendPlayers: ResolvedPlayer[]; receivePlayers: ResolvedPlayer[]; statMode: "perGame" | "totals";
   showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
+  /** Must match TradePreviewTable's own three flags exactly — this row sits
+   *  directly beneath those tables and shares their colgroup, so a column
+   *  shown in one and not the other misaligns both. */
+  showDynastyRank: boolean; showAdp: boolean; showFpts: boolean;
 }) {
-  if (scored.length === 0) return null;
+  if (scored.length === 0 && !showFpts) return null;
   const isCustomSalary = salaryFormat === "custom";
   const fmtSalary = (n: number) => (isCustomSalary ? formatCustomSalary(n) : formatSalary(n));
   const sent = sumSalary(sendPlayers);
@@ -307,13 +345,18 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalar
             <col style={{ width: 50 }} />
             {showSalary && <col style={{ width: 70 }} />}
             {showContract && <col style={{ width: 80 }} />}
+            {showDynastyRank && <col style={{ width: 60 }} />}
+            {showAdp && <col style={{ width: 56 }} />}
             <col style={{ width: 60 }} />
-            <col style={{ width: 60 }} />
+            {showFpts && <col style={{ width: 64 }} />}
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
           </colgroup>
           <tbody>
             <tr className="mine">
-              <td className="l">Net category impact ({statMode === "perGame" ? "per game" : "totals"})</td>
+              {/* "Net impact", not "Net category impact" — a points league's
+                  headline number here is FPTS, not categories, and the row
+                  reads across every format now (Ash, 2026-09-13). */}
+              <td className="l">Net impact ({statMode === "perGame" ? "per game" : "totals"})</td>
               <td>—</td><td>—</td>
               {showSalary && (
                 <td title={salaryTitle} style={{ fontWeight: 700, color: salaryColor }}>
@@ -321,7 +364,20 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalar
                 </td>
               )}
               {showContract && <td>—</td>}
-              <td>—</td><td>—</td>
+              {showDynastyRank && <td>—</td>}
+              {showAdp && <td>—</td>}
+              <td>—</td>
+              {showFpts && (() => {
+                const sentF = fptsFor(sendPlayers, statMode) ?? 0;
+                const gotF = fptsFor(receivePlayers, statMode) ?? 0;
+                const net = gotF - sentF;
+                const gain = net > 0.05, loss = net < -0.05;
+                return (
+                  <td style={{ background: gain ? "rgba(34,197,94,0.14)" : loss ? "rgba(239,68,68,0.14)" : undefined, color: "var(--rt-ink)", fontWeight: 700 }}>
+                    {net > 0.05 ? "+" : net < -0.05 ? "-" : "±"}{formatFpts(Math.abs(net), statMode)}
+                  </td>
+                );
+              })()}
               {scored.map((cat) => {
                 const net = netFor(sendPlayers, receivePlayers, cat, statMode);
                 const gain = net != null && Math.abs(net) > 0.0005 && (HIGHER_IS_BETTER[cat] ? net > 0 : net < 0);
@@ -479,7 +535,7 @@ function RankRing({ rank, of, size = 54, stroke = "var(--rt-primary)" }: { rank:
 function TradeVerdictAssetRow({
   player, pick, rawValue, adjustedValue, leaguePlayers, baseValueByFantraxId, secondRankMode, showSalary, salaryFormat,
   family, positionSlots, isSophomore, contractClass, seasonYear, currentYearPickValueByOverallPick, pickCurveYear, ledgerValues,
-  onRequestValue,
+  valueMode, onRequestValue,
 }: {
   player: ResolvedPlayer | null; pick: TeamDraftPick | null; rawValue: number; adjustedValue: number;
   leaguePlayers: ResolvedPlayer[]; baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
@@ -487,6 +543,8 @@ function TradeVerdictAssetRow({
   family: "categories" | "points"; positionSlots: Record<string, number>;
   isSophomore: boolean; contractClass: ContractClass | undefined; seasonYear: number;
   currentYearPickValueByOverallPick: ReadonlyMap<number, number>; pickCurveYear: number | undefined; ledgerValues: readonly number[];
+  /** Which value the row's rank column reads — see tradeValueRankFor. */
+  valueMode: TradeValueMode;
   /** Launches the Power Rankings compare so an unresolved future pick's
    *  real value gets computed — every row here is already part of the
    *  proposed trade, so (unlike the picker cards) the trigger always shows
@@ -496,7 +554,7 @@ function TradeVerdictAssetRow({
   const isCustomSalary = salaryFormat === "custom";
   const label = player ? player.name : pickLabel(pick!);
   const pickStatus = player ? null : pickValueStatus(pick!, { leaguePlayers, baseValueByFantraxId, family, currentYearPickValueByOverallPick, seasonYear, pickCurveYear, pickLedgerValues: ledgerValues });
-  const valRk = player ? tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerValues) : pickStatus!.label;
+  const valRk = player ? tradeValueRankFor(player, leaguePlayers, baseValueByFantraxId, ledgerValues, valueMode) : pickStatus!.label;
   const secondRk = player ? valueDisplayFor(player, secondRankMode, leaguePlayers, undefined) : "—";
   const salaryDisplay = player
     ? (isCustomSalary ? formatCustomSalary(player.salary) : formatSalary(player.salary))
@@ -554,7 +612,7 @@ function TradeVerdictAssetRow({
 function TradeVerdictSideColumn({
   teamName, teamNameColor, side, players, picks, leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel,
   showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, pickCurveYear,
-  ledgerValues, onRequestValue,
+  ledgerValues, valueMode, onRequestValue,
 }: {
   teamName: string; teamNameColor: string; side: TradeVerdict["sideA"]; players: ResolvedPlayer[]; picks: readonly TeamDraftPick[];
   leaguePlayers: ResolvedPlayer[]; baseValueByFantraxId: ReadonlyMap<string, number> | undefined;
@@ -564,6 +622,8 @@ function TradeVerdictSideColumn({
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
   /** The draft class that map describes — see pickValueStatus's own doc. */
   pickCurveYear: number | undefined;
+  /** Which value the rank column reads — see tradeValueRankFor. */
+  valueMode: TradeValueMode;
   ledgerValues: readonly number[]; onRequestValue: () => void;
 }) {
   const assetValueByLabel = useMemo(() => new Map(side.assets.map((a) => [a.label, a])), [side.assets]);
@@ -603,6 +663,7 @@ function TradeVerdictSideColumn({
                   showSalary={showSalary} salaryFormat={salaryFormat} family={family}
                   positionSlots={positionSlots} isSophomore={isSophomore} contractClass={contractClass} seasonYear={seasonYear}
                   currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} pickCurveYear={pickCurveYear} ledgerValues={ledgerValues}
+                  valueMode={valueMode}
                   onRequestValue={onRequestValue}
                 />
               );
@@ -617,7 +678,7 @@ function TradeVerdictSideColumn({
 function TradeVerdictPanel({
   verdict, myTeamName, theirTeamName, myTeamId, myPlayers, myPicks, theirPlayers, theirPicks, leaguePlayers, baseValueByFantraxId,
   secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear,
-  currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode, league,
+  currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, valueMode, onRequestValue, trade, rowFormat, scored, teamCount, salaryBefore, salaryAfter, statMode, league,
 }: {
   verdict: TradeVerdict; myTeamName: string; theirTeamName: string; myTeamId: string;
   /** sideA (myTeamName) is what I RECEIVE — receivePlayers/receivePicks;
@@ -631,6 +692,8 @@ function TradeVerdictPanel({
   enrich: EnrichData | null; seasonYear: number; currentYearPickValueByOverallPick: ReadonlyMap<number, number>;
   /** The draft class that map describes — see pickValueStatus's own doc. */
   pickCurveYear: number | undefined;
+  /** Which value the rank column reads — see tradeValueRankFor. */
+  valueMode: TradeValueMode;
   ledgerValues: readonly number[]; onRequestValue: () => void;
   /** Before/after league-wide profiles — null until the Power Rankings
    *  compare panel has been opened at least once (see `trade`'s own doc in
@@ -662,7 +725,7 @@ function TradeVerdictPanel({
   // losing side's reads red, both neutral on a fair trade.
   const myNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "A" ? "var(--rt-up)" : "var(--rt-down)";
   const theirNameColor = verdict.winner === "Fair" ? "var(--rt-muted)" : verdict.winner === "B" ? "var(--rt-up)" : "var(--rt-down)";
-  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, onRequestValue };
+  const sideProps = { leaguePlayers, baseValueByFantraxId, secondRankMode, secondRankLabel, showSalary, salaryFormat, family, positionSlots, enrich, seasonYear, currentYearPickValueByOverallPick, pickCurveYear, ledgerValues, valueMode, onRequestValue };
 
   const rankBefore = trade ? teamRankOf(trade.before, rowFormat, scored, myTeamId, statMode, league) : null;
   const rankAfter = trade ? teamRankOf(trade.after, rowFormat, scored, myTeamId, statMode, league) : null;
@@ -808,7 +871,7 @@ function TradeVerdictPanel({
  *  line up exactly whether read stacked or side by side. */
 function TradePreviewTable({
   title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots, showSalary, showContract, salaryFormat,
-  surplusByFantraxId, pickValues,
+  surplusByFantraxId, pickValues, showDynastyRank, showAdp, showFpts,
 }: {
   title: string; players: ResolvedPlayer[]; scored: readonly FheCategory[]; enrich: EnrichData | null;
   leaguePlayers: ResolvedPlayer[]; valueMode: TradeValueMode; statMode: "perGame" | "totals";
@@ -816,6 +879,13 @@ function TradePreviewTable({
   /** Mirrors Roster Edge's own Salary/Contract column toggles — off by
    *  default in leagues with no salary data (salaryFormat "none"). */
   showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
+  /** DYN RK is a dynasty concept — a redraft manager is not trading on where
+   *  a player sits on a keep-forever board, so the column is dropped there
+   *  (Ash, 2026-09-13). ADP replaces it for redraft, where draft position IS
+   *  the shared reference point. FPTS shows for a points league, whose
+   *  headline trade number is fantasy points and which had no column for
+   *  them at all. */
+  showDynastyRank: boolean; showAdp: boolean; showFpts: boolean;
   surplusByFantraxId?: ReadonlyMap<string, number>;
   /** The generated ledger's own PICK rows — see valueDisplayFor's own doc
    *  for why this only matters when valueMode is "surplusV". */
@@ -834,8 +904,10 @@ function TradePreviewTable({
             <col style={{ width: 50 }} />
             {showSalary && <col style={{ width: 70 }} />}
             {showContract && <col style={{ width: 80 }} />}
+            {showDynastyRank && <col style={{ width: 60 }} />}
+            {showAdp && <col style={{ width: 56 }} />}
             <col style={{ width: 60 }} />
-            <col style={{ width: 60 }} />
+            {showFpts && <col style={{ width: 64 }} />}
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
           </colgroup>
           <thead>
@@ -845,8 +917,10 @@ function TradePreviewTable({
               <th>AGE</th>
               {showSalary && <th>SAL$</th>}
               {showContract && <th>CONTRACT$</th>}
-              <th>DYN RK</th>
+              {showDynastyRank && <th>DYN RK</th>}
+              {showAdp && <th>ADP</th>}
               <th>VAL RK</th>
+              {showFpts && <th>FPTS</th>}
               {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
             </tr>
           </thead>
@@ -863,7 +937,10 @@ function TradePreviewTable({
                 );
               })()}
               {showContract && <td>—</td>}
-              <td>—</td><td>—</td>
+              {showDynastyRank && <td>—</td>}
+              {showAdp && <td>—</td>}
+              <td>—</td>
+              {showFpts && <td style={{ fontWeight: 700 }}>{formatFpts(fptsFor(players, statMode), statMode)}</td>}
               {scored.map((cat) => <td key={cat}>{summaryStatDisplay(players, cat, statMode)}</td>)}
             </tr>
             {players.map((p) => {
@@ -884,8 +961,10 @@ function TradePreviewTable({
                   <td>{age != null ? age.toFixed(1) : "—"}</td>
                   {showSalary && <td>{isCustomSalary ? formatCustomSalary(p.salary) : formatSalary(p.salary)}</td>}
                   {showContract && <td>{isCustomSalary ? formatCustomContract(p.contract) : formatContract(contract)}</td>}
-                  <td>{dynastyRank ?? "—"}</td>
+                  {showDynastyRank && <td>{dynastyRank ?? "—"}</td>}
+                  {showAdp && <td style={{ fontFamily: "var(--rt-font-mono)" }}>{p.adp != null ? p.adp.toFixed(1) : "—"}</td>}
                   <td>{valueDisplay}</td>
+                  {showFpts && <td>{formatFpts(p.pointsValue == null ? null : p.pointsValue * (statMode === "totals" ? (p.gamesPlayed ?? 0) : 1), statMode)}</td>}
                   {scored.map((cat) => <td key={cat}>{playerStatDisplay(p, cat, statMode)}</td>)}
                 </tr>
               );
@@ -902,9 +981,11 @@ function TradePreviewTable({
  *  this is the one Deep Edge table where a second team's row matters as
  *  much as your own. */
 function PowerRankingsCompareTable({
-  profiles, format, scored, myTeamId, teamBId, statMode, league,
+  profiles, format, scored, myTeamId, teamBId, statMode, league, isOwnTeamA,
 }: {
   profiles: TeamCategoryProfile[]; format: RosterTableFormat; scored: readonly FheCategory[]; myTeamId: string; teamBId: string;
+  /** See rowLabel — whether side A can honestly be called "you". */
+  isOwnTeamA: boolean;
   /** Same "which raw-stat basis" toggle the trade preview tables above
    *  already show — reused here rather than a second toggle, so the
    *  before/after roto view always matches what the rest of the page is
@@ -918,7 +999,11 @@ function PowerRankingsCompareTable({
 }) {
   const teamCount = profiles.length;
   const rowClass = (teamId: string) => (teamId === myTeamId ? "mine" : teamId === teamBId ? "partner" : "");
-  const rowLabel = (teamId: string, name: string) => `${name}${teamId === myTeamId ? " · YOU" : teamId === teamBId ? " · PARTNER" : ""}`;
+  // "YOU"/"PARTNER" only hold when side A really is the viewer's team. Two
+  // OTHER teams being simulated get "SIDE A"/"SIDE B" — calling someone
+  // else's roster "you" is worse than a neutral label (Ash, 2026-09-13).
+  const rowLabel = (teamId: string, name: string) =>
+    `${name}${teamId === myTeamId ? (isOwnTeamA ? " · YOU" : " · SIDE A") : teamId === teamBId ? (isOwnTeamA ? " · PARTNER" : " · SIDE B") : ""}`;
 
   if (format === "roto") {
     const rows = rotoStandingsByRawStat(profiles, scored, statMode);
@@ -1030,12 +1115,14 @@ function StrengthChip({ cat, kind }: { cat: FheCategory; kind: "strong" | "weak"
  *  also the Trade partner picker's home now (Ash, 2026-08-23: "move the
  *  trade partner drop down selector to sit next to the 3 suggested trade
  *  partners"), and every league needs that regardless of scoring mode.
- *  "Rank players by" moved down here too, next to strong/weak (Ash,
- *  2026-08-23), since it's a per-roster READ, not a league-wide setting like
- *  the three above it in TRADE VALUATION SETTINGS. */
+ *  "Rank players by" lived here from 2026-08-23 until 2026-09-13, when it
+ *  moved back up into TRADE VALUATION SETTINGS to replace "Evaluate assets
+ *  by" — the two were asking the same question in two places and answering
+ *  it independently. It is no longer a per-roster READ either: on a redraft
+ *  league it now prices the trade calculator. */
 function TeamInsightPanel({
   strengthsWeaknesses, partners, onPickPartner, showCategoryInsights,
-  rosterOptions, teamBId, onTeamBChange, valueMode, onValueModeChange, isPointsLeague,
+  rosterOptions, teamBId, onTeamBChange, teamAOptions, teamAId, onTeamAChange, isOwnTeamA, teamAName,
 }: {
   strengthsWeaknesses: { strong: CategoryEdge[]; weak: CategoryEdge[] };
   partners: TradePartnerSuggestion[];
@@ -1044,9 +1131,13 @@ function TeamInsightPanel({
   rosterOptions: { teamId: string; teamName: string }[];
   teamBId: string | null;
   onTeamBChange: (teamId: string | null) => void;
-  valueMode: TradeValueMode;
-  onValueModeChange: (v: TradeValueMode) => void;
-  isPointsLeague: boolean;
+  /** Side A. Every team in the league, including the connected one — which
+   *  is simply the default rather than a fixed anchor now. */
+  teamAOptions: { teamId: string; teamName: string }[];
+  teamAId: string | null;
+  onTeamAChange: (teamId: string) => void;
+  isOwnTeamA: boolean;
+  teamAName: string;
 }) {
   const { strong, weak } = strengthsWeaknesses;
   const hasInsights = showCategoryInsights && (strong.length > 0 || weak.length > 0);
@@ -1055,31 +1146,16 @@ function TeamInsightPanel({
       {hasInsights && (
         <div style={{ display: "flex", gap: 28, flexWrap: "wrap", marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is strong in</div>
+            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>{isOwnTeamA ? "Your team is" : `${teamAName} is`} strong in</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {strong.length > 0 ? strong.map((e) => <StrengthChip key={e.category} cat={e.category} kind="strong" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is weak in</div>
+            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>{isOwnTeamA ? "Your team is" : `${teamAName} is`} weak in</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {weak.length > 0 ? weak.map((e) => <StrengthChip key={e.category} cat={e.category} kind="weak" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
             </div>
-          </div>
-          <div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Rank players by</div>
-            {/* Display/sort order only (2026-08-23) — trade math never reads
-                this. "Trade Value" (surplusV) always reflects
-                baseValueByFantraxId, whatever the league-settings cascade
-                produced for it, so it's always a meaningful sort now — not
-                gated to dynasty leagues with salary data like the old
-                Surplus $ figure was. */}
-            <SegmentedControl<TradeValueMode>
-              options={VALUE_MODE_OPTIONS}
-              value={valueMode}
-              onChange={onValueModeChange}
-              disabledOptions={isPointsLeague ? [] : (["fpts"] as TradeValueMode[])}
-            />
           </div>
         </div>
       )}
@@ -1110,6 +1186,24 @@ function TeamInsightPanel({
             </div>
           </div>
         )}
+        {/* Side A, added 2026-09-13. Sits before the partner picker because
+            it is the team everything else on the page is computed FOR —
+            strengths, suggested partners, the verdict's own "receives" side. */}
+        <div>
+          <label style={{ fontSize: 12, color: "var(--rt-muted)", display: "block", marginBottom: 6 }}>Team</label>
+          <select
+            value={teamAId ?? ""}
+            onChange={(e) => onTeamAChange(e.target.value)}
+            style={{
+              height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 13, fontWeight: 600, minWidth: 220,
+            }}
+          >
+            {teamAOptions.map((r) => (
+              <option key={r.teamId} value={r.teamId}>{r.teamName}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label style={{ fontSize: 12, color: "var(--rt-muted)", display: "block", marginBottom: 6 }}>Trade partner</label>
           <select
@@ -1156,7 +1250,6 @@ function TradeEdgeContent() {
   // cosmetic sort (see trade-value.ts module doc's Redraft branch). Only
   // surfaced in the UI for leagueType "redraft"; a keeper league's redraft-
   // shaped blend component uses whatever this is set to as well.
-  const [redraftBaseMode, setRedraftBaseMode] = useState<RedraftBaseMode>("native");
   // Site-wide population sizes the real-salary rank / dynasty consensus rank
   // were each computed within — NOT this league's own poolSize. See
   // trade-value.ts's module doc and roster-edge.ts's getSalaryRankByFheId/
@@ -1168,12 +1261,24 @@ function TradeEdgeContent() {
   // recomputed on page load, same GET contract that page uses. Only fetched
   // when the league has opted in; still null otherwise.
   const [customLedger, setCustomLedger] = useState<CustomValuationsDoc | null>(null);
+  /** Both sides reset when the league changes, and side B clears if it would
+   *  otherwise equal side A — a team can't trade with itself, and leaving a
+   *  stale id there would silently build that trade. */
+  const [sidesResetFor, setSidesResetFor] = useState<string | null>(null);
+  /** Which season drives every value on this page (Ash, 2026-09-13: "allow
+   *  the user to toggle between projections, prior season, current season as
+   *  the value driver, keeping everything dynamic"). Seeded from the
+   *  league's own saved default and then page-local — changing it here is a
+   *  display choice, not a league setting, so it never writes back. Unlike
+   *  the other controls in this panel it re-FETCHES: a different season is
+   *  different data, not a different view of the same rows. */
+  const [dataset, setDataset] = useState<FantraxDatasetKey>(saved?.settings.defaultDataset ?? "2027:projection");
 
   useEffect(() => {
     if (!saved) return;
     const params = new URLSearchParams({
       leagueId: saved.leagueId,
-      dataset: saved.settings.defaultDataset ?? "2027:projection",
+      dataset,
       leagueType: saved.settings.leagueType ?? "redraft",
     });
     if (saved.teamId) params.set("teamId", saved.teamId);
@@ -1191,7 +1296,7 @@ function TradeEdgeContent() {
         setConsensusPoolSize(cPoolSize ?? null);
       })
       .catch((err) => setError(String(err)));
-  }, [saved]);
+  }, [saved, dataset]);
 
   useEffect(() => {
     // Fetched whenever EITHER opt-in is on — full custom valuations, or the
@@ -1271,14 +1376,60 @@ function TradeEdgeContent() {
     [analysis, saved],
   );
 
-  const myTeamId = analysis?.myTeamId ?? null;
+  /** Side A of the trade. Defaults to the connected team — the overwhelmingly
+   *  common case, and what this page did exclusively until 2026-09-13 (Ash:
+   *  "allow the user to simulate a trade with any 2 teams") — but any team in
+   *  the league can take that side now. Every downstream memo already reads
+   *  `myTeamId`, so overriding it here moves the whole page (rosters, profiles,
+   *  category edges, suggested partners, the verdict, projected pick slots)
+   *  without touching any of them. Null means "use the connected team"; reset
+   *  on a league switch so a team id from the previous league can never leak
+   *  into this one. */
+  const [teamAOverride, setTeamAOverride] = useState<string | null>(null);
+  const connectedTeamId = analysis?.myTeamId ?? null;
+  const myTeamId = teamAOverride ?? connectedTeamId;
+  /** True when side A really is the viewer's own team — drives whether the
+   *  page says "you" or names the team. */
+  const isOwnTeamA = myTeamId != null && myTeamId === connectedTeamId;
+  if (saved && sidesResetFor !== saved.leagueId) {
+    setSidesResetFor(saved.leagueId);
+    setTeamAOverride(null);
+    setTeamBId(null);
+  } else if (teamBId != null && teamBId === myTeamId) {
+    setTeamBId(null);
+  }
   const isPointsLeague = analysis?.league.scoringMode === "points";
   const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
   // What lineup CONSTRUCTION falls back to when valueMode is "surplusV" —
   // the same category mode the league would otherwise default to (and the
   // production input the base-value cascade's own Efficiency term uses for
   // custom-salary dynasty leagues). See lineupModeFor/trade-value.ts.
-  const categoryFallbackMode: Exclude<TradeValueMode, "surplusV"> = isPointsLeague ? "fpts" : ((effective?.scored.length ?? 9) === 8 ? "eightCatV" : "nineCatV");
+  /** This league's own default asset value. For a redraft-shaped league that
+   *  is Ash's matrix (defaultAssetValueMode) — which, unlike the old
+   *  8-vs-9-category branch here, distinguishes roto from H2H and so lands a
+   *  9-cat H2H league on Minus1V rather than 9-Cat (Ash, 2026-09-13, spotted
+   *  live on FBI_01 DO H2H). A DYNASTY league keeps the old reading: its
+   *  assets are priced by the consensus / real-salary / custom cascade it
+   *  generates from Home, and the matrix is explicitly redraft-only. */
+  const categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp"> = leagueType === "dynasty"
+    ? (isPointsLeague ? "fpts" : ((effective?.scored.length ?? 9) === 8 ? "eightCatV" : "nineCatV"))
+    : defaultAssetValueMode({
+      scoringMode: isPointsLeague ? "points" : "categories",
+      scoredCount: effective?.scored.length ?? 9,
+      isH2H: format === "h2hcat",
+    });
+  /** What a REDRAFT league prices assets in. Derived from the one "Rank
+   *  players by" control rather than a second, conflicting selector (Ash,
+   *  2026-09-13: "as it stands these 2 features are conflicting") — picking
+   *  9-Cat now prices the trade calculator in 9-Cat, not just the card order.
+   *  Trade Value and ADP both fall back to the league's native value: the
+   *  first IS the computed base (using it as its own input is circular), and
+   *  a draft POSITION has no magnitude to sum across a trade's two sides.
+   *  Dynasty/keeper ignore this entirely — they price off the consensus /
+   *  real-salary / custom cascade. */
+  const redraftValueMode: Exclude<TradeValueMode, "surplusV" | "adp"> =
+    valueMode === "surplusV" || valueMode === "adp" ? categoryFallbackMode : valueMode;
+
   // The trade-preview table's second rank column — Ash, 2026-08-23: "Minus1
   // rank (for 9cat leagues), 8Cat rank for for 8cat leagues, FPTS rank for
   // points leagues." Deliberately Minus1V, not nineCatV, for a 9-cat league
@@ -1378,7 +1529,7 @@ function TradeEdgeContent() {
       leagueType,
       valueBasis,
       categoryFallbackMode,
-      redraftBaseMode,
+      redraftValueMode,
       leaguePoolSize: analysis.league.poolSize,
       consensusPoolSize,
       realSalaryRankByFheId: realSalaryRankMap,
@@ -1389,7 +1540,7 @@ function TradeEdgeContent() {
       currentSeason: Number(saved?.settings.defaultDataset?.split(":")[0]) || new Date().getFullYear(),
     });
   }, [
-    analysis, leaguePlayers, leagueType, valueBasis, categoryFallbackMode, redraftBaseMode,
+    analysis, leaguePlayers, leagueType, valueBasis, categoryFallbackMode, redraftValueMode,
     consensusPoolSize, realSalaryRankMap, realSalaryPoolSize, saved, totalRosterSlots,
   ]);
   // When this league has opted into custom valuations (Settings' toggle, set
@@ -1588,8 +1739,11 @@ function TradeEdgeContent() {
       ...sendPicks.map((pk) => ({ label: pickLabel(pk), pick: pk })),
     ];
     const family = isPointsLeague ? "points" : "categories";
-    return computeTradeVerdict(myTeamGets, theirTeamGets, leaguePlayers, baseValueByFantraxId, family);
-  }, [myTeamId, teamBId, hasTradeSelected, sendPlayers, sendPicks, receivePlayers, receivePicks, leaguePlayers, baseValueByFantraxId, isPointsLeague]);
+    // Redraft flattens the concentration premium — see REDRAFT_BLEND. A
+    // keeper league keeps the dynasty treatment: it still pays for
+    // concentration, since its roster spots carry across seasons.
+    return computeTradeVerdict(myTeamGets, theirTeamGets, leaguePlayers, baseValueByFantraxId, family, undefined, leagueType === "redraft");
+  }, [myTeamId, teamBId, hasTradeSelected, sendPlayers, sendPicks, receivePlayers, receivePicks, leaguePlayers, baseValueByFantraxId, isPointsLeague, leagueType]);
 
   const hasLeague = Boolean(saved);
 
@@ -1690,16 +1844,36 @@ function TradeEdgeContent() {
                 </div>
               )}
 
-              {leagueType === "redraft" && (
-                <div>
-                  <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Evaluate assets by</div>
-                  <SegmentedControl<RedraftBaseMode>
-                    options={[{ value: "native", label: TRADE_VALUE_MODE_LABEL[categoryFallbackMode] }, { value: "minus1V", label: "Minus1V" }]}
-                    value={redraftBaseMode}
-                    onChange={setRedraftBaseMode}
-                  />
-                </div>
-              )}
+              {/* One valuation control, here rather than two that disagreed
+                  (Ash, 2026-09-13). It was "Evaluate assets by" — a
+                  redraft-only native/Minus1V pair feeding the trade math —
+                  sitting above a separate "Rank players by" down beside
+                  strong/weak that only re-sorted cards. Same question asked
+                  twice, answered independently. Now: this selection drives
+                  the card rank and order on EVERY league type, and for a
+                  redraft league it prices the trade calculator too (see
+                  redraftValueMode). */}
+              <div>
+                <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Rank players by</div>
+                <SegmentedControl<TradeValueMode>
+                  options={VALUE_MODE_OPTIONS}
+                  value={valueMode}
+                  onChange={setValueMode}
+                  disabledOptions={isPointsLeague ? [] : (["fpts"] as TradeValueMode[])}
+                />
+              </div>
+
+              {/* Interactive, unlike the locked league-fact controls beside
+                  it: which season you read a player against is a question
+                  about THIS analysis, not a property of the league. */}
+              <div>
+                <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Value driver</div>
+                <SegmentedControl<FantraxDatasetKey>
+                  options={FANTRAX_DATASETS.map((d) => ({ value: d.key, label: d.label }))}
+                  value={dataset}
+                  onChange={setDataset}
+                />
+              </div>
 
               <div>
                 <div style={{ fontSize: 12.5, color: "var(--rt-muted)", marginBottom: 6 }}>Scoring format</div>
@@ -1757,9 +1931,11 @@ function TradeEdgeContent() {
             rosterOptions={analysis.rosters.filter((r) => r.teamId !== myTeamId)}
             teamBId={teamBId}
             onTeamBChange={setTeamBId}
-            valueMode={valueMode}
-            onValueModeChange={setValueMode}
-            isPointsLeague={isPointsLeague}
+            teamAOptions={analysis.rosters.map((r) => ({ teamId: r.teamId, teamName: r.teamName }))}
+            teamAId={myTeamId}
+            onTeamAChange={setTeamAOverride}
+            isOwnTeamA={isOwnTeamA}
+            teamAName={myRoster?.teamName ?? "This team"}
           />
 
           {!isPointsLeague && (
@@ -1821,6 +1997,7 @@ function TradeEdgeContent() {
                         leaguePlayers={leaguePlayers}
                         baseValueByFantraxId={baseValueByFantraxId}
                         pickValues={ledgerValues}
+                        valueMode={valueMode}
                         onToggle={() => setIds((s) => { const n = new Set(s); if (n.has(p.fantraxId)) n.delete(p.fantraxId); else n.add(p.fantraxId); return n; })}
                       />
                     ))}
@@ -1892,10 +2069,10 @@ function TradeEdgeContent() {
                     </div>
                   )}
 
-                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
-                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
+                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
+                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
 
-                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
+                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
 
                   {tradeVerdict && myRoster && theirRoster && (
                     <TradeVerdictPanel
@@ -1912,6 +2089,7 @@ function TradeEdgeContent() {
                       family={isPointsLeague ? "points" : "categories"}
                       positionSlots={effective?.positionSlots ?? {}} enrich={enrich} seasonYear={seasonYear}
                       currentYearPickValueByOverallPick={currentYearPickValueByOverallPick} pickCurveYear={pickCurveYear} ledgerValues={ledgerValues}
+                      valueMode={valueMode}
                       onRequestValue={() => setActivePanel("rankings")}
                       trade={trade} rowFormat={rowFormat} scored={effective?.scored ?? []} teamCount={teamCount}
                       salaryBefore={salaryBefore} salaryAfter={salaryAfter} statMode={statMode}
@@ -1964,11 +2142,11 @@ function TradeEdgeContent() {
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 20 }}>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>BEFORE</div>
-                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} league={analysis?.league} />
+                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} isOwnTeamA={isOwnTeamA} statMode={statMode} league={analysis?.league} />
                         </div>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>AFTER</div>
-                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} league={analysis?.league} />
+                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} isOwnTeamA={isOwnTeamA} statMode={statMode} league={analysis?.league} />
                         </div>
                       </div>
                     </div>

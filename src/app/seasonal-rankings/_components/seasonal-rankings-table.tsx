@@ -7,6 +7,7 @@ import { PlatformSidebarNav } from "@/components/platform-sidebar-nav";
 import { Footer } from "@/components/footer";
 import { TEAM_LOGO } from "@/app/team-rosters/_components/roster-data";
 import { shortenPlayerName } from "@/lib/shorten-name";
+import { SEASON_DATASETS } from "@/lib/value/seasons";
 import { prospectHeadshotUrl, nbaHeadshotUrl } from "@/lib/dynasty-rankings";
 import { initials } from "@/app/team-rosters/_components/roster-helpers";
 
@@ -724,7 +725,14 @@ export function SeasonalRankingsTable(props: {
   };
 
   const empty = players.length === 0;
-  const sizesAsc = useMemo(() => [...leagueSizes].sort((a, b) => a - b), [leagueSizes]);
+  /** Only the pools THIS dataset actually has rows for — see
+   *  SeasonDataset.minSize. Offering one it lacks renders an empty table for
+   *  a selection that looks perfectly valid. */
+  const sizesAsc = useMemo(() => {
+    const [season, type] = activeSeason.split(":");
+    const min = SEASON_DATASETS.find((d) => d.season === Number(season) && d.type === type)?.minSize ?? 0;
+    return [...leagueSizes].filter((n) => n >= min).sort((a, b) => a - b);
+  }, [leagueSizes, activeSeason]);
   // Headshot fallback below (prospect art / cdn.nba.com) is scoped strictly to
   // THESE two datasets — /images/prospects/ holds art for multiple draft
   // classes (2025's Cooper Flagg sits next to 2026's Cameron Boozer), so

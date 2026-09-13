@@ -38,6 +38,7 @@ import { normalizeTeamAbbr } from "../src/lib/nba-teams";
 import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import {
   computeAllLeagueSizes,
+  LEAGUE_SIZES,
   type PlayerStats,
   type RankedPlayerValues,
 } from "../src/lib/value/compute-values";
@@ -47,6 +48,28 @@ const YEARS = [2026, 2025, 2024, 2023, 2022] as const;
 
 const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run");
+/** Same values-only narrowing the other two builds take — see
+ *  build-seasonal-values.ts's own --sizes doc. Needed here because
+ *  /seasonal-rankings offers its league-size selector on the Summer League
+ *  datasets too, so a size added to LEAGUE_SIZES and built only for the
+ *  regular/postseason/projection sets leaves a real, selectable combination
+ *  returning an empty table. */
+const sizesArgIdx = argv.indexOf("--sizes");
+const SIZES: readonly number[] | null = sizesArgIdx >= 0
+  ? (argv[sizesArgIdx + 1] ?? "").split(",").map((x) => Number(x.trim())).filter((n) => Number.isFinite(n))
+  : null;
+if (SIZES) {
+  const unknown = SIZES.filter((n) => !(LEAGUE_SIZES as readonly number[]).includes(n));
+  if (unknown.length > 0) {
+    throw new Error(`--sizes: ${unknown.join(", ")} not in LEAGUE_SIZES (${LEAGUE_SIZES.join(", ")})`);
+  }
+}
+/** This script's own top-10 readout reads league_size 250, so a narrowed run
+ *  still COMPUTES it — the write loop skips it. Same arrangement the other
+ *  two builds make for their 400-size gate. */
+const COMPUTE_SIZES: readonly number[] | null = SIZES
+  ? (SIZES.includes(250) ? SIZES : [...SIZES, 250])
+  : null;
 const onlyArgIdx = argv.indexOf("--only");
 const ONLY = onlyArgIdx >= 0 ? Number(argv[onlyArgIdx + 1]) : null;
 /**
@@ -298,6 +321,7 @@ function buildTotalsStats(rows: ResolvedRow[]): PlayerStats[] {
 
 function assertFinite(values: Map<number, RankedPlayerValues[]>): void {
   for (const [size, rows] of values) {
+    if (SIZES && !SIZES.includes(size)) continue;
     for (const r of rows) {
       for (const [k, v] of Object.entries(r)) {
         if (typeof v === "number" && !Number.isFinite(v)) {
@@ -376,6 +400,11 @@ async function upsert(
     }
   }
 
+  if (SIZES) {
+    await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
+    console.log(`  ✓ upserted ${valueRows.length} value rows for size(s) ${SIZES.join(", ")} (stats untouched — --sizes run)`);
+    return;
+  }
   await batchUpsert(supabase, "season_player_stats", statRows, "player_id,season,season_type");
   await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
   console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
@@ -448,9 +477,9 @@ async function buildYear(
   const matched = resolved.filter((r) => r.matched).length;
   console.log(`  identity resolved: ${matched}/${resolved.length} matched an existing nba_players id`);
 
-  const values = computeAllLeagueSizes(buildStats(resolved));
+  const values = computeAllLeagueSizes(buildStats(resolved), COMPUTE_SIZES ?? undefined);
   assertFinite(values);
-  const totals = computeAllLeagueSizes(buildTotalsStats(resolved));
+  const totals = computeAllLeagueSizes(buildTotalsStats(resolved), COMPUTE_SIZES ?? undefined);
   assertFinite(totals);
 
   const consMatched = resolved.filter((r) => lookupWithNameAlias(consensus, normalizeName(r.name)) != null).length;

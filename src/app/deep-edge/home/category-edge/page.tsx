@@ -465,6 +465,19 @@ function CategoryEdgeContent() {
             {isMyTeam ? "Your" : `${computed.myRoster.teamName}'s`} best {computed.lineup.starters.length}{depth > 0 ? ` +${depth}` : ""} vs every team&apos;s best lineup in {saved.leagueName}, category by category. Ranks are
             driven by z-scores; the numbers shown are real {statMode === "perGame" ? "per-game averages" : "season totals"}.
           </p>
+          {/* A league whose starting slots equal its roster size has no bench
+              to choose FROM, so "Rank lineup by" can only change which slot
+              each player fills — never who plays. Without saying so the
+              control reads as broken: every number on the page holds still
+              while the selector moves (Ash, 2026-09-13, on a 14-of-14
+              league). Everywhere there IS a bench it is genuinely load-
+              bearing — the same toggle moves a 30-team roster's AST rank
+              from 1st to 8th. */}
+          {computed.effectiveBench.length === 0 && (
+            <p style={{ color: "var(--rt-muted)", fontSize: 12.5, margin: "-16px 0 24px", maxWidth: 640 }}>
+              Every rostered player starts in this league, so &ldquo;Rank lineup by&rdquo; only changes which slot each one fills — there is no bench to pick between.
+            </p>
+          )}
 
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
             <div style={{ display: "inline-flex", padding: 3, background: "var(--rt-surface-strong)", borderRadius: 999 }}>

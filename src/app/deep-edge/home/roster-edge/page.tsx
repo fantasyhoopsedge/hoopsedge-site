@@ -13,7 +13,7 @@ import { HubShell } from "../../_components/hub-shell";
 import { IconChevronLeft } from "../../_components/icons";
 import { SegmentedControl } from "../../_components/segmented-control";
 import {
-  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, weightedAverage,
+  DraftPicksPanel, formatStat, meanStd, RosterTableRow, statValue, summedTotal, valueForMode, weightedAverage,
   type EnrichData, type ExtraCode, type RosterTableFormat, type ValueDisplayMode,
 } from "../../_components/roster-table";
 import { DEEP_EDGE_TABLE_CSS, SortTh, useSortableTable } from "../../_components/sortable-table";
@@ -42,7 +42,11 @@ type TickValueMode = ValueDisplayMode;
  *  based on those values from best to worst"). FPTS sorts by the VALUE
  *  column, which already reads pointsValue for a points-format league. */
 const SORT_KEY_FOR_TICK_MODE: Record<TickValueMode, SortKey> = {
-  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat", fpts: "value",
+  // Every mode now sorts by the VALUE column itself, which reads whichever
+  // number the mode selected (see valueForMode) — the per-flavor keys stay
+  // only because those standalone columns still exist and are still
+  // separately clickable.
+  minus1V: "minus1", nineCatV: "nineCat", eightCatV: "eightCat", fpts: "value", adp: "value",
 };
 
 /** The Settings screen's "Add category" codes that Roster Edge can actually
@@ -74,8 +78,14 @@ const ROSTER_ONLY_EXTRAS: { code: ExtraCode; label: string }[] = [
   { code: "FTA", label: "Free throw attempts (FTA)" },
 ];
 
-type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "fptsRank" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
-type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
+type SortKey = "name" | "dynastyRank" | "salaryRank" | "adp" | "gp" | "min" | "usg" | "value" | "fptsRank" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
+type OptionalCols = {
+  salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean;
+  // Added 2026-09-13 — these five were always-on until Ash asked for the
+  // flexibility to drop them ("add, ADP, Trend, GP, MIN, USG to the list").
+  // All default true, so the table looks the same until someone unticks one.
+  adp: boolean; trend: boolean; gp: boolean; min: boolean; usg: boolean;
+};
 
 function RosterEdgeContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
@@ -89,7 +99,10 @@ function RosterEdgeContent() {
   const [tickValueMode, setTickValueMode] = useState<TickValueMode>("minus1V");
   const [extraCols, setExtraCols] = useState<Set<ExtraCode>>(new Set());
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
-  const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
+  const [cols, setCols] = useState<OptionalCols>({
+    salary: true, contract: true, dynastyRank: true, salaryRank: true,
+    adp: true, trend: true, gp: true, min: true, usg: true,
+  });
   const [statsMode, setStatsMode] = useState<"perGame" | "totals">("perGame");
 
   useEffect(() => {
@@ -220,7 +233,10 @@ function RosterEdgeContent() {
   if (saved && colsDefaultsFor !== saved.leagueId) {
     setColsDefaultsFor(saved.leagueId);
     const on = salaryFormat !== "none";
-    setCols({ salary: on, contract: on, dynastyRank: on, salaryRank: on });
+    // The five added 2026-09-13 stay on regardless of salary format — they
+    // are production columns, not salary ones, and were unconditional before
+    // they became optional.
+    setCols({ salary: on, contract: on, dynastyRank: on, salaryRank: on, adp: true, trend: true, gp: true, min: true, usg: true });
   }
 
   // Population mean/σ for the USG heatmap — the whole league's rostered
@@ -255,6 +271,9 @@ function RosterEdgeContent() {
       if (key === "gp") return row.gamesPlayed ?? -Infinity;
       if (key === "min") return row.minutesPerGame ?? -Infinity;
       if (key === "usg") return row.usgPct ?? -Infinity;
+      // Lower ADP is better, so negate to keep "descending = best first"
+      // consistent with every other column; no ADP sorts last either way.
+      if (key === "adp") return row.adp == null ? -Infinity : -row.adp;
       // In totals mode the cells show rate x GP, so the sort has to as well —
       // otherwise the column displays season totals while ordering on
       // per-game rates, and a high-rate/low-games player sits above someone
@@ -266,13 +285,24 @@ function RosterEdgeContent() {
       // is expected to do.
       if (key === "fptsRank") return row.pointsValue == null ? -Infinity : row.pointsValue;
       if (key === "value") {
-        if (format !== "points") return row.leagueV ?? -Infinity;
-        if (row.pointsValue == null) return -Infinity;
-        return statsMode === "totals" ? row.pointsValue * (row.gamesPlayed ?? 0) : row.pointsValue;
+        // Follows the "Rank lineup by" toggle, exactly as the cell does —
+        // sorting on leagueV while the column displayed a mode-selected rank
+        // meant the arrow ordered by a number the table wasn't showing (Ash,
+        // 2026-09-13). valueForMode is the single definition both read.
+        const { value, rank } = valueForMode(row, tickValueMode, statsMode, roster?.players ?? [], format === "points" ? "points" : "roto");
+        // ADP has no z-score, only a rank, and a rank sorts the other way
+        // round — negate so "descending" still means "best first" for it.
+        if (tickValueMode === "adp") return rank == null ? -Infinity : -rank;
+        if (value == null) return -Infinity;
+        return format === "points" && statsMode === "totals" ? value * (row.gamesPlayed ?? 0) : value;
       }
-      if (key === "minus1") return row.catV?.perGame.minus1V ?? -Infinity;
-      if (key === "nineCat") return row.catV?.perGame.nineCatV ?? -Infinity;
-      if (key === "eightCat") return row.catV?.perGame.eightCatV ?? -Infinity;
+      // Follow PER GAME/TOTALS like every other column: these sorted on
+      // per-game z-scores even under Totals, so the table ordered by numbers
+      // it wasn't showing — the same mismatch already fixed for the category
+      // columns below and now for VALUE above.
+      if (key === "minus1") return row.catV?.[statsMode].minus1V ?? -Infinity;
+      if (key === "nineCat") return row.catV?.[statsMode].nineCatV ?? -Infinity;
+      if (key === "eightCat") return row.catV?.[statsMode].eightCatV ?? -Infinity;
       const raw = statValue(row, key);
       if (raw == null) return -Infinity;
       // FG%/FT% are rates in both modes — a season shooting percentage is
@@ -280,21 +310,24 @@ function RosterEdgeContent() {
       if (statsMode !== "totals" || key === "FG" || key === "FT") return raw;
       return raw * (row.gamesPlayed ?? 0);
     },
-    [statsMode],
+    // tickValueMode joins statsMode here now that the VALUE accessor reads it
+    // — without it, switching flavor left the table in its previous order
+    // until something else re-sorted it.
+    [statsMode, tickValueMode],
   );
   // The roster table's sort order follows whichever value flavor the
   // tick-set selector is on — best to worst (Ash, 2026-08-14). Runs once per
   // distinct tickValueMode CHANGE via the same render-time-reset pattern used
-  // elsewhere in this file (skips the very first render — useSortableTable's
-  // own `initial` param above already seeds the matching key/desc, and
-  // onSort() TOGGLES direction when called with the key it's already on, so
-  // calling it here on mount would immediately flip to ascending).
+  // elsewhere in this file. Uses sortBy (states the direction) rather than
+  // onSort (toggles it): FPTS and ADP both map to the "value" key, so
+  // toggling flipped the table to ascending on that switch and put the worst
+  // player on top instead of re-sorting best-first (Ash, 2026-09-13).
   const [sortSyncFor, setSortSyncFor] = useState<TickValueMode | null>(null);
   if (sortSyncFor === null) {
     setSortSyncFor(tickValueMode);
   } else if (sortSyncFor !== tickValueMode) {
     setSortSyncFor(tickValueMode);
-    rotoSort.onSort(SORT_KEY_FOR_TICK_MODE[tickValueMode]);
+    rotoSort.sortBy(SORT_KEY_FOR_TICK_MODE[tickValueMode]);
   }
 
   const hasLeague = Boolean(saved);
@@ -313,11 +346,16 @@ function RosterEdgeContent() {
     return games > 0 ? total / games : null;
   }, [tickedPlayers, format, statsMode]);
 
-  // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns,
-  // plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown.
-  // MINUS1 is deliberately excluded — it renders as its own <td> right after
-  // this colSpan cell, not folded into it.
-  const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  // ✓/PLAYER/TEAM/POS/VALUE = 5 genuinely always-present columns, plus
+  // whichever optional ones are currently shown. TREND/GP/MIN/USG/ADP joined
+  // SAL$/CONTRACT$/DYN RK/SAL RK as optional on 2026-09-13, so they can no
+  // longer be counted as part of the fixed base — a colSpan that assumes a
+  // column still exists is exactly how a row drifts out of line with its
+  // header. MINUS1 is deliberately excluded either way: it renders as its
+  // own <td> right after this colSpan cell, not folded into it.
+  const optionalShown = [showSalary, showContract, cols.dynastyRank, cols.salaryRank, cols.trend, cols.gp, cols.min, cols.usg, cols.adp]
+    .filter(Boolean).length;
+  const colSpanBeforeStats = 5 + optionalShown;
   // RosterTableRow's `format` prop excludes "unconfirmed"/null (that state
   // never reaches this table — see the `format === "unconfirmed"` guard and
   // `!roster` guard below, both bailing out before the table renders).
@@ -481,6 +519,7 @@ function RosterEdgeContent() {
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
             {([
               ["salary", "Salary"], ["contract", "Contract"], ["dynastyRank", "Dynasty rank"], ["salaryRank", "Salary rank"],
+              ["adp", "ADP"], ["trend", "Trend"], ["gp", "GP"], ["min", "MIN"], ["usg", "USG"],
             ] as [keyof OptionalCols, string][]).map(([key, label]) => {
               // Same non-salary-league gate as showSalary/showContract below —
               // disabled + explained instead of tickable-but-inert (see
@@ -575,10 +614,11 @@ function RosterEdgeContent() {
                   {showContract && <th>CONTRACT$</th>}
                   {cols.dynastyRank && <SortTh<SortKey> label="DYN RK" sortKey="dynastyRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {cols.salaryRank && <SortTh<SortKey> label="SAL RK" sortKey="salaryRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
-                  <th>TREND</th>
-                  <SortTh<SortKey> label="GP" sortKey="gp" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />
+                  {cols.trend && <th>TREND</th>}
+                  {cols.gp && <SortTh<SortKey> label="GP" sortKey="gp" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.min && <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.usg && <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.adp && <SortTh<SortKey> label="ADP" sortKey="adp" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   <SortTh<SortKey> label={format === "points" ? "FPTS" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   {/* RANK is deliberately NOT sortable: it is derived from
                       FPTS, so clicking it would sort exactly as the FPTS
@@ -641,6 +681,11 @@ function RosterEdgeContent() {
                     showContract={showContract}
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
+                    showTrend={cols.trend}
+                    showGp={cols.gp}
+                    showMin={cols.min}
+                    showUsg={cols.usg}
+                    showAdp={cols.adp}
                     salaryFormat={salaryFormat}
                     valueMode={tickValueMode}
                     statsMode={statsMode}

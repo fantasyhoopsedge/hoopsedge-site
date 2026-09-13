@@ -189,6 +189,31 @@ const DEPTH_BLEND_START = 300;
 const DEPTH_BLEND_END = 450;
 const DEPTH_BLEND_MAX = 0.85;
 
+/** How far a REDRAFT league flattens the concentration premium, regardless
+ *  of pool depth (Ash, 2026-09-13: "flatten the concentration premium for
+ *  redraft").
+ *
+ *  The premium exists because a dynasty manager pays for concentration —
+ *  roster spots are the scarce thing, so one star beats two mid pieces of
+ *  equal combined production. A redraft manager starts fourteen players
+ *  every week and both halves of a two-for-one count in full, so most of
+ *  that reasoning doesn't apply to him.
+ *
+ *  It also stacked: redraft base values are now linear in z (see
+ *  trade-value.ts's redraft branch), so they already ADD the way production
+ *  does — applying the convex premium on top re-introduced exactly the bias
+ *  the linear scale was adopted to remove, and did it twice on the trade
+ *  that surfaced this (28% raw -> 52% adjusted on two sides 1.5% apart in
+ *  real production).
+ *
+ *  Flattened, not removed, per Ash's call — 0.85 leaves the same residual
+ *  premium the deepest dynasty leagues keep (DEPTH_BLEND_MAX), so a true
+ *  top piece still carries a premium over a pile of filler, just not one
+ *  that decides an otherwise-even trade. Depth still applies on top: a
+ *  redraft league takes whichever flattening is stronger, so a deep one is
+ *  never flattened LESS than an equivalent dynasty league. */
+const REDRAFT_BLEND = 0.85;
+
 function depthBlend(poolSize: number): number {
   const t = (poolSize - DEPTH_BLEND_START) / (DEPTH_BLEND_END - DEPTH_BLEND_START);
   return Math.min(1, Math.max(0, t)) * DEPTH_BLEND_MAX;
@@ -201,9 +226,9 @@ function depthBlend(poolSize: number): number {
  *  `Value/MaxTrade` ratio (see tradeRatioOf), matching the reference exactly.
  *  `poolSize` blends the result toward flat 1.0 as the league gets deeper —
  *  see depthBlend() above. */
-function adjustmentMultiplier(poolPct: number, tradeRatio: number, poolSize: number): number {
+function adjustmentMultiplier(poolPct: number, tradeRatio: number, poolSize: number, isRedraft: boolean): number {
   const raw = 0.1 + 0.04 * poolPct ** 8 + 0.11 * tradeRatio ** 1.3 + 0.22 * poolPct ** 1.28;
-  const blend = depthBlend(poolSize);
+  const blend = Math.max(depthBlend(poolSize), isRedraft ? REDRAFT_BLEND : 0);
   return (1 - blend) * raw + blend * 1.0;
 }
 
@@ -497,6 +522,9 @@ export function computeTradeVerdict(
   baseValueByFantraxId: ReadonlyMap<string, number>,
   family: "categories" | "points",
   fairnessThresholdPct = 0.12,
+  /** Redraft flattens the concentration premium — see REDRAFT_BLEND.
+   *  Defaults false so an unmigrated caller keeps today's behaviour. */
+  isRedraft = false,
 ): TradeVerdict {
   const poolRanks = poolRanksFor(leaguePlayers, baseValueByFantraxId);
   const poolSize = leaguePlayers.length;
@@ -552,7 +580,7 @@ export function computeTradeVerdict(
       const poolPct = poolPercentileOf(a, trueRaw);
       const raw = Math.max(trueRaw, assetFloor);
       const tradeRatio = tradeRatioOf(raw, allFlooredInTrade);
-      const adjusted = raw * adjustmentMultiplier(poolPct, tradeRatio, poolSize);
+      const adjusted = raw * adjustmentMultiplier(poolPct, tradeRatio, poolSize, isRedraft);
       built.push({ label: a.label, rawValue: raw, adjustedValue: adjusted });
     }
     return {

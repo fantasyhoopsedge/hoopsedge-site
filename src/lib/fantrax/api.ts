@@ -163,6 +163,27 @@ export interface FxPlayerIdEntry {
 
 export type FxPlayerIdMap = Record<string, FxPlayerIdEntry>;
 
+/**
+ * One player's Average Draft Position across Fantrax's own redraft drafts.
+ *
+ * `id` is the same bare Fantrax id every other endpoint here uses, so this
+ * joins straight onto a roster spot with no identity-registry lookup — which
+ * also means a player the registry never linked still gets a real ADP (see
+ * resolve.ts's own note). `ADP` is capitalized in the payload; left as-is
+ * rather than renamed so the shape matches what the wire actually sends.
+ *
+ * Only players who have actually been drafted somewhere appear: 292 of the
+ * NBA pool as of 2026-09-13, ADP 1.52 (Jokić) through 244.16. A deep dynasty
+ * roster is therefore expected to be roughly half-covered — the missing ones
+ * are not an error, they are players nobody drafts in a redraft league.
+ */
+export interface FxAdpEntry {
+  id: string;
+  name: string;
+  pos: string;
+  ADP: number;
+}
+
 // ── fetch helpers ───────────────────────────────────────────────────────────
 
 export class FantraxError extends Error {
@@ -227,6 +248,19 @@ export const fetchDraftResults = (leagueId: string, init?: FxRequestInit) =>
  *  Safe server-side (no secret). */
 export const fetchDraftPicks = (leagueId: string, init?: FxRequestInit) =>
   fxGet<FxDraftPicks>("getDraftPicks", { leagueId }, init);
+
+/**
+ * Every player with a recorded ADP, ascending. Safe server-side (no secret).
+ *
+ * Documented at fantrax.com/developer as "Retrieve Player Info", and it
+ * accepts start/limit/order/position filters — none of which this needs: one
+ * unfiltered call returns the COMPLETE set (verified 2026-09-13, `limit=1000`
+ * and the default both return the same 292 rows, and `start=292` returns the
+ * single last one), and it is ~18KB. Paging it would add failure modes to buy
+ * nothing.
+ */
+export const fetchAdp = (sport = "NBA", init?: FxRequestInit) =>
+  fxGet<FxAdpEntry[]>("getAdp", { sport }, init);
 
 /** Fantrax player id → name/team/position for the whole sport (~1,800 rows). */
 export const fetchPlayerIds = (sport = "NBA", init?: FxRequestInit) =>

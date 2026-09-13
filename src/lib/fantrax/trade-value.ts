@@ -58,7 +58,7 @@ import {
   type RealSalaryFactors,
   type WeightPreset,
 } from "../value/real-salary-model";
-import { curveValueAtRank } from "../value/dynasty-value-curve";
+import { curveValueAtRank, MAX_LIST_VALUE } from "../value/dynasty-value-curve";
 
 /** rankToZ (keeper blend, still z-scale) or curveValueAtRank (pure dynasty,
  *  List Value scale) — the one thing that differs between the two paths
@@ -166,19 +166,26 @@ function expiringDiscountFraction(rule: ContractRule, contract: string | null | 
 }
 
 export type ValueBasis = "standard" | "real" | "custom";
-/** The one legitimate base-value CHOICE (not just display sort) — see
- *  module doc's Redraft branch. Only meaningful for leagueType "redraft" (or
- *  the redraft-shaped half of a keeper blend). */
-export type RedraftBaseMode = "native" | "minus1V";
 
 export interface BaseValueInputs {
   players: readonly ResolvedPlayer[];
   leagueType: LeagueType;
   valueBasis: ValueBasis;
   /** The league's native scoring-format category value — nineCatV/eightCatV
-   *  for a categories league, fpts for a points league. Never "surplusV". */
-  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">;
-  redraftBaseMode: RedraftBaseMode;
+   *  for a categories league, fpts for a points league. Never "surplusV",
+   *  and never "adp": a draft position is not a scoring format. */
+  categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp">;
+  /** Which value a REDRAFT league prices its assets in — the same choice the
+   *  viewer makes with Trade Edge's "Rank players by" control, which is now
+   *  the only place it is set (Ash, 2026-09-13: the old two-option "Evaluate
+   *  assets by" and that selector "are conflicting"). Was a narrow
+   *  native/minus1V pair; it is the full set now, so picking 9-Cat prices the
+   *  trade calculator in 9-Cat rather than merely re-sorting the cards.
+   *  Ignored for dynasty/keeper, which price off the consensus / real-salary
+   *  / custom cascade instead. Never "adp": ADP is a draft POSITION, so it
+   *  carries no magnitude to sum across a trade's two sides — the caller maps
+   *  it to the league's native mode before it reaches here. */
+  redraftValueMode: Exclude<TradeValueMode, "surplusV" | "adp">;
   /** analysis.league.poolSize — THIS league's own roster capacity
    *  (teamCount x maxTotalPlayers), used for every rank computed WITHIN this
    *  league's own roster (production, custom salary). */
@@ -368,12 +375,14 @@ function dynastyValues(
   return consensusOnlyValues(players, consensusPoolSize, rankToValue);
 }
 
-function redraftValues(
+/** Raw z-scores, unchanged — the KEEPER blend's redraft half. It is averaged
+ *  against dynastyValues(rankToZ) below, so both sides have to stay on the
+ *  signed z-scale; putting this one on the List Value curve would be
+ *  averaging 1590s against 1.4s. */
+function redraftZValues(
   players: readonly ResolvedPlayer[],
-  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">,
-  redraftBaseMode: RedraftBaseMode,
+  mode: Exclude<TradeValueMode, "surplusV" | "adp">,
 ): Map<string, number> {
-  const mode = redraftBaseMode === "minus1V" ? "minus1V" : categoryFallbackMode;
   const out = new Map<string, number>();
   for (const p of players) {
     const v = valueOf(p, mode);
@@ -382,17 +391,79 @@ function redraftValues(
   return out;
 }
 
+/**
+ * A pure REDRAFT league's asset values: the selected mode's z-score, mapped
+ * linearly onto the List Value scale so #1 still lands at MAX_LIST_VALUE.
+ *
+ * WHY LINEAR, NOT THE DYNASTY CURVE (Ash, 2026-09-13, from a real trade on
+ * FBI_01 DO H2H). The rank curve shipped here first, and it priced that
+ * trade as a 52% blowout while the standings simulation had both teams
+ * essentially unchanged. The curve was not the obvious suspect — indexed to
+ * rank 7 it tracks real production almost exactly down the board (#26: 0.58
+ * curve vs 0.55 actual; #58: 0.295 vs 0.300). The problem is that it is
+ * CONVEX IN RANK while a redraft season is ADDITIVE IN Z: two mid players
+ * sum to less than one star even when their combined production is
+ * identical. The trade that exposed it:
+ *
+ *   receives Flagg 0.417 + Knueppel 0.228 = 0.645 z   -> curve 770
+ *   receives Haliburton 0.759 + Boozer -0.104 = 0.655 -> curve 987.50
+ *
+ * Dead even in production, 28% apart on the curve — and the concentration
+ * premium then doubled that to 52%. A dynasty league genuinely does pay a
+ * premium for concentration, because roster spots are the scarce thing. A
+ * redraft manager starts fourteen players every week and both halves of a
+ * two-for-one count in full, so his values have to ADD the way production
+ * does.
+ *
+ * The floor is the pool's own replacement level, not the worst player in
+ * `players` — the caller may pass free agents too (League Rankings does),
+ * and letting a deep waiver-wire scrub set the zero point would compress
+ * every real asset toward the top. Below-replacement players clamp to 0
+ * rather than going negative; trade-verdict.ts's own ASSET_FLOOR then lifts
+ * them to a small positive number, same as every other branch.
+ *
+ * Dynasty is untouched: it keeps curveValueAtRank, where the convexity is
+ * the point.
+ */
+function redraftCurveValues(
+  players: readonly ResolvedPlayer[],
+  mode: Exclude<TradeValueMode, "surplusV" | "adp">,
+  leaguePoolSize: number,
+): Map<string, number> {
+  const ranked = players
+    .map((p) => ({ p, v: valueOf(p, mode) }))
+    .filter((x): x is { p: ResolvedPlayer; v: number } => x.v != null)
+    .sort((a, b) => b.v - a.v);
+  const out = new Map<string, number>();
+  if (ranked.length === 0) return out;
+
+  const zTop = ranked[0].v;
+  // Replacement level = the last player inside the league's own pool. See
+  // the doc above on why the array's own minimum is the wrong anchor.
+  const floorIdx = Math.min(ranked.length, Math.max(1, leaguePoolSize)) - 1;
+  const zFloor = ranked[floorIdx].v;
+  const span = zTop - zFloor;
+
+  for (const { p, v } of ranked) {
+    // A degenerate pool (every value identical) would divide by zero; one
+    // flat top value is the honest answer there, not NaN.
+    const scaled = span > 0 ? (MAX_LIST_VALUE * (v - zFloor)) / span : MAX_LIST_VALUE;
+    out.set(p.fantraxId, Math.max(0, scaled));
+  }
+  return out;
+}
+
 /** The single entry point Trade Edge should call for base value — see
  *  module doc for the five branches. */
 export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, number> {
   const {
-    players, leagueType, valueBasis, categoryFallbackMode, redraftBaseMode,
+    players, leagueType, valueBasis, categoryFallbackMode, redraftValueMode,
     leaguePoolSize, consensusPoolSize, realSalaryRankByFheId, realSalaryPoolSize,
     keeperPolicy, totalRosterSlots, contractRules, currentSeason,
   } = inputs;
 
   if (leagueType === "redraft") {
-    return redraftValues(players, categoryFallbackMode, redraftBaseMode);
+    return redraftCurveValues(players, redraftValueMode, leaguePoolSize);
   }
 
   const dynasty = (rankToValue: RankToValue) => dynastyValues(
@@ -408,10 +479,11 @@ export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, num
 
   // Keeper: blend redraft and dynasty-equivalent values by keeperWeight.
   const weight = computeKeeperWeight(keeperPolicy, totalRosterSlots);
-  if (weight <= 0) return redraftValues(players, categoryFallbackMode, redraftBaseMode);
+  // No keepers at all is a redraft league wearing a keeper label.
+  if (weight <= 0) return redraftCurveValues(players, redraftValueMode, leaguePoolSize);
   if (weight >= 1) return dynasty(curveValueAtRank);
 
-  const redraft = redraftValues(players, categoryFallbackMode, redraftBaseMode);
+  const redraft = redraftZValues(players, redraftValueMode);
   const dyn = dynasty(rankToZ);
   const out = new Map<string, number>();
   for (const p of players) {

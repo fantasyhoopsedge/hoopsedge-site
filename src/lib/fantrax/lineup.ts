@@ -76,9 +76,16 @@ export interface OptimalLineup {
  *  a points-scored league, same as an explicit `formula` already forces
  *  below, just selectable without a caller having to also thread the
  *  formula through (see UI_VALUE_MODE_OPTIONS). */
-export type LineupValueMode = "league" | "nineCatV" | "eightCatV" | "minus1V" | "fpts";
+export type LineupValueMode = "league" | "nineCatV" | "eightCatV" | "minus1V" | "fpts" | "adp";
 
 function lineupValueOf(p: ResolvedPlayer, formula: LeaguePointsFormula | null | undefined, mode: LineupValueMode): number | null {
+  // ADP is checked FIRST, ahead of the points-league short-circuit below:
+  // "what does the draft market think of him" is a real basis in a POINTS
+  // league too (Ash, 2026-09-13: "whether it be a category league or FPTS
+  // league"), and the formula check would otherwise swallow it. Negated
+  // because everything in this file treats bigger as better, and a lower ADP
+  // is a better player — pick 1.5 beats pick 244.
+  if (mode === "adp") return p.adp == null ? null : -p.adp;
   if (formula || mode === "fpts") return p.pointsValue; // points-mode leagues always rank by points, regardless of mode
   if (mode === "league") return p.leagueV;
   return p.catV?.perGame[mode] ?? null;
@@ -92,13 +99,18 @@ function lineupValueOf(p: ResolvedPlayer, formula: LeaguePointsFormula | null | 
  *  connected league isn't points-scored (it has no real fantasy-points
  *  formula to rank by there). */
 export const LINEUP_VALUE_MODE_LABEL: Record<LineupValueMode, string> = {
-  league: "League", eightCatV: "8-Cat", nineCatV: "9-Cat", minus1V: "Minus1V", fpts: "FPTS",
+  league: "League", eightCatV: "8-Cat", nineCatV: "9-Cat", minus1V: "Minus1V", fpts: "FPTS", adp: "ADP",
 };
 export const UI_VALUE_MODE_OPTIONS: { value: Exclude<LineupValueMode, "league">; label: string }[] = [
   { value: "eightCatV", label: LINEUP_VALUE_MODE_LABEL.eightCatV },
   { value: "nineCatV", label: LINEUP_VALUE_MODE_LABEL.nineCatV },
   { value: "minus1V", label: LINEUP_VALUE_MODE_LABEL.minus1V },
   { value: "fpts", label: LINEUP_VALUE_MODE_LABEL.fpts },
+  // ADP last, after the four model-derived values: it is the only option here
+  // that is not FHE's own opinion of a player but the market's, which makes
+  // it the natural thing to read the others against rather than one more
+  // flavor of the same thing (Ash, 2026-09-13).
+  { value: "adp", label: LINEUP_VALUE_MODE_LABEL.adp },
 ];
 
 function isEligible(slot: string, p: ResolvedPlayer): boolean {

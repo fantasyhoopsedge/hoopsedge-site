@@ -16,6 +16,20 @@ export type SeasonDataset = {
   label: string;
   /** Baseline pool size to default to on first load. Falls back to CANONICAL_SIZE when absent. */
   defaultSize?: number;
+  /** Smallest pool this dataset actually HAS rows for. Absent = every size in
+   *  LEAGUE_SIZES.
+   *
+   *  The sub-250 sizes added 2026-09-13 were built for the regular /
+   *  postseason / projection datasets but NOT the Summer League ones: those
+   *  value rows carry a foreign key onto season_player_stats, and the summer
+   *  build resolves players (merged duplicate person records, new ids) whose
+   *  stat rows a values-only run doesn't create — so narrowing that build to
+   *  new sizes alone fails the constraint, and widening it would restate an
+   *  entire dataset to add a pool nobody had asked summer for. Declaring the
+   *  floor here keeps the selector from offering a combination that returns
+   *  an empty table. Drop this line once a full summer build has run; it
+   *  picks the new sizes up automatically from LEAGUE_SIZES. */
+  minSize?: number;
 };
 
 export const SEASON_DATASETS: readonly SeasonDataset[] = [
@@ -27,11 +41,11 @@ export const SEASON_DATASETS: readonly SeasonDataset[] = [
   { season: 2024, type: "postseason", label: "Playoffs 24" },
   // Vegas Summer League — standalone dataset, own (small) baseline pool. Values
   // are NOT comparable to regular-season CatV (exhibition ball, tiny samples).
-  { season: 2026, type: "summer", label: "Summer League 2026", defaultSize: 250 },
-  { season: 2025, type: "summer", label: "Summer League 2025", defaultSize: 250 },
-  { season: 2024, type: "summer", label: "Summer League 2024", defaultSize: 250 },
-  { season: 2023, type: "summer", label: "Summer League 2023", defaultSize: 250 },
-  { season: 2022, type: "summer", label: "Summer League 2022", defaultSize: 250 },
+  { season: 2026, type: "summer", label: "Summer League 2026", defaultSize: 250, minSize: 250 },
+  { season: 2025, type: "summer", label: "Summer League 2025", defaultSize: 250, minSize: 250 },
+  { season: 2024, type: "summer", label: "Summer League 2024", defaultSize: 250, minSize: 250 },
+  { season: 2023, type: "summer", label: "Summer League 2023", defaultSize: 250, minSize: 250 },
+  { season: 2022, type: "summer", label: "Summer League 2022", defaultSize: 250, minSize: 250 },
   // The projections model (models/, output/season-projections-2026-27.json) —
   // built from projected per-game rates, not real game logs, so it has no
   // validation-gate reference and is intentionally last in the selector rather
