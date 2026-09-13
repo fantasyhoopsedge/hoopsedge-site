@@ -615,6 +615,18 @@ async function upsert(
     }
   }
 
+  // A --sizes run writes VALUES ONLY. season_player_stats is keyed by
+  // (player_id, season, season_type) with no league_size, so upserting it
+  // restates every stat row in the dataset — including re-snapshotting
+  // consensus_rank off whatever dynasty-rankings.json currently says (see
+  // CLAUDE.md on that column being a build-time snapshot). Adding a league
+  // size has no business doing that: the caller asked for six new pools, not
+  // a fresh consensus snapshot on rows nobody touched.
+  if (SIZES) {
+    await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
+    console.log(`  ✓ upserted ${valueRows.length} value rows for size(s) ${SIZES.join(", ")} (stats untouched — --sizes run)`);
+    return;
+  }
   await batchUpsert(supabase, "season_player_stats", statRows, "player_id,season,season_type");
   await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
   console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);

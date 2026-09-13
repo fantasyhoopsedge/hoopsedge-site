@@ -59,6 +59,7 @@ import { lookupWithNameAlias } from "../src/lib/player-name-aliases";
 import { playerIdentity } from "../src/lib/player-identity/bundled";
 import {
   computeAllLeagueSizes,
+  LEAGUE_SIZES,
   type PlayerStats,
   type RankedPlayerValues,
 } from "../src/lib/value/compute-values";
@@ -72,6 +73,26 @@ const SEASON = 2027;
 const SEASON_TYPE = "projection";
 
 const DRY_RUN = process.argv.includes("--dry-run");
+/** Same narrowing build-seasonal-values.ts takes, and for the same reason —
+ *  see its own --sizes doc. This dataset needs it too: seasonal:build skips
+ *  2027/projection entirely (no game logs to aggregate), so adding a league
+ *  size to LEAGUE_SIZES leaves the Deep Edge's DEFAULT dataset without it
+ *  until this script fills it in. Values only, so a size addition never
+ *  restates this dataset's stat rows or re-snapshots their consensus_rank.
+ *  400 is still computed for the top-15 readout below. */
+const sizesArgIdx = process.argv.indexOf("--sizes");
+const SIZES: readonly number[] | null = sizesArgIdx >= 0
+  ? (process.argv[sizesArgIdx + 1] ?? "").split(",").map((x) => Number(x.trim())).filter((n) => Number.isFinite(n))
+  : null;
+if (SIZES) {
+  const unknown = SIZES.filter((n) => !(LEAGUE_SIZES as readonly number[]).includes(n));
+  if (unknown.length > 0) {
+    throw new Error(`--sizes: ${unknown.join(", ")} not in LEAGUE_SIZES (${LEAGUE_SIZES.join(", ")})`);
+  }
+}
+const COMPUTE_SIZES: readonly number[] | null = SIZES
+  ? (SIZES.includes(400) ? SIZES : [...SIZES, 400])
+  : null;
 
 export interface ArtifactPlayer {
   athlete_id: number | null;
@@ -282,6 +303,7 @@ async function upsertProjections(
 
   const valueRows: Record<string, unknown>[] = [];
   for (const [size, rows] of values) {
+    if (SIZES && !SIZES.includes(size)) continue;
     for (const r of rows) {
       const t = totIndex.get(`${size}:${r.playerId}`) ?? null;
       valueRows.push({
@@ -317,6 +339,11 @@ async function upsertProjections(
     }
   }
 
+  if (SIZES) {
+    await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
+    console.log(`  ✓ upserted ${valueRows.length} value rows for size(s) ${SIZES.join(", ")} (stats untouched — --sizes run)`);
+    return;
+  }
   await batchUpsert(supabase, "season_player_stats", statRows, "player_id,season,season_type");
   await batchUpsert(supabase, "season_player_values", valueRows, "player_id,season,season_type,league_size");
   console.log(`  ✓ upserted ${statRows.length} stat rows + ${valueRows.length} value rows`);
@@ -358,9 +385,9 @@ async function main(): Promise<void> {
   const perGameStats = players.map(toPerGameStats);
   const totalsStatsArr = players.map(toTotalsStats);
 
-  const values = computeAllLeagueSizes(perGameStats);
+  const values = computeAllLeagueSizes(perGameStats, COMPUTE_SIZES ?? undefined);
   assertFinite(values);
-  const totalsValues = computeAllLeagueSizes(totalsStatsArr);
+  const totalsValues = computeAllLeagueSizes(totalsStatsArr, COMPUTE_SIZES ?? undefined);
   assertFinite(totalsValues);
 
   const byId = new Map(players.map((p) => [p.id, p]));
