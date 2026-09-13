@@ -981,9 +981,11 @@ function TradePreviewTable({
  *  this is the one Deep Edge table where a second team's row matters as
  *  much as your own. */
 function PowerRankingsCompareTable({
-  profiles, format, scored, myTeamId, teamBId, statMode, league,
+  profiles, format, scored, myTeamId, teamBId, statMode, league, isOwnTeamA,
 }: {
   profiles: TeamCategoryProfile[]; format: RosterTableFormat; scored: readonly FheCategory[]; myTeamId: string; teamBId: string;
+  /** See rowLabel — whether side A can honestly be called "you". */
+  isOwnTeamA: boolean;
   /** Same "which raw-stat basis" toggle the trade preview tables above
    *  already show — reused here rather than a second toggle, so the
    *  before/after roto view always matches what the rest of the page is
@@ -997,7 +999,11 @@ function PowerRankingsCompareTable({
 }) {
   const teamCount = profiles.length;
   const rowClass = (teamId: string) => (teamId === myTeamId ? "mine" : teamId === teamBId ? "partner" : "");
-  const rowLabel = (teamId: string, name: string) => `${name}${teamId === myTeamId ? " · YOU" : teamId === teamBId ? " · PARTNER" : ""}`;
+  // "YOU"/"PARTNER" only hold when side A really is the viewer's team. Two
+  // OTHER teams being simulated get "SIDE A"/"SIDE B" — calling someone
+  // else's roster "you" is worse than a neutral label (Ash, 2026-09-13).
+  const rowLabel = (teamId: string, name: string) =>
+    `${name}${teamId === myTeamId ? (isOwnTeamA ? " · YOU" : " · SIDE A") : teamId === teamBId ? (isOwnTeamA ? " · PARTNER" : " · SIDE B") : ""}`;
 
   if (format === "roto") {
     const rows = rotoStandingsByRawStat(profiles, scored, statMode);
@@ -1116,7 +1122,7 @@ function StrengthChip({ cat, kind }: { cat: FheCategory; kind: "strong" | "weak"
  *  league it now prices the trade calculator. */
 function TeamInsightPanel({
   strengthsWeaknesses, partners, onPickPartner, showCategoryInsights,
-  rosterOptions, teamBId, onTeamBChange,
+  rosterOptions, teamBId, onTeamBChange, teamAOptions, teamAId, onTeamAChange, isOwnTeamA, teamAName,
 }: {
   strengthsWeaknesses: { strong: CategoryEdge[]; weak: CategoryEdge[] };
   partners: TradePartnerSuggestion[];
@@ -1125,6 +1131,13 @@ function TeamInsightPanel({
   rosterOptions: { teamId: string; teamName: string }[];
   teamBId: string | null;
   onTeamBChange: (teamId: string | null) => void;
+  /** Side A. Every team in the league, including the connected one — which
+   *  is simply the default rather than a fixed anchor now. */
+  teamAOptions: { teamId: string; teamName: string }[];
+  teamAId: string | null;
+  onTeamAChange: (teamId: string) => void;
+  isOwnTeamA: boolean;
+  teamAName: string;
 }) {
   const { strong, weak } = strengthsWeaknesses;
   const hasInsights = showCategoryInsights && (strong.length > 0 || weak.length > 0);
@@ -1133,13 +1146,13 @@ function TeamInsightPanel({
       {hasInsights && (
         <div style={{ display: "flex", gap: 28, flexWrap: "wrap", marginBottom: 16 }}>
           <div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is strong in</div>
+            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>{isOwnTeamA ? "Your team is" : `${teamAName} is`} strong in</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {strong.length > 0 ? strong.map((e) => <StrengthChip key={e.category} cat={e.category} kind="strong" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>Your team is weak in</div>
+            <div style={{ fontSize: 12, color: "var(--rt-muted)", marginBottom: 6 }}>{isOwnTeamA ? "Your team is" : `${teamAName} is`} weak in</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {weak.length > 0 ? weak.map((e) => <StrengthChip key={e.category} cat={e.category} kind="weak" />) : <span style={{ fontSize: 12.5, color: "var(--rt-muted)" }}>—</span>}
             </div>
@@ -1173,6 +1186,24 @@ function TeamInsightPanel({
             </div>
           </div>
         )}
+        {/* Side A, added 2026-09-13. Sits before the partner picker because
+            it is the team everything else on the page is computed FOR —
+            strengths, suggested partners, the verdict's own "receives" side. */}
+        <div>
+          <label style={{ fontSize: 12, color: "var(--rt-muted)", display: "block", marginBottom: 6 }}>Team</label>
+          <select
+            value={teamAId ?? ""}
+            onChange={(e) => onTeamAChange(e.target.value)}
+            style={{
+              height: 38, padding: "0 12px", borderRadius: 10, border: "1px solid var(--rt-hairline)",
+              background: "var(--rt-surface-soft)", color: "var(--rt-ink)", fontSize: 13, fontWeight: 600, minWidth: 220,
+            }}
+          >
+            {teamAOptions.map((r) => (
+              <option key={r.teamId} value={r.teamId}>{r.teamName}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label style={{ fontSize: 12, color: "var(--rt-muted)", display: "block", marginBottom: 6 }}>Trade partner</label>
           <select
@@ -1230,6 +1261,10 @@ function TradeEdgeContent() {
   // recomputed on page load, same GET contract that page uses. Only fetched
   // when the league has opted in; still null otherwise.
   const [customLedger, setCustomLedger] = useState<CustomValuationsDoc | null>(null);
+  /** Both sides reset when the league changes, and side B clears if it would
+   *  otherwise equal side A — a team can't trade with itself, and leaving a
+   *  stale id there would silently build that trade. */
+  const [sidesResetFor, setSidesResetFor] = useState<string | null>(null);
   /** Which season drives every value on this page (Ash, 2026-09-13: "allow
    *  the user to toggle between projections, prior season, current season as
    *  the value driver, keeping everything dynamic"). Seeded from the
@@ -1341,7 +1376,28 @@ function TradeEdgeContent() {
     [analysis, saved],
   );
 
-  const myTeamId = analysis?.myTeamId ?? null;
+  /** Side A of the trade. Defaults to the connected team — the overwhelmingly
+   *  common case, and what this page did exclusively until 2026-09-13 (Ash:
+   *  "allow the user to simulate a trade with any 2 teams") — but any team in
+   *  the league can take that side now. Every downstream memo already reads
+   *  `myTeamId`, so overriding it here moves the whole page (rosters, profiles,
+   *  category edges, suggested partners, the verdict, projected pick slots)
+   *  without touching any of them. Null means "use the connected team"; reset
+   *  on a league switch so a team id from the previous league can never leak
+   *  into this one. */
+  const [teamAOverride, setTeamAOverride] = useState<string | null>(null);
+  const connectedTeamId = analysis?.myTeamId ?? null;
+  const myTeamId = teamAOverride ?? connectedTeamId;
+  /** True when side A really is the viewer's own team — drives whether the
+   *  page says "you" or names the team. */
+  const isOwnTeamA = myTeamId != null && myTeamId === connectedTeamId;
+  if (saved && sidesResetFor !== saved.leagueId) {
+    setSidesResetFor(saved.leagueId);
+    setTeamAOverride(null);
+    setTeamBId(null);
+  } else if (teamBId != null && teamBId === myTeamId) {
+    setTeamBId(null);
+  }
   const isPointsLeague = analysis?.league.scoringMode === "points";
   const rowFormat: RosterTableFormat = format === "points" ? "points" : format === "h2hcat" ? "h2hcat" : "roto";
   // What lineup CONSTRUCTION falls back to when valueMode is "surplusV" —
@@ -1875,6 +1931,11 @@ function TradeEdgeContent() {
             rosterOptions={analysis.rosters.filter((r) => r.teamId !== myTeamId)}
             teamBId={teamBId}
             onTeamBChange={setTeamBId}
+            teamAOptions={analysis.rosters.map((r) => ({ teamId: r.teamId, teamName: r.teamName }))}
+            teamAId={myTeamId}
+            onTeamAChange={setTeamAOverride}
+            isOwnTeamA={isOwnTeamA}
+            teamAName={myRoster?.teamName ?? "This team"}
           />
 
           {!isPointsLeague && (
@@ -2081,11 +2142,11 @@ function TradeEdgeContent() {
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 20 }}>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>BEFORE</div>
-                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} league={analysis?.league} />
+                          <PowerRankingsCompareTable profiles={trade.before} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} isOwnTeamA={isOwnTeamA} statMode={statMode} league={analysis?.league} />
                         </div>
                         <div>
                           <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 11, letterSpacing: "0.04em", color: "var(--rt-muted)", marginBottom: 10 }}>AFTER</div>
-                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} statMode={statMode} league={analysis?.league} />
+                          <PowerRankingsCompareTable profiles={trade.after} format={rowFormat} scored={effective.scored} myTeamId={myTeamId} teamBId={teamBId!} isOwnTeamA={isOwnTeamA} statMode={statMode} league={analysis?.league} />
                         </div>
                       </div>
                     </div>
