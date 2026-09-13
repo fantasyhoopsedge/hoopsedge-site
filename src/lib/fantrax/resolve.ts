@@ -459,7 +459,7 @@ const WAIVER_BOARD_SIZE = 60;
  * degrades to "no ADP anywhere" rather than taking down every Deep Edge tool
  * with it — the same reasoning the trend-tag layer below is best-effort.
  */
-async function getAdpByFantraxId(): Promise<ReadonlyMap<string, number>> {
+export async function getAdpByFantraxId(): Promise<ReadonlyMap<string, number>> {
   try {
     const rows = await fetchAdp("NBA", { next: { revalidate: ADP_TTL } });
     return new Map(rows.filter((r) => Number.isFinite(r.ADP)).map((r) => [r.id, r.ADP]));

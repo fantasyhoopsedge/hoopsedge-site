@@ -105,11 +105,21 @@ import type { WaiverAssetRow, WaiverEdgeResult, WaiverSeasonMode } from "@/lib/f
  *  other half of the same question (who is droppable). Rostered rows are
  *  computed identically to free-agent ones server-side — see
  *  waiver-edge.ts's own header. */
-type RosterView = "both" | "freeAgents" | "myTeam";
+type RosterView = "both" | "freeAgents" | "myTeam" | "top" | "all";
+/** How many players "Top players" keeps (Ash, 2026-09-13: "returns all
+ *  players in the top 200 both rostered and free agents"). */
+const TOP_PLAYERS_LIMIT = 200;
 const ROSTER_VIEW_OPTIONS: { value: RosterView; label: string }[] = [
   { value: "both", label: "My Team + Free Agents" },
   { value: "freeAgents", label: "Free Agents" },
   { value: "myTeam", label: "My Team" },
+  // Everyone, rostered and free, either capped at the top 200 by the value
+  // currently selected or uncapped. These two answer a different question
+  // from the three above — not "who can I claim" but "where does the whole
+  // league's talent actually sit" — which is why they read the league-wide
+  // population rather than my roster plus the wire.
+  { value: "top", label: `Top ${TOP_PLAYERS_LIMIT} players` },
+  { value: "all", label: "All players" },
 ];
 
 /** The same gold Trade Edge's asset cards already use (asset-tiers.ts's
@@ -159,7 +169,7 @@ const CATV_OPTIONS: { value: CatvMode; label: string }[] = [
   { value: "nineCat", label: "9CatV" },
 ];
 type SortKey =
-  | "name" | "team" | "age" | "leagueRank" | "dynRank" | "salaryRank" | "salary" | "gp" | "min" | "usg" | "value"
+  | "name" | "team" | "age" | "leagueRank" | "dynRank" | "adp" | "salaryRank" | "salary" | "gp" | "min" | "usg" | "value"
   | FheCategory;
 interface CartEntry { fantraxId: string; name: string }
 
@@ -259,6 +269,7 @@ function sortValueOf(row: { asset: WaiverAssetRow; value: number | null }, key: 
     case "age": return a.age;
     case "leagueRank": return a.leagueRank;
     case "dynRank": return a.dynRank;
+    case "adp": return a.adp;
     case "salaryRank": return a.salaryRank;
     case "salary": return a.salary;
     case "gp": return a.gamesPlayed;
@@ -540,11 +551,28 @@ function WaiverEdgeContent() {
   const hasMyTeam = (data?.myTeamAssets.length ?? 0) > 0;
   const baseRows = useMemo(() => {
     if (!data) return [];
+    // The league-wide views don't need a connected team, so they are checked
+    // before the hasMyTeam gate below.
+    if (rosterView === "all" || rosterView === "top") {
+      const everyone = [...data.leagueAssets, ...data.assets];
+      if (rosterView === "all") return everyone;
+      // "Top 200" is by the value currently selected — CATV flavor, per-game
+      // vs totals and any punts all move it — so it is cut here rather than
+      // server-side, where none of those choices are known. Cutting BEFORE
+      // the filters below is deliberate: the view means "the league's top
+      // 200", and a team or position filter narrows within that, rather than
+      // silently returning the top 200 Celtics.
+      return [...everyone]
+        .map((a) => ({ a, v: waiverValueOf(a, data.family, catvMode, statMode, puntedCats) }))
+        .sort((x, y) => (y.v ?? -Infinity) - (x.v ?? -Infinity))
+        .slice(0, TOP_PLAYERS_LIMIT)
+        .map((x) => x.a);
+    }
     if (!hasMyTeam) return data.assets;
     if (rosterView === "myTeam") return data.myTeamAssets;
     if (rosterView === "both") return [...data.myTeamAssets, ...data.assets];
     return data.assets;
-  }, [data, rosterView, hasMyTeam]);
+  }, [data, rosterView, hasMyTeam, catvMode, statMode, puntedCats]);
 
   /** Only teams actually represented in the CURRENT view — a filter offering
    *  all 30 would hand you empty results for whichever have none, and one
@@ -617,8 +645,7 @@ function WaiverEdgeContent() {
           labels would eat the column's width. Shown only when there is a
           connected team to show; a league with none has nothing but free
           agents to offer, so the control would be a menu of one. */}
-      {hasMyTeam && (
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
           <label htmlFor="we-view" style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SHOW</label>
           <select
             id="we-view"
@@ -629,14 +656,16 @@ function WaiverEdgeContent() {
               background: "var(--rt-surface-soft)", padding: "0 10px", fontSize: 12.5, color: "var(--rt-ink)",
             }}
           >
-            {ROSTER_VIEW_OPTIONS.map(({ value, label }) => (
+            {/* The two My Team views need a connected team; the league-wide
+                ones don't, so a league with no team picked still gets a
+                useful menu rather than none at all. */}
+            {ROSTER_VIEW_OPTIONS.filter((o) => hasMyTeam || (o.value !== "myTeam" && o.value !== "both")).map(({ value, label }) => (
               <option key={value} value={value}>
-                {value === "freeAgents" ? label : label.replace("My Team", saved.teamName ?? "My Team")}
+                {value === "myTeam" || value === "both" ? label.replace("My Team", saved.teamName ?? "My Team") : label}
               </option>
             ))}
           </select>
         </div>
-      )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10, flexWrap: "wrap" }}>
         <span style={{ fontSize: 11.5, color: "var(--rt-muted)", fontWeight: 600 }}>SEASON</span>
@@ -897,6 +926,10 @@ function WaiverEdgeContent() {
                       title={data.leagueValuesGenerated ? undefined : "This league hasn't generated custom asset values yet"}
                     />
                     <SortTh<SortKey> label={useSalaryRank ? "SAL RANK" : "DYN RANK"} sortKey={useSalaryRank ? "salaryRank" : "dynRank"} sort={sort} onSort={onSort} />
+                    {/* Beside the rank it is read against: DYN RANK is FHE's
+                        own opinion, ADP is the draft market's, and the gap
+                        between them is the whole reason to show both. */}
+                    <SortTh<SortKey> label="ADP" sortKey="adp" sort={sort} onSort={onSort} />
                     {showSalary && <SortTh<SortKey> label="SALARY" sortKey="salary" sort={sort} onSort={onSort} />}
                     <SortTh<SortKey> label="GP" sortKey="gp" sort={sort} onSort={onSort} />
                     <SortTh<SortKey> label="MIN" sortKey="min" sort={sort} onSort={onSort} />
@@ -972,6 +1005,9 @@ function WaiverEdgeContent() {
                         <td>{a.age != null ? a.age.toFixed(1) : "—"}</td>
                         <td>{data.leagueValuesGenerated ? formatRank(a.leagueRank) : "—"}</td>
                         <td>{formatRank(useSalaryRank ? a.salaryRank : a.dynRank)}</td>
+                        {/* 1dp, as Fantrax reports it and as every other ADP
+                            readout in Deep Edge shows it. */}
+                        <td style={{ fontFamily: "var(--rt-font-mono)" }}>{a.adp != null ? a.adp.toFixed(1) : "—"}</td>
                         {showSalary && <td>{fmtSalary(a.salary)}</td>}
                         <td>{a.gamesPlayed ?? "—"}</td>
                         <td>{a.minutesPerGame != null ? (statMode === "totals" ? Math.round(a.minutesPerGame * (a.gamesPlayed ?? 0)).toLocaleString("en-US") : a.minutesPerGame.toFixed(1)) : "—"}</td>

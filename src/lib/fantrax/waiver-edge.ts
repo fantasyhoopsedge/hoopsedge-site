@@ -11,6 +11,7 @@ import { computeLeagueRankings } from "./league-rankings";
 import type { SavedLeagueSettings } from "./store";
 import { playerIdentity } from "../player-identity/bundled";
 import { getStats, getValuesForSize } from "../value/seasonal-data";
+import { getAdpByFantraxId } from "./resolve";
 import type { SeasonPlayerStats } from "@/types/database";
 
 /**
@@ -128,6 +129,11 @@ export interface WaiverAssetRow {
   key: string;
   fantraxId: string;
   name: string;
+  /** Which fantasy team holds this player, or null for a free agent. Set
+   *  for EVERY rostered row, not just the connected team's, so the Top
+   *  players / All players views can say who owns whom (Ash, 2026-09-13).
+   *  `owned` still means "mine" specifically. */
+  fantasyTeam: string | null;
   /** True for a player on the CONNECTED team's roster, false for a free
    *  agent. Both shapes are built by the same code path off the same
    *  sources, so the two are directly comparable in one sorted table — this
@@ -169,6 +175,11 @@ export interface WaiverAssetRow {
   salary: number | null;
   /** Site-wide Real Salary Rankings rank — real-salary leagues only. */
   salaryRank: number | null;
+  /** Fantrax's own ADP, or null when he has no recorded one. Same map every
+   *  other Deep Edge surface reads (resolve.ts's getAdpByFantraxId), joined
+   *  on the raw Fantrax id — so it is present even for a player the identity
+   *  registry never linked, unlike every other column here. */
+  adp: number | null;
 }
 
 export interface WaiverEdgeResult {
@@ -182,6 +193,13 @@ export interface WaiverEdgeResult {
    *  since this file was written, including the Add/Drop Simulator's own
    *  add-cart — keeps meaning exactly that without auditing each one. */
   myTeamAssets: WaiverAssetRow[];
+  /** EVERY rostered player in the league, the connected team's included —
+   *  the population behind "Top players" and "All players" (Ash,
+   *  2026-09-13). A superset of myTeamAssets rather than a complement of it:
+   *  the two views that use this want one combined board, and making the
+   *  client re-stitch three disjoint arrays to get there would be the same
+   *  list assembled twice. Empty for a league whose rosters didn't resolve. */
+  leagueAssets: WaiverAssetRow[];
   family: "categories" | "points";
   /** Categories this league actually scores, FHE_CATEGORIES order — the
    *  client's 8CatV option only ever excludes TO regardless of this (that's
@@ -280,6 +298,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
     loadSeasonStats(seasonMode),
   ]);
   const { season, seasonType, label: currentSeasonLabel, statRows: allStatRows } = seasonStats;
+  const adpByFantraxId = await getAdpByFantraxId();
   const dynastyRankByFheId = getDynastyRankByFheId();
   const rookieByFheId = getRookieByFheId();
   const salaryRankByFheId = salaryRank.rankByFheId;
@@ -311,10 +330,12 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
   // possible rather than a parallel implementation that could drift.
   // Empty when no team is connected — the client hides the views that need
   // it rather than showing an empty board.
-  const myRoster = teamId ? analysis.league.rosters.find((r) => r.teamId === teamId)?.players ?? [] : [];
-  const population: { spot: (typeof rawFAs)[number]; owned: boolean }[] = [
-    ...rawFAs.map((spot) => ({ spot, owned: false })),
-    ...myRoster.map((spot) => ({ spot, owned: true })),
+  // Every rostered player in the league, each tagged with who holds him —
+  // the connected team's rows are just the ones where teamId matches.
+  const population: { spot: (typeof rawFAs)[number]; owned: boolean; fantasyTeam: string | null }[] = [
+    ...rawFAs.map((spot) => ({ spot, owned: false, fantasyTeam: null })),
+    ...analysis.league.rosters.flatMap((r) =>
+      r.players.map((spot) => ({ spot, owned: r.teamId === teamId, fantasyTeam: r.teamName }))),
   ];
   const fheIdByFantraxId = new Map<string, string>();
   for (const { spot } of population) {
@@ -328,6 +349,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
 
   const assets: WaiverAssetRow[] = [];
   const myTeamAssets: WaiverAssetRow[] = [];
+  const leagueAssets: WaiverAssetRow[] = [];
 
   if (fheIds.length > 0) {
     // Resolve fhe_id -> season_player_stats FIRST, then join season_player_values
@@ -378,7 +400,7 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
       }] as const;
     }));
 
-    for (const { spot: fa, owned } of population) {
+    for (const { spot: fa, owned, fantasyTeam } of population) {
       const fheId = fheIdByFantraxId.get(fa.fantraxId);
       if (!fheId) continue;
       const stat = statByFheId.get(fheId);
@@ -398,8 +420,8 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
       const fpts = family === "points" && pointsFormula ? pointsValueOf(statLine, pointsFormula) : null;
       const contractInfo = contractByFheId[fheId];
 
-      (owned ? myTeamAssets : assets).push({
-        key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name, owned,
+      const row: WaiverAssetRow = {
+        key: fa.fantraxId, fantraxId: fa.fantraxId, name: fa.name, owned, fantasyTeam,
         pos: positionGroup(fa.eligible), nbaTeam: fa.nbaTeam && fa.nbaTeam !== "(N/A)" ? fa.nbaTeam : null,
         isRookie: rookieByFheId[fheId] ?? false,
         isSophomore: sophomoreByFheId[fheId] ?? false,
@@ -418,13 +440,24 @@ export async function computeWaiverEdge(input: WaiverEdgeInput): Promise<WaiverE
         // Free Agents board sortable on it. See this file's header.
         salary: contractInfo?.currentSalary ?? null,
         salaryRank: salaryRankByFheId[fheId] ?? null,
-      });
+        adp: adpByFantraxId.get(fa.fantraxId) ?? null,
+      };
+      // A free agent goes to `assets`; a rostered player goes to
+      // `leagueAssets`, and additionally to `myTeamAssets` when he is mine —
+      // the same object in both, so the views that combine them never show
+      // one player twice with two different numbers.
+      if (fantasyTeam == null) assets.push(row);
+      else {
+        leagueAssets.push(row);
+        if (owned) myTeamAssets.push(row);
+      }
     }
   }
 
   return {
     assets,
     myTeamAssets,
+    leagueAssets,
     family,
     scoredCategories: [...scored],
     positionSlots: analysis.league.positionSlots ?? {},
