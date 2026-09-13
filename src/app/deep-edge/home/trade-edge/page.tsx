@@ -292,6 +292,22 @@ function PlayerMiniCard({
  *  as 0, so a missing value can't silently understate what's actually moving;
  *  `missing` surfaces the count so the caller can flag it instead of
  *  presenting a partial total as if it were complete. */
+/** One side's fantasy points, on the table's own PER GAME / TOTALS basis —
+ *  per-game sums each player's rate (the side's combined output for a night),
+ *  totals sums rate x his own games, the same rule every category column in
+ *  this table already follows. Null when nobody on the side has a points
+ *  value, so an empty side reads "—" rather than a confident 0. */
+function fptsFor(players: readonly ResolvedPlayer[], statMode: "perGame" | "totals"): number | null {
+  const withPoints = players.filter((p) => p.pointsValue != null);
+  if (withPoints.length === 0) return null;
+  return withPoints.reduce((sum, p) => sum + p.pointsValue! * (statMode === "totals" ? (p.gamesPlayed ?? 0) : 1), 0);
+}
+
+function formatFpts(n: number | null, statMode: "perGame" | "totals"): string {
+  if (n == null) return "—";
+  return statMode === "totals" ? Math.round(n).toLocaleString("en-US") : n.toFixed(1);
+}
+
 function sumSalary(players: ResolvedPlayer[]): { total: number; missing: number } {
   let total = 0, missing = 0;
   for (const p of players) {
@@ -300,11 +316,15 @@ function sumSalary(players: ResolvedPlayer[]): { total: number; missing: number 
   return { total, missing };
 }
 
-function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalary, showContract, salaryFormat }: {
+function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalary, showContract, salaryFormat, showDynastyRank, showAdp, showFpts }: {
   scored: readonly FheCategory[]; sendPlayers: ResolvedPlayer[]; receivePlayers: ResolvedPlayer[]; statMode: "perGame" | "totals";
   showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
+  /** Must match TradePreviewTable's own three flags exactly — this row sits
+   *  directly beneath those tables and shares their colgroup, so a column
+   *  shown in one and not the other misaligns both. */
+  showDynastyRank: boolean; showAdp: boolean; showFpts: boolean;
 }) {
-  if (scored.length === 0) return null;
+  if (scored.length === 0 && !showFpts) return null;
   const isCustomSalary = salaryFormat === "custom";
   const fmtSalary = (n: number) => (isCustomSalary ? formatCustomSalary(n) : formatSalary(n));
   const sent = sumSalary(sendPlayers);
@@ -325,13 +345,18 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalar
             <col style={{ width: 50 }} />
             {showSalary && <col style={{ width: 70 }} />}
             {showContract && <col style={{ width: 80 }} />}
+            {showDynastyRank && <col style={{ width: 60 }} />}
+            {showAdp && <col style={{ width: 56 }} />}
             <col style={{ width: 60 }} />
-            <col style={{ width: 60 }} />
+            {showFpts && <col style={{ width: 64 }} />}
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
           </colgroup>
           <tbody>
             <tr className="mine">
-              <td className="l">Net category impact ({statMode === "perGame" ? "per game" : "totals"})</td>
+              {/* "Net impact", not "Net category impact" — a points league's
+                  headline number here is FPTS, not categories, and the row
+                  reads across every format now (Ash, 2026-09-13). */}
+              <td className="l">Net impact ({statMode === "perGame" ? "per game" : "totals"})</td>
               <td>—</td><td>—</td>
               {showSalary && (
                 <td title={salaryTitle} style={{ fontWeight: 700, color: salaryColor }}>
@@ -339,7 +364,20 @@ function NetImpactRow({ scored, sendPlayers, receivePlayers, statMode, showSalar
                 </td>
               )}
               {showContract && <td>—</td>}
-              <td>—</td><td>—</td>
+              {showDynastyRank && <td>—</td>}
+              {showAdp && <td>—</td>}
+              <td>—</td>
+              {showFpts && (() => {
+                const sentF = fptsFor(sendPlayers, statMode) ?? 0;
+                const gotF = fptsFor(receivePlayers, statMode) ?? 0;
+                const net = gotF - sentF;
+                const gain = net > 0.05, loss = net < -0.05;
+                return (
+                  <td style={{ background: gain ? "rgba(34,197,94,0.14)" : loss ? "rgba(239,68,68,0.14)" : undefined, color: "var(--rt-ink)", fontWeight: 700 }}>
+                    {net > 0.05 ? "+" : net < -0.05 ? "-" : "±"}{formatFpts(Math.abs(net), statMode)}
+                  </td>
+                );
+              })()}
               {scored.map((cat) => {
                 const net = netFor(sendPlayers, receivePlayers, cat, statMode);
                 const gain = net != null && Math.abs(net) > 0.0005 && (HIGHER_IS_BETTER[cat] ? net > 0 : net < 0);
@@ -833,7 +871,7 @@ function TradeVerdictPanel({
  *  line up exactly whether read stacked or side by side. */
 function TradePreviewTable({
   title, players, scored, enrich, leaguePlayers, valueMode, statMode, positionSlots, showSalary, showContract, salaryFormat,
-  surplusByFantraxId, pickValues,
+  surplusByFantraxId, pickValues, showDynastyRank, showAdp, showFpts,
 }: {
   title: string; players: ResolvedPlayer[]; scored: readonly FheCategory[]; enrich: EnrichData | null;
   leaguePlayers: ResolvedPlayer[]; valueMode: TradeValueMode; statMode: "perGame" | "totals";
@@ -841,6 +879,13 @@ function TradePreviewTable({
   /** Mirrors Roster Edge's own Salary/Contract column toggles — off by
    *  default in leagues with no salary data (salaryFormat "none"). */
   showSalary: boolean; showContract: boolean; salaryFormat: SalaryFormat;
+  /** DYN RK is a dynasty concept — a redraft manager is not trading on where
+   *  a player sits on a keep-forever board, so the column is dropped there
+   *  (Ash, 2026-09-13). ADP replaces it for redraft, where draft position IS
+   *  the shared reference point. FPTS shows for a points league, whose
+   *  headline trade number is fantasy points and which had no column for
+   *  them at all. */
+  showDynastyRank: boolean; showAdp: boolean; showFpts: boolean;
   surplusByFantraxId?: ReadonlyMap<string, number>;
   /** The generated ledger's own PICK rows — see valueDisplayFor's own doc
    *  for why this only matters when valueMode is "surplusV". */
@@ -859,8 +904,10 @@ function TradePreviewTable({
             <col style={{ width: 50 }} />
             {showSalary && <col style={{ width: 70 }} />}
             {showContract && <col style={{ width: 80 }} />}
+            {showDynastyRank && <col style={{ width: 60 }} />}
+            {showAdp && <col style={{ width: 56 }} />}
             <col style={{ width: 60 }} />
-            <col style={{ width: 60 }} />
+            {showFpts && <col style={{ width: 64 }} />}
             {scored.map((cat) => <col key={cat} style={{ width: 56 }} />)}
           </colgroup>
           <thead>
@@ -870,8 +917,10 @@ function TradePreviewTable({
               <th>AGE</th>
               {showSalary && <th>SAL$</th>}
               {showContract && <th>CONTRACT$</th>}
-              <th>DYN RK</th>
+              {showDynastyRank && <th>DYN RK</th>}
+              {showAdp && <th>ADP</th>}
               <th>VAL RK</th>
+              {showFpts && <th>FPTS</th>}
               {scored.map((cat) => <th key={cat}>{CATEGORY_LABEL[cat]}</th>)}
             </tr>
           </thead>
@@ -888,7 +937,10 @@ function TradePreviewTable({
                 );
               })()}
               {showContract && <td>—</td>}
-              <td>—</td><td>—</td>
+              {showDynastyRank && <td>—</td>}
+              {showAdp && <td>—</td>}
+              <td>—</td>
+              {showFpts && <td style={{ fontWeight: 700 }}>{formatFpts(fptsFor(players, statMode), statMode)}</td>}
               {scored.map((cat) => <td key={cat}>{summaryStatDisplay(players, cat, statMode)}</td>)}
             </tr>
             {players.map((p) => {
@@ -909,8 +961,10 @@ function TradePreviewTable({
                   <td>{age != null ? age.toFixed(1) : "—"}</td>
                   {showSalary && <td>{isCustomSalary ? formatCustomSalary(p.salary) : formatSalary(p.salary)}</td>}
                   {showContract && <td>{isCustomSalary ? formatCustomContract(p.contract) : formatContract(contract)}</td>}
-                  <td>{dynastyRank ?? "—"}</td>
+                  {showDynastyRank && <td>{dynastyRank ?? "—"}</td>}
+                  {showAdp && <td style={{ fontFamily: "var(--rt-font-mono)" }}>{p.adp != null ? p.adp.toFixed(1) : "—"}</td>}
                   <td>{valueDisplay}</td>
+                  {showFpts && <td>{formatFpts(p.pointsValue == null ? null : p.pointsValue * (statMode === "totals" ? (p.gamesPlayed ?? 0) : 1), statMode)}</td>}
                   {scored.map((cat) => <td key={cat}>{playerStatDisplay(p, cat, statMode)}</td>)}
                 </tr>
               );
@@ -1954,10 +2008,10 @@ function TradeEdgeContent() {
                     </div>
                   )}
 
-                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
-                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} />
+                  <TradePreviewTable title={`${myRoster.teamName} sends`} players={sendPlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
+                  <TradePreviewTable title={`${theirRoster.teamName} sends`} players={receivePlayers} scored={effective?.scored ?? []} enrich={enrich} leaguePlayers={leaguePlayers} valueMode={valueMode} statMode={statMode} positionSlots={effective?.positionSlots ?? {}} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} surplusByFantraxId={baseValueByFantraxId} pickValues={ledgerValues} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
 
-                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} />
+                  <NetImpactRow scored={effective?.scored ?? []} sendPlayers={sendPlayers} receivePlayers={receivePlayers} statMode={statMode} showSalary={showSalary} showContract={showContract} salaryFormat={salaryFormat} showDynastyRank={isDynasty} showAdp={leagueType === "redraft"} showFpts={isPointsLeague} />
 
                   {tradeVerdict && myRoster && theirRoster && (
                     <TradeVerdictPanel
