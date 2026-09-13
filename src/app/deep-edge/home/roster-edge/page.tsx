@@ -318,16 +318,16 @@ function RosterEdgeContent() {
   // The roster table's sort order follows whichever value flavor the
   // tick-set selector is on — best to worst (Ash, 2026-08-14). Runs once per
   // distinct tickValueMode CHANGE via the same render-time-reset pattern used
-  // elsewhere in this file (skips the very first render — useSortableTable's
-  // own `initial` param above already seeds the matching key/desc, and
-  // onSort() TOGGLES direction when called with the key it's already on, so
-  // calling it here on mount would immediately flip to ascending).
+  // elsewhere in this file. Uses sortBy (states the direction) rather than
+  // onSort (toggles it): FPTS and ADP both map to the "value" key, so
+  // toggling flipped the table to ascending on that switch and put the worst
+  // player on top instead of re-sorting best-first (Ash, 2026-09-13).
   const [sortSyncFor, setSortSyncFor] = useState<TickValueMode | null>(null);
   if (sortSyncFor === null) {
     setSortSyncFor(tickValueMode);
   } else if (sortSyncFor !== tickValueMode) {
     setSortSyncFor(tickValueMode);
-    rotoSort.onSort(SORT_KEY_FOR_TICK_MODE[tickValueMode]);
+    rotoSort.sortBy(SORT_KEY_FOR_TICK_MODE[tickValueMode]);
   }
 
   const hasLeague = Boolean(saved);

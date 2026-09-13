@@ -60,6 +60,15 @@ export function useSortableTable<T, K extends string>(
   const onSort = (key: K) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }));
 
+  /** Sort by `key` in a STATED direction, never toggling. onSort is for a
+   *  header CLICK, where flipping an already-active column is exactly right;
+   *  a caller re-sorting in response to something else (Roster Edge syncing
+   *  the table to its value-flavor selector) needs the opposite. Routing
+   *  that through onSort meant two flavors sharing one sort key flipped the
+   *  table to ascending instead of re-sorting it — switching FPTS -> ADP put
+   *  the worst player on top (Ash, 2026-09-13). */
+  const sortBy = (key: K, dir: SortState<K>["dir"] = "desc") => setSort({ key, dir });
+
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => {
       const av = valueOf(a, sort.key);
@@ -76,7 +85,7 @@ export function useSortableTable<T, K extends string>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rows, sort, ...accessorDeps]);
 
-  return { sort, onSort, sorted };
+  return { sort, onSort, sortBy, sorted };
 }
 
 /** Shared table CSS — inject once per screen via <style>{DEEP_EDGE_TABLE_CSS}</style>. */

@@ -83,19 +83,23 @@ export function valueForMode(
   leaguePlayers: readonly ResolvedPlayer[],
   format: RosterTableFormat,
 ): { value: number | null; rank: number | null; display: string | null } {
-  if (mode === "adp") {
-    // Rank only, like every categories mode — the ADP FIGURE has its own
-    // permanent column now (see showAdp), so printing it here as well made
-    // the VALUE column change shape with the mode. That is what produced the
-    // misaligned trailing column: in ADP mode the row emitted VALUE + RANK +
-    // MINUS1 against a header of ADP + RANK (Ash, 2026-09-13, screenshot).
-    const rank = p.adp == null
-      ? null
-      : rankAmong(leaguePlayers, (pl) => (pl.adp == null ? null : -pl.adp), -p.adp);
-    return { value: null, rank, display: null };
-  }
+  // RANK follows the selected mode. The ADP figure has its own permanent
+  // column (showAdp), so this only ever returns a rank for it — printing the
+  // figure here too is what made the VALUE column change shape and pushed a
+  // phantom column off the right of every row (Ash, 2026-09-13).
+  const rank = mode === "adp"
+    ? (p.adp == null ? null : rankAmong(leaguePlayers, (pl) => (pl.adp == null ? null : -pl.adp), -p.adp))
+    : format === "points" || mode === "fpts"
+      ? rankAmong(leaguePlayers, (pl) => pl.pointsValue, p.pointsValue)
+      : (p.catVRank?.[statsMode][mode] ?? null);
+
+  // The FIGURE, on the other hand, is a property of the LEAGUE, not the
+  // mode: a points league's column is labelled FPTS, so it shows fantasy
+  // points whatever basis the lineup is being picked on. Returning null here
+  // under ADP blanked the entire FPTS column the moment that mode was
+  // selected (Ash, 2026-09-13, screenshot) — the number didn't change, it
+  // just stopped being asked for.
   if (format === "points" || mode === "fpts") {
-    const rank = rankAmong(leaguePlayers, (pl) => pl.pointsValue, p.pointsValue);
     const display = p.pointsValue == null
       ? null
       : statsMode === "totals"
@@ -103,11 +107,7 @@ export function valueForMode(
         : p.pointsValue.toFixed(1);
     return { value: p.pointsValue, rank, display };
   }
-  return {
-    value: p.catV?.[statsMode][mode] ?? null,
-    rank: p.catVRank?.[statsMode][mode] ?? null,
-    display: null,
-  };
+  return { value: mode === "adp" ? null : (p.catV?.[statsMode][mode] ?? null), rank, display: null };
 }
 
 export function formatSalary(n: number | null | undefined): string {
@@ -384,7 +384,14 @@ export function RosterTableRow({
   // FPTS shades off the league's own scoring distribution, not the raw
   // figure — see the fptsStats prop.
   const fptsZ = format === "points" && fptsStats ? zOf(p.pointsValue, fptsStats) : null;
-  const fptsPoolSize = format === "points" ? leaguePlayers.filter((pl) => pl.pointsValue != null).length : 0;
+  // The pool the RANK column shades against has to be the pool that rank was
+  // computed IN — under ADP that is the ~292 players who have one, not every
+  // player with a points projection, or a mid-pack ADP would shade as elite.
+  const rankPoolSize = format !== "points"
+    ? 0
+    : valueMode === "adp"
+      ? leaguePlayers.filter((pl) => pl.adp != null).length
+      : leaguePlayers.filter((pl) => pl.pointsValue != null).length;
   const posDisplay = posDisplayFor(p.eligible, positionSlots);
 
   return (
@@ -439,8 +446,8 @@ export function RosterTableRow({
       </td>
       {format === "points" && (
         <td
-          style={{ background: rankBg(valueRank, fptsPoolSize), fontFamily: "var(--rt-font-mono)", fontSize: 12 }}
-          title={valueRank != null ? `${valueRank} of ${fptsPoolSize}` : undefined}
+          style={{ background: rankBg(valueRank, rankPoolSize), fontFamily: "var(--rt-font-mono)", fontSize: 12 }}
+          title={valueRank != null ? `${valueRank} of ${rankPoolSize}` : undefined}
         >
           {formatRank(valueRank)}
         </td>
