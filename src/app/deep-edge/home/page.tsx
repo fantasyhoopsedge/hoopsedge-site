@@ -9,6 +9,7 @@ import { HubShell } from "../_components/hub-shell";
 import { GoDeepGrid } from "../_components/go-deep-grid";
 import { AddLeagueModal } from "../_components/add-league-modal";
 import { Modal } from "../_components/modal";
+import { PlatformLogo } from "../_components/platform-logo";
 import { useActiveLeague } from "../_lib/use-saved-leagues";
 import { CUSTOM_VALUATIONS_STALE_AFTER_MS, relativeTime, useNow } from "../_lib/relative-time";
 
@@ -300,15 +301,7 @@ function HomeHubContent() {
       ) : league ? (
         <div style={{ padding: 22, borderRadius: 24, border: "1px solid var(--rt-hairline)", marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-            <span
-              style={{
-                width: 32, height: 32, borderRadius: 8, background: "#0c0d0e", color: "#fff",
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--rt-font-mono)", fontWeight: 700, fontSize: 13,
-              }}
-            >
-              Fx
-            </span>
+            <PlatformLogo platform="fantrax" size={32} />
             <span style={{ fontSize: 17, fontWeight: 700 }}>{league.leagueName}</span>
             <span
               style={{

@@ -7,6 +7,7 @@ import { OnboardingShell } from "../_components/onboarding-shell";
 import { FantraxConnectModal } from "../_components/fantrax-connect-modal";
 import { PlaceholderConnectModal } from "../_components/placeholder-connect-modal";
 import { IconChevronLeft } from "../_components/icons";
+import { PlatformLogo } from "../_components/platform-logo";
 import { readFantraxSession } from "../_lib/fantrax-session";
 
 type Platform = "fantrax" | "yahoo" | "espn" | "sleeper";
@@ -70,14 +71,8 @@ export default function DeepEdgeProvidersPage() {
                 border: p.promoted ? "1px solid var(--rt-primary)" : "1px solid var(--rt-hairline)",
               }}
             >
-              <div
-                style={{
-                  width: 44, height: 44, borderRadius: 12, margin: "0 auto 14px", display: "flex",
-                  alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16,
-                  fontFamily: "var(--rt-font-mono)", background: "var(--rt-surface-dark-elevated)", color: "var(--rt-ink)",
-                }}
-              >
-                {p.name[0]}
+              <div style={{ display: "flex", justifyContent: "center", margin: "0 auto 14px" }}>
+                <PlatformLogo platform={p.id} size={56} decorative />
               </div>
               <h3 style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 14px" }}>{p.name}</h3>
               <button

@@ -5,6 +5,7 @@ import { FANTRAX_SECRET_ID_HELP_URL, fetchUserLeagues, type FxLeagueSummary } fr
 import { writeFantraxSession } from "../_lib/fantrax-session";
 import { Modal } from "./modal";
 import { IconClose } from "./icons";
+import { PlatformLogo } from "./platform-logo";
 
 /**
  * Connect Fantrax — same browser-only Secret ID pattern as
@@ -47,15 +48,7 @@ export function FantraxConnectModal({
     <Modal onClose={onClose} width={440}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span
-            style={{
-              width: 30, height: 30, borderRadius: 8, background: "#0c0d0e", color: "#fff",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              fontFamily: "var(--rt-font-mono)", fontWeight: 700, fontSize: 13,
-            }}
-          >
-            Fx
-          </span>
+          <PlatformLogo platform="fantrax" size={30} decorative />
           <h2 style={{ fontSize: 19, fontWeight: 700, margin: 0 }}>Connect Fantrax</h2>
         </div>
         <button

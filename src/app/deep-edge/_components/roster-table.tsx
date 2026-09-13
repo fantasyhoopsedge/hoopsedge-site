@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import type { ResolvedPlayer } from "@/lib/fantrax/analyze";
 import {
-  CATEGORY_LABEL, DRAFT_PICK_YEARS_IMPORTED, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
+  CATEGORY_LABEL, draftPickYearSpan, type CurrentSeasonDraftStatus, type FheCategory, type TeamDraftPick,
 } from "@/lib/fantrax/league";
 import type { SalaryFormat } from "@/lib/fantrax/league-tags";
 import type { LineupValueMode } from "@/lib/fantrax/lineup";
@@ -565,7 +565,8 @@ export function formatDraftPick(pick: TeamDraftPick): string {
 }
 
 /** Flat picks list -> one row per year across the FULL imported window
- *  (seasonYear..seasonYear+3), even years with zero picks — an empty year is
+ *  (seasonYear..seasonYear+3 at minimum, further when this team holds picks
+ *  beyond that — see draftPickYearSpan), even years with zero picks — an empty year is
  *  meaningful (see buildDraftPickAssets in league.ts), not a gap to hide by
  *  only rendering years that happen to have data — UNLESS `yearsWithLeagueData`
  *  says nobody in the whole league owns a pick that year either, in which case
@@ -586,7 +587,7 @@ function draftPickYearRows(
     list.push(p);
     byYear.set(p.year, list);
   }
-  return Array.from({ length: DRAFT_PICK_YEARS_IMPORTED }, (_, i) => {
+  return Array.from({ length: draftPickYearSpan(picks, seasonYear) }, (_, i) => {
     const year = seasonYear + i;
     return { year, picks: (byYear.get(year) ?? []).sort((a, b) => a.round - b.round) };
   }).filter((row) => row.year === seasonYear || !yearsWithLeagueData || yearsWithLeagueData.has(row.year));

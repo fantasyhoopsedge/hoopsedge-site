@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { fetchUserLeagues, type FxLeagueSummary } from "@/lib/fantrax/api";
 import { DEFAULT_ADVANCED_SETTINGS, DEFAULT_GAMES_CAP_SETTINGS, DEFAULT_LEAGUE_TAGS } from "@/lib/fantrax/league-tags";
 import { FANTRAX_DATASETS, type FantraxDatasetKey } from "@/lib/fantrax/league";
+import { PlatformLogo } from "./platform-logo";
 import type { LeagueAnalysis } from "@/lib/fantrax/analyze";
 import type { SavedLeague } from "@/lib/fantrax/store";
 import { readFantraxSession } from "../_lib/fantrax-session";
@@ -170,7 +171,8 @@ export function AddLeagueModal({
             <p style={{ color: "var(--rt-muted)", fontSize: 13.5 }}>No NBA leagues found on this Fantrax account.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ fontFamily: "var(--rt-font-mono)", fontSize: 10.5, letterSpacing: "0.06em", color: "var(--rt-muted)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--rt-font-mono)", fontSize: 10.5, letterSpacing: "0.06em", color: "var(--rt-muted)" }}>
+                <PlatformLogo platform="fantrax" size={20} decorative />
                 FANTRAX
               </div>
               {leagues.map((l) => (

@@ -14,6 +14,7 @@ import { ToggleSwitch } from "../../_components/toggle-switch";
 import { SegmentedControl } from "../../_components/segmented-control";
 import { Stepper } from "../../_components/stepper";
 import { IconChevronLeft } from "../../_components/icons";
+import { PlatformLogo } from "../../_components/platform-logo";
 import { useActiveLeague } from "../../_lib/use-saved-leagues";
 
 const KEEPER_OPTIONS = ["all", "10", "9", "8", "7", "6", "5", "4", "3", "2", "1"];
@@ -467,7 +468,7 @@ function DeepEdgeSettingsContent() {
                   background: "var(--rt-surface-strong)", color: "var(--rt-muted)", fontSize: 12.5, fontWeight: 600,
                 }}
               >
-                Fx Fantrax 🔒
+                <PlatformLogo platform="fantrax" size={16} decorative /> Fantrax 🔒
               </span>
             </SettingsRow>
             {divider}
