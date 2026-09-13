@@ -375,7 +375,11 @@ function dynastyValues(
   return consensusOnlyValues(players, consensusPoolSize, rankToValue);
 }
 
-function redraftValues(
+/** Raw z-scores, unchanged — the KEEPER blend's redraft half. It is averaged
+ *  against dynastyValues(rankToZ) below, so both sides have to stay on the
+ *  signed z-scale; putting this one on the List Value curve would be
+ *  averaging 1590s against 1.4s. */
+function redraftZValues(
   players: readonly ResolvedPlayer[],
   mode: Exclude<TradeValueMode, "surplusV" | "adp">,
 ): Map<string, number> {
@@ -384,6 +388,43 @@ function redraftValues(
     const v = valueOf(p, mode);
     if (v != null) out.set(p.fantraxId, v);
   }
+  return out;
+}
+
+/**
+ * A pure REDRAFT league's asset values, on the same List Value curve a
+ * dynasty league already uses (Ash, 2026-09-13: "the trade asset value
+ * should use a similar curve that dynasty uses.. but limited to the lower
+ * league pool size. this would adjust based on the chose value toggles").
+ *
+ * Rank first, then read the curve. Which is the whole point: the ranking is
+ * done with the mode the viewer selected, so switching 9-Cat -> Minus1V
+ * reorders the players and every value moves with them. A raw z-score
+ * couldn't do that — it IS the mode's number, with no common scale between
+ * modes and no relationship to what a trade partner would ask for.
+ *
+ * "Limited to the lower league pool size" falls out of ranking within this
+ * league's own population rather than a 500-player dynasty board: a 12-team
+ * 14-man league only ever walks the first ~168 points of the curve, so its
+ * #1 is 1590 and its replacement level sits where the curve has genuinely
+ * flattened, instead of everyone bunching in the curve's deep tail.
+ *
+ * Moving redraft onto this scale also puts it on the SAME footing the trade
+ * verdict already assumes: computeTradeVerdict has been running on curve
+ * values for every dynasty league since 2026-08-25, so its star-
+ * concentration adjustment and non-negative floor are already written for
+ * strictly-positive, curve-shaped inputs rather than signed z-scores.
+ */
+function redraftCurveValues(
+  players: readonly ResolvedPlayer[],
+  mode: Exclude<TradeValueMode, "surplusV" | "adp">,
+): Map<string, number> {
+  const ranked = players
+    .map((p) => ({ p, v: valueOf(p, mode) }))
+    .filter((x): x is { p: ResolvedPlayer; v: number } => x.v != null)
+    .sort((a, b) => b.v - a.v);
+  const out = new Map<string, number>();
+  ranked.forEach(({ p }, i) => out.set(p.fantraxId, curveValueAtRank(i + 1)));
   return out;
 }
 
@@ -397,7 +438,7 @@ export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, num
   } = inputs;
 
   if (leagueType === "redraft") {
-    return redraftValues(players, redraftValueMode);
+    return redraftCurveValues(players, redraftValueMode);
   }
 
   const dynasty = (rankToValue: RankToValue) => dynastyValues(
@@ -413,10 +454,11 @@ export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, num
 
   // Keeper: blend redraft and dynasty-equivalent values by keeperWeight.
   const weight = computeKeeperWeight(keeperPolicy, totalRosterSlots);
-  if (weight <= 0) return redraftValues(players, redraftValueMode);
+  // No keepers at all is a redraft league wearing a keeper label.
+  if (weight <= 0) return redraftCurveValues(players, redraftValueMode);
   if (weight >= 1) return dynasty(curveValueAtRank);
 
-  const redraft = redraftValues(players, redraftValueMode);
+  const redraft = redraftZValues(players, redraftValueMode);
   const dyn = dynasty(rankToZ);
   const out = new Map<string, number>();
   for (const p of players) {
