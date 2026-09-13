@@ -132,6 +132,14 @@ const ROSTER_VIEW_OPTIONS: { value: RosterView; label: string }[] = [
  *  reads the same in both themes, so it needs no light/dark variant. */
 const ROSTERED_GOLD = "#D9A521";
 const ROSTERED_GOLD_INK = "#241B04";
+/** Someone ELSE's roster. The same blue Trade Edge's asset cards use for the
+ *  sophomore tier (asset-tiers.ts) — reused so the Deep Edge keeps one
+ *  palette, and carrying no sophomore meaning here. Gold vs blue is the only
+ *  thing separating "mine" from "taken" at a glance on a league-wide board
+ *  (Ash, 2026-09-13), so they have to be told apart across the whole table,
+ *  not just read one row at a time. */
+const ROSTERED_BLUE = "#2F6FB0";
+const ROSTERED_BLUE_INK = "#FFFFFF";
 
 type ClassFilterKey = "rookie" | "soph" | "vet";
 const POSITION_OPTIONS = ["G", "F", "C"] as const;
@@ -963,14 +971,23 @@ function WaiverEdgeContent() {
                     return (
                       <tr key={a.key}>
                         <td>
-                          {/* A player already on your roster can't be ADDED,
-                              so he gets no + here. Dropping him is the
-                              Simulator's own separate step, chosen there
-                              against the live roster — see AddDropSimulator.
-                              The cell keeps its width rather than collapsing
-                              so the column stays aligned in a mixed view. */}
-                          {a.owned ? (
-                            <span style={{ color: "var(--rt-muted)", fontSize: 11 }} title="Already on your roster">●</span>
+                          {/* A ROSTERED player can't be added, whoever holds
+                              him — mine is already mine, and someone else's
+                              isn't available to claim (Ash, 2026-09-13). Was
+                              gated on `owned` alone, which was right until
+                              the league-wide views started showing other
+                              teams' players with a live + beside them.
+                              Dropping one of my own is the Simulator's own
+                              separate step against the live roster. The cell
+                              keeps its width rather than collapsing so the
+                              column stays aligned in a mixed view. */}
+                          {a.fantasyTeam != null ? (
+                            <span
+                              style={{ color: "var(--rt-muted)", fontSize: 11 }}
+                              title={a.owned ? "Already on your roster" : `Rostered by ${a.fantasyTeam}`}
+                            >
+                              ●
+                            </span>
                           ) : (
                             <button
                               type="button"
@@ -990,11 +1007,23 @@ function WaiverEdgeContent() {
                             <span>
                               <span className="de-player-name">{a.name}</span>
                               {a.pos && <span style={{ color: "var(--rt-muted)", marginLeft: 6, fontSize: 11 }}>{a.pos}</span>}
-                              {/* Only in the mixed view: on the single-population
-                                  views every row is the same kind, so a tag on
-                                  each one would be noise rather than signal. */}
-                              {rosterView === "both" && a.owned && (
-                                <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, letterSpacing: 0.5, color: ROSTERED_GOLD_INK, background: ROSTERED_GOLD, borderRadius: 4, padding: "2px 5px", verticalAlign: "middle" }}>
+                              {/* Only on the views that MIX populations — on
+                                  Free Agents nothing is rostered and on My
+                                  Team everything is, so a tag there would be
+                                  noise rather than signal. Gold = mine, blue
+                                  = another team's; the owner's name rides in
+                                  the tooltip, since a 12-team league's names
+                                  are far too long to sit in the tag itself. */}
+                              {rosterView !== "freeAgents" && rosterView !== "myTeam" && a.fantasyTeam != null && (
+                                <span
+                                  title={a.owned ? "On your roster" : `Rostered by ${a.fantasyTeam}`}
+                                  style={{
+                                    marginLeft: 6, fontSize: 9.5, fontWeight: 800, letterSpacing: 0.5,
+                                    color: a.owned ? ROSTERED_GOLD_INK : ROSTERED_BLUE_INK,
+                                    background: a.owned ? ROSTERED_GOLD : ROSTERED_BLUE,
+                                    borderRadius: 4, padding: "2px 5px", verticalAlign: "middle",
+                                  }}
+                                >
                                   ROSTERED
                                 </span>
                               )}
