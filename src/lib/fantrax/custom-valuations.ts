@@ -148,7 +148,7 @@ function applyDurabilityDiscount(value: number, multiplier: number): number {
   return value >= 0 ? value * multiplier : value / multiplier;
 }
 
-function categoryFallbackModeFor(scoringMode: string, scoredCount: number): Exclude<TradeValueMode, "surplusV"> {
+function categoryFallbackModeFor(scoringMode: string, scoredCount: number): Exclude<TradeValueMode, "surplusV" | "adp"> {
   if (scoringMode === "points") return "fpts";
   return scoredCount === 8 ? "eightCatV" : "nineCatV";
 }
@@ -465,7 +465,7 @@ interface PickAssetRowsInput {
   rookieSalaryScale: RookieSalaryTier[] | undefined;
   leagueType: LeagueType;
   valueBasis: ValueBasis;
-  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">;
+  categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp">;
   consensusPoolSize: number;
   realSalaryRankByFheId: Map<string, number>;
   realSalaryPoolSize: number;
@@ -554,7 +554,7 @@ function buildPickAssetRows(input: PickAssetRowsInput): PickAssetRowsResult {
   const leaguePoolSize = analysis.league.poolSize;
   const rawBaseValueByFantraxId = computeBaseTradeValues({
     players: [...corePlayers, ...pickPlayers], leagueType, valueBasis, categoryFallbackMode,
-    redraftBaseMode: "native", leaguePoolSize, consensusPoolSize,
+    redraftValueMode: categoryFallbackMode, leaguePoolSize, consensusPoolSize,
     realSalaryRankByFheId, realSalaryPoolSize, keeperPolicy, totalRosterSlots,
     contractRules, currentSeason,
   });

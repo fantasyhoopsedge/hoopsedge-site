@@ -356,19 +356,19 @@ export async function computeLeagueRankings(input: LeagueRankingsInput): Promise
 
   const standardMap = computeBaseTradeValues({
     players: corePlayers, leagueType: "dynasty", valueBasis: "standard", categoryFallbackMode,
-    redraftBaseMode: "native", leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
+    redraftValueMode: categoryFallbackMode, leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
     realSalaryRankByFheId: realSalaryRank.rankByFheId, realSalaryPoolSize: realSalaryRank.poolSize,
     keeperPolicy: settings.keeperPolicy, totalRosterSlots, contractRules: settings.contractRules, currentSeason,
   });
   const realMap = computeBaseTradeValues({
     players: corePlayers, leagueType: "dynasty", valueBasis: "real", categoryFallbackMode,
-    redraftBaseMode: "native", leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
+    redraftValueMode: categoryFallbackMode, leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
     realSalaryRankByFheId: realSalaryRank.rankByFheId, realSalaryPoolSize: realSalaryRank.poolSize,
     keeperPolicy: settings.keeperPolicy, totalRosterSlots, contractRules: settings.contractRules, currentSeason,
   });
   const redraftMap = computeBaseTradeValues({
     players: corePlayers, leagueType: "redraft", valueBasis: "standard", categoryFallbackMode,
-    redraftBaseMode: "native", leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
+    redraftValueMode: categoryFallbackMode, leaguePoolSize, consensusPoolSize: consensusPoolSizeSafe,
     realSalaryRankByFheId: realSalaryRank.rankByFheId, realSalaryPoolSize: realSalaryRank.poolSize,
     keeperPolicy: settings.keeperPolicy, totalRosterSlots, contractRules: settings.contractRules, currentSeason,
   });

@@ -166,19 +166,26 @@ function expiringDiscountFraction(rule: ContractRule, contract: string | null | 
 }
 
 export type ValueBasis = "standard" | "real" | "custom";
-/** The one legitimate base-value CHOICE (not just display sort) — see
- *  module doc's Redraft branch. Only meaningful for leagueType "redraft" (or
- *  the redraft-shaped half of a keeper blend). */
-export type RedraftBaseMode = "native" | "minus1V";
 
 export interface BaseValueInputs {
   players: readonly ResolvedPlayer[];
   leagueType: LeagueType;
   valueBasis: ValueBasis;
   /** The league's native scoring-format category value — nineCatV/eightCatV
-   *  for a categories league, fpts for a points league. Never "surplusV". */
-  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">;
-  redraftBaseMode: RedraftBaseMode;
+   *  for a categories league, fpts for a points league. Never "surplusV",
+   *  and never "adp": a draft position is not a scoring format. */
+  categoryFallbackMode: Exclude<TradeValueMode, "surplusV" | "adp">;
+  /** Which value a REDRAFT league prices its assets in — the same choice the
+   *  viewer makes with Trade Edge's "Rank players by" control, which is now
+   *  the only place it is set (Ash, 2026-09-13: the old two-option "Evaluate
+   *  assets by" and that selector "are conflicting"). Was a narrow
+   *  native/minus1V pair; it is the full set now, so picking 9-Cat prices the
+   *  trade calculator in 9-Cat rather than merely re-sorting the cards.
+   *  Ignored for dynasty/keeper, which price off the consensus / real-salary
+   *  / custom cascade instead. Never "adp": ADP is a draft POSITION, so it
+   *  carries no magnitude to sum across a trade's two sides — the caller maps
+   *  it to the league's native mode before it reaches here. */
+  redraftValueMode: Exclude<TradeValueMode, "surplusV" | "adp">;
   /** analysis.league.poolSize — THIS league's own roster capacity
    *  (teamCount x maxTotalPlayers), used for every rank computed WITHIN this
    *  league's own roster (production, custom salary). */
@@ -370,10 +377,8 @@ function dynastyValues(
 
 function redraftValues(
   players: readonly ResolvedPlayer[],
-  categoryFallbackMode: Exclude<TradeValueMode, "surplusV">,
-  redraftBaseMode: RedraftBaseMode,
+  mode: Exclude<TradeValueMode, "surplusV" | "adp">,
 ): Map<string, number> {
-  const mode = redraftBaseMode === "minus1V" ? "minus1V" : categoryFallbackMode;
   const out = new Map<string, number>();
   for (const p of players) {
     const v = valueOf(p, mode);
@@ -386,13 +391,13 @@ function redraftValues(
  *  module doc for the five branches. */
 export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, number> {
   const {
-    players, leagueType, valueBasis, categoryFallbackMode, redraftBaseMode,
+    players, leagueType, valueBasis, categoryFallbackMode, redraftValueMode,
     leaguePoolSize, consensusPoolSize, realSalaryRankByFheId, realSalaryPoolSize,
     keeperPolicy, totalRosterSlots, contractRules, currentSeason,
   } = inputs;
 
   if (leagueType === "redraft") {
-    return redraftValues(players, categoryFallbackMode, redraftBaseMode);
+    return redraftValues(players, redraftValueMode);
   }
 
   const dynasty = (rankToValue: RankToValue) => dynastyValues(
@@ -408,10 +413,10 @@ export function computeBaseTradeValues(inputs: BaseValueInputs): Map<string, num
 
   // Keeper: blend redraft and dynasty-equivalent values by keeperWeight.
   const weight = computeKeeperWeight(keeperPolicy, totalRosterSlots);
-  if (weight <= 0) return redraftValues(players, categoryFallbackMode, redraftBaseMode);
+  if (weight <= 0) return redraftValues(players, redraftValueMode);
   if (weight >= 1) return dynasty(curveValueAtRank);
 
-  const redraft = redraftValues(players, categoryFallbackMode, redraftBaseMode);
+  const redraft = redraftValues(players, redraftValueMode);
   const dyn = dynasty(rankToZ);
   const out = new Map<string, number>();
   for (const p of players) {
