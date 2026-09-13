@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { readFantraxSession } from "../_lib/fantrax-session";
 import { useSavedLeagues } from "../_lib/use-saved-leagues";
+import { PlatformLogo } from "./platform-logo";
 import { IconChevronDown, IconDollar, IconHome, IconLineChart, IconList, IconMoon, IconSliders, IconSun, IconTarget, IconTrophy, IconUsers } from "./icons";
 
 /**
@@ -204,15 +205,7 @@ export function DeepEdgeSidebar({
         CONNECTED
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px" }}>
-        <span
-          style={{
-            width: 22, height: 22, borderRadius: 6, background: "#0c0d0e", color: "#fff",
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "var(--rt-font-mono)", fontWeight: 700, fontSize: 10,
-          }}
-        >
-          Fx
-        </span>
+        <PlatformLogo platform="fantrax" size={22} decorative />
         <span style={{ fontSize: 13, fontWeight: 500, flex: 1 }}>Fantrax</span>
         <span
           style={{

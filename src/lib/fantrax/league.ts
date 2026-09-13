@@ -275,10 +275,23 @@ export function resolvePoolSize(teamCount: number, maxTotalPlayers: number): { p
  *  available for the waiver-wire board. */
 const AVAILABLE_STATUSES = new Set(["FA", "WW"]);
 
-/** How many draft years to import, anchored at the league's current season —
- *  Ash, 2026-08-14: "import 4 years of draft picks including the upcoming
- *  season picks if they still exist." */
+/** The MINIMUM draft-year window shown, anchored at the league's current
+ *  season — Ash, 2026-08-14: "import 4 years of draft picks including the
+ *  upcoming season picks if they still exist." It used to be a hard import
+ *  cap too, which silently dropped every pick a deep dynasty league tracks
+ *  past seasonYear+3 (2029 and beyond) from the whole Deep Edge ecosystem —
+ *  Ash, 2026-09-13: "for dynasty leagues that have future picks out to 2029
+ *  and beyond, include those picks." Every future year Fantrax returns is now
+ *  imported; see draftPickYearSpan() for how far a window extends. */
 export const DRAFT_PICK_YEARS_IMPORTED = 4;
+
+/** How many years a draft-pick window covers, starting at seasonYear: the
+ *  4-year minimum, stretched to reach the furthest year any pick in `picks`
+ *  sits in. */
+export function draftPickYearSpan(picks: readonly { year: number }[], seasonYear: number): number {
+  const furthest = picks.reduce((max, p) => Math.max(max, p.year), seasonYear);
+  return Math.max(DRAFT_PICK_YEARS_IMPORTED, furthest - seasonYear + 1);
+}
 
 /**
  * Groups Fantrax's flat futureDraftPicks list into each team's owned FUTURE
@@ -292,21 +305,18 @@ export const DRAFT_PICK_YEARS_IMPORTED = 4;
  * endpoint's domain — its picks live in getDraftResults instead (a "draft
  * board" that stays populated with round/pick/pickInRound even before any
  * player is selected), see currentSeasonPickAssets() below. That split is
- * why this function only ever fills seasonYear+1..seasonYear+3: seasonYear
- * itself is intentionally left for the caller to merge in from the other
- * source.
+ * why this function only ever fills years after seasonYear (every one
+ * Fantrax returns, no upper cap): seasonYear itself is intentionally left for
+ * the caller to merge in from the other source.
  */
 function buildDraftPickAssets(
   raw: FxDraftPicks | null,
   teamNameById: Map<string, string>,
   seasonYear: number,
 ): Map<string, TeamDraftPick[]> {
-  const importedYears = new Set(
-    Array.from({ length: DRAFT_PICK_YEARS_IMPORTED - 1 }, (_, i) => seasonYear + 1 + i),
-  );
   const byTeam = new Map<string, TeamDraftPick[]>();
   for (const e of raw?.futureDraftPicks ?? []) {
-    if (!importedYears.has(e.year)) continue;
+    if (e.year <= seasonYear) continue;
     const list = byTeam.get(e.currentOwnerTeamId) ?? [];
     list.push({
       year: e.year,

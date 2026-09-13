@@ -17,6 +17,7 @@ import { DEFAULT_LEAGUE_TAGS, type LeagueFormat, type LeagueType, type SalaryFor
 import { FormatConfirmPrompt, needsFormatConfirm as needsFormatConfirmFor } from "@/lib/fantrax/format-confirm";
 import type { SavedLeague } from "@/lib/fantrax/store";
 import { TAG_META, type TrendTag } from "@/app/team-rosters/_components/trend-insight";
+import { PlatformLogo } from "@/app/deep-edge/_components/platform-logo";
 
 /**
  * The Fantrax league connector.
@@ -312,7 +313,10 @@ export function FantraxConnector() {
       <header className="fx-head">
         <div>
           <div className="fx-eyebrow">ADMIN · LIMITED TESTING</div>
-          <h1 className="fx-title">Fantrax League Connector</h1>
+          <h1 className="fx-title" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <PlatformLogo platform="fantrax" size={36} decorative />
+            Fantrax League Connector
+          </h1>
           <p className="fx-sub">
             Link a Fantrax league and anchor FHE&apos;s category values to the rules you actually play.
           </p>
