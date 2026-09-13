@@ -78,8 +78,14 @@ const ROSTER_ONLY_EXTRAS: { code: ExtraCode; label: string }[] = [
   { code: "FTA", label: "Free throw attempts (FTA)" },
 ];
 
-type SortKey = "name" | "dynastyRank" | "salaryRank" | "gp" | "min" | "usg" | "value" | "fptsRank" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
-type OptionalCols = { salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean };
+type SortKey = "name" | "dynastyRank" | "salaryRank" | "adp" | "gp" | "min" | "usg" | "value" | "fptsRank" | "minus1" | "nineCat" | "eightCat" | FheCategory | ExtraCode;
+type OptionalCols = {
+  salary: boolean; contract: boolean; dynastyRank: boolean; salaryRank: boolean;
+  // Added 2026-09-13 — these five were always-on until Ash asked for the
+  // flexibility to drop them ("add, ADP, Trend, GP, MIN, USG to the list").
+  // All default true, so the table looks the same until someone unticks one.
+  adp: boolean; trend: boolean; gp: boolean; min: boolean; usg: boolean;
+};
 
 function RosterEdgeContent() {
   const { saved, loading: loadingSaved } = useActiveLeague();
@@ -93,7 +99,10 @@ function RosterEdgeContent() {
   const [tickValueMode, setTickValueMode] = useState<TickValueMode>("minus1V");
   const [extraCols, setExtraCols] = useState<Set<ExtraCode>>(new Set());
   const [hiddenCats, setHiddenCats] = useState<Set<FheCategory>>(new Set());
-  const [cols, setCols] = useState<OptionalCols>({ salary: true, contract: true, dynastyRank: true, salaryRank: true });
+  const [cols, setCols] = useState<OptionalCols>({
+    salary: true, contract: true, dynastyRank: true, salaryRank: true,
+    adp: true, trend: true, gp: true, min: true, usg: true,
+  });
   const [statsMode, setStatsMode] = useState<"perGame" | "totals">("perGame");
 
   useEffect(() => {
@@ -224,7 +233,10 @@ function RosterEdgeContent() {
   if (saved && colsDefaultsFor !== saved.leagueId) {
     setColsDefaultsFor(saved.leagueId);
     const on = salaryFormat !== "none";
-    setCols({ salary: on, contract: on, dynastyRank: on, salaryRank: on });
+    // The five added 2026-09-13 stay on regardless of salary format — they
+    // are production columns, not salary ones, and were unconditional before
+    // they became optional.
+    setCols({ salary: on, contract: on, dynastyRank: on, salaryRank: on, adp: true, trend: true, gp: true, min: true, usg: true });
   }
 
   // Population mean/σ for the USG heatmap — the whole league's rostered
@@ -259,6 +271,9 @@ function RosterEdgeContent() {
       if (key === "gp") return row.gamesPlayed ?? -Infinity;
       if (key === "min") return row.minutesPerGame ?? -Infinity;
       if (key === "usg") return row.usgPct ?? -Infinity;
+      // Lower ADP is better, so negate to keep "descending = best first"
+      // consistent with every other column; no ADP sorts last either way.
+      if (key === "adp") return row.adp == null ? -Infinity : -row.adp;
       // In totals mode the cells show rate x GP, so the sort has to as well —
       // otherwise the column displays season totals while ordering on
       // per-game rates, and a high-rate/low-games player sits above someone
@@ -331,11 +346,16 @@ function RosterEdgeContent() {
     return games > 0 ? total / games : null;
   }, [tickedPlayers, format, statsMode]);
 
-  // ✓/PLAYER/TEAM/POS/TREND/GP/MIN/USG/VALUE = 9 always-present columns,
-  // plus whichever of SAL$/CONTRACT$/DYN RK/SAL RK are currently shown.
-  // MINUS1 is deliberately excluded — it renders as its own <td> right after
-  // this colSpan cell, not folded into it.
-  const colSpanBeforeStats = 9 + (showSalary ? 1 : 0) + (showContract ? 1 : 0) + (cols.dynastyRank ? 1 : 0) + (cols.salaryRank ? 1 : 0);
+  // ✓/PLAYER/TEAM/POS/VALUE = 5 genuinely always-present columns, plus
+  // whichever optional ones are currently shown. TREND/GP/MIN/USG/ADP joined
+  // SAL$/CONTRACT$/DYN RK/SAL RK as optional on 2026-09-13, so they can no
+  // longer be counted as part of the fixed base — a colSpan that assumes a
+  // column still exists is exactly how a row drifts out of line with its
+  // header. MINUS1 is deliberately excluded either way: it renders as its
+  // own <td> right after this colSpan cell, not folded into it.
+  const optionalShown = [showSalary, showContract, cols.dynastyRank, cols.salaryRank, cols.trend, cols.gp, cols.min, cols.usg, cols.adp]
+    .filter(Boolean).length;
+  const colSpanBeforeStats = 5 + optionalShown;
   // RosterTableRow's `format` prop excludes "unconfirmed"/null (that state
   // never reaches this table — see the `format === "unconfirmed"` guard and
   // `!roster` guard below, both bailing out before the table renders).
@@ -499,6 +519,7 @@ function RosterEdgeContent() {
             <span style={{ color: "var(--rt-muted)", marginRight: 2 }}>Columns:</span>
             {([
               ["salary", "Salary"], ["contract", "Contract"], ["dynastyRank", "Dynasty rank"], ["salaryRank", "Salary rank"],
+              ["adp", "ADP"], ["trend", "Trend"], ["gp", "GP"], ["min", "MIN"], ["usg", "USG"],
             ] as [keyof OptionalCols, string][]).map(([key, label]) => {
               // Same non-salary-league gate as showSalary/showContract below —
               // disabled + explained instead of tickable-but-inert (see
@@ -593,17 +614,18 @@ function RosterEdgeContent() {
                   {showContract && <th>CONTRACT$</th>}
                   {cols.dynastyRank && <SortTh<SortKey> label="DYN RK" sortKey="dynastyRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {cols.salaryRank && <SortTh<SortKey> label="SAL RK" sortKey="salaryRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
-                  <th>TREND</th>
-                  <SortTh<SortKey> label="GP" sortKey="gp" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />
-                  <SortTh<SortKey> label={format === "points" ? "FPTS" : tickValueMode === "adp" ? "ADP" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
+                  {cols.trend && <th>TREND</th>}
+                  {cols.gp && <SortTh<SortKey> label="GP" sortKey="gp" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.min && <SortTh<SortKey> label="MIN" sortKey="min" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.usg && <SortTh<SortKey> label="USG" sortKey="usg" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {cols.adp && <SortTh<SortKey> label="ADP" sortKey="adp" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  <SortTh<SortKey> label={format === "points" ? "FPTS" : "VALUE"} sortKey="value" sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   {/* RANK is deliberately NOT sortable: it is derived from
                       FPTS, so clicking it would sort exactly as the FPTS
                       header beside it already does, with two headers fighting
                       over one sort state. */}
-                  {(format === "points" || tickValueMode === "adp") && <SortTh<SortKey> label="RANK" sortKey="fptsRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
-                  {format !== "points" && tickValueMode !== "adp" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {format === "points" && <SortTh<SortKey> label="RANK" sortKey="fptsRank" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
+                  {format !== "points" && <SortTh<SortKey> label="MINUS1" sortKey="minus1" sort={rotoSort.sort} onSort={rotoSort.onSort} />}
                   {visibleCats.map((cat) => (
                     <SortTh<SortKey> key={cat} label={CATEGORY_LABEL[cat]} sortKey={cat} sort={rotoSort.sort} onSort={rotoSort.onSort} />
                   ))}
@@ -659,6 +681,11 @@ function RosterEdgeContent() {
                     showContract={showContract}
                     showDynastyRank={cols.dynastyRank}
                     showSalaryRank={cols.salaryRank}
+                    showTrend={cols.trend}
+                    showGp={cols.gp}
+                    showMin={cols.min}
+                    showUsg={cols.usg}
+                    showAdp={cols.adp}
                     salaryFormat={salaryFormat}
                     valueMode={tickValueMode}
                     statsMode={statsMode}

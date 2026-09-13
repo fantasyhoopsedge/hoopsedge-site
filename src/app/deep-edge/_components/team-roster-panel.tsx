@@ -223,7 +223,6 @@ export function TeamRosterPanel({ roster, enrich, format, scored, positionSlots,
               showDynastyRank={cols.dynastyRank}
               showSalaryRank={cols.salaryRank}
               isPoints={format === "points"}
-              valueMode={valueMode}
             />
           </thead>
           <tbody>
