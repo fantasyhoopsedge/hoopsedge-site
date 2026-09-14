@@ -68,6 +68,18 @@ export const NICKNAME_TO_LEGAL_NAME: Record<string, string> = {
   // GSW two-way; his real name is Jeenathon Williams, the registry/nba_players
   // still store him under the stale "Nate Williams" that predates the correction.
   "jeenathon williams": "nate williams",
+  // Found 2026-09-14: Pocaro's sheet spells these three differently than the
+  // registry (source-side typos/transliteration, same class as "pelle
+  // larrson" above, not real nicknames) — sync-pocaro-roster.ts's own
+  // unresolved-name check caught them, but that check only reports to a
+  // gitignored review file, never to player_identity_unresolved, so they
+  // never showed up in /admin/player-identity's queue. Pocaro's sheet isn't
+  // one of identity:build's ~12 ingested sources, so this class of mismatch
+  // is invisible there by construction — only a fresh pocaro:sync run
+  // surfaces it.
+  "terence mann": "terance mann",
+  "liam mcneely": "liam mcneeley",
+  "dennis schroeder": "dennis schroder",
 };
 
 const LEGAL_NAME_TO_NICKNAME: Record<string, string> = Object.fromEntries(
