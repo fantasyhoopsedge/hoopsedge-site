@@ -1075,7 +1075,7 @@
     "player": "Cooper Flagg",
     "class": "sophomore",
     "dynRank": 5,
-    "tier": "no_change",
+    "tier": "expanded",
     "note": "",
     "source": ""
   },
@@ -3289,7 +3289,7 @@
     "player": "Zyon Pullin",
     "class": "veteran",
     "dynRank": 481,
-    "tier": "expanded",
+    "tier": "no_change",
     "note": "PROPOSED expanded - TGFSL-2026 sophomore (Rucker); listed soph +5.0mpg vs +0.3 peers, 27% leap vs 9%; was 8.4mpg/4.6pg over 5gp in 2025-26",
     "source": "TGFSL-2026"
   },
