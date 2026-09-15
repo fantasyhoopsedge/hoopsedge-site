@@ -883,15 +883,6 @@
   },
   {
     "team": "CHI",
-    "player": "Donovan Atwell",
-    "class": "rookie",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "CHI",
     "player": "Houston Mallette",
     "class": "rookie",
     "dynRank": null,
@@ -1074,15 +1065,6 @@
     "team": "CLE",
     "player": "Tristan Enaruna",
     "class": "sophomore",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "CLE",
-    "player": "Xaivian Lee",
-    "class": "rookie",
     "dynRank": null,
     "tier": "no_change",
     "note": "",
@@ -1396,15 +1378,6 @@
   },
   {
     "team": "DEN",
-    "player": "Giovanni Emejuru",
-    "class": "rookie",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "DEN",
     "player": "KJ Simpson",
     "class": "veteran",
     "dynRank": null,
@@ -1416,15 +1389,6 @@
     "team": "DEN",
     "player": "Lonnie Walker IV",
     "class": "veteran",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "DEN",
-    "player": "Mark Mitchell Jr.",
-    "class": "rookie",
     "dynRank": null,
     "tier": "no_change",
     "note": "",
@@ -1623,15 +1587,6 @@
     "team": "DET",
     "player": "Isaac Jones",
     "class": "veteran",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "DET",
-    "player": "Jaden Henley",
-    "class": "rookie",
     "dynRank": null,
     "tier": "no_change",
     "note": "",
@@ -3016,15 +2971,6 @@
   },
   {
     "team": "MIA",
-    "player": "Keyshawn Hall",
-    "class": "rookie",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "MIA",
     "player": "Tre Donaldson",
     "class": "rookie",
     "dynRank": null,
@@ -3198,15 +3144,6 @@
     "team": "MIL",
     "player": "Cormac Ryan",
     "class": "sophomore",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "MIL",
-    "player": "Malique Lewis",
-    "class": "rookie",
     "dynRank": null,
     "tier": "no_change",
     "note": "",
@@ -5196,24 +5133,6 @@
     "team": "UTA",
     "player": "Harrison Ingram",
     "class": "veteran",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "UTA",
-    "player": "Jaxon Kohler",
-    "class": "rookie",
-    "dynRank": null,
-    "tier": "no_change",
-    "note": "",
-    "source": ""
-  },
-  {
-    "team": "UTA",
-    "player": "Micah Handlogten",
-    "class": "rookie",
     "dynRank": null,
     "tier": "no_change",
     "note": "",

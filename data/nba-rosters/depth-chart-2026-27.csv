@@ -84,7 +84,6 @@ CHA,Tidjane Salaun,reserve,none,35.0,9.0
 CHA,Wyatt Fricks,cut,none,,
 CHI,Caleb Wilson,starter,none,70.0,30.0
 CHI,Dailyn Swain,rotation,none,55.0,16.0
-CHI,Donovan Atwell,cut,none,,
 CHI,Houston Mallette,cut,none,,
 CHI,Isaac Okoro,rotation,none,62.0,25.0
 CHI,Isaiah Stevens,fringe,none,,
@@ -119,7 +118,6 @@ CLE,Sam Merrill,rotation,none,63.0,27.0
 CLE,Thomas Bryant,rotation,none,56.0,14.0
 CLE,Tristan Enaruna,fringe,none,,6.0
 CLE,Tyrese Proctor,reserve,none,,10.0
-CLE,Xaivian Lee,cut,none,,
 DAL,Caleb Martin,reserve,none,40.0,11.0
 DAL,Cooper Flagg,starter,none,74.0,34.0
 DAL,Daniel Gafford,rotation,none,45.0,20.0
@@ -147,12 +145,10 @@ DEN,Cam Johnson,starter,none,68.0,29.0
 DEN,Christian Braun,starter,none,75.0,31.0
 DEN,DaRon Holmes II,reserve,none,43.0,9.8
 DEN,DeMar DeRozan,rotation,none,72.0,28.0
-DEN,Giovanni Emejuru,cut,none,,
 DEN,Jamal Murray,starter,none,75.0,34.0
 DEN,Julian Strawther,rotation,none,66.0,15.0
 DEN,KJ Simpson,fringe,none,12.0,12.0
 DEN,Lonnie Walker IV,fringe,none,,0.0
-DEN,Mark Mitchell Jr.,cut,none,,
 DEN,Marvin Bagley III,rotation,none,68.0,23.0
 DEN,Nikola Jokic,starter,none,75.0,34.0
 DEN,Spencer Jones,rotation,none,66.0,24.0
@@ -172,7 +168,6 @@ DET,Elijah Harkless,fringe,none,,6.0
 DET,Gary Harris,reserve,none,42.0,9.0
 DET,Isaac Jones,fringe,none,,5.4
 DET,Isaiah Joe,rotation,none,67.0,25.0
-DET,Jaden Henley,cut,none,,
 DET,Jalen Duren,starter,none,69.0,29.0
 DET,Javonte Green,rotation,none,53.0,16.0
 DET,John Collins,starter,none,62.0,30.0
@@ -325,7 +320,6 @@ MIA,Giannis Antetokounmpo,starter,none,65.0,31.0
 MIA,Ian Schieffelin,fringe,none,,0.0
 MIA,J'Vonne Hadley,cut,none,,
 MIA,Keshad Johnson,cut,none,,
-MIA,Keyshawn Hall,cut,none,,
 MIA,Klay Thompson,rotation,none,59.0,22.0
 MIA,Myron Gardner,reserve,none,35.0,11.0
 MIA,Nick Richards,reserve,none,45.0,14.0
@@ -350,7 +344,6 @@ MIL,Kasparas Jakucionis,reserve,none,54.0,18.0
 MIL,Kel'el Ware,starter,none,69.0,28.0
 MIL,Kevin Porter Jr.,rotation,none,56.0,22.0
 MIL,Kyle Kuzma,rotation,none,60.0,19.0
-MIL,Malique Lewis,cut,none,,
 MIL,Myles Turner,starter,none,55.0,27.0
 MIL,Nate Ament,reserve,none,44.0,16.0
 MIL,Ousmane Dieng,reserve,none,54.0,18.0
@@ -568,7 +561,6 @@ UTA,Darryn Peterson,starter,none,60.0,29.0
 UTA,Harrison Ingram,fringe,none,,0.0
 UTA,Isaiah Collier,rotation,none,67.0,22.5
 UTA,Jaren Jackson Jr.,starter,none,60.0,31.0
-UTA,Jaxon Kohler,cut,none,,
 UTA,Jaxson Hayes,rotation,none,55.0,15.0
 UTA,John Konchar,cut,none,0.0,0.0
 UTA,Josh Green,rotation,none,57.0,16.0
@@ -577,7 +569,6 @@ UTA,Jusuf Nurkic,starter,none,58.0,29.0
 UTA,Keyonte George,starter,none,72.0,33.0
 UTA,Kyle Filipowski,rotation,none,68.0,21.0
 UTA,Lauri Markkanen,starter,none,68.0,33.0
-UTA,Micah Handlogten,cut,none,,
 UTA,Mo Bamba,reserve,none,15.0,10.0
 UTA,Svi Mykhailiuk,reserve,none,50.0,13.5
 UTA,Tamar Bates,fringe,none,,3.7

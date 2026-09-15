@@ -78,7 +78,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,CHA,Coby White,3,G,6'4,195,02/16/00,26.55,7,2019-07,USA,NC - Goldsboro,North Carolina,Charlotte Hornets,3 yr / $74M,2029,26811593
 2026-27,CHA,Grant Williams,2,F,6'7,235,11/30/98,27.76,7,2019-22,USA,TX - Houston,Tennessee,Charlotte Hornets,4 yr / $53.3M,2027,14265750
 2026-27,CHA,Latrell Wrightsell Jr.,,G,6'3,190,05/18/01,25.30,R,2026-ND,USA,NE - Omaha,Alabama,Alabama,Exhibit 10,,
-2026-27,CHI,Donovan Atwell,21,G,6'5,200,04/27/03,23.19,R,2026-ND,USA,NC - Davidson,Texas Tech,Texas Tech,Exhibit 10,,
+2026-27,FA,Donovan Atwell,21,G,6'5,200,04/27/03,23.19,R,2026-ND,USA,NC - Davidson,Texas Tech,Texas Tech,Exhibit 10,,
 2026-27,CHI,Tobe Awaka,19,F,6'8,260,01/30/04,22.59,R,2026-ND,USA,NY - Poughkeepsie,Arizona,Arizona,Two-Way,,
 2026-27,CHI,Matas Buzelis,14,F,6'8,210,10/13/04,21.89,2,2024-11,"LTU, USA",IL - Chicago,G League Ignite,Chicago Bulls,4 yr / $24M,2027 +1,5715360
 2026-27,CHI,Nic Claxton,9,C,6'11,215,04/17/99,27.39,7,2019-31,USA,SC - Greenville,Georgia,Brooklyn Nets,4 yr / $97M,2028,23147727
@@ -103,7 +103,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,CLE,Tristan Enaruna,21,F,6'7,220,06/26/01,25.19,1,2024-ND,NED,Netherlands - Almere,Cleveland State,Cleveland Cavaliers,Two-Way,,
 2026-27,CLE,James Harden,1,G,6'5,220,08/26/89,37.03,17,2009-03,USA,CA - Compton,Arizona State,Cleveland Cavaliers,3 yr / $97M,2029,
 2026-27,CLE,Mario Hezonja,33,F,6'8,220,02/25/95,31.53,5,2015-05,CRO,Croatia - Dubrovnik,Barcelona (Spain),Real Madrid (Spain),1 yr / $2.8M,2027,2845883
-2026-27,CLE,Xaivian Lee,44,G,6'3,175,03/12/04,22.31,R,2026-ND,CAN,Canada - Toronto,Florida,Florida,Exhibit 10,,
+2026-27,FA,Xaivian Lee,44,G,6'3,175,03/12/04,22.31,R,2026-ND,CAN,Canada - Toronto,Florida,Florida,Exhibit 10,,
 2026-27,CLE,Sam Merrill,5,G,6'4,205,05/15/96,30.31,6,2020-60,USA,IA - Ames,Utah State,Cleveland Cavaliers,4 yr / $38M,2029,9160715
 2026-27,CLE,Riley Minix,12,F,6'7,230,09/22/00,25.95,2,2024-ND,USA,FL - Vero Beach,Morehead State,Cleveland Cavaliers,Two-Way,,
 2026-27,CLE,Donovan Mitchell,45,G,6'2,215,09/07/96,29.99,9,2017-13,USA,NY - Elmsford,Louisville,Cleveland Cavaliers,4 yr / $273M,2030 +1,50105628
@@ -139,7 +139,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,DEN,Marvin Bagley III,3,F,6'1,235,03/14/99,27.48,8,2018-02,USA,AZ - Tempe,Duke,Dallas Mavericks,1 yr / $3.5M,2027,3506659
 2026-27,DEN,Christian Braun,0,G,6'6,220,04/17/01,25.38,4,2022-21,USA,KS - Burlington,Kansas,Denver Nuggets,5 yr / $125M,2031,21551726
 2026-27,DEN,Trevon Brazile,7,F,6'9,225,01/07/03,23.66,R,2026-35,USA,MO - Springfield,Arkansas,Arkansas,4 yr / $9.3M,2029 +1,1357763
-2026-27,DEN,Giovanni Emejuru,,C,6'10,265,12/21/02,23.54,R,2026-ND,"ENG, ITA",England - Loughborough,East Carolina,East Carolina,Exhibit 10,,
+2026-27,FA,Giovanni Emejuru,,C,6'10,265,12/21/02,23.54,R,2026-ND,"ENG, ITA",England - Loughborough,East Carolina,East Carolina,Exhibit 10,,
 2026-27,DEN,Aaron Gordon,32,F,6'8,235,09/16/95,30.97,12,2014-04,USA,CA - San Jose,Arizona,Denver Nuggets,3 yr / $104M,2028 +1,31978037
 2026-27,DEN,DaRon Holmes II,14,F,6'9,225,08/15/02,24.05,1,2024-22,USA,KS - Overland Park,Dayton,Denver Nuggets,4 yr / $15.2M,2027 +1,3372120
 2026-27,DEN,Bryce Hopkins,13,F,6'6,220,09/07/02,23.99,R,2026-49,USA,IL - Downers Grove,St. John's,St. John's,Two-Way,,
@@ -148,7 +148,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,FA,Curtis Jones,1,G,6'3,195,12/04/01,24.58,1,2025-ND,USA,MN - Minneapolis,Iowa State,Denver Nuggets,UFA,,
 2026-27,DEN,Spencer Jones,21,F,6'7,225,06/14/01,25.22,2,2024-ND,USA,KS - Shawnee Mission,Stanford,Denver Nuggets,2 yr / $12M,2028,6000000
 2026-27,DEN,Tyus Jones,,G,6'1,196,05/10/96,30.17,10,2015-24,USA,MN - Apple Valley,Duke,Denver Nuggets,1 yr / $3.9M,2027,3876529
-2026-27,DEN,Mark Mitchell Jr.,,F,6'9,230,09/01/03,22.84,R,2026-ND,USA,KS - Lansing,Missouri,Missouri,Exhibit 10,,
+2026-27,FA,Mark Mitchell Jr.,,F,6'9,230,09/01/03,22.84,R,2026-ND,USA,KS - Lansing,Missouri,Missouri,Exhibit 10,,
 2026-27,DEN,Jamal Murray,27,G,6'4,215,02/23/97,29.53,9,2016-07,CAN,Canada - Kitchener,Kentucky,Denver Nuggets,4 yr / $208M,2029,50105628
 2026-27,DEN,Aaron Nkrumah,,G,6'6,175,11/26/01,24.77,R,2026-ND,USA,MA - Worcester,Tennessee State,Tennessee State,Exhibit 10,,
 2026-27,DEN,Zeke Nnaji,22,F,6'10,240,01/09/01,25.65,6,2020-22,USA,MN - Minneapolis,Arizona,Denver Nuggets,4 yr / $32M,2027 +1,7466667
@@ -161,7 +161,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,DET,Cade Cunningham,2,G,6'6,220,09/25/01,24.94,5,2021-01,USA,TX - Arlington,Oklahoma State,Detroit Pistons,5 yr / $269M,2030,50105628
 2026-27,DET,Jalen Duren,0,C,6'10,250,11/18/03,22.79,4,2022-13,USA,PA - Sharon Hill,Memphis,Detroit Pistons,RFA,,
 2026-27,DET,Javonte Green,31,G,6'5,205,07/23/93,33.12,7,2015-ND,"USA, MNE",VA - Petersburg,Radford,Detroit Pistons,1 yr / $3.9M,2027,3943679
-2026-27,DET,Jaden Henley,39,F,6'7,215,04/24/04,22.19,R,2026-ND,CAN,CA - Baldwin Park,Grand Canyon,Grand Canyon,Exhibit 10,,
+2026-27,FA,Jaden Henley,39,F,6'7,215,04/24/04,22.19,R,2026-ND,CAN,CA - Baldwin Park,Grand Canyon,Grand Canyon,Exhibit 10,,
 2026-27,DET,Ron Holland II,5,F,6'8,205,07/07/05,21.16,2,2024-05,USA,TX - Duncanville,G League Ignite,Detroit Pistons,4 yr / $37.5M,2027 +1,9069600
 2026-27,DET,Kevin Huerter,27,G,6'6,200,08/27/98,28.02,8,2018-19,USA,NY - Albany,Maryland,Detroit Pistons,3 yr / $27M,2028 +1,9507042
 2026-27,DET,Daniss Jenkins,24,G,6'4,165,08/17/01,25.05,2,2024-ND,USA,TX - Dallas,St. John's,Detroit Pistons,2 yr / $7.8M,2027,4000000
@@ -309,7 +309,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,MIA,Myron Gardner,15,F,6'5,220,05/21/01,25.29,1,2023-ND,USA,MI - Detroit,Little Rock,Miami Heat,3 yr / $5.5M,2028,2584539
 2026-27,MIA,Vladislav Goldin,50,C,7'0,250,05/12/01,25.32,1,2025-ND,RUS,Russia - Nalchik,Michigan,Miami Heat,Two-Way,,
 2026-27,MIA,J'Vonne Hadley,,F,6'7,210,04/03/02,24.42,R,2026-ND,USA,MN - St. Paul,Louisville,Louisville,Exhibit 10,,
-2026-27,MIA,Keyshawn Hall,,G,6'6,225,04/09/03,23.24,R,2026-ND,USA,OH - Cleveland,Auburn,Auburn,Exhibit 10,,
+2026-27,FA,Keyshawn Hall,,G,6'6,225,04/09/03,23.24,R,2026-ND,USA,OH - Cleveland,Auburn,Auburn,Exhibit 10,,
 2026-27,MIA,Tim Hardaway Jr.,10,G,6'5,205,03/16/92,34.48,13,2013-24,USA,CA - Alameda,Michigan,Denver Nuggets,1 yr / $6.5M,2027,6065000
 2026-27,MIA,Keshad Johnson,16,F,6'6,225,06/23/01,25.20,2,2024-ND,USA,CA - Oakland,Arizona,Miami Heat,Two-Way,,
 2026-27,MIA,Nikola Jovic,5,F,6'10,205,06/09/03,23.24,4,2022-27,SRB,England - Leicester,Mega Basket (Serbia),Miami Heat,4 yr / $62.4M,2030,16200000
@@ -330,7 +330,7 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,MIL,Kasparas Jakucionis,25,G,6'5,200,05/29/06,20.27,1,2025-20,LTU,Lithuania - Vilnius,Illinois,Miami Heat,4 yr / $17.7M,2027 +2,3841680
 2026-27,MIL,Jaime Jaquez Jr.,24,F,6'6,225,02/18/01,25.54,3,2023-18,USA,CA - Irvine,UCLA,Miami Heat,4 yr / $17M,2027,5939141
 2026-27,MIL,Kyle Kuzma,18,F,6'8,220,07/24/95,31.12,9,2017-27,USA,MI - Flint,Utah,Milwaukee Bucks,4 yr / $90M,2027,19431819
-2026-27,MIL,Malique Lewis,19,F,6'8,195,11/10/04,21.65,R,2026-60,"TTO, ESP",Trinidad - San Fernando,South East Melbourne (Australia),South East Melbourne (Australia),2nd Rd Pick,,
+2026-27,FA,Malique Lewis,19,F,6'8,195,11/10/04,21.65,R,2026-60,"TTO, ESP",Trinidad - San Fernando,South East Melbourne (Australia),South East Melbourne (Australia),2nd Rd Pick,,
 2026-27,MIL,Bogoljub Markovic,23,F,6'11,210,07/12/05,21.15,R,2025-47,SRB,Serbia - Uzice,Mega Basket (Serbia),Mega Basket (Serbia),4 yr / $9.3M,2029 +1,1357763
 2026-27,MIL,Kevin Porter Jr.,7,G,6'5,205,05/04/00,26.34,6,2019-30,USA,WA - Seattle,USC,Milwaukee Bucks,2 yr / $10.5M,2027,5390700
 2026-27,DET,Taurean Prince,12,F,6'6,220,03/22/94,32.46,10,2016-12,USA,TX - San Marcos,Baylor,Milwaukee Bucks,2 yr / $7.1M,2027,3815861
@@ -546,11 +546,11 @@ season,team,player,jersey,pos,height,weight,dob,age,yos,draft,nationality,birthp
 2026-27,UTA,Kyle Filipowski,2,C,6'11,250,11/07/03,22.82,2,2024-32,USA,NY - Middletown,Duke,Utah Jazz,4 yr / $12M,2027 +1,3000000
 2026-27,UTA,Keyonte George,3,G,6'4,185,11/08/03,22.82,3,2023-16,USA,TX - Lewisville,Baylor,Utah Jazz,4 yr / $18.8M,2027,6563925
 2026-27,BOS,Hayden Gray,,G,6'4,190,05/11/03,23.32,1,2025-ND,USA,CA - San Diego,UC San Diego,Utah Jazz,Exhibit 10,,
-2026-27,UTA,Micah Handlogten,88,C,7'1,255,12/17/03,22.55,R,2026-ND,USA,NC - Huntersville,Florida,Florida,Exhibit 10,,
+2026-27,FA,Micah Handlogten,88,C,7'1,255,12/17/03,22.55,R,2026-ND,USA,NC - Huntersville,Florida,Florida,Exhibit 10,,
 2026-27,UTA,Jaxson Hayes,11,C,7'0,220,05/23/00,26.28,7,2019-08,"USA, SLO",OK - Norman,Texas,Los Angeles Lakers,2 yr / $12M,2027 +1,6000000
 2026-27,UTA,Blake Hinson,25,F,6'8,240,12/26/99,26.69,1,2024-ND,USA,FL - Daytona Beach,Pittsburgh,Utah Jazz,Two-Way,,
 2026-27,UTA,Jaren Jackson Jr.,20,C,6'10,240,09/15/99,26.97,8,2018-04,USA,NJ - Plainfield,Michigan State,Utah Jazz,4 yr / $205M,2029 +1,49000000
-2026-27,UTA,Jaxon Kohler,52,C,6'9,245,06/17/03,23.05,R,2026-ND,USA,UT - American Fork,Michigan State,Michigan State,Exhibit 10,,
+2026-27,FA,Jaxon Kohler,52,C,6'9,245,06/17/03,23.05,R,2026-ND,USA,UT - American Fork,Michigan State,Michigan State,Exhibit 10,,
 2026-27,UTA,John Konchar,55,G,6'5,210,03/22/96,30.29,7,2019-ND,USA,IL - Chicago,Purdue Fort Wayne,Utah Jazz,3 yr / $18.5M,2027,6165000
 2026-27,UTA,Lauri Markkanen,23,F,7'1,240,05/22/97,29.29,9,2017-07,FIN,Finland - Vantaa,Arizona,Utah Jazz,4 yr / $196M,2029,46113154
 2026-27,FA,Bez Mbeng,21,G,6'4,185,05/02/03,23.18,1,2025-ND,USA,MD - Potomac,Yale,Utah Jazz,UFA,,
