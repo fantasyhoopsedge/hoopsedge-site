@@ -1,62 +1,62 @@
 team,player,tier,injury,override_games,override_mpg
-ATL,Aaron Wiggins,rotation,none,70.0,17.0
+ATL,Aaron Wiggins,rotation,none,70.0,19.0
 ATL,Asa Newell,rotation,none,55.0,11.0
 ATL,Buddy Hield,cut,none,,
 ATL,CJ McCollum,starter,none,68.0,29.0
 ATL,Corey Kispert,reserve,none,55.0,12.0
-ATL,Devin Carter,reserve,none,30.0,10.0
+ATL,Devin Carter,cut,none,0.0,0.0
 ATL,Dyson Daniels,starter,none,70.0,32.0
 ATL,Henri Veesaar,reserve,none,15.0,5.0
 ATL,Isaac McKneely,cut,none,,
 ATL,Jalen Johnson,starter,none,70.0,34.0
 ATL,Jalen Wilson,fringe,none,,0.1
-ATL,Jock Landale,rotation,none,58.0,16.0
+ATL,Jock Landale,rotation,none,58.0,18.0
 ATL,Keshon Gilbert,fringe,none,,0.0
-ATL,Kingston Flemings,rotation,none,72.0,20.0
+ATL,Kingston Flemings,rotation,none,72.0,21.0
 ATL,Luguentz Dort,rotation,none,,24.0
-ATL,Mouhamed Gueye,reserve,short_term,,15.0
+ATL,Mouhamed Gueye,reserve,long_term,15.0,15.0
 ATL,Nickeil Alexander-Walker,starter,none,70.0,33.0
-ATL,Onyeka Okongwu,starter,none,,30.0
+ATL,Onyeka Okongwu,starter,none,73.0,30.0
 ATL,RayJ Dennis,fringe,none,,0.0
 ATL,Ryan Nembhard,rotation,none,55.0,12.0
-ATL,Zuby Ejiofor,reserve,none,45.0,16.0
+ATL,Zuby Ejiofor,reserve,none,51.0,18.0
 BKN,Ben Humrichous,cut,none,,
-BKN,Ben Saraf,reserve,none,,9.3
+BKN,Ben Saraf,reserve,none,45.0,9.3
 BKN,Chaney Johnson,fringe,none,,4.8
-BKN,Danny Wolf,rotation,none,,14.0
+BKN,Danny Wolf,rotation,none,58.0,14.0
 BKN,Day'Ron Sharpe,starter,none,64.0,27.0
 BKN,Dion Brown,cut,none,,
-BKN,Drake Powell,reserve,none,,9.3
+BKN,Drake Powell,reserve,none,25.0,9.3
 BKN,Egor Demin,starter,none,75.0,30.0
-BKN,Josh Minott,rotation,none,,16.0
-BKN,Joshua Jefferson,reserve,none,,8.7
+BKN,Josh Minott,rotation,none,47.0,16.0
+BKN,Joshua Jefferson,reserve,none,49.0,8.7
 BKN,Julius Randle,starter,none,73.0,33.0
 BKN,Keon Ellis,rotation,none,70.0,20.0
 BKN,Michael Porter Jr.,starter,none,62.0,32.0
 BKN,Mikel Brown Jr.,starter,none,72.0,27.0
-BKN,Moritz Wagner,rotation,none,,13.0
-BKN,Nick Pringle,fringe,none,,
+BKN,Moritz Wagner,rotation,none,44.0,13.0
+BKN,Nick Pringle,fringe,none,,0.0
 BKN,Noah Clowney,rotation,none,69.0,26.0
-BKN,Nolan Traore,rotation,none,70.0,22.0
+BKN,Nolan Traore,rotation,none,70.0,23.0
 BKN,Terance Mann,rotation,none,65.0,18.0
 BKN,Tyler Bilodeau,fringe,none,,4.1
-BOS,Amari Williams,fringe,none,,4.1
+BOS,Amari Williams,fringe,none,22.0,4.1
 BOS,Baylor Scheierman,rotation,none,72.0,20.0
-BOS,Chris Cenac Jr.,reserve,none,,9.2
+BOS,Chris Cenac Jr.,reserve,none,44.0,9.2
 BOS,Derrick White,starter,none,73.0,33.0
-BOS,Dillon Mitchell,reserve,none,,9.2
+BOS,Dillon Mitchell,reserve,none,40.0,9.2
 BOS,Hayden Gray,cut,none,,
 BOS,Hugo Gonzalez,rotation,none,74.0,20.0
 BOS,Jayson Tatum,starter,none,68.0,33.0
 BOS,Jordan Walsh,rotation,none,70.0,15.0
-BOS,Luka Garza,reserve,none,,8.1
-BOS,Mike Conley Jr.,reserve,none,,10.2
+BOS,Luka Garza,reserve,none,55.0,8.1
+BOS,Mike Conley Jr.,reserve,none,50.0,10.2
 BOS,Milos Uzan,cut,none,,
 BOS,Mitchell Robinson,rotation,none,50.0,19.0
 BOS,Neemias Queta,starter,none,73.0,25.0
 BOS,Paul George,starter,none,68.0,32.0
-BOS,Payton Pritchard,starter,none,77.0,32.0
-BOS,Ron Harper Jr.,reserve,none,,9.4
+BOS,Payton Pritchard,starter,none,75.0,31.0
+BOS,Ron Harper Jr.,reserve,none,38.0,9.4
 BOS,Sam Hauser,rotation,none,73.0,24.0
 BOS,Tucker DeVries,cut,none,,
 CHA,Brandon Miller,starter,none,73.0,32.0
@@ -101,27 +101,27 @@ CHI,Rob Dillingham,reserve,none,50.0,17.0
 CHI,Tobe Awaka,fringe,none,,7.0
 CHI,Tre Jones,rotation,none,68.0,27.0
 CHI,Zach Collins,rotation,none,40.0,19.0
-CLE,Craig Porter Jr.,reserve,none,60.0,11.0
+CLE,Craig Porter Jr.,reserve,none,60.0,13.0
 CLE,Donovan Mitchell,starter,none,70.0,34.0
 CLE,Ernest Udeh Jr.,fringe,none,,8.0
 CLE,Evan Mobley,starter,none,68.0,33.0
 CLE,James Harden,starter,none,70.0,33.0
-CLE,Jarrett Allen,starter,none,,30.0
-CLE,Jaylon Tyson,rotation,none,75.0,26.0
-CLE,Mario Hezonja,fringe,none,55.0,21.5
-CLE,Meleek Thomas,rotation,none,44.0,15.0
-CLE,Nae'Qwan Tomlin,rotation,none,59.0,19.0
+CLE,Jarrett Allen,starter,none,67.0,30.0
+CLE,Jaylon Tyson,rotation,none,75.0,27.0
+CLE,Mario Hezonja,reserve,none,50.0,20.0
+CLE,Meleek Thomas,rotation,none,52.0,16.0
+CLE,Nae'Qwan Tomlin,rotation,none,59.0,18.0
 CLE,Peyton Watson,starter,none,65.0,30.0
 CLE,Rashaun Agee,cut,none,,
 CLE,Riley Minix,fringe,none,,7.0
-CLE,Sam Merrill,rotation,none,63.0,27.0
-CLE,Thomas Bryant,rotation,none,56.0,14.0
+CLE,Sam Merrill,rotation,none,64.0,27.0
+CLE,Thomas Bryant,rotation,none,56.0,13.0
 CLE,Tristan Enaruna,fringe,none,,6.0
 CLE,Tyrese Proctor,reserve,none,,10.0
 DAL,Caleb Martin,reserve,none,40.0,11.0
 DAL,Cooper Flagg,starter,none,74.0,34.0
 DAL,Daniel Gafford,rotation,none,45.0,20.0
-DAL,Dereck Lively,rotation,long_term,,22.0
+DAL,Dereck Lively,rotation,long_term,20.0,22.0
 DAL,Jett Howard,fringe,none,16.0,5.0
 DAL,John Poulakidas,fringe,none,12.0,5.0
 DAL,Kyrie Irving,starter,none,61.0,33.0
@@ -130,13 +130,13 @@ DAL,Max Christie,starter,none,75.0,29.5
 DAL,Morez Johnson Jr.,starter,none,65.0,28.0
 DAL,Moussa Cisse,reserve,none,28.0,13.0
 DAL,Naji Marshall,rotation,none,73.0,27.0
-DAL,P.J. Washington,starter,none,,32.0
-DAL,Santi Aldama,rotation,none,61.0,27.0
+DAL,P.J. Washington,starter,none,62.0,32.0
+DAL,Santi Aldama,rotation,none,63.0,27.0
 DAL,Sergio de Larrea,reserve,none,52.0,19.0
 DAL,Tarik Biberovic,reserve,none,30.0,10.0
 DAL,Tobi Lawal,fringe,none,8.0,5.0
 DAL,Vsevolod Ishchenko,fringe,none,0.0,0.0
-DAL,Zaccharie Risacher,rotation,none,,23.0
+DAL,Zaccharie Risacher,rotation,none,63.0,23.0
 DEN,Aaron Gordon,starter,short_term,55.0,27.0
 DEN,Aaron Nkrumah,fringe,none,,0.0
 DEN,Alpha Diallo,reserve,none,29.0,8.0
@@ -164,7 +164,7 @@ DET,Daniss Jenkins,rotation,none,65.0,24.0
 DET,Drake Allen,cut,none,,
 DET,Duncan Robinson,starter,none,67.0,27.0
 DET,Ebuka Okorie,reserve,none,52.0,15.0
-DET,Elijah Harkless,fringe,none,,6.0
+DET,Elijah Harkless,fringe,none,12.0,6.0
 DET,Gary Harris,reserve,none,42.0,9.0
 DET,Isaac Jones,fringe,none,,5.4
 DET,Isaiah Joe,rotation,none,67.0,23.0
@@ -179,41 +179,41 @@ DET,Tolu Smith III,cut,none,,0.0
 DET,Ugonna Onyenso,fringe,none,,5.7
 GSW,Al Horford,rotation,none,45.0,22.0
 GSW,Brandin Podziemski,starter,none,78.0,31.0
-GSW,Brandon Williams,fringe,none,,0.0
+GSW,Brandon Williams,reserve,none,58.0,19.0
 GSW,Charles Bassey,reserve,none,45.0,15.0
-GSW,Dalen Terry,fringe,none,,0.0
+GSW,Dalen Terry,reserve,none,27.0,8.0
 GSW,De'Anthony Melton,rotation,none,60.0,27.0
-GSW,Draymond Green,starter,none,75.0,28.0
+GSW,Draymond Green,starter,none,68.0,28.0
 GSW,Gary Payton II,rotation,none,65.0,18.5
-GSW,Georges Niang,fringe,none,,0.0
+GSW,Georges Niang,fringe,none,18.0,8.0
 GSW,Graham Ike,cut,none,,
-GSW,Gui Santos,starter,none,,29.0
-GSW,Jimmy Butler,rotation,long_term,15.0,28.0
-GSW,Kristaps Porzingis,starter,none,62.0,29.0
-GSW,LJ Cryer,fringe,none,30.0,14.0
+GSW,Gui Santos,starter,none,65.0,27.0
+GSW,Jimmy Butler,rotation,long_term,15.0,30.0
+GSW,Kristaps Porzingis,starter,none,55.0,28.0
+GSW,LJ Cryer,fringe,none,30.0,9.0
 GSW,Lajae Jones,cut,none,,
-GSW,Malevy Leons,fringe,none,,5.0
+GSW,Malevy Leons,cut,none,,0.0
 GSW,Moses Moody,rotation,long_term,15.0,25.0
 GSW,Nick Boyd,cut,none,,
-GSW,Stephen Curry,starter,none,68.0,32.0
-GSW,Will Richard,rotation,none,,22.0
-GSW,Yaxel Lendeborg,rotation,none,70.0,28.0
-HOU,Alperen Sengun,starter,none,,34.0
-HOU,Amen Thompson,starter,none,,33.0
-HOU,Bogdan Bogdanovic,reserve,none,,12.0
+GSW,Stephen Curry,starter,none,65.0,32.0
+GSW,Will Richard,rotation,none,65.0,18.0
+GSW,Yaxel Lendeborg,rotation,none,70.0,27.5
+HOU,Alperen Sengun,starter,none,72.0,34.0
+HOU,Amen Thompson,starter,none,74.0,33.0
+HOU,Bogdan Bogdanovic,reserve,none,35.0,13.0
 HOU,Bruce Thornton,rotation,none,52.0,13.0
-HOU,Clint Capela,reserve,none,,12.0
-HOU,Fred VanVleet,starter,none,60.0,31.0
+HOU,Clint Capela,reserve,none,64.0,14.0
+HOU,Fred VanVleet,starter,none,62.0,30.0
 HOU,Isaiah Crawford,cut,none,,
-HOU,Jabari Smith Jr.,starter,none,,32.0
+HOU,Jabari Smith Jr.,starter,none,71.0,32.0
 HOU,Jae'Sean Tate,reserve,none,35.0,9.0
 HOU,Julian Phillips,fringe,none,10.0,5.0
-HOU,Kevin Durant,starter,none,,35.0
+HOU,Kevin Durant,starter,none,69.0,35.0
 HOU,Marcus Smart,rotation,none,52.0,25.0
 HOU,Oscar Tshiebwe,reserve,none,24.0,9.0
 HOU,Quadir Copeland,fringe,none,,5.0
 HOU,Rafael Castro,fringe,none,8.0,5.0
-HOU,Reed Sheppard,rotation,none,,28.0
+HOU,Reed Sheppard,rotation,none,73.0,28.0
 HOU,Sean Pedulla,fringe,none,,3.2
 HOU,Steven Adams,rotation,short_term,41.0,18.0
 HOU,Tari Eason,rotation,none,60.0,26.0
@@ -268,48 +268,48 @@ LAL,Adou Thiero,reserve,none,,11.0
 LAL,Arthur Kaluma,fringe,none,,0.0
 LAL,Austin Reaves,starter,none,66.0,33.0
 LAL,Bronny James,reserve,none,,11.0
-LAL,Cameron Carr,rotation,none,50.0,15.0
+LAL,Cameron Carr,rotation,none,60.0,15.0
 LAL,Chase Ross,cut,none,,
 LAL,Chris Manon,fringe,none,,5.5
-LAL,Collin Sexton,rotation,none,,25.0
+LAL,Collin Sexton,rotation,none,69.0,25.0
 LAL,Dalton Knecht,reserve,none,35.0,9.0
 LAL,Jaden Hardy,reserve,none,32.0,10.0
-LAL,Jake LaRavia,rotation,none,,24.0
-LAL,Jarred Vanderbilt,rotation,none,,16.0
-LAL,Kevon Looney,rotation,none,,16.0
+LAL,Jake LaRavia,rotation,none,74.0,24.0
+LAL,Jarred Vanderbilt,reserve,none,54.0,16.0
+LAL,Kevon Looney,rotation,none,45.0,16.0
 LAL,Luka Doncic,starter,none,68.0,35.0
-LAL,Matisse Thybulle,reserve,none,48.0,15.0
+LAL,Matisse Thybulle,rotation,none,52.0,22.0
 LAL,Quentin Grimes,starter,none,72.0,30.0
 LAL,Robbie Avila,cut,none,,
 LAL,Robert McCray V,cut,none,,
-LAL,Sandro Mamukelashvili,starter,none,,27.0
+LAL,Sandro Mamukelashvili,starter,none,70.0,27.0
 LAL,Walker Kessler,starter,none,58.0,28.0
 LAL,William Kyle III,cut,none,,
-LAL,Ziaire Williams,rotation,none,61.0,18.4
+LAL,Ziaire Williams,rotation,none,61.0,17.0
 MEM,AJ Johnson,cut,none,0.0,0.0
-MEM,Cam Spencer,rotation,none,,24.0
+MEM,Cam Spencer,rotation,none,65.0,24.0
 MEM,Cameron Boozer,starter,none,75.0,30.0
 MEM,Carson Cooper,cut,none,0.0,
-MEM,Cedric Coward,starter,none,72.0,28.0
+MEM,Cedric Coward,starter,none,70.0,28.0
 MEM,D'Angelo Russell,cut,none,,
-MEM,GG Jackson II,reserve,none,,15.0
-MEM,Isaiah Stewart,rotation,none,70.0,25.0
+MEM,GG Jackson II,reserve,none,44.0,15.0
+MEM,Isaiah Stewart,rotation,none,68.0,25.0
 MEM,Jahmai Mashack,fringe,none,20.0,5.0
 MEM,Javon Small,reserve,none,45.0,14.0
-MEM,Jaylen Wells,rotation,none,74.0,26.0
+MEM,Jaylen Wells,rotation,none,71.0,25.0
 MEM,Jerami Grant,starter,none,55.0,28.0
 MEM,Karim Lopez,fringe,none,18.0,6.0
 MEM,Kris Murray,cut,none,5.0,14.0
-MEM,Olivier-Maxence Prosper,reserve,none,55.0,14.0
-MEM,Quinten Post,rotation,none,,16.0
+MEM,Olivier-Maxence Prosper,reserve,none,49.0,14.0
+MEM,Quinten Post,rotation,none,56.0,15.0
 MEM,Richie Saunders,fringe,long_term,0.0,0.0
-MEM,Scotty Pippen Jr.,rotation,none,58.0,28.0
+MEM,Scotty Pippen Jr.,rotation,none,58.0,27.0
 MEM,Taj Gibson,cut,none,0.0,
-MEM,Taylor Hendricks,reserve,none,,10.0
+MEM,Taylor Hendricks,reserve,none,30.0,10.0
 MEM,Ty Jerome,starter,none,65.0,28.0
-MEM,Walter Clayton Jr.,fringe,short_term,,12.0
+MEM,Walter Clayton Jr.,fringe,short_term,49.0,12.0
 MEM,Zach Cleveland,cut,none,0.0,
-MEM,Zach Edey,starter,none,62.0,29.0
+MEM,Zach Edey,starter,none,60.0,29.0
 MIA,Andrew Wiggins,starter,none,70.0,32.0
 MIA,Bam Adebayo,starter,none,72.0,33.0
 MIA,Bobby Portis,rotation,none,66.0,24.0
@@ -408,16 +408,16 @@ NYK,Pacome Dadiet,reserve,none,32.0,8.0
 NYK,Tyler Kolek,reserve,none,57.0,12.0
 NYK,Tyler Nickel,fringe,none,,8.0
 OKC,Aday Mara,rotation,none,20.0,14.0
-OKC,Ajay Mitchell,rotation,none,68.0,30.0
-OKC,Alex Caruso,rotation,none,58.0,22.0
+OKC,Ajay Mitchell,rotation,none,67.0,30.0
+OKC,Alex Caruso,rotation,none,54.0,22.0
 OKC,Bennett Stirtz,reserve,none,40.0,14.0
 OKC,Brooks Barnhizer,fringe,none,,12.0
-OKC,Cason Wallace,starter,none,73.0,30.5
+OKC,Cason Wallace,starter,none,71.0,30.5
 OKC,Chet Holmgren,starter,none,69.0,30.5
 OKC,Isaiah Hartenstein,starter,none,62.0,26.0
 OKC,Jalen Williams,starter,none,60.0,30.5
-OKC,Jared McCain,rotation,none,66.0,26.0
-OKC,Jaylin Williams,rotation,none,65.0,20.0
+OKC,Jared McCain,rotation,none,65.0,24.0
+OKC,Jaylin Williams,rotation,none,63.0,19.0
 OKC,Josh Dix,fringe,none,,8.0
 OKC,Kenrich Williams,reserve,none,54.0,18.0
 OKC,Lamar Wilkerson,cut,none,,
@@ -447,17 +447,17 @@ ORL,Tristan Da Silva,rotation,none,65.0,23.0
 ORL,Wendell Carter Jr.,starter,none,68.0,25.0
 PHI,Adem Bona,rotation,none,63.0,18.0
 PHI,Anfernee Simons,rotation,none,64.0,23.0
-PHI,Ariel Hukporti,reserve,none,,13.0
-PHI,Caleb Love,reserve,none,43.0,8.0
+PHI,Ariel Hukporti,reserve,none,44.0,13.0
+PHI,Caleb Love,fringe,none,43.0,8.0
 PHI,Dean Wade,rotation,none,71.0,22.0
-PHI,Dominick Barlow,rotation,none,59.0,20.0
+PHI,Dominick Barlow,rotation,none,62.0,20.0
 PHI,Duke Miles,fringe,none,,0.0
 PHI,Jabari Walker,reserve,none,43.0,9.0
 PHI,Jaylen Brown,starter,none,71.0,34.0
 PHI,Joel Embiid,starter,none,49.0,30.0
 PHI,Justin Edwards,reserve,none,38.0,12.0
 PHI,Kentavious Caldwell-Pope,reserve,none,58.0,21.0
-PHI,Labaron Philon Jr.,rotation,none,,15.0
+PHI,Labaron Philon Jr.,rotation,none,57.0,15.0
 PHI,LeBron James,starter,none,62.0,31.0
 PHI,Rayan Rupert,fringe,none,,0.0
 PHI,Tyrese Maxey,starter,none,70.0,35.0
@@ -535,26 +535,26 @@ SAS,Tarris Reed Jr.,rotation,none,56.0,15.0
 SAS,Tobias Harris,starter,none,68.0,28.0
 SAS,Victor Wembanyama,starter,none,65.0,30.5
 TOR,Alijah Martin,reserve,none,44.0,12.0
-TOR,Allen Graves,rotation,none,65.0,23.0
-TOR,Andre Jackson Jr.,fringe,none,,
+TOR,Allen Graves,rotation,none,66.0,23.0
+TOR,Andre Jackson Jr.,fringe,none,,0.0
 TOR,Chucky Hepburn,fringe,none,,9.0
-TOR,Collin Murray-Boyles,starter,none,72.0,29.5
-TOR,Immanuel Quickley,starter,none,,33.0
+TOR,Collin Murray-Boyles,starter,none,72.0,30.0
+TOR,Immanuel Quickley,starter,none,64.0,31.0
 TOR,Ja'Kobe Walter,rotation,none,66.0,23.0
 TOR,Jaden Bradley,fringe,none,,9.0
 TOR,Jakob Poeltl,rotation,none,56.0,24.0
-TOR,Jamal Shead,rotation,none,69.0,23.0
+TOR,Jamal Shead,rotation,none,70.0,23.0
 TOR,Jamison Battle,reserve,none,67.0,13.0
-TOR,Kawhi Leonard,starter,none,63.0,32.0
+TOR,Kawhi Leonard,starter,none,60.0,34.0
 TOR,Kyle Anderson,rotation,none,49.0,15.0
-TOR,Malachi Smith,fringe,none,,
-TOR,Nate Bittle,fringe,none,,0.0
+TOR,Malachi Smith,fringe,none,,0.0
+TOR,Nate Bittle,reserve,none,12.0,7.0
 TOR,Nimari Burnett,cut,none,,
-TOR,RJ Barrett,starter,none,71.0,31.0
-TOR,Scottie Barnes,starter,none,73.0,34.0
+TOR,RJ Barrett,starter,none,71.0,32.0
+TOR,Scottie Barnes,starter,none,73.0,34.5
 TOR,Trayce Jackson-Davis,reserve,none,46.0,10.0
 TOR,Trey Jemison,cut,none,,
-UTA,Ace Bailey,rotation,none,66.0,29.0
+UTA,Ace Bailey,rotation,none,66.0,28.0
 UTA,Blake Hinson,fringe,none,,4.4
 UTA,Brice Sensabaugh,rotation,none,65.0,23.5
 UTA,Darryn Peterson,starter,none,60.0,29.0
@@ -565,7 +565,7 @@ UTA,Jaxson Hayes,rotation,none,55.0,15.0
 UTA,John Konchar,cut,none,0.0,0.0
 UTA,Josh Green,rotation,none,57.0,16.0
 UTA,Josh Okogie,reserve,none,56.0,16.0
-UTA,Jusuf Nurkic,starter,none,58.0,29.0
+UTA,Jusuf Nurkic,starter,none,58.0,28.0
 UTA,Keyonte George,starter,none,72.0,33.0
 UTA,Kyle Filipowski,rotation,none,68.0,21.0
 UTA,Lauri Markkanen,starter,none,68.0,33.0
@@ -578,8 +578,8 @@ WAS,AJ Dybantsa,starter,none,68.0,31.0
 WAS,Alex Sarr,starter,none,65.0,29.0
 WAS,Alondes Williams,cut,none,,
 WAS,Anthony Davis,starter,none,50.0,31.0
-WAS,Bilal Coulibaly,rotation,none,59.0,25.0
-WAS,Bub Carrington,rotation,none,65.0,19.0
+WAS,Bilal Coulibaly,rotation,none,55.0,25.0
+WAS,Bub Carrington,rotation,none,62.0,19.0
 WAS,Cam Whitmore,cut,none,0.0,9.0
 WAS,Deandre Ayton,rotation,none,63.0,18.0
 WAS,Felix Okpara,fringe,none,,6.0
@@ -587,10 +587,10 @@ WAS,Jamir Watkins,reserve,long_term,0.0,0.0
 WAS,Julian Reese,fringe,none,,8.0
 WAS,Justin Champagnie,rotation,none,,16.5
 WAS,KeShawn Murphy,cut,none,,
-WAS,Khris Middleton,rotation,none,50.0,20.0
+WAS,Khris Middleton,rotation,none,48.0,20.0
 WAS,Kyshawn George,starter,none,67.0,31.0
 WAS,Trae Young,starter,none,59.0,33.0
 WAS,Tre Johnson,rotation,none,65.0,26.0
 WAS,Tre Mann,fringe,none,28.0,10.0
 WAS,Tristan Vukcevic,reserve,none,50.0,15.0
-WAS,Will Riley,rotation,none,66.0,24.0
+WAS,Will Riley,rotation,none,63.0,24.0
